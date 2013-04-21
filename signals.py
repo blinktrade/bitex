@@ -52,3 +52,4 @@ class Signal():
         logging.critical(error)
 
     return sent
+

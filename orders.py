@@ -1,15 +1,19 @@
 __author__ = 'rodrigo'
 
-last_order_id = 1
+
 
 from users import  has_margin
 from execution import  OrderMatcher
 import datetime
 from errors import OrderNotFound
 from execution import  ExecutionReport
+from account import  Account
 
 class Order(object):
+  last_order_id   = 0
+
   user_id         = None
+  account_id      = None
   id              = None
   client_order_id = None
   status          = None
@@ -24,6 +28,7 @@ class Order(object):
   last_price      = 0
   last_qty        = 0
   average_price   = 0
+  cxl_qty         = 0
 
 
   def __cmp__(self, other):
@@ -55,6 +60,35 @@ class Order(object):
         return min( execute_qty, other.leaves_qty)
     return  0
 
+  def get_available_qty_to_execute(self, side, qty, price):
+    """This function returns qty that are available for execution
+    """
+    account = Account.get_by_id( self.account_id )
+    if side == '1' : # buy
+      qty_to_buy = min( qty, (account.balance_brl/price) )
+      return qty_to_buy
+    elif side == '2': # Sell
+      qty_to_sell = min( qty, account.balance_btc )
+      return qty_to_sell
+    return  qty
+
+  def cancel_qty(self, qty):
+    if qty == 0:
+      return
+    self.cxl_qty += qty
+    self.leaves_qty -= qty
+    self._adjust_status()
+
+  def _adjust_status(self):
+    if self.cum_qty == self.order_qty:
+      self.status = '2' # Fill
+    elif self.cum_qty + self.cxl_qty == self.order_qty :
+      self.status = '4' # Canceled
+    elif 0 < self.cum_qty < self.order_qty :
+      self.status = '1' # Partial fill
+    else:
+      self.status = '0' # New Order
+
   def execute(self, qty, price):
     if qty == 0:
       return
@@ -64,13 +98,7 @@ class Order(object):
     self.leaves_qty -= qty
     self.last_price = price
     self.last_qty = qty
-
-    if self.cum_qty == self.order_qty:
-      self.status = '2' # Fill
-    else:
-      self.status = '1' # Partial fill
-
-    return
+    self._adjust_status()
 
   @property
   def has_leaves_qty(self):
@@ -91,13 +119,13 @@ class Order(object):
     return  self.side == '2'
 
   @staticmethod
-  def create( user_id, client_order_id, symbol, side, type, price, qty ):
-    global last_order_id
-    last_order_id +=  1
+  def create( user_id, account_id, client_order_id, symbol, side, type, price, qty ):
+    Order.last_order_id +=  1
 
     order = Order()
     order.user_id         = user_id
-    order.id              = last_order_id
+    order.account_id      = account_id
+    order.id              = Order.last_order_id
     order.client_order_id = client_order_id
     order.status          = '0'  # New_Order
     order.symbol          = symbol
@@ -110,6 +138,8 @@ class Order(object):
     order.created         = datetime.datetime.now()
     return  order
 
+
+
   @staticmethod
   def get_order( order_id, original_client_order_id, client_order_id ):
     return  None
@@ -120,14 +150,11 @@ class Order(object):
 
 
 def process_new_order_single(user_id, client_order_id, symbol, side, order_type, price, order_quantity):
+  # TODO: get the user account
+  account_id = user_id
+
   # create a new order
-  order = Order.create( user_id, client_order_id, symbol, side, order_type, price, order_quantity )
-
-  if not has_margin(user_id, order):
-    order.status = '4'  #Canceled
-    order.save()
-    return  order
-
+  order = Order.create( user_id, account_id, client_order_id, symbol, side, order_type, price, order_quantity )
   OrderMatcher.get(symbol).match(order)
 
   return order

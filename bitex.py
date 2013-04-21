@@ -7,7 +7,9 @@ import tornado.web
 import tornado.httpserver
 import tornado.template
 
+from orders import Order
 from users import authenticate
+from execution import  OrderMatcher
 from message import  PublicClientMessage, LoggedClientMessage
 from orders import  process_new_order_single
 
@@ -27,7 +29,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
     super(TradeConnectionWS, self).__init__(application, request, **kwargs)
     self.is_logged = 0
-    self.client_id = None
+    self.user = None
 
   def on_message(self, raw_message):
     msg = LoggedClientMessage(raw_message)
@@ -43,12 +45,20 @@ class TradeConnectionWS(websocket.WebSocketHandler):
         return
 
       # Authenticate the user
-      self.client_id = authenticate(msg.get('Username'),msg.get('Password'))
-      if not self.client_id:
+      self.user = authenticate(msg.get('Username'),msg.get('Password'))
+      if not self.user:
+        # TODO: improve security.
+        # Block the user accounts after 3 attempts
+        # close the all connections from the blocked user
+        # Block the ip for 24hs
         self.close()
         return
 
       self.is_logged = True
+
+      # TODO: subscribe to receive all execution reports for this user account.
+
+      return
 
 
     if msg.type == '0':  # Heartbeat
@@ -58,16 +68,16 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
     elif msg.type == 'D':  # New Order Single
       # process the new order.
-      order = process_new_order_single( self.client_id,
-                                        msg.get('ClOrdID'),
-                                        msg.get('Symbol'),
-                                        msg.get('Side'),
-                                        msg.get('OrdType'),
-                                        msg.get('Price'),
-                                        msg.get('OrderQty'))
+      order = Order.create( self.user.id,
+                            self.user.get_account_id(),
+                            msg.get('ClOrdID'),
+                            msg.get('Symbol'),
+                            msg.get('Side'),
+                            msg.get('OrdType'),
+                            msg.get('Price'),
+                            msg.get('OrderQty') )
 
-
-      # TODO: send an execution report to the user
+      OrderMatcher.get(msg.get('Symbol')).match(order)
 
       return
 

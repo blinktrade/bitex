@@ -1,93 +1,50 @@
 __author__ = 'rodrigo'
 
 import bisect
-from signal import Signal
-
-import doctest
+from signals import Signal
 
 matcher_dict  = {}
 
+execution_report_signal = Signal()
+
 class ExecutionReport(object):
-  def __init__(self, symbol,  ):
-    pass
+  execution_id_generator = 0
+  def __init__(self, order, side):
+    ExecutionReport.execution_id_generator += 1
+    self.execution_id = ExecutionReport.execution_id_generator
+
+    self.order_id = order.id
+    self.client_order_id = order.client_order_id
+    if order.has_leaves_qty and order.cum_qty == 0:
+      self.execution_type  = '0'  # New
+    elif order.has_leaves_qty and order.cum_qty > 0 :
+      self.execution_type  = '1'  # Partial fill
+    elif not order.has_leaves_qty and (order.cum_qty == order.order_qty ) :
+      self.execution_type  = '2'  # fill
+    else :
+      self.execution_type  = '4'  # Cancel
+
+    self.order_status = order.status
+    self.symbol = order.symbol
+    self.side = side
+    self.last_price = order.last_price
+    self.last_shares = order.last_qty
+    self.leaves_qty = order.leaves_qty
+
+  def __str__(self):
+    return '{ "OrderID":"%s", "ClOrdID":"%s", "ExecID":"%s", "ExecType":"%s",' \
+           ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":"%s", ' \
+           ' "LastShares":"%s", "LeavesQty":"%s" }' \
+            % ( self.order_id, self.client_order_id, self.execution_id, self.execution_type,
+                self.order_status, self.symbol, self.side, self.last_price,
+                self.last_shares, self.leaves_qty)
+
+
+def on_execution_report(sender, rpt):
+  print str(rpt)
+
 
 class OrderMatcher(object):
-  """
-  >>> from orders import *
-  >>>
-  >>> from execution import  *
-  >>> om = OrderMatcher.get('BRLBTC')
-  >>>
-  >>> o1 = Order.create('a','10', 'BRLBTC', '1','2',100,1)
-  >>> o2 = Order.create('a','10', 'BRLBTC', '1','2',99,2)
-  >>> o3 = Order.create('a','10', 'BRLBTC', '1','2',98,5)
-  >>>
-  >>> om.match(o3)
-  >>> om.match(o1)
-  >>> om.match(o2)
-  >>> print str(om)
-  -
-  2: - 100.000000 - 1
-  3: - 99.000000 - 2
-  4: - 98.000000 - 5
-  >>> o4 = Order.create('a','10', 'BRLBTC', '2','2',101,5)
-  >>> o5 = Order.create('a','10', 'BRLBTC', '2','2',102,2)
-  >>> o6 = Order.create('a','10', 'BRLBTC', '2','2',103,1)
-  >>> om.match(o6)
-  >>> om.match(o5)
-  >>> om.match(o4)
-  >>> print om
-  7: - 103.000000 - 1
-  6: - 102.000000 - 2
-  5: - 101.000000 - 5
-  -
-  2: - 100.000000 - 1
-  3: - 99.000000 - 2
-  4: - 98.000000 - 5
-  >>> #create a buy order order that will partially fill o4
-  >>> o7 = Order.create('a','10', 'BRLBTC', '1','2',101,1)
-  >>> om.match(o7)
-  >>> assert o7.has_leaves_qty == False
-  >>> assert o7.cum_qty == o7.order_qty  # fully executed
-  >>> print om
-  7: - 103.000000 - 1
-  6: - 102.000000 - 2
-  5: - 101.000000 - 4
-  -
-  2: - 100.000000 - 1
-  3: - 99.000000 - 2
-  4: - 98.000000 - 5
-  >>> assert o4.has_leaves_qty == True
-  >>> assert o4.cum_qty == o4.order_qty - o4.leaves_qty
-  >>> assert o4.leaves_qty == 4
-  >>> # create a buy order that will fully fill o4
-  >>> o8 = Order.create('a','10', 'BRLBTC', '1','2',101,10)
-  >>> om.match(o8)
-  >>> assert o8.has_leaves_qty == True
-  >>> assert o8.cum_qty == o8.order_qty - o8.leaves_qty
-  >>> assert o8.leaves_qty == 6
-  >>> assert o4.has_leaves_qty == False
-  >>> assert o4.cum_qty == o4.order_qty  # fully executed
-  >>> print om
-  7: - 103.000000 - 1
-  6: - 102.000000 - 2
-  -
-  9: - 101.000000 - 6
-  2: - 100.000000 - 1
-  3: - 99.000000 - 2
-  4: - 98.000000 - 5
-  >>>
-  >>> # create a sell order that will fully fill o8, o1 and partially fill o2
-  >>> o9 = Order.create('a','10', 'BRLBTC', '2','2',99,8)
-  >>> om.match(o9)
-  >>> print om
-  7: - 103.000000 - 1
-  6: - 102.000000 - 2
-  -
-  3: - 99.000000 - 1
-  4: - 98.000000 - 5
-  """
-
   def __init__(self, symbol ):
     self.symbol = symbol
     self.buy_side = []
@@ -114,42 +71,119 @@ class OrderMatcher(object):
 
     # get all executions
     executed_orders = []
+    cancelled_order = {}
     total_executed_qty = 0
+    total_cancelled_qty = 0
     for x in xrange(0, len(other_side)):
       counter_order = other_side[x]
+
+      # Cancel this order if both orders belong to the same client
+      if order.account_id == counter_order.account_id:
+        cancelled_qty = order.leaves_qty - total_executed_qty
+        total_cancelled_qty += cancelled_qty
+        cancelled_order[order.id] = (cancelled_qty, order)
+        break
+
+
       executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty, 0) )
       if not executed_qty:
         break
+
+      executed_price = counter_order.price
+
+      # Check if the both accounts have founding to execute the order
+      if order.is_buy:
+        available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price )
+        if available_qty_to_buy < executed_qty:
+          cancelled_qty = executed_qty - available_qty_to_buy
+          total_cancelled_qty += cancelled_qty
+          executed_qty = available_qty_to_buy
+          cancelled_order[order.id] = (cancelled_qty, order)
+
+        available_qty_to_sell =  counter_order.get_available_qty_to_execute('2',executed_qty, executed_price )
+        if available_qty_to_sell < executed_qty:
+          cancelled_qty = executed_qty - available_qty_to_sell
+          executed_qty = available_qty_to_sell
+          cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
+
+      elif order.is_sell:
+        available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price )
+        if available_qty_to_sell < executed_qty:
+          cancelled_qty = executed_qty - available_qty_to_sell
+          total_cancelled_qty += cancelled_qty
+          executed_qty = available_qty_to_sell
+          cancelled_order[order.id] = (cancelled_qty, order)
+
+        available_qty_to_buy = counter_order.get_available_qty_to_execute('1',executed_qty, executed_price )
+        if available_qty_to_buy < executed_qty:
+          cancelled_qty = executed_qty - available_qty_to_buy
+          executed_qty = available_qty_to_buy
+          cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
+
+
       total_executed_qty += executed_qty
-      executed_orders.append( ( executed_qty, counter_order ) )
+      executed_orders.append( ( executed_qty, executed_price, counter_order ) )
 
     # let's include the order in the book if the order is not fully executed.
     insert_pos = 0
-    if total_executed_qty < order.leaves_qty:
+    if total_executed_qty + total_cancelled_qty < order.leaves_qty:
       insert_pos = bisect.bisect_right(self_side, order)
+
+    # generate a execution report if the order was accepted ( not cancelled )
+    if total_cancelled_qty != order.order_qty:
+      rpt_order         = ExecutionReport( order,         '1' if order.is_buy else '2' )
+      execution_report_signal( self, rpt_order )
+
 
 
     # order execution
     delete_pos = 0
-    for executed_qty, counter_order in executed_orders:
-      order.execute( executed_qty, counter_order.price )
-      counter_order.execute(executed_qty, counter_order.price)
+    for executed_qty, executed_price, counter_order in executed_orders:
+      order.execute( executed_qty, executed_price )
+      counter_order.execute(executed_qty, executed_price)
+
+      rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
+      execution_report_signal(self, rpt_order )
+
+      if order.id in cancelled_order:
+        order.cancel_qty(cancelled_order[order.id][0])
+        cancel_rpt_order  = ExecutionReport( order, '1' if order.is_buy else '2' )
+        execution_report_signal(self, cancel_rpt_order )
+        del cancelled_order[order.id]
+
+
+      rpt_counter_order = ExecutionReport( counter_order, '2' if order.is_buy else '1' )
+      execution_report_signal(self, rpt_counter_order )
+
+      if counter_order.id in cancelled_order:
+        counter_order.cancel_qty(cancelled_order[counter_order.id][0])
+        cancel_rpt_counter_order  = ExecutionReport( counter_order, '2' if order.is_buy else '1' )
+        execution_report_signal( self, cancel_rpt_counter_order )
+        del cancelled_order[counter_order.id]
 
       if not counter_order.has_leaves_qty:
         delete_pos += 1
         other_side.pop(0)
 
 
+    # cancelling all quantities that could not be filled
+    for cancelled_qty, cxl_order in cancelled_order.values():
+      cxl_order.cancel_qty(cancelled_qty)
+
+      rpt_cancel_order = ExecutionReport( cxl_order, '1' if cxl_order.is_buy else '2' )
+      execution_report_signal(self, rpt_cancel_order )
+
+
     if order.has_leaves_qty:
       self_side.insert( insert_pos, order )
+
 
     # TODO : update the market data
 
 
   def cancel(self, order):
-    # TODO: Find the order
-    # TODO: mark it as canceled
     # TODO: remove the order from the book
+    # TODO: Generate a cancel report
     # TODO: update the market data
     pass
 
