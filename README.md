@@ -1,4 +1,6 @@
-bitex
+BitEx
 =====
 
-BitEx - Open Source Cryptographic Currency Exchange
+BitEx - Cryptographic Currency Exchange
+
+
