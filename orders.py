@@ -149,16 +149,6 @@ class Order(object):
     return
 
 
-def process_new_order_single(user_id, client_order_id, symbol, side, order_type, price, order_quantity):
-  # TODO: get the user account
-  account_id = user_id
-
-  # create a new order
-  order = Order.create( user_id, account_id, client_order_id, symbol, side, order_type, price, order_quantity )
-  OrderMatcher.get(symbol).match(order)
-
-  return order
-
 def cancel_order(user_id, order_id, original_client_order_id, client_order_id ):
   order = Order.get_order(order_id, original_client_order_id, client_order_id)
 
