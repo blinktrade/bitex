@@ -102,4 +102,3 @@ class TestSignal(unittest.TestCase):
 
     self.sig_method('sender2', 'data2')
     self.assertEqual(1, len(signal_calls))
-    

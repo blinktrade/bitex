@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import json
 
@@ -9,9 +11,8 @@ import tornado.template
 
 from orders import Order
 from users import authenticate
-from execution import  OrderMatcher
+from execution import  OrderMatcher, execution_report_signal
 from message import  PublicClientMessage, LoggedClientMessage
-from orders import  process_new_order_single
 
 class PublicMarketDataConnectionWS(websocket.WebSocketHandler):
   def on_message(self, raw_message):
@@ -31,12 +32,14 @@ class TradeConnectionWS(websocket.WebSocketHandler):
     self.is_logged = 0
     self.user = None
 
+  def on_execution_report(self, sender, rpt):
+    self.write_message( str(rpt) )
+
   def on_message(self, raw_message):
     msg = LoggedClientMessage(raw_message)
     if not msg.is_valid():
       self.close()
       return
-
 
     if not self.is_logged:
       # The logon message must be the first message
@@ -53,17 +56,16 @@ class TradeConnectionWS(websocket.WebSocketHandler):
         # Block the ip for 24hs
         self.close()
         return
-
       self.is_logged = True
 
-      # TODO: subscribe to receive all execution reports for this user account.
+      # subscribe to all execution reports for this account.
+      execution_report_signal.connect(  self.on_execution_report, self.user.account_id )
 
       return
 
-
-    if msg.type == '0':  # Heartbeat
-      # echo the heartbeat back
-      self.write( raw_message )
+    if  msg.type == '1': # TestRequest
+      # send the heart beat back
+      self.write_message( '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID"))
       return
 
     elif msg.type == 'D':  # New Order Single
@@ -80,9 +82,6 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       OrderMatcher.get(msg.get('Symbol')).match(order)
 
       return
-
-
-    self.write_message(u"You said: " + raw_message)
 
   def on_close(self):
     pass

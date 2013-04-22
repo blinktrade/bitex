@@ -1,94 +1,323 @@
-<!doctype html>
-<html>
-<head>
-</head>
-<body>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
-<script type="text/javascript">
-  var ws;
-  var url;
+    <!--Bootstrap-->
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
 
-  function connect() {
-    url = document.getElementById("server_url").value;
-    console.log(url);
+    <link href="/css/bootstrap-docs.css" rel="stylesheet">
 
-    if ("WebSocket" in window) {
-      ws = new WebSocket(url);
-    } else if ("MozWebSocket" in window) {
-      ws = new MozWebSocket(url);
-    } else {
-      document.getElementById("messages").innerHTML += "This Browser does not support WebSockets<br />";
-      return;
-    }
-    ws.onopen = function(e) {
-      document.getElementById("messages").innerHTML += "Client: A connection to "+ws.URL+" has been opened.<br />";
 
-      document.getElementById("server_url").disabled = true;
-      document.getElementById("toggle_connect").innerHTML = "Disconnect";
-    };
+   <link href="/css/style.css" rel="stylesheet">
 
-    ws.onerror = function(e) {
-      document.getElementById("messages").innerHTML += "Client: An error occured, see console log for more details.<br />";
-      console.log(e);
-    };
+    <!-- jQuery -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+    <script src="/js/bitex.js" type="text/javascript"></script>
 
-    ws.onclose = function(e) {
-      document.getElementById("messages").innerHTML += "Client: The connection to "+url+" was closed.<br />";
-    };
+  </head>
+  <body class="ws-not-connected">
 
-    ws.onmessage = function(e) {
-      document.getElementById("messages").innerHTML += "Server: "+e.data+"<br />";
-    };
-  }
+    <div class="navbar navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">BitEx</a>
+        </div>
+      </div>
+    </div>
 
-  function disconnect() {
-    ws.close();
-    document.getElementById("server_url").disabled = false;
-    document.getElementById("toggle_connect").innerHTML = "Connect";
-  }
+    <div class="container">
 
-  function toggle_connect() {
-    if (document.getElementById("server_url").disabled === false) {
-      connect();
-    } else {
-      disconnect();
-    }
-  }
+      <div class="row">
+        <div class="span3 bs-docs-sidebar">
+          <ul class="nav nav-list bs-docs-sidenav affix">
+            <li class=""><a href="#websocket"><i class="icon-chevron-right"></i> WebSocket</a></li>
+            <li class="websocket-sensible"><a href="#login"><i class="icon-chevron-right"></i> Login</a></li>
+            <li class="websocket-sensible"><a href="#testrequest"><i class="icon-chevron-right"></i> Testar Conexão</a></li>
+            <li class="websocket-sensible"><a href="#order"><i class="icon-chevron-right"></i> Enviar Ordens</a></li>
+            <li class="websocket-sensible"><a href="#marketdata"><i class="icon-chevron-right"></i> Dados de Mercado</a></li>
+          </ul>
+        </div>
+        <div class="span9">
+          <section id="websocket" >
+            <div class="page-header">
+              <h1>Websocket</h1>
+            </div>
+            
+            <div class="form-signin">
+              <h2 class="form-signin-heading">Conexão</h2>
+              <input id="ws_url" type="text" class="input-block-level" placeholder="WebSocket URL" value="wss://localhost:8443/trade">
+              <button id="btn_ws_connect" data-loading-text="Aguarde..." class="btn btn-large btn-primary" type="submit">Conectar</button>
+            </div>
+            
+          </section>
 
-  function send() {
-    if (ws === undefined || ws.readyState != 1) {
-      document.getElementById("messages").innerHTML += "Client: Websocket is not avaliable for writing<br />";
-      return;
-    }
+          <section id="login" class="websocket-sensible">
+            <div class="page-header">
+              <h1>Login</h1>
+            </div>
+            <div class="form-signin">
+              <h2 class="form-signin-heading">Entrar com o Login</h2>
+              <input id="id_username" type="text" class="input-block-level" placeholder="Email address">
+              <input id="id_password" type="password" class="input-block-level" placeholder="Password">
+              <button id="id_btn_login" class="btn btn-large btn-primary" type="submit">Login</button>
+            </div>
+          </section>
 
-    ws.send(document.getElementById("msg").value);
-    document.getElementById("msg").value = "";
-  }
+          <section id="testrequest"  class="websocket-sensible">
+            <div class="page-header">
+              <h1>Envio de Teste de Conexão</h1>
+            </div>
 
-</script>
+            <div class="well">
+              <div class="row-fluid">
+                <div class="span4">
+                  <a id="id_btn_test_request" class="btn btn-success btn-execution">Enviar</a>
+                </div>
+                <div id="id_div_heartbeats" class="span8">
+                </div>
+              </div>
+            </div>
+                            
+          </section>
 
-<style>
-  body,html {
-    margin: 0px;
-    padding: 0px;
-  }
-  #controls {
-    float:right;
-    background-color: #999;
-  }
+          <section id="order"  class="websocket-sensible">
+            <div class="page-header">
+              <h1>Enviar Ordens</h1>
+            </div>
 
-</style>
+            <input id="id_symbol" type="hidden" value="BRLBTC">
+            <div class="well">
+              <div class="row-fluid">
 
-<div id="controls">
-  <div id="server">
-    <input type="text" name="server_url" id="server_url" value="wss://localhost:5000/public" />
-    <button id="toggle_connect" onclick="toggle_connect();">Connect</button>
-  </div>
+                <div class="span4">
+                  <div class="control-group">
+                    <label class="control-label" for="id_order_qty">Quantidade</label>
+                    <div class="controls">
+                      <input type="text" class="input-block-level" name="amount" id="id_order_qty" value="1">
+                    </div>
+                  </div>
+                </div>
 
-  <div id="message_input"><input type="text" name="msg" id="msg" value="Hello World!" />
-    <button onclick="send();">Send</button></div>
-</div>
-<div id="messages"></div>
+                <div class="span4">
+                  <div class="control-group">
+                    <label class="control-label" for="id_price">Preço</label>
+                    <div class="controls">
+                      <input type="text" class="input-block-level" name="price" id="id_price" value="">
+                    </div>
+                  </div>
+                </div>
 
-</body>
+                <div class="span2">
+                  <a id="id_btn_buy" class="btn btn-success btn-execution">COMPRAR</a>
+                </div>
+                <div class="span2">
+                  <a id="id_btn_sell" class="btn btn-danger btn-execution">VENDER</a>
+                </div>
+              </div>
+            </div>
+
+            <table id="id_execution_report_table" class="table">
+              <thead>
+                <tr>
+                  <th>ExecID</th>
+                  <th>ClOrdID</th>
+                  <th>OrderID</th>
+                  <th>OrdStatus</th>
+                  <th>Side</th>
+                  <th>LastPx</th>
+                  <th>LastShares</th>
+                  <th>LeavesQty</th>
+                </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+            </table>
+            
+            
+          </section>
+
+          <section id="marketdata"  class="websocket-sensible">
+            <div class="page-header">
+              <h1>Dados de Mercado</h1>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="no_websockets_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>Seu Browser não suporta WebSockets</h3>
+      </div>
+      <div class="modal-body">
+        <p>Por favor, faça o download do Google Chrome / Firefox ou IE 10</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      </div>
+    </div>
+
+    <div id="error_websocket_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Erro se conectando ao servidor ....</h3>
+      </div>
+      <div class="modal-body">
+        <p id="websocket_error_msg"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      </div>
+    </div>
+
+
+    <footer class="footer">
+      <div class="container">
+        <p>Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">Rodrigo Souza</a> and Clebson Derivan</p>
+      </div>
+    </footer>
+
+  <script type="text/javascript">
+    var bitEx = null;
+
+    $(document).ready(function(){
+
+      var disconnect = function() {
+        var btn = $("#btn_ws_connect");
+        btn.button('loading');
+        bitEx.close();
+        delete bitEx;
+      };
+
+      var connect = function() {
+        var btn = $("#btn_ws_connect");
+
+        var url = $("#ws_url").val();
+        btn.button('loading');
+
+        var onOpen = function(e) {
+          btn.button('reset');
+          $(document.body).removeClass('ws-not-connected');
+          $(document.body).addClass('ws-connected');
+
+          btn.html('Desconectar');
+        };
+
+        var onClose = function(e) {
+          btn.button('reset');
+          btn.html('Conectar');
+          $(document.body).removeClass('ws-connected');
+          $(document.body).addClass('ws-not-connected');
+        };
+
+        var onError = function(e) {
+          btn.button('reset');
+          $("#websocket_error_msg").html( 'Erro se conectando c/ o servidor' );
+          $("#error_websocket_modal").modal();
+        };
+
+        try{
+          bitEx = new BitEx(url , onOpen, onClose,onError );
+        } catch( WEB_SOCKET_NOT_AVAILABLE_EXCEPTION ) {
+          $("#no_websockets_modal").modal();
+        }
+
+        bitEx.onExecutionReport = function(msg){
+          var sideDict = {
+            '1':'BUY',
+            '2':'SELL'
+          };
+
+          var orderStatusDict = {
+            '0': 'NEW',
+            '1': 'PARTIAL_FILL',
+            '2': 'FILL',
+            '4': 'CANCELLED'
+          };
+
+          var lastPrice =  (msg.LastPx/1e5).toFixed(5);
+          var lastShares = (msg.LastShares/1e8).toFixed(8);
+          var leavesQty = (msg.LeavesQty/1e8).toFixed(8);
+
+          var row = '<tr>';
+          row += '<td>' + msg.ExecID + '</td>';
+          row += '<td>' + msg.ClOrdID + '</td>';
+          row += '<td>' + msg.OrderID + '</td>';
+          row += '<td>' + orderStatusDict[msg.OrdStatus] + '</td>';
+          row += '<td>' + sideDict[msg.Side] + '</td>';
+          row += '<td>' + lastPrice + '</td>';
+          row += '<td>' + lastShares + '</td>';
+          row += '<td>' + leavesQty + '</td>';
+          row += '</tr>';
+
+          $(row).prependTo("#id_execution_report_table > tbody");
+        };
+
+        bitEx.onHeartBeat = function(msg){
+          var heartBeatAlertHtml = '<div class="alert">';
+          heartBeatAlertHtml += '<button type="button" class="close" data-dismiss="alert">&times;</button>';
+          heartBeatAlertHtml += "<strong>HeartBeat!</strong>  TestReqId: " + msg.TestReqID;
+          heartBeatAlertHtml += "</div>";
+          $("#id_div_heartbeats").html(heartBeatAlertHtml);
+        }
+      };
+
+      $("#btn_ws_connect").click(function(){
+        if ($(document.body).hasClass('ws-not-connected') ) {
+          connect();
+        } else {
+          disconnect();
+        }
+      });
+
+      $("#id_btn_login").click(function(){
+        var username = $("#id_username").val();
+        var password = $("#id_password").val();
+
+        bitEx.login(username, password);
+      });
+
+      $("#id_btn_buy").click(function(){
+        var symbol    = $("#id_symbol").val();
+        var order_qty = $("#id_order_qty").val();
+        var price     = $("#id_price").val();
+
+        bitEx.sendBuyLimitedOrder( symbol, order_qty, price );
+      });
+
+      $("#id_btn_sell").click(function(){
+        var symbol    = $("#id_symbol").val();
+        var order_qty = $("#id_order_qty").val();
+        var price     = $("#id_price").val();
+
+        bitEx.sendSellLimitedOrder( symbol, order_qty, price );
+      });
+
+
+      $("#id_btn_test_request").click(function(){
+        bitEx.testRequest();
+      });
+
+
+    });
+
+
+
+    </script>
+
+  </body>
 </html>

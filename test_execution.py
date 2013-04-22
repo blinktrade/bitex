@@ -341,6 +341,14 @@ class TestOrderMatcher(unittest.TestCase):
   def onExecReport(self, sender, rpt):
     self.execution_reports.append(rpt)
 
+  def testSameClientWithBestOfferAndAsk(self):
+    self.om.match( Order.create('a','a','10', 'BRLBTC', '1','2',100,1) )
+    self.om.match( Order.create('a','a','10', 'BRLBTC', '2','2',101,1) )
+
+    self.assertEqual( 1, len(self.om.buy_side) )
+    self.assertEqual( 1, len(self.om.sell_side) )
+
+
   def testSendBuyOrdersWithoutExecution (self):
     o = self.o1
     self.om.match(o)

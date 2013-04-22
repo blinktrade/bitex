@@ -32,7 +32,7 @@ class ExecutionReport(object):
     self.leaves_qty = order.leaves_qty
 
   def __str__(self):
-    return '{ "OrderID":"%s", "ClOrdID":"%s", "ExecID":"%s", "ExecType":"%s",' \
+    return '{"MsgType":"8", "OrderID":"%s", "ClOrdID":"%s", "ExecID":"%s", "ExecType":"%s",' \
            ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":"%s", ' \
            ' "LastShares":"%s", "LeavesQty":"%s" }' \
             % ( self.order_id, self.client_order_id, self.execution_id, self.execution_type,
@@ -77,16 +77,15 @@ class OrderMatcher(object):
     for x in xrange(0, len(other_side)):
       counter_order = other_side[x]
 
+      executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty, 0) )
+      if not executed_qty:
+        break
+
       # Cancel this order if both orders belong to the same client
       if order.account_id == counter_order.account_id:
         cancelled_qty = order.leaves_qty - total_executed_qty
         total_cancelled_qty += cancelled_qty
         cancelled_order[order.id] = (cancelled_qty, order)
-        break
-
-
-      executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty, 0) )
-      if not executed_qty:
         break
 
       executed_price = counter_order.price
@@ -132,7 +131,7 @@ class OrderMatcher(object):
     # generate a execution report if the order was accepted ( not cancelled )
     if total_cancelled_qty != order.order_qty:
       rpt_order         = ExecutionReport( order,         '1' if order.is_buy else '2' )
-      execution_report_signal( self, rpt_order )
+      execution_report_signal( order.account_id, rpt_order )
 
 
 
@@ -143,22 +142,22 @@ class OrderMatcher(object):
       counter_order.execute(executed_qty, executed_price)
 
       rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
-      execution_report_signal(self, rpt_order )
+      execution_report_signal(order.account_id, rpt_order )
 
       if order.id in cancelled_order:
         order.cancel_qty(cancelled_order[order.id][0])
         cancel_rpt_order  = ExecutionReport( order, '1' if order.is_buy else '2' )
-        execution_report_signal(self, cancel_rpt_order )
+        execution_report_signal(order.account_id, cancel_rpt_order )
         del cancelled_order[order.id]
 
 
       rpt_counter_order = ExecutionReport( counter_order, '2' if order.is_buy else '1' )
-      execution_report_signal(self, rpt_counter_order )
+      execution_report_signal(counter_order.account_id, rpt_counter_order )
 
       if counter_order.id in cancelled_order:
         counter_order.cancel_qty(cancelled_order[counter_order.id][0])
         cancel_rpt_counter_order  = ExecutionReport( counter_order, '2' if order.is_buy else '1' )
-        execution_report_signal( self, cancel_rpt_counter_order )
+        execution_report_signal( counter_order.account_id, cancel_rpt_counter_order )
         del cancelled_order[counter_order.id]
 
       if not counter_order.has_leaves_qty:
@@ -171,7 +170,7 @@ class OrderMatcher(object):
       cxl_order.cancel_qty(cancelled_qty)
 
       rpt_cancel_order = ExecutionReport( cxl_order, '1' if cxl_order.is_buy else '2' )
-      execution_report_signal(self, rpt_cancel_order )
+      execution_report_signal(cxl_order.account_id, rpt_cancel_order )
 
 
     if order.has_leaves_qty:
