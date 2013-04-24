@@ -59,7 +59,7 @@ class OrderMatcher(object):
       res += str(order) + '\n'
     return  res[:-1]
 
-  def match(self, order):
+  def match(self, session, order):
     other_side = []
     self_side = []
     if order.is_buy:

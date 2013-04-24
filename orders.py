@@ -1,8 +1,5 @@
 __author__ = 'rodrigo'
 
-
-
-from users import  has_margin
 from execution import  OrderMatcher
 import datetime
 from errors import OrderNotFound
