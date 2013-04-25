@@ -173,9 +173,20 @@ class Order(Base):
     else:
       self.status = '0' # New Order
 
-  def execute(self, qty, price):
+  def execute(self, qty, price ):
     if qty == 0:
       return
+
+    total_value = (float(price) * float(qty)/1e8)
+
+    if self.side == '1': # Buy
+      self.user.balance_brl -= total_value
+      self.user.balance_btc += qty
+    elif self.side == '2': # Sell
+      self.user.balance_brl += total_value
+      self.user.balance_btc -= qty
+
+
     self.average_price = ((price * qty) + (self.cum_qty * self.average_price )) / ( self.cum_qty + qty )
     self.cum_qty += qty
     self.leaves_qty -= qty

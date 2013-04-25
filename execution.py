@@ -139,7 +139,10 @@ class OrderMatcher(object):
     delete_pos = 0
     for executed_qty, executed_price, counter_order in executed_orders:
       order.execute( executed_qty, executed_price )
-      counter_order.execute(executed_qty, executed_price)
+      counter_order.execute(executed_qty, executed_price )
+
+      # TODO: Store and report the trade
+
 
       rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
       execution_report_signal(order.account_id, rpt_order )
@@ -151,12 +154,12 @@ class OrderMatcher(object):
         del cancelled_order[order.id]
 
 
-      rpt_counter_order = ExecutionReport( counter_order, '2' if order.is_buy else '1' )
+      rpt_counter_order = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
       execution_report_signal(counter_order.account_id, rpt_counter_order )
 
       if counter_order.id in cancelled_order:
         counter_order.cancel_qty(cancelled_order[counter_order.id][0])
-        cancel_rpt_counter_order  = ExecutionReport( counter_order, '2' if order.is_buy else '1' )
+        cancel_rpt_counter_order  = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
         execution_report_signal( counter_order.account_id, cancel_rpt_counter_order )
         del cancelled_order[counter_order.id]
 
@@ -178,6 +181,7 @@ class OrderMatcher(object):
 
 
     # TODO : update the market data
+    # print str(self)
 
 
   def cancel(self, order):
