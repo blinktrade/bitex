@@ -17,6 +17,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from models import  User, engine, Order
 import config
 
+from market_data_signals import *
+
+
 class PublicMarketDataConnectionWS(websocket.WebSocketHandler):
   def on_message(self, raw_message):
     msg = PublicClientMessage(raw_message)
@@ -28,15 +31,19 @@ class PublicMarketDataConnectionWS(websocket.WebSocketHandler):
     self.write_message(u"You said: " + raw_message)
 
 
-
 class TradeConnectionWS(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
     super(TradeConnectionWS, self).__init__(application, request, **kwargs)
     self.is_logged = 0
     self.user = None  # The authenticated user
 
+    self.md_subscriptions = {}
+
   def on_execution_report(self, sender, rpt):
     self.write_message( str(rpt) )
+
+  def on_market_data(self, sender, md):
+    self.write_message( str(md) )
 
   def on_message(self, raw_message):
     msg = LoggedClientMessage(raw_message)
@@ -48,6 +55,32 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       # send the heart beat back
       self.write_message( '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID"))
       return
+
+    elif  msg.type == 'V':  # Market Data Request
+      req_id = msg.get('MDReqID')
+      if int(msg.get('SubscriptionRequestType')) == 2: # unsubscribe
+        if req_id in self.md_subscriptions:
+          del self.md_subscriptions[req_id]
+
+      elif int(msg.get('SubscriptionRequestType')) == 1:  # subscribe
+        if req_id not in self.md_subscriptions:
+          self.md_subscriptions[req_id] = []
+
+        market_depth = msg.get('MarketDepth')
+        instruments = msg.get('Instruments')
+        entries = msg.get('MDEntryTypes')
+        for instrument in  instruments:
+          for entry in entries:
+            self.md_subscriptions[req_id].append( MdSubscriptionHelper(market_depth,
+                                                                       entry,
+                                                                       instrument,
+                                                                       self.on_market_data ) )
+
+
+
+      logging.info('received '  + str(msg) )
+      pass
+
 
     if not self.is_logged:
       if msg.type == 'U0': # signup
@@ -134,6 +167,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
       self.application.session.commit()
       return
+
 
   def on_close(self):
     pass

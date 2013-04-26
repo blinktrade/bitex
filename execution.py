@@ -3,9 +3,28 @@ __author__ = 'rodrigo'
 import bisect
 from signals import Signal
 
+from market_data_signals import trades_signal
+
 matcher_dict  = {}
 
 execution_report_signal = Signal()
+
+import  json
+
+class TradeMarketData(object):
+  def __init__(self, order, counter_order):
+    #TODO : complete this class
+    pass
+
+  def __str__(self):
+    res = {
+      "MsgType":"X",
+      "MDBookType": "2",
+      "MDIncGrp": [
+         [{"MDUpdateAction":"0"}] ,
+      ]
+    }
+    return  json.dumps(res)
 
 class ExecutionReport(object):
   execution_id_generator = 0
@@ -143,6 +162,9 @@ class OrderMatcher(object):
       counter_order.execute(executed_qty, executed_price )
 
       # TODO: Store and report the trade
+      md_trade = TradeMarketData( order, counter_order )
+      trades_signal( self.symbol, md_trade )
+
 
       rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
       execution_report_signal(order.account_id, rpt_order )

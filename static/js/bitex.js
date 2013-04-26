@@ -141,6 +141,9 @@ BitEx.prototype.onLoginResponseError = function(msg) {};
 BitEx.prototype.onHeartBeat = function(msg) {};
 BitEx.prototype.onExecutionReport = function(msg) {};
 
+BitEx.prototype.onMarketDataFullRefresh = function(msg) {};
+BitEx.prototype.onMarketDataIncrementalRefresh = function(msg) {};
+BitEx.prototype.onMarketDataRequestReject = function(msg) {};
 
 /**
  * @param {*} e
@@ -160,6 +163,16 @@ BitEx.prototype.onMessage_ = function(e) {
       } else {
         this.onLoginResponseError(msg);
       }
+      break;
+
+    case 'W':
+      this.onMarketDataFullRefresh(msg);
+      break;
+    case 'X':
+      this.onMarketDataIncrementalRefresh(msg);
+      break;
+    case 'Y':
+      this.onMarketDataRequestReject(msg);
       break;
 
     case '8':  //Execution Report
@@ -193,20 +206,54 @@ BitEx.prototype.login = function(username, password){
 };
 
 /**
- * @param {string} username
  * @param {string} password
  * @param {string} new_password
  */
-BitEx.prototype.changePassword = function(username, password, new_password ){
+BitEx.prototype.changePassword = function(password, new_password ){
   var msg = {
     'MsgType': 'BE',
     'UserReqID': '3',
-    'Username': username,
     'Password': password,
     'NewPassword': new_password
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * @param {number} market_depth
+ * @param {Array.<string>} symbols
+ * @param {Array.<string>} entries
+ * @return {number}
+ */
+BitEx.prototype.subscribeMarketData = function(market_depth, symbols, entries ){
+  var reqId = parseInt(Math.random() * 1000000);
+  var msg = {
+    'MsgType': 'V',
+    'MDReqID': reqId,
+    'SubscriptionRequestType': '1',
+    'MarketDepth': market_depth,
+    'MDUpdateType': '1',   // Incremental refresh
+    'MDEntryTypes': entries,
+    'Instruments': symbols
+  };
+  this.ws_.send(JSON.stringify( msg ));
+
+  return reqId;
+};
+
+/**
+ * @param {number} market_data_id
+ */
+BitEx.prototype.unSubscribeMarketData = function(market_data_id){
+  var msg = {
+    'MsgType': 'V',
+    'MDReqID': market_data_id,
+    'SubscriptionRequestType': '2'
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+
 
 /**
  * @param {string} username

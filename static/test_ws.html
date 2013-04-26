@@ -169,6 +169,17 @@
           <section id="marketdata"  class="bitex-display-if-ws-connected">
             <div class="page-header">
               <h1>Dados de Mercado</h1>
+              <div class="well">
+                <div class="row-fluid">
+                  <div class="span4">
+                    <a id="id_btn_md_subscribe" class="btn btn-success btn-execution">Increver-se no feed</a>
+                  </div>
+                  <div class="span4">
+                    <a id="id_btn_md_unsubscribe" class="btn btn-danger btn-execution">Cancelar inscrição</a>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </section>
         </div>
@@ -306,7 +317,11 @@
           heartBeatAlertHtml += "<strong>HeartBeat!</strong>  TestReqId: " + msg.TestReqID;
           heartBeatAlertHtml += "</div>";
           $("#id_div_heartbeats").html(heartBeatAlertHtml);
-        }
+        };
+
+        bitEx.onMarketDataIncrementalRefresh = function(msg) {
+          console.log( 'onMarketDataIncrementalRefresh: ' + JSON.stringify(msg));
+        };
       };
 
       $("#btn_ws_connect").click(function(){
@@ -351,6 +366,23 @@
         bitEx.sendSellLimitedOrder( symbol, order_qty, price );
       });
 
+      var subscription_id = null;
+      $("#id_btn_md_subscribe").click(function(){
+        var symbol    = $("#id_symbol").val();
+        var symbols = [ symbol ];
+        var market_depth = 0;  // full book depth
+        var entries = [
+            '0', // Bid
+            '1', // Offer
+            '2', // Trade
+            'B'  // Trade Volume
+        ];
+        subscription_id =  bitEx.subscribeMarketData(market_depth, symbols, entries);
+      });
+
+      $("#id_btn_md_unsubscribe").click(function(){
+        bitEx.unSubscribeMarketData(subscription_id);
+      });
 
       $("#id_btn_test_request").click(function(){
         bitEx.testRequest();
