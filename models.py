@@ -51,6 +51,9 @@ class User(Base):
   last_login      = Column(DateTime, default=datetime.datetime.now, nullable=False)
 
 
+  def __repr__(self):
+    return "<User('%s', btc:%d, brl:%d )>" % (self.username, self.balance_btc, self.balance_brl )
+
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
       kwargs['password'] = self.set_password(kwargs.get('password'))
@@ -82,11 +85,6 @@ class User(Base):
       user.last_login = datetime.datetime.now()
       return user
     return None
-
-
-  def __repr__(self):
-    return "<User('%s')>" % self.username
-
 
 
 
@@ -146,13 +144,13 @@ class Order(Base):
         return min( execute_qty, other.leaves_qty)
     return  0
 
-  def get_available_qty_to_execute(self, side, qty, price):
+  def get_available_qty_to_execute(self, side, qty, price, total_executed_qty = 0):
     """This function returns qty that are available for execution"""
     if side == '1' : # buy
       qty_to_buy = min( qty, int((float(self.user.balance_brl)/float(price)) * 1e8) )
       return qty_to_buy
     elif side == '2': # Sell
-      qty_to_sell = min( qty, self.user.balance_btc )
+      qty_to_sell = min( qty, self.user.balance_btc - total_executed_qty )
       return qty_to_sell
     return  qty
 
@@ -177,7 +175,7 @@ class Order(Base):
     if qty == 0:
       return
 
-    total_value = (float(price) * float(qty)/1e8)
+    total_value = int(float(price) * float(qty)/1e8)
 
     if self.side == '1': # Buy
       self.user.balance_brl -= total_value
@@ -199,10 +197,8 @@ class Order(Base):
     return self.leaves_qty > 0
 
   def __repr__(self):
-    return "<Order(id:%s  price:%d  qty:%d)>" % (self.id,  self.price, self.leaves_qty)
-
-  def __str__(self):
-    return "%d: - %f - %d"%(self.id,  self.price, self.leaves_qty)
+    return "<Order(id:%s, price:%d, order_qty:%d, leaves_qty:%d, cum_qty:%d, cxl_qty:%d, last_price:%d, status:%s)>" % \
+           (self.id,  self.price,  self.order_qty ,self.leaves_qty, self.cum_qty, self.cxl_qty , self.last_price, self.status)
 
   @property
   def is_buy(self):

@@ -21,7 +21,7 @@
     <script src="/js/bitex.js" type="text/javascript"></script>
 
   </head>
-  <body class="ws-not-connected">
+  <body class="ws-not-connected bitex-not-logged">
 
     <div class="navbar navbar navbar-fixed-top">
       <div class="navbar-inner">
@@ -41,15 +41,16 @@
       <div class="row">
         <div class="span3 bs-docs-sidebar">
           <ul class="nav nav-list bs-docs-sidenav affix">
-            <li class=""><a href="#websocket"><i class="icon-chevron-right"></i> WebSocket</a></li>
-            <li class="websocket-sensible"><a href="#login"><i class="icon-chevron-right"></i> Login</a></li>
-            <li class="websocket-sensible"><a href="#testrequest"><i class="icon-chevron-right"></i> Testar Conexão</a></li>
-            <li class="websocket-sensible"><a href="#order"><i class="icon-chevron-right"></i> Enviar Ordens</a></li>
-            <li class="websocket-sensible"><a href="#marketdata"><i class="icon-chevron-right"></i> Dados de Mercado</a></li>
+            <li class="bitex-hide-if-ws-connected"><a href="#websocket"><i class="icon-chevron-right"></i> WebSocket</a></li>
+            <li class="bitex-display-if-ws-connected bitex-hide-if-logged"><a href="#signup"><i class="icon-chevron-right"></i> Registe-se</a></li>
+            <li class="bitex-display-if-ws-connected bitex-hide-if-logged"><a href="#login"><i class="icon-chevron-right"></i> Login</a></li>
+            <li class="bitex-display-if-ws-connected"><a href="#testrequest"><i class="icon-chevron-right"></i> Testar Conexão</a></li>
+            <li class="bitex-display-if-logged"><a href="#order"><i class="icon-chevron-right"></i> Enviar Ordens</a></li>
+            <li class="bitex-display-if-ws-connected"><a href="#marketdata"><i class="icon-chevron-right"></i> Dados de Mercado</a></li>
           </ul>
         </div>
         <div class="span9">
-          <section id="websocket" >
+          <section id="websocket" class="bitex-hide-if-ws-connected" >
             <div class="page-header">
               <h1>Websocket</h1>
             </div>
@@ -62,7 +63,24 @@
             
           </section>
 
-          <section id="login" class="websocket-sensible">
+          <section id="signup" class="bitex-display-if-ws-connected bitex-hide-if-logged">
+            <div class="page-header">
+              <h1>Registre-se</h1>
+            </div>
+            <div class="form-signin">
+              <h2 class="form-signin-heading">Seus dados</h2>
+              <input id="id_signup_first_name" type="text" class="input-block-level" placeholder="First Name">
+              <input id="id_signup_last_name" type="text" class="input-block-level" placeholder="Last Name">
+              <input id="id_signup_email" type="text" class="input-block-level" placeholder="Email">
+              <input id="id_signup_username" type="text" class="input-block-level" placeholder="Username">
+              <input id="id_signup_password" type="password" class="input-block-level" placeholder="Password">
+              <input id="id_signup_password_2" type="password" class="input-block-level" placeholder="Repeat password">
+              <button id="id_btn_signup" class="btn btn-large btn-primary" type="submit">Login</button>
+            </div>
+          </section>
+
+
+          <section id="login" class="bitex-display-if-ws-connected bitex-hide-if-logged">
             <div class="page-header">
               <h1>Login</h1>
             </div>
@@ -74,7 +92,7 @@
             </div>
           </section>
 
-          <section id="testrequest"  class="websocket-sensible">
+          <section id="testrequest"  class="bitex-display-if-ws-connected">
             <div class="page-header">
               <h1>Envio de Teste de Conexão</h1>
             </div>
@@ -91,7 +109,7 @@
                             
           </section>
 
-          <section id="order"  class="websocket-sensible">
+          <section id="order"  class="bitex-display-if-logged">
             <div class="page-header">
               <h1>Enviar Ordens</h1>
             </div>
@@ -148,7 +166,7 @@
             
           </section>
 
-          <section id="marketdata"  class="websocket-sensible">
+          <section id="marketdata"  class="bitex-display-if-ws-connected">
             <div class="page-header">
               <h1>Dados de Mercado</h1>
             </div>
@@ -222,6 +240,9 @@
           btn.html('Conectar');
           $(document.body).removeClass('ws-connected');
           $(document.body).addClass('ws-not-connected');
+
+          $(document.body).removeClass('bitex-logged');
+          $(document.body).addClass('bitex-not-logged');
         };
 
         var onError = function(e) {
@@ -235,6 +256,18 @@
         } catch( WEB_SOCKET_NOT_AVAILABLE_EXCEPTION ) {
           $("#no_websockets_modal").modal();
         }
+
+        bitEx.onLoginResponseOk = function(msg) {
+          $(document.body).removeClass('bitex-not-logged');
+          $(document.body).addClass('bitex-logged');
+        };
+
+        bitEx.onLoginResponseError = function(msg) {
+          $(document.body).removeClass('bitex-logged');
+          $(document.body).addClass('bitex-not-logged');
+          alert(msg.UserStatusText);
+        };
+
 
         bitEx.onExecutionReport = function(msg){
           var sideDict = {
@@ -283,6 +316,17 @@
           disconnect();
         }
       });
+
+      $("#id_btn_signup").click(function(){
+        var first_name = $("#id_signup_first_name").val();
+        var last_name = $("#id_signup_last_name").val();
+        var email = $("#id_signup_email").val();
+        var username = $("#id_signup_username").val();
+        var password = $("#id_signup_password").val();
+
+        bitEx.signUp(username, password, first_name, last_name, email);
+      });
+
 
       $("#id_btn_login").click(function(){
         var username = $("#id_username").val();

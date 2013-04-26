@@ -44,15 +44,44 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.close()
       return
 
+    if  msg.type == '1': # TestRequest
+      # send the heart beat back
+      self.write_message( '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID"))
+      return
+
     if not self.is_logged:
+      if msg.type == 'U0': # signup
+        # signup the user
+
+        # TODO: Create a wallet address
+
+        # create the user on Database
+        u = User( username    = msg.get('Username'),
+                  first_name  = msg.get('FirstName'),
+                  last_name   = msg.get('LastName'),
+                  email       = msg.get('Email'),
+                  password    = msg.get('Password'))
+
+        self.application.session.add(u)
+        self.application.session.commit()
+
+
       # The logon message must be the first message
-      if msg.type  != 'A':
+      if msg.type  != 'BE' and msg.type != 'U0':
         self.close()
         return
 
       # Authenticate the user
       self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'))
       if not self.user:
+
+        login_response = {
+          'MsgType': 'BF',
+          'Username': self.user.username,
+          'UserStatus': 3
+        }
+        self.write_message( json.dumps(login_response) )
+
         # TODO: improve security.
         # Block the user accounts after 3 attempts
         # close the all connections from the blocked user
@@ -60,6 +89,15 @@ class TradeConnectionWS(websocket.WebSocketHandler):
         self.close()
         return
       self.is_logged = True
+
+      # Send the login response
+      login_response = {
+        'MsgType': 'BF',
+        'Username': self.user.username,
+        'UserStatus': 1
+      }
+      self.write_message( json.dumps(login_response) )
+
 
       # subscribe to all execution reports for this account.
       execution_report_signal.connect(  self.on_execution_report, self.user.account_id )
@@ -69,10 +107,6 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.application.session.commit()
       return
 
-    if  msg.type == '1': # TestRequest
-      # send the heart beat back
-      self.write_message( '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID"))
-      return
 
     elif msg.type == 'D':  # New Order Single
       # process the new order.

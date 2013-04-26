@@ -170,14 +170,14 @@ class TestForbiddenExecutions(unittest.TestCase):
     self.assertEqual( 5e8      ,  self.execution_reports[1].last_shares )
     self.assertEqual( 1e8      ,  self.execution_reports[1].leaves_qty )
 
-    self.assertEqual( "107"    ,  self.execution_reports[2].client_order_id )
-    self.assertEqual( "4"      ,  self.execution_reports[2].execution_type )
+    self.assertEqual( "104"    ,  self.execution_reports[2].client_order_id )
+    self.assertEqual( "2"      ,  self.execution_reports[2].execution_type )
     self.assertEqual( 101e5    ,  self.execution_reports[2].last_price )
     self.assertEqual( 5e8      ,  self.execution_reports[2].last_shares )
     self.assertEqual( 0        ,  self.execution_reports[2].leaves_qty )
 
-    self.assertEqual( "104"    ,  self.execution_reports[3].client_order_id )
-    self.assertEqual( "2"      ,  self.execution_reports[3].execution_type )
+    self.assertEqual( "107"    ,  self.execution_reports[3].client_order_id )
+    self.assertEqual( "4"      ,  self.execution_reports[3].execution_type )
     self.assertEqual( 101e5    ,  self.execution_reports[3].last_price )
     self.assertEqual( 5e8      ,  self.execution_reports[3].last_shares )
     self.assertEqual( 0        ,  self.execution_reports[3].leaves_qty )
@@ -548,12 +548,289 @@ class TestOrderMatcher(unittest.TestCase):
     self.session.commit()
 
     self.execution_reports = []
+    self.execution_reports_by_order_client_id_dict = {}
     execution_report_signal.connect(self.onExecReport)
+
+
+  def get_total_executed_brl(self, client_order_id):
+    total_executed_brl = 0
+    if client_order_id not in self.execution_reports_by_order_client_id_dict:
+      return total_executed_brl
+    for rpt in self.execution_reports_by_order_client_id_dict[client_order_id]:
+      total_executed_brl += int ( float(rpt.last_price) * float( rpt.last_shares) / 1.e8 )
+    return total_executed_brl
+
 
   def onExecReport(self, sender, rpt):
     self.execution_reports.append(rpt)
 
-  def testCheckBalances(self):
+    if rpt.execution_type in ('1', '2'):
+      if rpt.client_order_id not in self.execution_reports_by_order_client_id_dict:
+        self.execution_reports_by_order_client_id_dict[rpt.client_order_id] = []
+      self.execution_reports_by_order_client_id_dict[rpt.client_order_id].append(rpt)
+
+  def testExecutionOrderWithoutEnoughBTCToSell(self):
+    """ user trying to buy from another user who doesn't have enough btc to sell in his portfolio """
+    self.om.match(self.session, self.o1 )
+    self.om.match(self.session, self.o2 )
+    self.om.match(self.session, self.o3 )
+    self.om.match(self.session, self.o4 )
+    self.om.match(self.session, self.o5 )
+    self.om.match(self.session, self.o6 )
+
+    # user_h, 1BTC and 250 BRL on his account
+    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+                        balance_btc=1e8, balance_brl=250e5 )
+    self.session.add( self.user_h )
+    self.session.commit()
+
+    # user_h [o7] will place an sell order of 2 BTC  @ $100
+    o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                side             = '2',   price   = 101e5,    order_qty = 3e8)
+    self.session.add( o7 )
+    self.session.commit()
+
+    self.om.match(self.session, o7 )
+
+    o8 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
+                client_order_id  = '108', symbol  = 'BRLBTC', type      = '2',
+                side             = '1',   price   = 102e5,    order_qty = 7e8)
+    self.session.add( o8 )
+    self.session.commit()
+
+
+    self.execution_reports = []
+    self.om.match(self.session, o8 )
+
+    # let's have user_a buying 7 BTC @ 102
+    # it should execute:
+    #    5 BTC from o4  ( fully execution )
+    #    1 BTC from o7
+    #    o7 should be canceled
+    #    1 BTC from o5
+    self.assertEqual( 7e8, o8.cum_qty  )
+    self.assertEqual( 0 ,  o8.leaves_qty)
+    self.assertEqual( 0 ,  o8.cxl_qty)
+    self.assertEqual('2' , o8.status)
+
+    self.assertEqual( 0 , self.o4.leaves_qty)
+    self.assertEqual( self.o4.order_qty , self.o4.cum_qty)
+    self.assertEqual( '2' , self.o4.status)
+
+    self.assertEqual( 1e8 , self.o5.leaves_qty)
+    self.assertEqual( 1e8 , self.o5.cum_qty)
+    self.assertEqual( '1' , self.o5.status)
+
+    self.assertEqual( 1e8, o7.cum_qty  )
+    self.assertEqual( 2e8, o7.cxl_qty  )
+    self.assertEqual( 0 ,  o7.leaves_qty)
+    self.assertEqual('4' , o7.status)
+
+    self.assertEqual( 27e8, self.user_a.balance_btc)
+    self.assertEqual( 15e8, self.user_d.balance_btc)
+    self.assertEqual( 19e8, self.user_e.balance_btc)
+    self.assertEqual( 0, self.user_h.balance_btc)
+
+    self.assertEqual(1000e5 -  (self.get_total_executed_brl( "101" )  + self.get_total_executed_brl( "108" )), self.user_a.balance_brl )
+    self.assertEqual(1000e5 +  self.get_total_executed_brl( "104" ), self.user_d.balance_brl )
+    self.assertEqual(1000e5 +  self.get_total_executed_brl( "105" ), self.user_e.balance_brl )
+    self.assertEqual(250e5 +  self.get_total_executed_brl( "107" ), self.user_h.balance_brl )
+
+
+  def testUserSellingWithoutEnoughBTC_1(self):
+    """user without enough money trying to buy more BTC he can possible byu. """
+    self.om.match(self.session, self.o1 )
+    self.om.match(self.session, self.o2 )
+    self.om.match(self.session, self.o3 )
+    self.om.match(self.session, self.o4 )
+    self.om.match(self.session, self.o5 )
+    self.om.match(self.session, self.o6 )
+
+    # user_h, 4BTC and 0BRL on his account
+    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+                        balance_btc=4e8, balance_brl=0 )
+    self.session.add( self.user_h )
+    self.session.commit()
+
+
+    # user_h [o7] Selling 6 BTC  @ R$ 98  to user_a [self.o4]
+    # but user_h has only 4 BTC to sell
+    o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                side             = '2',   price   = 98e5,     order_qty = 6e8)
+    self.session.add( o7 )
+    self.session.commit()
+
+    self.execution_reports = []
+    self.om.match(self.session, o7 )
+
+    self.assertEqual( 4e8, o7.cum_qty  )
+    self.assertEqual( 0 ,  o7.leaves_qty)
+    self.assertEqual( 2e8, o7.cxl_qty)
+    self.assertEqual('4' , o7.status)
+    self.assertEqual(98e5 ,o7.last_price)
+
+    self.assertEqual( 1e8, self.o1.cum_qty  )
+    self.assertEqual( 0  , self.o1.leaves_qty)
+    self.assertEqual( 0  , self.o1.cxl_qty)
+    self.assertEqual('2' , self.o1.status)
+    self.assertEqual(100e5,self.o1.last_price)
+
+    self.assertEqual( 2e8, self.o2.cum_qty  )
+    self.assertEqual( 0,   self.o2.leaves_qty)
+    self.assertEqual( 0  , self.o2.cxl_qty)
+    self.assertEqual('2' , self.o2.status)
+    self.assertEqual(99e5, self.o2.last_price)
+
+    self.assertEqual( 1e8, self.o3.cum_qty  )
+    self.assertEqual( 4e8, self.o3.leaves_qty)
+    self.assertEqual( 0  , self.o3.cxl_qty)
+    self.assertEqual('1' , self.o3.status)
+    self.assertEqual(98e5, self.o3.last_price)
+
+
+    self.assertEqual( 21e8, self.user_a.balance_btc)
+    self.assertEqual( 22e8, self.user_b.balance_btc)
+    self.assertEqual( 21e8, self.user_c.balance_btc)
+    self.assertEqual( 0,    self.user_h.balance_btc)
+
+    self.assertEqual(1000e5 -  self.get_total_executed_brl( "101" ), self.user_a.balance_brl )
+    self.assertEqual(1000e5 -  self.get_total_executed_brl( "102" ), self.user_b.balance_brl )
+    self.assertEqual(1000e5 -  self.get_total_executed_brl( "103" ), self.user_c.balance_brl )
+    self.assertEqual(self.get_total_executed_brl( "107" ), self.user_h.balance_brl )
+
+
+  def testUserSellingWithoutEnoughBTC_2(self):
+    """user without enough money trying to buy more BTC he can possible byu. """
+    self.om.match(self.session, self.o1 )
+    self.om.match(self.session, self.o2 )
+    self.om.match(self.session, self.o3 )
+    self.om.match(self.session, self.o4 )
+    self.om.match(self.session, self.o5 )
+    self.om.match(self.session, self.o6 )
+
+    # user_h, 4BTC and 0BRL on his account
+    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+                        balance_btc=3e8, balance_brl=0 )
+    self.session.add( self.user_h )
+    self.session.commit()
+
+
+    # user_h [o7] Selling 6 BTC  @ R$ 98  to user_a [self.o4]
+    # but user_h has only 4 BTC to sell
+    o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                side             = '2',   price   = 98e5,     order_qty = 6e8)
+    self.session.add( o7 )
+    self.session.commit()
+
+    self.execution_reports = []
+    self.om.match(self.session, o7 )
+
+    self.assertEqual( 3e8, o7.cum_qty  )
+    self.assertEqual( 0 ,  o7.leaves_qty)
+    self.assertEqual( 3e8, o7.cxl_qty)
+    self.assertEqual('4' , o7.status)
+    self.assertEqual(99e5 ,o7.last_price)
+
+    self.assertEqual( 1e8, self.o1.cum_qty  )
+    self.assertEqual( 0  , self.o1.leaves_qty)
+    self.assertEqual( 0  , self.o1.cxl_qty)
+    self.assertEqual('2' , self.o1.status)
+    self.assertEqual(100e5,self.o1.last_price)
+
+    self.assertEqual( 2e8, self.o2.cum_qty  )
+    self.assertEqual( 0,   self.o2.leaves_qty)
+    self.assertEqual( 0  , self.o2.cxl_qty)
+    self.assertEqual('2' , self.o2.status)
+    self.assertEqual(99e5, self.o2.last_price)
+
+    self.assertEqual( 0e8, self.o3.cum_qty  )
+    self.assertEqual( 5e8, self.o3.leaves_qty)
+    self.assertEqual( 0  , self.o3.cxl_qty)
+    self.assertEqual('0' , self.o3.status)
+
+    self.assertEqual( 21e8, self.user_a.balance_btc)
+    self.assertEqual( 22e8, self.user_b.balance_btc)
+    self.assertEqual( 20e8, self.user_c.balance_btc)
+    self.assertEqual( 0,    self.user_h.balance_btc)
+
+    self.assertEqual(1000e5 -  self.get_total_executed_brl( "101" ), self.user_a.balance_brl )
+    self.assertEqual(1000e5 -  self.get_total_executed_brl( "102" ), self.user_b.balance_brl )
+    self.assertEqual(1000e5 -  self.get_total_executed_brl( "103" ), self.user_c.balance_brl )
+    self.assertEqual(self.get_total_executed_brl( "107" ), self.user_h.balance_brl )
+
+
+  def testUserBuyingWithoutEnoughBRL(self):
+    """user without enough money trying to buy more BTC he can possible byu. """
+    self.om.match(self.session, self.o1 )
+    self.om.match(self.session, self.o2 )
+    self.om.match(self.session, self.o3 )
+    self.om.match(self.session, self.o4 )
+    self.om.match(self.session, self.o5 )
+    self.om.match(self.session, self.o6 )
+
+    # user_h, 0 BTC and 250 BRL on his account
+    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+                        balance_btc=0, balance_brl=250e5 )
+    self.session.add( self.user_h )
+    self.session.commit()
+
+
+    # user_h [o7] buying 3 BTC  @ $101 from user_d [self.o4], total value is  $303
+    # but user_h has only $250 BRL, and no BTC at all
+    o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                side             = '1',   price   = 101e5,      order_qty = 3e8)
+    self.session.add( o7 )
+    self.session.commit()
+
+    user_h_initial_balance_brl = self.user_h.balance_brl
+    user_h_initial_balance_btc = self.user_h.balance_btc
+    user_d_initial_balance_brl = self.user_d.balance_brl
+    user_d_initial_balance_btc = self.user_d.balance_btc
+
+    execution_total_brl = (o7.price * o7.order_qty) / 1e8
+    execution_total_btc = o7.order_qty
+    if execution_total_brl > self.user_h.balance_brl:
+      execution_total_btc = int( float(self.user_h.balance_brl) / float(o7.price) * 1e8)
+      execution_total_brl = int( float(o7.price) *  float(execution_total_btc)/1e8  )
+
+    self.execution_reports = []
+    self.om.match(self.session, o7 )
+
+    user_h_expected_balance_brl = user_h_initial_balance_brl - execution_total_brl
+    user_h_expected_balance_btc = user_h_initial_balance_btc + execution_total_btc
+    user_d_expected_balance_brl = user_d_initial_balance_brl + execution_total_brl
+    user_d_expected_balance_btc = user_d_initial_balance_btc - execution_total_btc
+
+    self.assertEqual( user_h_expected_balance_btc, self.user_h.balance_btc )
+    self.assertEqual( user_d_expected_balance_btc, self.user_d.balance_btc )
+
+    self.assertEqual( user_h_expected_balance_brl, self.user_h.balance_brl )
+    self.assertEqual( user_d_expected_balance_brl, self.user_d.balance_brl )
+
+    self.assertEqual( 3, len(self.om.buy_side) )
+    self.assertEqual( 3, len(self.om.sell_side) )
+
+    self.assertEqual( "1"      , self.o4.status )
+    self.assertEqual( 101e5    , self.o4.last_price )
+    self.assertEqual( execution_total_btc  , self.o4.cum_qty )
+    self.assertEqual( self.o4.order_qty - self.o4.cum_qty   , self.o4.leaves_qty )
+
+    self.assertEqual( "4"      , o7.status )
+    self.assertEqual( 101e5    , o7.last_price )
+    self.assertEqual( execution_total_btc  , o7.cum_qty )
+    self.assertEqual( 0        , o7.leaves_qty)
+    self.assertEqual( o7.order_qty - o7.cum_qty, o7.cxl_qty)
+
+    self.assertEqual( len(self.execution_reports) , 4 )
+
+
+
+
+  def testUserUpdateBalance(self):
     self.om.match(self.session, self.o1 )
     self.om.match(self.session, self.o2 )
     self.om.match(self.session, self.o3 )
@@ -574,17 +851,21 @@ class TestOrderMatcher(unittest.TestCase):
     user_d_initial_balance_brl = self.user_d.balance_brl
     user_d_initial_balance_btc = self.user_d.balance_btc
 
+    execution_total_brl = (o7.price * o7.order_qty) / 1e8
 
     self.om.match(self.session, o7 )
 
-    order_total_value = (o7.price * o7.cum_qty) / 1e8
 
-    user_a_expected_balance_brl = user_a_initial_balance_brl - order_total_value
-    print  order_total_value /1e5 , user_a_expected_balance_brl/1e5
+    user_a_expected_balance_brl = user_a_initial_balance_brl - execution_total_brl
+    user_a_expected_balance_btc = user_a_initial_balance_btc + o7.order_qty
 
+    user_d_expected_balance_brl = user_d_initial_balance_brl + execution_total_brl
+    user_d_expected_balance_btc = user_d_initial_balance_btc - o7.order_qty
 
-    print 'user_a', self.user_a, self.user_a.balance_brl, self.user_a.balance_btc, '[',user_a_initial_balance_brl, user_a_initial_balance_btc, ']'
-    print 'user_d', self.user_d, self.user_d.balance_brl, self.user_d.balance_btc, '[',user_d_initial_balance_brl, user_d_initial_balance_btc, ']'
+    self.assertEqual( user_a_expected_balance_brl, self.user_a.balance_brl )
+    self.assertEqual( user_a_expected_balance_btc, self.user_a.balance_btc )
+    self.assertEqual( user_d_expected_balance_brl, self.user_d.balance_brl )
+    self.assertEqual( user_d_expected_balance_btc, self.user_d.balance_btc )
 
 
   def testSameClientWithBestOfferAndAsk(self):
@@ -605,6 +886,7 @@ class TestOrderMatcher(unittest.TestCase):
 
     self.assertEqual( 1, len(self.om.buy_side) )
     self.assertEqual( 1, len(self.om.sell_side) )
+
 
 
   def testSendBuyOrdersWithoutExecution (self):

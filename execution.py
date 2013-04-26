@@ -30,14 +30,15 @@ class ExecutionReport(object):
     self.last_price = order.last_price
     self.last_shares = order.last_qty
     self.leaves_qty = order.leaves_qty
+    self.cxl_qty = order.cxl_qty
 
   def __str__(self):
     return '{"MsgType":"8", "OrderID":"%s", "ClOrdID":"%s", "ExecID":"%s", "ExecType":"%s",' \
            ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":"%s", ' \
-           ' "LastShares":"%s", "LeavesQty":"%s" }' \
+           ' "LastShares":"%s", "LeavesQty":"%s", "CxlQty":"%s" }' \
             % ( self.order_id, self.client_order_id, self.execution_id, self.execution_type,
                 self.order_status, self.symbol, self.side, self.last_price,
-                self.last_shares, self.leaves_qty)
+                self.last_shares, self.leaves_qty, self.cxl_qty)
 
 
 def on_execution_report(sender, rpt):
@@ -77,7 +78,7 @@ class OrderMatcher(object):
     for x in xrange(0, len(other_side)):
       counter_order = other_side[x]
 
-      executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty, 0) )
+      executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty-total_cancelled_qty, 0) )
       if not executed_qty:
         break
 
@@ -90,9 +91,9 @@ class OrderMatcher(object):
 
       executed_price = counter_order.price
 
-      # Check if the both accounts have founding to execute the order
+      # Check if the both accounts have funding to execute the order
       if order.is_buy:
-        available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price )
+        available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price, total_executed_qty )
         if available_qty_to_buy < executed_qty:
           cancelled_qty = executed_qty - available_qty_to_buy
           total_cancelled_qty += cancelled_qty
@@ -101,12 +102,12 @@ class OrderMatcher(object):
 
         available_qty_to_sell =  counter_order.get_available_qty_to_execute('2',executed_qty, executed_price )
         if available_qty_to_sell < executed_qty:
-          cancelled_qty = executed_qty - available_qty_to_sell
           executed_qty = available_qty_to_sell
+          cancelled_qty = counter_order.leaves_qty - executed_qty
           cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
 
       elif order.is_sell:
-        available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price )
+        available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price, total_executed_qty )
         if available_qty_to_sell < executed_qty:
           cancelled_qty = executed_qty - available_qty_to_sell
           total_cancelled_qty += cancelled_qty
@@ -119,9 +120,9 @@ class OrderMatcher(object):
           executed_qty = available_qty_to_buy
           cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
 
-
-      total_executed_qty += executed_qty
-      executed_orders.append( ( executed_qty, executed_price, counter_order ) )
+      if executed_qty:
+        total_executed_qty += executed_qty
+        executed_orders.append( ( executed_qty, executed_price, counter_order ) )
 
     # let's include the order in the book if the order is not fully executed.
     insert_pos = 0
@@ -143,15 +144,8 @@ class OrderMatcher(object):
 
       # TODO: Store and report the trade
 
-
       rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
       execution_report_signal(order.account_id, rpt_order )
-
-      if order.id in cancelled_order:
-        order.cancel_qty(cancelled_order[order.id][0])
-        cancel_rpt_order  = ExecutionReport( order, '1' if order.is_buy else '2' )
-        execution_report_signal(order.account_id, cancel_rpt_order )
-        del cancelled_order[order.id]
 
 
       rpt_counter_order = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
@@ -166,7 +160,6 @@ class OrderMatcher(object):
       if not counter_order.has_leaves_qty:
         delete_pos += 1
         other_side.pop(0)
-
 
     # cancelling all quantities that could not be filled
     for cancelled_qty, cxl_order in cancelled_order.values():

@@ -73,17 +73,34 @@ class LoggedClientMessage(BaseMessage):
     super(LoggedClientMessage, self).__init__(message)
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'A', 'D', 'F'):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0'):
       self.valid = False
       return
 
+
     # validate all fields
-    if self.type == 'A':  #logon
+    if self.type == 'BE':  #logon
+      self.valid = self.valid and  'UserReqID' in self.message
       self.valid = self.valid and  'Username' in self.message
-      self.valid = self.valid and  'Password' in self.message
-      self.valid = self.valid and  'HeartBtInt' in self.message
+      self.valid = self.valid and  'UserReqTyp' in self.message
+
+      reqId = self.message.get('UserReqID')
+      if reqId in ('1', '3'):
+        self.valid = self.valid and  'Password' in self.message
+
+      if reqId == '3':
+        self.valid = self.valid and  'NewPassword' in self.message
+
       if not self.valid:
         return
+
+    elif self.type == 'U0':  #Signup
+      self.valid = self.valid and  'Username' in self.message
+      self.valid = self.valid and  'Password' in self.message
+      self.valid = self.valid and  'FirstName' in self.message
+      self.valid = self.valid and  'LastName' in self.message
+      self.valid = self.valid and  'Email' in self.message
+
 
     elif self.type == 'D':  #New Order Single
       self.valid = self.valid and  'ClOrdID' in self.message

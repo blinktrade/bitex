@@ -33,12 +33,39 @@ section {
 }
 
 
-.ws-not-connected .websocket-sensible {
+
+.bitex-logged .bitex-display-if-logged {
+  display: block;
+}
+
+
+.ws-connected .bitex-display-if-ws-connected {
+  display: block;
+}
+
+.bitex-not-logged .bitex-hide-if-logged {
+  display: block;
+}
+
+.ws-not-connected .bitex-hide-if-ws-connected {
+  display: block;
+}
+
+
+.bitex-not-logged .bitex-display-if-logged {
   display: none;
 }
 
-.ws-connected .websocket-sensible {
-  display: block;
+.bitex-logged .bitex-hide-if-logged {
+  display: none;
+}
+
+.ws-connected .bitex-hide-if-ws-connected {
+  display: none;
+}
+
+.ws-not-connected .bitex-display-if-ws-connected {
+  display: none;
 }
 
 

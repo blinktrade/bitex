@@ -135,6 +135,9 @@ BitEx.prototype.onerror = function(e) {};
 BitEx.prototype.onclose = function(e) {};
 
 
+BitEx.prototype.onLoginResponseOk = function(msg) {};
+BitEx.prototype.onLoginResponseError = function(msg) {};
+
 BitEx.prototype.onHeartBeat = function(msg) {};
 BitEx.prototype.onExecutionReport = function(msg) {};
 
@@ -149,6 +152,14 @@ BitEx.prototype.onMessage_ = function(e) {
   switch( msg.MsgType ) {
     case '0':  //Heartbeat
       this.onHeartBeat(msg);
+      break;
+
+    case 'BF': // Login response:
+      if (msg.UserStatus == 1 ) {
+        this.onLoginResponseOk(msg);
+      } else {
+        this.onLoginResponseError(msg);
+      }
       break;
 
     case '8':  //Execution Report
@@ -172,13 +183,50 @@ BitEx.prototype.close = function(){
  */
 BitEx.prototype.login = function(username, password){
   var msg = {
-    'MsgType': 'A',
+    'MsgType': 'BE',
+    'UserReqID': '1',
     'Username': username,
     'Password': password,
-    'HeartBtInt': 30
+    'UserReqTyp': '1'
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * @param {string} username
+ * @param {string} password
+ * @param {string} new_password
+ */
+BitEx.prototype.changePassword = function(username, password, new_password ){
+  var msg = {
+    'MsgType': 'BE',
+    'UserReqID': '3',
+    'Username': username,
+    'Password': password,
+    'NewPassword': new_password
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * @param {string} username
+ * @param {string} password
+ * @param {string} first_name
+ * @param {string} last_name
+ * @param {string} email
+ */
+BitEx.prototype.signUp = function(username, password, first_name, last_name, email ){
+  var msg = {
+    'MsgType': 'U0',
+    'Username': username,
+    'Password': password,
+    'FirstName': first_name,
+    'LastName': last_name,
+    'Email': email
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
 
 
 /**
