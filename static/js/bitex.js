@@ -145,6 +145,12 @@ BitEx.prototype.onMarketDataFullRefresh = function(msg) {};
 BitEx.prototype.onMarketDataIncrementalRefresh = function(msg) {};
 BitEx.prototype.onMarketDataRequestReject = function(msg) {};
 
+BitEx.prototype.onTrade = function( msg ){};
+BitEx.prototype.onOrderBookDeleteOrdersThru = function( msg ){};
+BitEx.prototype.onOrderBookDeleteOrder = function( msg ){};
+BitEx.prototype.onOrderBookNewOrder = function( msg ){};
+BitEx.prototype.onOrderBookUpdateOrder = function( msg ){};
+
 /**
  * @param {*} e
  * @private
@@ -169,6 +175,36 @@ BitEx.prototype.onMessage_ = function(e) {
       this.onMarketDataFullRefresh(msg);
       break;
     case 'X':
+      if (msg.MDBkTyp == '3') {  // Order Depth
+        for ( var x in msg.MDIncGrp) {
+          var entry = msg.MDIncGrp[x];
+
+          switch (entry.MDEntryType) {
+            case '0': // Bid
+            case '1': // Offer
+              switch( entry.MDUpdateAction ) {
+                case '0':
+                  this.onOrderBookNewOrder(entry);
+                  break;
+                case '1':
+                  this.onOrderBookUpdateOrder(entry);
+                  break;
+                case '2':
+                  this.onOrderBookDeleteOrder(entry);
+                  break;
+                case '3':
+                  this.onOrderBookDeleteOrdersThru(entry);
+                  break;
+              }
+              break;
+            case '2': // Trade
+              this.onTrade(entry);
+              break;
+          }
+        }
+      } else {
+        // TODO:  Top of the book handling.
+      }
       this.onMarketDataIncrementalRefresh(msg);
       break;
     case 'Y':

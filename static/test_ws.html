@@ -172,13 +172,45 @@
               <div class="well">
                 <div class="row-fluid">
                   <div class="span4">
-                    <a id="id_btn_md_subscribe" class="btn btn-success btn-execution">Increver-se no feed</a>
+                    <a id="id_btn_md_subscribe" class="btn btn-success btn-execution span12">Increver-se no feed</a>
                   </div>
                   <div class="span4">
-                    <a id="id_btn_md_unsubscribe" class="btn btn-danger btn-execution">Cancelar inscrição</a>
+                    <a id="id_btn_md_unsubscribe" class="btn btn-danger btn-execution  span12">Cancelar inscrição</a>
                   </div>
                 </div>
               </div>
+
+              <div class="well">
+                <div class="row-fluid">
+                  <div class="span6">
+                    <div class="text-center"><h4>Bid</h4></div>
+                    <table id="order_book_bid"  class="table">
+                      <thead>
+                        <tr>
+                          <th>Volume</th>
+                          <th>Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="span6">
+                    <div class="text-center"><h4>Offer</h4></div>
+                    <table id="order_book_offer"  class="table">
+                      <thead>
+                      <tr>
+                        <th>Price</th>
+                        <th>Volume</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
 
             </div>
           </section>
@@ -317,6 +349,72 @@
           heartBeatAlertHtml += "<strong>HeartBeat!</strong>  TestReqId: " + msg.TestReqID;
           heartBeatAlertHtml += "</div>";
           $("#id_div_heartbeats").html(heartBeatAlertHtml);
+        };
+
+
+        bitEx.onTrade = function( msg ){
+
+        };
+
+        bitEx.onOrderBookDeleteOrdersThru = function( msg ){
+          var selector = "";
+          var order_row_html;
+          if (msg.MDEntryType == '0' ) {
+            selector = "#order_book_bid tr:eq(1)";
+          } else {
+            selector = "#order_book_offer tr:eq(1)";
+          }
+          for (var x = 0; x< msg.MDEntryPositionNo; ++x) {
+            $(selector).remove();
+          }
+        };
+
+        bitEx.onOrderBookDeleteOrder = function( msg ){
+          var selector = "";
+          var order_row_html;
+          if (msg.MDEntryType == '0' ) {
+            selector = "#order_book_bid tr:eq(" + msg.MDEntryPositionNo + ")";
+          } else {
+            selector = "#order_book_offer tr:eq(" + msg.MDEntryPositionNo + ")";
+          }
+          $(selector).remove();
+        };
+
+        bitEx.onOrderBookNewOrder = function( msg ){
+          var selector = "";
+          var order_row_html;
+          var price =  (msg.MDEntryPx/1e5).toFixed(5);
+          var qty = (msg.MDEntrySize/1e8).toFixed(8);
+
+
+          if (msg.MDEntryType == '0' ) {
+            selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
+            order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
+          } else {
+            selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
+            order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
+          }
+
+          $(selector).after(order_row_html);
+        };
+
+        bitEx.onOrderBookUpdateOrder = function( msg ){
+          var selector = "";
+          var order_row_html;
+          var price =  (msg.MDEntryPx/1e5).toFixed(5);
+          var qty = (msg.MDEntrySize/1e8).toFixed(8);
+
+
+          if (msg.MDEntryType == '0' ) {
+            selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo)  +  ")";
+            order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
+          } else {
+            selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo)  +  ")";
+            order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
+          }
+
+
+          $(selector).replaceWith(order_row_html);
         };
 
         bitEx.onMarketDataIncrementalRefresh = function(msg) {

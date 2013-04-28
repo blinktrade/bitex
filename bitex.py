@@ -19,6 +19,17 @@ import config
 
 from market_data_signals import *
 
+import  datetime
+class JsonEncoder(json.JSONEncoder):
+  def default(self, obj):
+    if isinstance(obj, datetime.datetime):
+      return obj.strftime('%Y%m%d %H:%M:%S')
+    elif isinstance(obj, datetime.date):
+      return obj.strftime('%Y%m%d')
+    if isinstance(obj, datetime.time):
+      return obj.strftime('%H:%M:%S')
+    return json.JSONEncoder.default(self, obj)
+
 
 class PublicMarketDataConnectionWS(websocket.WebSocketHandler):
   def on_message(self, raw_message):
@@ -43,7 +54,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
     self.write_message( str(rpt) )
 
   def on_market_data(self, sender, md):
-    self.write_message( str(md) )
+    self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
 
   def on_message(self, raw_message):
     msg = LoggedClientMessage(raw_message)
@@ -71,7 +82,8 @@ class TradeConnectionWS(websocket.WebSocketHandler):
         entries = msg.get('MDEntryTypes')
         for instrument in  instruments:
           for entry in entries:
-            self.md_subscriptions[req_id].append( MdSubscriptionHelper(market_depth,
+            self.md_subscriptions[req_id].append( MdSubscriptionHelper(req_id,
+                                                                       market_depth,
                                                                        entry,
                                                                        instrument,
                                                                        self.on_market_data ) )

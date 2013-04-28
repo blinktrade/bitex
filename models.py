@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import  relationship, backref
 
-engine = create_engine('sqlite:///bitex.sqlite', echo=True)
+engine = create_engine('sqlite:///bitex.sqlite', echo=False)
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
@@ -32,7 +32,7 @@ def get_hexdigest(algorithm, salt, raw_password):
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
-  username        = Column(String(30), nullable=False, index=True, unique=True )
+  username        = Column(String(15), nullable=False, index=True, unique=True )
   first_name      = Column(String(30), nullable=False)
   last_name       = Column(String(30), nullable=False)
   email           = Column(String(75), nullable=False, index=True, unique=True)
@@ -85,6 +85,7 @@ class User(Base):
       user.last_login = datetime.datetime.now()
       return user
     return None
+
 
 
 
@@ -222,7 +223,23 @@ class Order(Base):
       raise OrderNotFound
 
 
+class Trade(Base):
+  __tablename__     = 'trade'
+  id                = Column(String,        primary_key=True)
+  order_id          = Column(Integer,       ForeignKey('orders.id'))
+  counter_order_id  = Column(Integer,       ForeignKey('orders.id'))
+  buyer_username    = Column(String(15),    nullable=False)
+  seller_username   = Column(String(15),    nullable=False)
+  side              = Column(String(1),     nullable=False)
+  symbol            = Column(String(12),    nullable=False)
+  size              = Column(Integer,       nullable=False)
+  price             = Column(Integer,       nullable=False)
+  when              = Column(DateTime,      nullable=False, index=True)
+  trade_type        = Column(Integer,       nullable=False, default=0)  # regular trade
 
+  def __repr__(self):
+    return "<Trade('%d', buy_order:%d, sell_order:%d, side:%s, size:%d, price:%d )>"\
+    % (self.id, self.buy_order_id , self.sell_order_id, self.side, self.size, self.price)
 
 
 Base.metadata.create_all(engine)

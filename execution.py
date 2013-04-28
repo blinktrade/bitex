@@ -3,28 +3,14 @@ __author__ = 'rodrigo'
 import bisect
 from signals import Signal
 
-from market_data_signals import trades_signal
+import  datetime
+from models import Trade
+
+from market_data_signals import MdSubscriptionHelper
 
 matcher_dict  = {}
 
 execution_report_signal = Signal()
-
-import  json
-
-class TradeMarketData(object):
-  def __init__(self, order, counter_order):
-    #TODO : complete this class
-    pass
-
-  def __str__(self):
-    res = {
-      "MsgType":"X",
-      "MDBookType": "2",
-      "MDIncGrp": [
-         [{"MDUpdateAction":"0"}] ,
-      ]
-    }
-    return  json.dumps(res)
 
 class ExecutionReport(object):
   execution_id_generator = 0
@@ -161,10 +147,25 @@ class OrderMatcher(object):
       order.execute( executed_qty, executed_price )
       counter_order.execute(executed_qty, executed_price )
 
-      # TODO: Store and report the trade
-      md_trade = TradeMarketData( order, counter_order )
-      trades_signal( self.symbol, md_trade )
+      buyer_username = order.user.username
+      seller_username = counter_order.user.username
+      if order.is_sell:
+        tmp_username = buyer_username
+        buyer_username = seller_username
+        seller_username = buyer_username
 
+      trade =  Trade( id                = str(order.id) + '.' + str(counter_order.id),
+                      order_id          = order.id,
+                      counter_order_id  = counter_order.id,
+                      buyer_username    = buyer_username,
+                      seller_username   = seller_username,
+                      side              = order.side,
+                      symbol            = self.symbol,
+                      size              = executed_qty,
+                      price             = executed_price,
+                      when              = datetime.datetime.now())
+      session.add(trade)
+      MdSubscriptionHelper.publish_trade(trade)
 
       rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
       execution_report_signal(order.account_id, rpt_order )
@@ -191,12 +192,28 @@ class OrderMatcher(object):
       execution_report_signal(cxl_order.account_id, rpt_cancel_order )
 
 
+    md_entry_type = '0' if order.is_buy else '1'
+    counter_md_entry_type = '1' if order.is_buy else '0'
+
     if order.has_leaves_qty:
       self_side.insert( insert_pos, order )
 
+      MdSubscriptionHelper.publish_new_order( self.symbol, md_entry_type  , insert_pos, order)
 
-    # TODO : update the market data
-    # print str(self)
+      if len(executed_orders):
+        if len(other_side):
+          MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos, other_side[0] )
+        else:
+          MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
+
+    else:
+      if len(other_side) and len(executed_orders):
+        MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos, other_side[0] )
+      else:
+        MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
+
+
+    print str(self)
 
 
   def cancel(self, order):
