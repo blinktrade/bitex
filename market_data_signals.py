@@ -64,7 +64,7 @@ class MdSubscriptionHelper(object):
       "MDBkTyp": '3', # Order Depth
       "MDIncGrp": entry_list
     }
-    order_book_signal( order.symbol + '.' + entry_type , md )
+    order_book_signal( symbol + '.' + entry_type , md )
 
   @staticmethod
   def publish_new_order(symbol, entry_type, order_position, order ):
@@ -84,7 +84,7 @@ class MdSubscriptionHelper(object):
           "OrderID": order.id
       }]
     }
-    order_book_signal( order.symbol + '.' + entry_type , md )
+    order_book_signal( symbol + '.' + entry_type , md )
 
   @staticmethod
   def publish_trade(trade):

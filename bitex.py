@@ -4,6 +4,7 @@ import os
 import json
 import  logging
 
+from datetime import timedelta
 from tornado import  websocket
 import tornado.ioloop
 import tornado.web
@@ -11,7 +12,7 @@ import tornado.httpserver
 import tornado.template
 
 from execution import  OrderMatcher, execution_report_signal
-from message import  PublicClientMessage, LoggedClientMessage
+from message import  JsonMessage
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 from models import  User, engine, Order
@@ -30,18 +31,6 @@ class JsonEncoder(json.JSONEncoder):
       return obj.strftime('%H:%M:%S')
     return json.JSONEncoder.default(self, obj)
 
-
-class PublicMarketDataConnectionWS(websocket.WebSocketHandler):
-  def on_message(self, raw_message):
-    msg = PublicClientMessage(raw_message)
-    if not msg.is_valid():
-      self.close()
-      return
-
-    # echo the message for now
-    self.write_message(u"You said: " + raw_message)
-
-
 class TradeConnectionWS(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
     super(TradeConnectionWS, self).__init__(application, request, **kwargs)
@@ -57,7 +46,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
     self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
 
   def on_message(self, raw_message):
-    msg = LoggedClientMessage(raw_message)
+    msg = JsonMessage(raw_message)
     if not msg.is_valid():
       self.close()
       return
@@ -91,7 +80,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
 
       logging.info('received '  + str(msg) )
-      pass
+      return
 
 
     if not self.is_logged:
@@ -188,9 +177,8 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 class Application(tornado.web.Application):
   def __init__(self):
     handlers = [
-      (r'/public', PublicMarketDataConnectionWS),
       (r'/trade',   TradeConnectionWS),
-      (r"/(.*)",tornado.web.StaticFileHandler, {"path": "./static/", "default_filename":"test_ws.html" },),
+      (r"/(.*)",tornado.web.StaticFileHandler, {"path": "./static/", "default_filename":"index.html" },),
     ]
     settings = dict(
       cookie_secret=config.cookie_secret
@@ -198,6 +186,19 @@ class Application(tornado.web.Application):
     tornado.web.Application.__init__(self, handlers, **settings)
     # Have one global connection.
     self.session = scoped_session(sessionmaker(bind=engine))
+
+    # check BTC deposits every 5 seconds
+    tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=5), self.cron_check_btc_deposits)
+
+  def cron_check_btc_deposits(self):
+    # TODO: Invoke bitcoind rpc process to check for all deposits
+
+
+
+    # run it again 5 seconds later...
+    tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=5), self.cron_check_btc_deposits)
+
+
 
 
 def main():
@@ -211,6 +212,9 @@ def main():
 
   http_server = tornado.httpserver.HTTPServer(application,ssl_options=ssl_options)
   http_server.listen(8443)
+
+
+
   tornado.ioloop.IOLoop.instance().start()
 
 

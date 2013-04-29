@@ -87,6 +87,45 @@ class User(Base):
     return None
 
 
+class Deposit(Base):
+  __tablename__   = 'deposits'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  user            = relationship("User",  backref=backref('deposits', order_by=id))
+  account_id      = Column(Integer,       nullable=False)
+  currency        = Column(String(3),     nullable=False)
+  value           = Column(Integer,       nullable=False)
+  status          = Column(Integer,       nullable=False)
+  when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  origin          = Column(String(255),   nullable=False)
+
+
+class WithdrawBTC(Base):
+  __tablename__   = 'withdraws_btc'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  user            = relationship("User",  backref=backref('withdraws_btc', order_by=id))
+  amount          = Column(Integer,       nullable=False)
+  wallet          = Column(String,        nullable=False)
+  status          = Column(Integer,       nullable=False)
+  when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+class WithdrawBRL(Base):
+  __tablename__   = 'withdraws_brl'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  user            = relationship("User",  backref=backref('withdraws_brl', order_by=id))
+  amount          = Column(Integer,       nullable=False)
+  bank_number     = Column(Integer,       nullable=False)
+  bank_name       = Column(String,        nullable=False)
+  account_name    = Column(String,        nullable=False)
+  account_number  = Column(String,        nullable=False)
+  account_branch  = Column(String,        nullable=False)  # Agencia
+  cpf_cnpj        = Column(String,        nullable=False)
+  status          = Column(Integer,       nullable=False)
+  when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+
 
 
 class Order(Base):
