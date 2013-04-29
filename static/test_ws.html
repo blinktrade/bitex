@@ -466,6 +466,26 @@
 				$('#marketdata').css("display", "none");
 				$('#signup').css("display", "none");
 			});
+
+			$('a[href="#trading"]').click(function() {
+				$('#home').css("display", "none");
+				$('#websocket').css("display", "none");
+				$('#login').css("display", "none");
+				$('#testrequest').css("display", "none");
+				$('#order').css("display", "block");
+				$('#marketdata').css("display", "none");
+				$('#signup').css("display", "none");
+			});
+
+			$('a[href="#book"]').click(function() {
+				$('#home').css("display", "none");
+				$('#websocket').css("display", "none");
+				$('#login').css("display", "none");
+				$('#testrequest').css("display", "none");
+				$('#order').css("display", "none");
+				$('#marketdata').css("display", "block");
+				$('#signup').css("display", "none");
+			});
 			
             $("#btn_ws_connect").click(function() {
                 if ($(document.body).hasClass('ws-not-connected')) {
