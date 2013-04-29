@@ -186,11 +186,25 @@ class Order(Base):
 
   def get_available_qty_to_execute(self, side, qty, price, total_executed_qty = 0):
     """This function returns qty that are available for execution"""
+
+    price_attribute = 'balance_' + self.symbol[:3].lower()
+    qty_attribute   = 'balance_' + self.symbol[3:].lower()
+
+    if side == '1' and  not hasattr( self.user, price_attribute ):
+      return 0
+
+    if side == '2' and  not hasattr( self.user, qty_attribute ):
+      return 0
+
+    balance_price = getattr( self.user,price_attribute, 0)
+    balance_qty   = getattr( self.user,qty_attribute, 0)
+
+
     if side == '1' : # buy
-      qty_to_buy = min( qty, int((float(self.user.balance_brl)/float(price)) * 1e8) )
+      qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8) )
       return qty_to_buy
     elif side == '2': # Sell
-      qty_to_sell = min( qty, self.user.balance_btc - total_executed_qty )
+      qty_to_sell = min( qty, balance_qty - total_executed_qty )
       return qty_to_sell
     return  qty
 
@@ -217,12 +231,25 @@ class Order(Base):
 
     total_value = int(float(price) * float(qty)/1e8)
 
-    if self.side == '1': # Buy
-      self.user.balance_brl -= total_value
-      self.user.balance_btc += qty
-    elif self.side == '2': # Sell
-      self.user.balance_brl += total_value
-      self.user.balance_btc -= qty
+    # adjust balances
+    price_attribute = 'balance_' + self.symbol[:3].lower()
+    qty_attribute   = 'balance_' + self.symbol[3:].lower()
+    if hasattr( self.user, qty_attribute ) and hasattr( self.user, price_attribute ):
+      balance_price = getattr( self.user,price_attribute, 0)
+      balance_qty   = getattr( self.user,qty_attribute, 0)
+      if self.side == '1' :
+        setattr(self.user , price_attribute, balance_price -  total_value )
+        setattr(self.user , qty_attribute,   balance_qty   +  qty)
+      elif self.side == '2': # Sell
+        setattr(self.user , price_attribute, balance_price +  total_value )
+        setattr(self.user , qty_attribute,   balance_qty   -  qty)
+
+    #if self.side == '1': # Buy
+    #  self.user.balance_brl -= total_value
+    #  self.user.balance_btc += qty
+    #elif self.side == '2': # Sell
+    #  self.user.balance_brl += total_value
+    #  self.user.balance_btc -= qty
 
 
     self.average_price = ((price * qty) + (self.cum_qty * self.average_price )) / ( self.cum_qty + qty )
