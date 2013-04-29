@@ -106,10 +106,13 @@ goog.bind = function(fn, selfObj, var_args) {
 var BitEx = function(url , opt_onOpenCallback, opt_onCloseCallback, opt_onErrorCallback ){
 
   if ("WebSocket" in window) {
+    console.log("creating new websocket");
     this.ws_ = new WebSocket(url);
   } else if ("MozWebSocket" in window) {
+    console.log("creating new mozwebsocket");
     this.ws_ = new MozWebSocket(url);
   } else {
+    console.log("no websocket");
     throw WEB_SOCKET_NOT_AVAILABLE_EXCEPTION;
   }
 

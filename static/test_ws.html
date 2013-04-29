@@ -1,69 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-
     <!--Bootstrap-->
-    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css"
+        rel="stylesheet">
     <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
-
     <link href="/css/bootstrap-docs.css" rel="stylesheet">
-
-
-   <link href="/css/style.css" rel="stylesheet">
-
+    <link href="/css/style.css" rel="stylesheet">
     <!-- jQuery -->
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+
     <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+
     <script src="/js/bitex.js" type="text/javascript"></script>
 
-  </head>
-  <body class="ws-not-connected bitex-not-logged">
-
-    <div class="navbar navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="/">BitEx</a>
+</head>
+<body class="ws-not-connected bitex-not-logged">
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <div class="brand">
+                    <a href="/">
+                        <img src="/img/logo.png" title="BitEx"></a></div>
+                <ul class="nav">
+                    <li><a href="#trading">Negociação</a></li>
+                    <li><a href="#book">Livro de ofertas</a></li>
+                </ul>
+                <ul class="nav pull-right">
+                    <li><a style="margin-top: -3px" href="#">BTCBRL 281.12<span class="gray">40<span
+                        class="superscript">5</span></span> / 282.84<span class="gray">29<span class="superscript">9</span></span></a></li>
+                    <li><a href="#login">Entrar</a></li>
+                    <li><a href="#signup">Registre-se</a></li>
+                </ul>
+            </div>
         </div>
-      </div>
     </div>
-
     <div class="container">
+        <div class="page">
+			<section id="websocket" class="bitex-hide-if-ws-connected"  style="display: none;">
+				<div class="page-header">
+				  <h1>Websocket</h1>
+				</div>
+				
+				<div class="form-signin">
+				  <h2 class="form-signin-heading">Conexão</h2>
+				  <input id="ws_url" type="text" class="input-block-level" placeholder="WebSocket URL" value="wss://10.0.0.106:8443/trade">
+				  <button id="btn_ws_connect" data-loading-text="Aguarde..." class="btn btn-large btn-primary" type="submit">Conectar</button>
+				</div>
+				
+			</section>
+            <section id="home" class="bitex-hide-if-ws-connected bitex-hide-if-logged">
+				<div class="tagline">
+				  <h2>Bitex - Bolsa Brasileira de Moedas Criptografadas</h2>
+				  <h3>Compra e venda de Bitcoins. Câmbio financeiro, Liquidez e Transparência</h3>
+				</div>
+				
+				<div class="row signup">
+					<div class="span7 columns offset1"><h3>O Registro é feito menos de um minuto. É possivel negociar com apenas R$ 1 ou ฿ 1.</h3></div>
+					<div class="span4 columns"><a href="#signup" class="btn btn-large btn-primary">Registre agora</a></div>
+				</div>				
+				
+                <div class="well">
+                    <h2 style="text-align: center; font-weight: 300; margin-bottom: 10px" class="tk-vera-sans">~ Últimas 24 horas ~</h2>
 
-      <div class="row">
-        <div class="span3 bs-docs-sidebar">
-          <ul class="nav nav-list bs-docs-sidenav affix">
-            <li class="bitex-hide-if-ws-connected"><a href="#websocket"><i class="icon-chevron-right"></i> WebSocket</a></li>
-            <li class="bitex-display-if-ws-connected bitex-hide-if-logged"><a href="#signup"><i class="icon-chevron-right"></i> Registe-se</a></li>
-            <li class="bitex-display-if-ws-connected bitex-hide-if-logged"><a href="#login"><i class="icon-chevron-right"></i> Login</a></li>
-            <li class="bitex-display-if-ws-connected"><a href="#testrequest"><i class="icon-chevron-right"></i> Testar Conexão</a></li>
-            <li class="bitex-display-if-logged"><a href="#order"><i class="icon-chevron-right"></i> Enviar Ordens</a></li>
-            <li class="bitex-display-if-ws-connected"><a href="#marketdata"><i class="icon-chevron-right"></i> Dados de Mercado</a></li>
-          </ul>
-        </div>
-        <div class="span9">
-          <section id="websocket" class="bitex-hide-if-ws-connected" >
-            <div class="page-header">
-              <h1>Websocket</h1>
-            </div>
-            
-            <div class="form-signin">
-              <h2 class="form-signin-heading">Conexão</h2>
-              <input id="ws_url" type="text" class="input-block-level" placeholder="WebSocket URL" value="wss://localhost:8443/trade">
-              <button id="btn_ws_connect" data-loading-text="Aguarde..." class="btn btn-large btn-primary" type="submit">Conectar</button>
-            </div>
-            
-          </section>
-
-          <section id="signup" class="bitex-display-if-ws-connected bitex-hide-if-logged">
+                    <div class="row stat">
+	                    <div class="span2 columns offset1">
+		                    <h2>฿0,00</h2>
+		                    <p>Negociado</p>
+	                    </div>
+	                    <div class="span2 columns">
+		                    <h2>0</h2>
+		                    <p>Ordens</p>
+	                    </div>
+	                    <div class="span2 columns">
+		                    <h2>0</h2>
+		                    <p>Spread Medio</p>
+	                    </div>
+	                    <div class="span2 columns">
+		                    <h2>0%</h2>
+		                    <p>Taxas (indicativo)</p>
+	                    </div>
+                    </div>
+                </div>				
+            </section>
+            <section id="signup" class="bitex-display-if-ws-connected bitex-hide-if-logged" style="display: none;">
             <div class="page-header">
               <h1>Registre-se</h1>
             </div>
@@ -78,9 +103,7 @@
               <button id="id_btn_signup" class="btn btn-large btn-primary" type="submit">Login</button>
             </div>
           </section>
-
-
-          <section id="login" class="bitex-display-if-ws-connected bitex-hide-if-logged">
+            <section id="login" class="bitex-display-if-ws-connected bitex-hide-if-logged" style="display: none;">
             <div class="page-header">
               <h1>Login</h1>
             </div>
@@ -91,8 +114,7 @@
               <button id="id_btn_login" class="btn btn-large btn-primary" type="submit">Login</button>
             </div>
           </section>
-
-          <section id="testrequest"  class="bitex-display-if-ws-connected">
+            <section id="testrequest" class="bitex-display-if-ws-connected" style="display: none;">
             <div class="page-header">
               <h1>Envio de Teste de Conexão</h1>
             </div>
@@ -108,8 +130,7 @@
             </div>
                             
           </section>
-
-          <section id="order"  class="bitex-display-if-logged">
+            <section id="order" class="bitex-display-if-logged" style="display: none;">
             <div class="page-header">
               <h1>Enviar Ordens</h1>
             </div>
@@ -165,8 +186,7 @@
             
             
           </section>
-
-          <section id="marketdata"  class="bitex-display-if-ws-connected">
+            <section id="marketdata" class="bitex-display-if-ws-connected" style="display: none;">
             <div class="page-header">
               <h1>Dados de Mercado</h1>
               <div class="well">
@@ -210,288 +230,312 @@
                   </div>
                 </div>
               </div>
-              
-
+			</div>
+        </section>
+            <!-- Modal -->
+            <div id="no_websockets_modal" class="modal hide fade" tabindex="-1" role="dialog"
+                aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        ×</button>
+                    <h3>
+                        Seu Browser não suporta WebSockets</h3>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Por favor, faça o download do Google Chrome / Firefox ou IE 10</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">
+                        Close</button>
+                </div>
             </div>
-          </section>
+            <div id="error_websocket_modal" class="modal hide fade" tabindex="-1" role="dialog"
+                aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        ×</button>
+                    <h3 id="myModalLabel">
+                        Erro se conectando ao servidor ....</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="websocket_error_msg">
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">
+                        Close</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-
-    <!-- Modal -->
-    <div id="no_websockets_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3>Seu Browser não suporta WebSockets</h3>
-      </div>
-      <div class="modal-body">
-        <p>Por favor, faça o download do Google Chrome / Firefox ou IE 10</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-      </div>
-    </div>
-
-    <div id="error_websocket_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">Erro se conectando ao servidor ....</h3>
-      </div>
-      <div class="modal-body">
-        <p id="websocket_error_msg"></p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-      </div>
-    </div>
-
-
     <footer class="footer">
-      <div class="container">
-        <p>Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">Rodrigo Souza</a> and Clebson Derivan</p>
-      </div>
+        <div class="container">
+            <p>
+                © 2013 BitEx - Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
+                    Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a></p>
+        </div>
     </footer>
+    <script type="text/javascript">
+        var bitEx = null;
 
-  <script type="text/javascript">
-    var bitEx = null;
+        $(document).ready(function() {
 
-    $(document).ready(function(){
+            var disconnect = function() {
+                var btn = $("#btn_ws_connect");
+                btn.button('loading');
+                bitEx.close();
+                delete bitEx;
+            };
 
-      var disconnect = function() {
-        var btn = $("#btn_ws_connect");
-        btn.button('loading');
-        bitEx.close();
-        delete bitEx;
-      };
+            var connect = function() {
+                var btn = $("#btn_ws_connect");
 
-      var connect = function() {
-        var btn = $("#btn_ws_connect");
+                var url = $("#ws_url").val();
+                btn.button('loading');
 
-        var url = $("#ws_url").val();
-        btn.button('loading');
+                var onOpen = function(e) {
+                    btn.button('reset');
+                    $(document.body).removeClass('ws-not-connected');
+                    $(document.body).addClass('ws-connected');
 
-        var onOpen = function(e) {
-          btn.button('reset');
-          $(document.body).removeClass('ws-not-connected');
-          $(document.body).addClass('ws-connected');
+                    btn.html('Desconectar');
+                };
 
-          btn.html('Desconectar');
-        };
+                var onClose = function(e) {
+                    btn.button('reset');
+                    btn.html('Conectar');
+                    $(document.body).removeClass('ws-connected');
+                    $(document.body).addClass('ws-not-connected');
 
-        var onClose = function(e) {
-          btn.button('reset');
-          btn.html('Conectar');
-          $(document.body).removeClass('ws-connected');
-          $(document.body).addClass('ws-not-connected');
+                    $(document.body).removeClass('bitex-logged');
+                    $(document.body).addClass('bitex-not-logged');
+                };
 
-          $(document.body).removeClass('bitex-logged');
-          $(document.body).addClass('bitex-not-logged');
-        };
+                var onError = function(e) {
+                    btn.button('reset');
+                    $("#websocket_error_msg").html('Erro se conectando c/ o servidor');
+                    $("#error_websocket_modal").modal();
+                };
 
-        var onError = function(e) {
-          btn.button('reset');
-          $("#websocket_error_msg").html( 'Erro se conectando c/ o servidor' );
-          $("#error_websocket_modal").modal();
-        };
+                try {
+                    bitEx = new BitEx(url, onOpen, onClose, onError);
+                } catch (WEB_SOCKET_NOT_AVAILABLE_EXCEPTION) {
+                    $("#no_websockets_modal").modal();
+                }
 
-        try{
-          bitEx = new BitEx(url , onOpen, onClose,onError );
-        } catch( WEB_SOCKET_NOT_AVAILABLE_EXCEPTION ) {
-          $("#no_websockets_modal").modal();
-        }
+                bitEx.onLoginResponseOk = function(msg) {
+                    $(document.body).removeClass('bitex-not-logged');
+                    $(document.body).addClass('bitex-logged');
+                };
 
-        bitEx.onLoginResponseOk = function(msg) {
-          $(document.body).removeClass('bitex-not-logged');
-          $(document.body).addClass('bitex-logged');
-        };
-
-        bitEx.onLoginResponseError = function(msg) {
-          $(document.body).removeClass('bitex-logged');
-          $(document.body).addClass('bitex-not-logged');
-          alert(msg.UserStatusText);
-        };
-
-
-        bitEx.onExecutionReport = function(msg){
-          var sideDict = {
-            '1':'BUY',
-            '2':'SELL'
-          };
-
-          var orderStatusDict = {
-            '0': 'NEW',
-            '1': 'PARTIAL_FILL',
-            '2': 'FILL',
-            '4': 'CANCELLED'
-          };
-
-          var lastPrice =  (msg.LastPx/1e5).toFixed(5);
-          var lastShares = (msg.LastShares/1e8).toFixed(8);
-          var leavesQty = (msg.LeavesQty/1e8).toFixed(8);
-
-          var row = '<tr>';
-          row += '<td>' + msg.ExecID + '</td>';
-          row += '<td>' + msg.ClOrdID + '</td>';
-          row += '<td>' + msg.OrderID + '</td>';
-          row += '<td>' + orderStatusDict[msg.OrdStatus] + '</td>';
-          row += '<td>' + sideDict[msg.Side] + '</td>';
-          row += '<td>' + lastPrice + '</td>';
-          row += '<td>' + lastShares + '</td>';
-          row += '<td>' + leavesQty + '</td>';
-          row += '</tr>';
-
-          $(row).prependTo("#id_execution_report_table > tbody");
-        };
-
-        bitEx.onHeartBeat = function(msg){
-          var heartBeatAlertHtml = '<div class="alert">';
-          heartBeatAlertHtml += '<button type="button" class="close" data-dismiss="alert">&times;</button>';
-          heartBeatAlertHtml += "<strong>HeartBeat!</strong>  TestReqId: " + msg.TestReqID;
-          heartBeatAlertHtml += "</div>";
-          $("#id_div_heartbeats").html(heartBeatAlertHtml);
-        };
+                bitEx.onLoginResponseError = function(msg) {
+                    $(document.body).removeClass('bitex-logged');
+                    $(document.body).addClass('bitex-not-logged');
+                    alert(msg.UserStatusText);
+                };
 
 
-        bitEx.onTrade = function( msg ){
+                bitEx.onExecutionReport = function(msg) {
+                    var sideDict = {
+                        '1': 'BUY',
+                        '2': 'SELL'
+                    };
 
-        };
+                    var orderStatusDict = {
+                        '0': 'NEW',
+                        '1': 'PARTIAL_FILL',
+                        '2': 'FILL',
+                        '4': 'CANCELLED'
+                    };
 
-        bitEx.onOrderBookDeleteOrdersThru = function( msg ){
-          var selector = "";
-          var order_row_html;
-          if (msg.MDEntryType == '0' ) {
-            selector = "#order_book_bid tr:eq(1)";
-          } else {
-            selector = "#order_book_offer tr:eq(1)";
-          }
-          for (var x = 0; x< msg.MDEntryPositionNo; ++x) {
-            $(selector).remove();
-          }
-        };
+                    var lastPrice = (msg.LastPx / 1e5).toFixed(5);
+                    var lastShares = (msg.LastShares / 1e8).toFixed(8);
+                    var leavesQty = (msg.LeavesQty / 1e8).toFixed(8);
 
-        bitEx.onOrderBookDeleteOrder = function( msg ){
-          var selector = "";
-          var order_row_html;
-          if (msg.MDEntryType == '0' ) {
-            selector = "#order_book_bid tr:eq(" + msg.MDEntryPositionNo + ")";
-          } else {
-            selector = "#order_book_offer tr:eq(" + msg.MDEntryPositionNo + ")";
-          }
-          $(selector).remove();
-        };
+                    var row = '<tr>';
+                    row += '<td>' + msg.ExecID + '</td>';
+                    row += '<td>' + msg.ClOrdID + '</td>';
+                    row += '<td>' + msg.OrderID + '</td>';
+                    row += '<td>' + orderStatusDict[msg.OrdStatus] + '</td>';
+                    row += '<td>' + sideDict[msg.Side] + '</td>';
+                    row += '<td>' + lastPrice + '</td>';
+                    row += '<td>' + lastShares + '</td>';
+                    row += '<td>' + leavesQty + '</td>';
+                    row += '</tr>';
 
-        bitEx.onOrderBookNewOrder = function( msg ){
-          var selector = "";
-          var order_row_html;
-          var price =  (msg.MDEntryPx/1e5).toFixed(5);
-          var qty = (msg.MDEntrySize/1e8).toFixed(8);
+                    $(row).prependTo("#id_execution_report_table > tbody");
+                };
 
-
-          if (msg.MDEntryType == '0' ) {
-            selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
-            order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
-          } else {
-            selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
-            order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
-          }
-
-          $(selector).after(order_row_html);
-        };
-
-        bitEx.onOrderBookUpdateOrder = function( msg ){
-          var selector = "";
-          var order_row_html;
-          var price =  (msg.MDEntryPx/1e5).toFixed(5);
-          var qty = (msg.MDEntrySize/1e8).toFixed(8);
+                bitEx.onHeartBeat = function(msg) {
+                    var heartBeatAlertHtml = '<div class="alert">';
+                    heartBeatAlertHtml += '<button type="button" class="close" data-dismiss="alert">&times;</button>';
+                    heartBeatAlertHtml += "<strong>HeartBeat!</strong>  TestReqId: " + msg.TestReqID;
+                    heartBeatAlertHtml += "</div>";
+                    $("#id_div_heartbeats").html(heartBeatAlertHtml);
+                };
 
 
-          if (msg.MDEntryType == '0' ) {
-            selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo)  +  ")";
-            order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
-          } else {
-            selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo)  +  ")";
-            order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
-          }
+                bitEx.onTrade = function(msg) {
+
+                };
+
+                bitEx.onOrderBookDeleteOrdersThru = function(msg) {
+                    var selector = "";
+                    var order_row_html;
+                    if (msg.MDEntryType == '0') {
+                        selector = "#order_book_bid tr:eq(1)";
+                    } else {
+                        selector = "#order_book_offer tr:eq(1)";
+                    }
+                    for (var x = 0; x < msg.MDEntryPositionNo; ++x) {
+                        $(selector).remove();
+                    }
+                };
+
+                bitEx.onOrderBookDeleteOrder = function(msg) {
+                    var selector = "";
+                    var order_row_html;
+                    if (msg.MDEntryType == '0') {
+                        selector = "#order_book_bid tr:eq(" + msg.MDEntryPositionNo + ")";
+                    } else {
+                        selector = "#order_book_offer tr:eq(" + msg.MDEntryPositionNo + ")";
+                    }
+                    $(selector).remove();
+                };
+
+                bitEx.onOrderBookNewOrder = function(msg) {
+                    var selector = "";
+                    var order_row_html;
+                    var price = (msg.MDEntryPx / 1e5).toFixed(5);
+                    var qty = (msg.MDEntrySize / 1e8).toFixed(8);
 
 
-          $(selector).replaceWith(order_row_html);
-        };
+                    if (msg.MDEntryType == '0') {
+                        selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo - 1) + ")";
+                        order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
+                    } else {
+                        selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo - 1) + ")";
+                        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
+                    }
 
-        bitEx.onMarketDataIncrementalRefresh = function(msg) {
-          console.log( 'onMarketDataIncrementalRefresh: ' + JSON.stringify(msg));
-        };
-      };
+                    $(selector).after(order_row_html);
+                };
 
-      $("#btn_ws_connect").click(function(){
-        if ($(document.body).hasClass('ws-not-connected') ) {
-          connect();
-        } else {
-          disconnect();
-        }
-      });
-
-      $("#id_btn_signup").click(function(){
-        var first_name = $("#id_signup_first_name").val();
-        var last_name = $("#id_signup_last_name").val();
-        var email = $("#id_signup_email").val();
-        var username = $("#id_signup_username").val();
-        var password = $("#id_signup_password").val();
-
-        bitEx.signUp(username, password, first_name, last_name, email);
-      });
+                bitEx.onOrderBookUpdateOrder = function(msg) {
+                    var selector = "";
+                    var order_row_html;
+                    var price = (msg.MDEntryPx / 1e5).toFixed(5);
+                    var qty = (msg.MDEntrySize / 1e8).toFixed(8);
 
 
-      $("#id_btn_login").click(function(){
-        var username = $("#id_username").val();
-        var password = $("#id_password").val();
+                    if (msg.MDEntryType == '0') {
+                        selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo) + ")";
+                        order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
+                    } else {
+                        selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo) + ")";
+                        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
+                    }
 
-        bitEx.login(username, password);
-      });
 
-      $("#id_btn_buy").click(function(){
-        var symbol    = $("#id_symbol").val();
-        var order_qty = $("#id_order_qty").val();
-        var price     = $("#id_price").val();
+                    $(selector).replaceWith(order_row_html);
+                };
 
-        bitEx.sendBuyLimitedOrder( symbol, order_qty, price );
-      });
+                bitEx.onMarketDataIncrementalRefresh = function(msg) {
+                    console.log('onMarketDataIncrementalRefresh: ' + JSON.stringify(msg));
+                };
+            };
 
-      $("#id_btn_sell").click(function(){
-        var symbol    = $("#id_symbol").val();
-        var order_qty = $("#id_order_qty").val();
-        var price     = $("#id_price").val();
+			
+			$('a[href="#signup"]').click(function() {
+				$('#home').css("display", "none");
+				$('#websocket').css("display", "none");
+				$('#login').css("display", "none");
+				$('#testrequest').css("display", "none");
+				$('#order').css("display", "none");
+				$('#marketdata').css("display", "none");
+				$('#signup').css("display", "block");
+			});
 
-        bitEx.sendSellLimitedOrder( symbol, order_qty, price );
-      });
+			$('a[href="#login"]').click(function() {
+				$('#home').css("display", "none");
+				$('#websocket').css("display", "none");
+				$('#login').css("display", "block");
+				$('#testrequest').css("display", "none");
+				$('#order').css("display", "none");
+				$('#marketdata').css("display", "none");
+				$('#signup').css("display", "none");
+			});
+			
+            $("#btn_ws_connect").click(function() {
+                if ($(document.body).hasClass('ws-not-connected')) {
+                    connect();
+                } else {
+                    disconnect();
+                }
+            });
 
-      var subscription_id = null;
-      $("#id_btn_md_subscribe").click(function(){
-        var symbol    = $("#id_symbol").val();
-        var symbols = [ symbol ];
-        var market_depth = 0;  // full book depth
-        var entries = [
+            $("#id_btn_signup").click(function() {
+                var first_name = $("#id_signup_first_name").val();
+                var last_name = $("#id_signup_last_name").val();
+                var email = $("#id_signup_email").val();
+                var username = $("#id_signup_username").val();
+                var password = $("#id_signup_password").val();
+
+                bitEx.signUp(username, password, first_name, last_name, email);
+            });
+
+
+            $("#id_btn_login").click(function() {
+                var username = $("#id_username").val();
+                var password = $("#id_password").val();
+
+                bitEx.login(username, password);
+            });
+
+            $("#id_btn_buy").click(function() {
+                var symbol = $("#id_symbol").val();
+                var order_qty = $("#id_order_qty").val();
+                var price = $("#id_price").val();
+
+                bitEx.sendBuyLimitedOrder(symbol, order_qty, price);
+            });
+
+            $("#id_btn_sell").click(function() {
+                var symbol = $("#id_symbol").val();
+                var order_qty = $("#id_order_qty").val();
+                var price = $("#id_price").val();
+
+                bitEx.sendSellLimitedOrder(symbol, order_qty, price);
+            });
+
+            var subscription_id = null;
+            $("#id_btn_md_subscribe").click(function() {
+                var symbol = $("#id_symbol").val();
+                var symbols = [symbol];
+                var market_depth = 0;  // full book depth
+                var entries = [
             '0', // Bid
             '1', // Offer
             '2', // Trade
             'B'  // Trade Volume
         ];
-        subscription_id =  bitEx.subscribeMarketData(market_depth, symbols, entries);
-      });
+                subscription_id = bitEx.subscribeMarketData(market_depth, symbols, entries);
+            });
 
-      $("#id_btn_md_unsubscribe").click(function(){
-        bitEx.unSubscribeMarketData(subscription_id);
-      });
+            $("#id_btn_md_unsubscribe").click(function() {
+                bitEx.unSubscribeMarketData(subscription_id);
+            });
 
-      $("#id_btn_test_request").click(function(){
-        bitEx.testRequest();
-      });
+            $("#id_btn_test_request").click(function() {
+                bitEx.testRequest();
+            });
 
 
-    });
+        });
 
 
 
     </script>
-
-  </body>
+</body>
 </html>
