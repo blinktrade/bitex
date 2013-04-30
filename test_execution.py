@@ -98,32 +98,111 @@ class TestForbiddenExecutions(unittest.TestCase):
     """Send a buy order that would execute an sell order from the same client. The sending order should be cancelled"""
     o = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
                      client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
-                     side             = '1',   price   = 102e5,    order_qty = 6e8)
+                     side             = '1',   price   = 101e5,    order_qty = 6e8)
     self.session.add( o )
     self.session.commit()
 
     self.om.match(self.session, o)
 
-    self.assertEqual( 3, len(self.om.buy_side) )
-    self.assertEqual( 3, len(self.om.sell_side) )
+    self.assertEqual( "4"      , self.o4.status )
+    self.assertEqual( 0        , self.o4.last_price )
+    self.assertEqual( 0        , self.o4.leaves_qty )
+    self.assertEqual( 5e8      , self.o4.cxl_qty )
 
-    self.assertEqual( "4"      , o.status )
+    self.assertEqual( "0"      , o.status )
     self.assertEqual( 0        , o.last_price )
-    self.assertEqual( 0        , o.leaves_qty )
-    self.assertEqual( 6e8      , o.cxl_qty )
+    self.assertEqual( 6e8      , o.leaves_qty )
+    self.assertEqual( 0        , o.cxl_qty )
+
+    self.assertEqual( 4, len(self.om.buy_side) )
+    self.assertEqual( 2, len(self.om.sell_side) )
 
 
-    self.assertEqual( 1        , len(self.execution_reports) )
+    self.assertEqual( 2        , len(self.execution_reports) )
 
     self.assertEqual( "107"    ,  self.execution_reports[0].client_order_id )
-    self.assertEqual( "4"      ,  self.execution_reports[0].execution_type )
+    self.assertEqual( "0"      ,  self.execution_reports[0].execution_type )
     self.assertEqual( 0        ,  self.execution_reports[0].last_price )
-    self.assertEqual( 0        ,  self.execution_reports[0].leaves_qty )
+    self.assertEqual( 6e8      ,  self.execution_reports[0].leaves_qty )
+
+    self.assertEqual( "104"    ,  self.execution_reports[1].client_order_id )
+    self.assertEqual( "4"      ,  self.execution_reports[1].execution_type )
+    self.assertEqual( 0        ,  self.execution_reports[1].last_price )
+    self.assertEqual( 0        ,  self.execution_reports[1].leaves_qty )
+
+  def test_cancel_counter_order_and_execute_next(self):
+    """Send a buy order that would execute an sell order from the same client. The sending order should be cancelled"""
+    o = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
+               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               side             = '1',   price   = 102e5,    order_qty = 6e8)
+    self.session.add( o )
+    self.session.commit()
+
+    # this order should cause
+    #  self.o4 should be cancelled
+    #  self.o5 should be fully executed
+    #  o  should be partially filled
+    self.om.match(self.session, o)
+
+
+    self.assertEqual( "4"      , self.o4.status )
+    self.assertEqual( 0        , self.o4.last_price )
+    self.assertEqual( 0        , self.o4.leaves_qty )
+    self.assertEqual( 5e8      , self.o4.cxl_qty )
+    self.assertEqual( 0        , self.o4.cum_qty )
+
+    self.assertEqual( "2"      , self.o5.status )
+    self.assertEqual( 102e5    , self.o5.last_price )
+    self.assertEqual( 0        , self.o5.leaves_qty )
+    self.assertEqual( 0        , self.o5.cxl_qty )
+    self.assertEqual( 2e8      , self.o5.cum_qty)
+
+
+    self.assertEqual( "1"      , o.status )
+    self.assertEqual( 102e5    , o.last_price )
+    self.assertEqual( 4e8      , o.leaves_qty )
+    self.assertEqual( 0        , o.cxl_qty )
+    self.assertEqual( 2e8      , o.cum_qty)
+
+    self.assertEqual( 4, len(self.om.buy_side) )
+    self.assertEqual( 1, len(self.om.sell_side) )
+
+
+    self.assertEqual( 4        , len(self.execution_reports) )
+
+    self.assertEqual( "107"    ,  self.execution_reports[0].client_order_id )
+    self.assertEqual( "0"      ,  self.execution_reports[0].execution_type )
+    self.assertEqual( 0        ,  self.execution_reports[0].last_price )
+    self.assertEqual( 6e8      ,  self.execution_reports[0].leaves_qty )
+
+    self.assertEqual( "104"    ,  self.execution_reports[1].client_order_id )
+    self.assertEqual( "4"      ,  self.execution_reports[1].execution_type )
+    self.assertEqual( 0        ,  self.execution_reports[1].last_price )
+    self.assertEqual( 0        ,  self.execution_reports[1].last_shares )
+    self.assertEqual( 0        ,  self.execution_reports[1].leaves_qty )
+    self.assertEqual( 5e8      ,  self.execution_reports[1].cxl_qty )
+
+    self.assertEqual( "107"    ,  self.execution_reports[2].client_order_id )
+    self.assertEqual( "1"      ,  self.execution_reports[2].execution_type )
+    self.assertEqual( 102e5    ,  self.execution_reports[2].last_price )
+    self.assertEqual( 2e8      ,  self.execution_reports[2].last_shares )
+    self.assertEqual( 4e8      ,  self.execution_reports[2].leaves_qty )
+
+    self.assertEqual( "105"    ,  self.execution_reports[3].client_order_id )
+    self.assertEqual( "2"      ,  self.execution_reports[3].execution_type )
+    self.assertEqual( 102e5    ,  self.execution_reports[3].last_price )
+    self.assertEqual( 2e8      ,  self.execution_reports[3].last_shares )
+    self.assertEqual( 0        ,  self.execution_reports[3].leaves_qty )
+
 
 
   def test_fill_one_order_and_self_execute(self):
     """Send a buy order that will fill o4, but
        that order would also try to match o5, but o5 belong to the same client."""
+
+    # o4 will be fully matched
+    # o5 will be cancelled
+    # o will be partially filled.
 
     o = Order( user_id = self.user_e.id,account_id = self.user_e.account_id, user = self.user_e,
                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
@@ -134,27 +213,29 @@ class TestForbiddenExecutions(unittest.TestCase):
     self.om.match(self.session, o)
 
 
-    self.assertEqual( 3, len(self.om.buy_side) )
-    self.assertEqual( 2, len(self.om.sell_side) )
-
-    # order was partially filled and cancelled after.
-    self.assertEqual( "4"      , o.status )
-    self.assertEqual( 101e5    , o.last_price )
-    self.assertEqual( 0        , o.leaves_qty )
-    self.assertEqual( 5e8      , o.last_qty )
-    self.assertEqual( 1e8      , o.cxl_qty )
-
     # o4 was fully filled
     self.assertEqual( "2"      , self.o4.status )
     self.assertEqual( 101e5    , self.o4.last_price )
     self.assertEqual( 0        , self.o4.leaves_qty )
     self.assertEqual( 5e8      , self.o4.cum_qty )
 
-    # make sure o5 was not modified
-    self.assertEqual( "0"      , self.o5.status )
+    # make sure o5 was cancelled
+    self.assertEqual( "4"      , self.o5.status )
     self.assertEqual( 0        , self.o5.last_price )
-    self.assertEqual( 2e8      , self.o5.leaves_qty )
+    self.assertEqual( 0        , self.o5.leaves_qty )
     self.assertEqual( 0        , self.o5.cum_qty )
+    self.assertEqual( 2e8      , self.o5.cxl_qty )
+
+    # order was partially filled and cancelled after.
+    self.assertEqual( "1"      , o.status )
+    self.assertEqual( 101e5    , o.last_price )
+    self.assertEqual( 1e8      , o.leaves_qty )
+    self.assertEqual( 5e8      , o.last_qty )
+    self.assertEqual( 0        , o.cxl_qty )
+
+
+    self.assertEqual( 4, len(self.om.buy_side) )
+    self.assertEqual( 1, len(self.om.sell_side) )
 
 
     self.assertEqual( 4        , len(self.execution_reports) )
@@ -176,11 +257,12 @@ class TestForbiddenExecutions(unittest.TestCase):
     self.assertEqual( 5e8      ,  self.execution_reports[2].last_shares )
     self.assertEqual( 0        ,  self.execution_reports[2].leaves_qty )
 
-    self.assertEqual( "107"    ,  self.execution_reports[3].client_order_id )
+    self.assertEqual( "105"    ,  self.execution_reports[3].client_order_id )
     self.assertEqual( "4"      ,  self.execution_reports[3].execution_type )
-    self.assertEqual( 101e5    ,  self.execution_reports[3].last_price )
-    self.assertEqual( 5e8      ,  self.execution_reports[3].last_shares )
+    self.assertEqual( 0        ,  self.execution_reports[3].last_price )
+    self.assertEqual( 0        ,  self.execution_reports[3].last_shares )
     self.assertEqual( 0        ,  self.execution_reports[3].leaves_qty )
+    self.assertEqual( 2e8      ,  self.execution_reports[3].cxl_qty )
 
 
 class TestExecutions(unittest.TestCase):

@@ -84,50 +84,52 @@ class OrderMatcher(object):
       counter_order = other_side[x]
 
       executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty-total_cancelled_qty, 0) )
-      if not executed_qty:
-        break
 
-      # Cancel this order if both orders belong to the same client
-      if order.account_id == counter_order.account_id:
-        cancelled_qty = order.leaves_qty - total_executed_qty
-        total_cancelled_qty += cancelled_qty
-        cancelled_order[order.id] = (cancelled_qty, order)
-        break
+      # Cancel counter_order if both orders belong to the same client
+      if executed_qty and order.account_id == counter_order.account_id:
+        executed_qty = 0
+        executed_price = 0
+        cancelled_qty = counter_order.leaves_qty
+        cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
+      else:
+        if not executed_qty:
+          break
 
-      executed_price = counter_order.price
+        executed_price = counter_order.price
 
-      # Check if the both accounts have funding to execute the order
-      if order.is_buy:
-        available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price, total_executed_qty )
-        if available_qty_to_buy < executed_qty:
-          cancelled_qty = executed_qty - available_qty_to_buy
-          total_cancelled_qty += cancelled_qty
-          executed_qty = available_qty_to_buy
-          cancelled_order[order.id] = (cancelled_qty, order)
+        # Check if the both accounts have funding to execute the order
+        if order.is_buy:
+          available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price, total_executed_qty )
+          if available_qty_to_buy < executed_qty:
+            cancelled_qty = executed_qty - available_qty_to_buy
+            total_cancelled_qty += cancelled_qty
+            executed_qty = available_qty_to_buy
+            cancelled_order[order.id] = (cancelled_qty, order)
 
-        available_qty_to_sell =  counter_order.get_available_qty_to_execute('2',executed_qty, executed_price )
-        if available_qty_to_sell < executed_qty:
-          executed_qty = available_qty_to_sell
-          cancelled_qty = counter_order.leaves_qty - executed_qty
-          cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
+          available_qty_to_sell =  counter_order.get_available_qty_to_execute('2',executed_qty, executed_price )
+          if available_qty_to_sell < executed_qty:
+            executed_qty = available_qty_to_sell
+            cancelled_qty = counter_order.leaves_qty - executed_qty
+            cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
 
-      elif order.is_sell:
-        available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price, total_executed_qty )
-        if available_qty_to_sell < executed_qty:
-          cancelled_qty = executed_qty - available_qty_to_sell
-          total_cancelled_qty += cancelled_qty
-          executed_qty = available_qty_to_sell
-          cancelled_order[order.id] = (cancelled_qty, order)
+        elif order.is_sell:
+          available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price, total_executed_qty )
+          if available_qty_to_sell < executed_qty:
+            cancelled_qty = executed_qty - available_qty_to_sell
+            total_cancelled_qty += cancelled_qty
+            executed_qty = available_qty_to_sell
+            cancelled_order[order.id] = (cancelled_qty, order)
 
-        available_qty_to_buy = counter_order.get_available_qty_to_execute('1',executed_qty, executed_price )
-        if available_qty_to_buy < executed_qty:
-          cancelled_qty = executed_qty - available_qty_to_buy
-          executed_qty = available_qty_to_buy
-          cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
+          available_qty_to_buy = counter_order.get_available_qty_to_execute('1',executed_qty, executed_price )
+          if available_qty_to_buy < executed_qty:
+            cancelled_qty = executed_qty - available_qty_to_buy
+            executed_qty = available_qty_to_buy
+            cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
 
-      if executed_qty:
-        total_executed_qty += executed_qty
-        executed_orders.append( ( executed_qty, executed_price, counter_order ) )
+      total_executed_qty += executed_qty
+      executed_orders.append( ( executed_qty, executed_price, counter_order ) )
+
+
 
     # let's include the order in the book if the order is not fully executed.
     insert_pos = 0
@@ -140,39 +142,41 @@ class OrderMatcher(object):
       execution_report_signal( order.account_id, rpt_order )
 
 
-
     # order execution
     delete_pos = 0
     for executed_qty, executed_price, counter_order in executed_orders:
-      order.execute( executed_qty, executed_price )
-      counter_order.execute(executed_qty, executed_price )
 
-      buyer_username = order.user.username
-      seller_username = counter_order.user.username
-      if order.is_sell:
-        tmp_username = buyer_username
-        buyer_username = seller_username
-        seller_username = buyer_username
+      if executed_qty:
+        order.execute( executed_qty, executed_price )
+        counter_order.execute(executed_qty, executed_price )
 
-      trade =  Trade( id                = str(order.id) + '.' + str(counter_order.id),
-                      order_id          = order.id,
-                      counter_order_id  = counter_order.id,
-                      buyer_username    = buyer_username,
-                      seller_username   = seller_username,
-                      side              = order.side,
-                      symbol            = self.symbol,
-                      size              = executed_qty,
-                      price             = executed_price,
-                      when              = datetime.datetime.now())
-      session.add(trade)
-      MdSubscriptionHelper.publish_trade(trade)
+        buyer_username = order.user.username
+        seller_username = counter_order.user.username
+        if order.is_sell:
+          tmp_username = buyer_username
+          buyer_username = seller_username
+          seller_username = tmp_username
 
-      rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
-      execution_report_signal(order.account_id, rpt_order )
+        trade =  Trade( id                = str(order.id) + '.' + str(counter_order.id),
+                        order_id          = order.id,
+                        counter_order_id  = counter_order.id,
+                        buyer_username    = buyer_username,
+                        seller_username   = seller_username,
+                        side              = order.side,
+                        symbol            = self.symbol,
+                        size              = executed_qty,
+                        price             = executed_price,
+                        when              = datetime.datetime.now())
+        session.add(trade)
+        MdSubscriptionHelper.publish_trade(trade)
+
+        rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
+        execution_report_signal(order.account_id, rpt_order )
 
 
-      rpt_counter_order = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
-      execution_report_signal(counter_order.account_id, rpt_counter_order )
+        rpt_counter_order = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
+        execution_report_signal(counter_order.account_id, rpt_counter_order )
+
 
       if counter_order.id in cancelled_order:
         counter_order.cancel_qty(cancelled_order[counter_order.id][0])
@@ -213,7 +217,7 @@ class OrderMatcher(object):
         MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
 
 
-    print str(self)
+    #print str(self)
 
 
   def cancel(self, order):
