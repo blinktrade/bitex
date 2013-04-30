@@ -9,6 +9,7 @@ order_book_signal       = Signal()
 
 
 
+
 class MdSubscriptionHelper(object):
   def __init__(self,req_id, market_depth, entry, instrument, handler):
     self.handler = handler
@@ -27,12 +28,6 @@ class MdSubscriptionHelper(object):
   def signal_handler(self, sender, md):
     md['MDReqID'] = self.req_id
     self.handler(sender, md)
-
-
-  @staticmethod
-  def publish_full_refresh(orderMatcher):
-    pass
-
 
   @staticmethod
   def publish_executions(symbol, entry_type, executed_count, order = None):
@@ -110,3 +105,43 @@ class MdSubscriptionHelper(object):
     }
 
     trades_signal( trade.symbol,  md )
+
+
+def generate_md_full_refresh( symbol, market_depth, om, entries  ):
+  entry_list = []
+
+  for entry_type in entries:
+    if entry_type == '0' or entry_type == '1':
+      if entry_type == '0': # Bid
+        orders = om.buy_side
+      else: # Offer
+        orders = om.sell_side
+
+      entry_position = 0
+      for order in orders:
+        entry_position += 1
+
+        entry_list.append( {
+          "MDEntryType": entry_type,
+          "MDEntryPositionNo": entry_position,
+          "MDEntryID": order.id,
+          "MDEntryPx": order.price,
+          "MDEntrySize": order.leaves_qty,
+          "MDEntryDate": order.created.date(),
+          "MDEntryTime": order.created.time(),
+          "OrderID": order.id
+        })
+
+        if entry_position >= market_depth > 0:
+          break
+    elif entry_type == '2':
+      # return the list of Trades
+      pass
+
+  md = {
+    "MsgType":"W",
+    "MarketDepth": market_depth,
+    "Symbol": symbol,
+    "MDFullGrp": entry_list
+  }
+  return md

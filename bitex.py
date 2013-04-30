@@ -58,11 +58,19 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
     elif  msg.type == 'V':  # Market Data Request
       req_id = msg.get('MDReqID')
-      if int(msg.get('SubscriptionRequestType')) == 2: # unsubscribe
-        if req_id in self.md_subscriptions:
-          del self.md_subscriptions[req_id]
+      if int(msg.get('SubscriptionRequestType')) == 0: # Snapshot
+        # Generate a FullRefresh
+        market_depth = msg.get('MarketDepth')
+        instruments = msg.get('Instruments')
+        entries = msg.get('MDEntryTypes')
 
-      elif int(msg.get('SubscriptionRequestType')) == 1:  # subscribe
+        for instrument in  instruments:
+          om = OrderMatcher.get(instrument)
+          md = generate_md_full_refresh( instrument, market_depth, om, entries )
+          self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
+
+
+      elif int(msg.get('SubscriptionRequestType')) == 1:  # Snapshot + Updates
         if req_id not in self.md_subscriptions:
           self.md_subscriptions[req_id] = []
 
@@ -70,12 +78,20 @@ class TradeConnectionWS(websocket.WebSocketHandler):
         instruments = msg.get('Instruments')
         entries = msg.get('MDEntryTypes')
         for instrument in  instruments:
+          om = OrderMatcher.get(instrument)
+          md = generate_md_full_refresh( instrument, market_depth, om, entries )
+          self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
+
           for entry in entries:
             self.md_subscriptions[req_id].append( MdSubscriptionHelper(req_id,
                                                                        market_depth,
                                                                        entry,
                                                                        instrument,
                                                                        self.on_market_data ) )
+
+      elif int(msg.get('SubscriptionRequestType')) == 2: # Disable previous Snapshot + Update Request
+        if req_id in self.md_subscriptions:
+          del self.md_subscriptions[req_id]
 
 
 

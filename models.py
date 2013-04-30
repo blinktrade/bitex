@@ -63,6 +63,18 @@ class User(Base):
   def account_id(self):
     return self.id
 
+  def update_balance(self, operation, currency_symbol, value ):
+    balance_attribute = 'balance_' + currency_symbol
+
+    if hasattr( self,  balance_attribute ):
+      current_balance = getattr( self, balance_attribute, 0)
+
+      if operation == 'CREDIT':
+        setattr(self , balance_attribute, current_balance + value )
+      elif operation == 'DEBIT':
+        setattr(self , balance_attribute, current_balance - value )
+
+
   def set_password(self, raw_password):
     import random
     algo = 'sha1'
@@ -232,24 +244,14 @@ class Order(Base):
     total_value = int(float(price) * float(qty)/1e8)
 
     # adjust balances
-    price_attribute = 'balance_' + self.symbol[:3].lower()
-    qty_attribute   = 'balance_' + self.symbol[3:].lower()
-    if hasattr( self.user, qty_attribute ) and hasattr( self.user, price_attribute ):
-      balance_price = getattr( self.user,price_attribute, 0)
-      balance_qty   = getattr( self.user,qty_attribute, 0)
-      if self.side == '1' :
-        setattr(self.user , price_attribute, balance_price -  total_value )
-        setattr(self.user , qty_attribute,   balance_qty   +  qty)
-      elif self.side == '2': # Sell
-        setattr(self.user , price_attribute, balance_price +  total_value )
-        setattr(self.user , qty_attribute,   balance_qty   -  qty)
-
-    #if self.side == '1': # Buy
-    #  self.user.balance_brl -= total_value
-    #  self.user.balance_btc += qty
-    #elif self.side == '2': # Sell
-    #  self.user.balance_brl += total_value
-    #  self.user.balance_btc -= qty
+    from_symbol = self.symbol[:3].lower()
+    to_symbol = self.symbol[3:].lower()
+    if self.side == '1' :  # BUY
+      self.user.update_balance( 'DEBIT',  from_symbol, total_value )
+      self.user.update_balance( 'CREDIT', to_symbol  , qty )
+    elif self.side == '2': # Sell
+      self.user.update_balance( 'CREDIT', from_symbol, total_value )
+      self.user.update_balance( 'DEBIT',  to_symbol  , qty )
 
 
     self.average_price = ((price * qty) + (self.cum_qty * self.average_price )) / ( self.cum_qty + qty )

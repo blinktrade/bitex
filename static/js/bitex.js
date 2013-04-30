@@ -149,6 +149,7 @@ BitEx.prototype.onMarketDataIncrementalRefresh = function(msg) {};
 BitEx.prototype.onMarketDataRequestReject = function(msg) {};
 
 BitEx.prototype.onTrade = function( msg ){};
+BitEx.prototype.onOrderBookClear = function(  ){};
 BitEx.prototype.onOrderBookDeleteOrdersThru = function( msg ){};
 BitEx.prototype.onOrderBookDeleteOrder = function( msg ){};
 BitEx.prototype.onOrderBookNewOrder = function( msg ){};
@@ -175,6 +176,20 @@ BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'W':
+      if ( msg.MarketDepth != 1 ) { // Has Market Depth
+        this.onOrderBookClear();
+
+        for ( var x in msg.MDFullGrp) {
+          var entry = msg.MDFullGrp[x];
+
+          switch (entry.MDEntryType) {
+            case '0': // Bid
+            case '1': // Offer
+              this.onOrderBookNewOrder(entry);
+              break;
+          }
+        }
+      }
       this.onMarketDataFullRefresh(msg);
       break;
     case 'X':

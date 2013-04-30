@@ -356,6 +356,18 @@ $(document).ready(function(){
 
     };
 
+    bitEx.onOrderBookClear = function(msg) {
+      var rowCount = $('#order_book_bid tr').length;
+      for (var x = 0; x< rowCount; ++x) {
+        $("#order_book_bid tr:eq(1)").remove();
+      }
+
+      rowCount = $('#order_book_offer tr').length;
+      for (var x = 0; x< rowCount; ++x) {
+        $("#order_book_offer tr:eq(1)").remove();
+      }
+    };
+
     bitEx.onOrderBookDeleteOrdersThru = function( msg ){
       var selector = "";
       var order_row_html;
@@ -379,6 +391,8 @@ $(document).ready(function(){
       }
       $(selector).remove();
     };
+
+
 
     bitEx.onOrderBookNewOrder = function( msg ){
       var selector = "";
