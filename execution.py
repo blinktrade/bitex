@@ -139,7 +139,7 @@ class OrderMatcher(object):
     # generate a execution report if the order was accepted ( not cancelled )
     if total_cancelled_qty != order.order_qty:
       rpt_order         = ExecutionReport( order,         '1' if order.is_buy else '2' )
-      execution_report_signal( order.account_id, rpt_order )
+      execution_report_signal( order.user_id, rpt_order )
 
 
     # order execution
@@ -171,17 +171,17 @@ class OrderMatcher(object):
         MdSubscriptionHelper.publish_trade(trade)
 
         rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
-        execution_report_signal(order.account_id, rpt_order )
+        execution_report_signal(order.user_id, rpt_order )
 
 
         rpt_counter_order = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
-        execution_report_signal(counter_order.account_id, rpt_counter_order )
+        execution_report_signal(counter_order.user_id, rpt_counter_order )
 
 
       if counter_order.id in cancelled_order:
         counter_order.cancel_qty(cancelled_order[counter_order.id][0])
         cancel_rpt_counter_order  = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
-        execution_report_signal( counter_order.account_id, cancel_rpt_counter_order )
+        execution_report_signal( counter_order.user_id, cancel_rpt_counter_order )
         del cancelled_order[counter_order.id]
 
       if not counter_order.has_leaves_qty:
@@ -193,7 +193,7 @@ class OrderMatcher(object):
       cxl_order.cancel_qty(cancelled_qty)
 
       rpt_cancel_order = ExecutionReport( cxl_order, '1' if cxl_order.is_buy else '2' )
-      execution_report_signal(cxl_order.account_id, rpt_cancel_order )
+      execution_report_signal(cxl_order.user_id, rpt_cancel_order )
 
 
     md_entry_type = '0' if order.is_buy else '1'

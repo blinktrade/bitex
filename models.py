@@ -3,7 +3,7 @@ from utils import smart_str
 import hashlib
 
 import datetime
-
+from signals import Signal
 from errors import OrderNotFound
 
 
@@ -17,6 +17,7 @@ engine = create_engine('sqlite:///bitex.sqlite', echo=False)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
+balance_signal = Signal()
 
 def get_hexdigest(algorithm, salt, raw_password):
   """
@@ -74,6 +75,18 @@ class User(Base):
       elif operation == 'DEBIT':
         setattr(self , balance_attribute, current_balance - value )
 
+  def publish_balance_update(self, reqId = None):
+    balance_update_msg = {
+      'MsgType': 'U3',
+      'balance_brl': self.balance_brl,
+      'balance_usd': self.balance_usd,
+      'balance_btc': self.balance_btc,
+      'balance_ltc': self.balance_ltc,
+      }
+    if reqId:
+      balance_update_msg['BalanceReqID'] = reqId
+
+    balance_signal( self.id, balance_update_msg )
 
   def set_password(self, raw_password):
     import random
@@ -146,6 +159,7 @@ class Order(Base):
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
   user            = relationship("User",  backref=backref('orders', order_by=id))
+  username        = Column(String(15),    nullable=False )
   account_id      = Column(Integer,       nullable=False)
   client_order_id = Column(String(30),    nullable=False, index=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
@@ -260,6 +274,9 @@ class Order(Base):
     self.last_price = price
     self.last_qty = qty
     self._adjust_status()
+
+    self.user.publish_balance_update()
+
 
   @property
   def has_leaves_qty(self):

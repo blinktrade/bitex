@@ -54,7 +54,8 @@ class MdSubscriptionHelper(object):
         "MDEntrySize": order.leaves_qty,
         "MDEntryDate": order.created.date(),
         "MDEntryTime": order.created.time(),
-        "OrderID": order.id
+        "OrderID": order.id,
+        "Username": order.username
       })
     md = {
       "MsgType":"X",
@@ -78,7 +79,8 @@ class MdSubscriptionHelper(object):
           "MDEntrySize": order.leaves_qty,
           "MDEntryDate": order.created.date(),
           "MDEntryTime": order.created.time(),
-          "OrderID": order.id
+          "OrderID": order.id,
+          "Username": order.username
       }]
     }
     order_book_signal( symbol + '.' + entry_type , md )
@@ -131,7 +133,8 @@ def generate_md_full_refresh( session, symbol, market_depth, om, entries  ):
           "MDEntrySize": order.leaves_qty,
           "MDEntryDate": order.created.date(),
           "MDEntryTime": order.created.time(),
-          "OrderID": order.id
+          "OrderID": order.id,
+          "Username": order.username
         })
 
         if entry_position >= market_depth > 0:

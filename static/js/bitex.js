@@ -141,6 +141,8 @@ BitEx.prototype.onclose = function(e) {};
 BitEx.prototype.onLoginResponseOk = function(msg) {};
 BitEx.prototype.onLoginResponseError = function(msg) {};
 
+BitEx.prototype.onBalanceResponse = function(msg) {};
+
 BitEx.prototype.onHeartBeat = function(msg) {};
 BitEx.prototype.onExecutionReport = function(msg) {};
 
@@ -151,7 +153,7 @@ BitEx.prototype.onMarketDataRequestReject = function(msg) {};
 BitEx.prototype.onTrade = function( msg ){};
 BitEx.prototype.onTradeClear = function( msg ){};
 
-BitEx.prototype.onOrderBookClear = function(  ){};
+BitEx.prototype.onOrderBookClear = function(){};
 BitEx.prototype.onOrderBookDeleteOrdersThru = function( msg ){};
 BitEx.prototype.onOrderBookDeleteOrder = function( msg ){};
 BitEx.prototype.onOrderBookNewOrder = function( msg ){};
@@ -175,6 +177,10 @@ BitEx.prototype.onMessage_ = function(e) {
       } else {
         this.onLoginResponseError(msg);
       }
+      break;
+
+    case 'U3':
+      this.onBalanceResponse(msg);
       break;
 
     case 'W':

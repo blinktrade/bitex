@@ -48,8 +48,23 @@
         <li class="bitex-display-if-ws-connected"><a href="#testrequest"><i class="icon-chevron-right"></i> Testar Conexão</a></li>
         <li class="bitex-display-if-logged"><a href="#order"><i class="icon-chevron-right"></i> Enviar Ordens</a></li>
         <li class="bitex-display-if-ws-connected"><a href="#marketdata"><i class="icon-chevron-right"></i> Dados de Mercado</a></li>
+
+        <div class="well bitex-display-if-logged account_overview">
+          <h3>Olá, <span id="user_username"></span>!</h3>
+          <h6>Sua Conta</h6>
+          <table class="data">
+            <tbody>
+            <tr><td><strong>R$</strong></td><td ><span id="user_balance_brl"></span></td></tr>
+            <tr><td><strong>฿</strong></td><td><span id="user_balance_btc"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
       </ul>
+
     </div>
+
+
     <div class="span9">
       <section id="websocket" class="bitex-hide-if-ws-connected" >
         <div class="page-header">
@@ -336,6 +351,8 @@ $(document).ready(function(){
     bitEx.onLoginResponseOk = function(msg) {
       $(document.body).removeClass('bitex-not-logged');
       $(document.body).addClass('bitex-logged');
+
+      $("#user_username").text( msg.Username);
     };
 
     bitEx.onLoginResponseError = function(msg) {
@@ -446,7 +463,13 @@ $(document).ready(function(){
       $(selector).remove();
     };
 
+    bitEx.onBalanceResponse = function(msg) {
+      var balance_brl = (msg.balance_brl/1e5).toFixed(2);
+      var balance_btc = (msg.balance_btc/1e8).toFixed(8);
 
+      $("#user_balance_brl").text(balance_brl);
+      $("#user_balance_btc").text(balance_btc);
+    };
 
     bitEx.onOrderBookNewOrder = function( msg ){
       var selector = "";
@@ -454,13 +477,12 @@ $(document).ready(function(){
       var price =  (msg.MDEntryPx/1e5).toFixed(5);
       var qty = (msg.MDEntrySize/1e8).toFixed(8);
 
-
       if (msg.MDEntryType == '0' ) {
         selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
-        order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
+        order_row_html = "<tr><td>" + msg.Username + "</td><td>" + qty + "</td><td>" + price + "</td></tr>";
       } else {
         selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
-        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
+        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td><td>" + msg.Username + "</td></tr>";
       }
 
       $(selector).after(order_row_html);
@@ -475,10 +497,10 @@ $(document).ready(function(){
 
       if (msg.MDEntryType == '0' ) {
         selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo)  +  ")";
-        order_row_html = "<tr><td>" + qty + "</td><td>" + price + "</td></tr>";
+        order_row_html = "<tr><td>" + msg.Username + "</td><td>" + qty + "</td><td>" + price + "</td></tr>";
       } else {
         selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo)  +  ")";
-        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td></tr>";
+        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td><td>" + msg.Username + "</td></tr>";
       }
 
 

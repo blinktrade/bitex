@@ -38,7 +38,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0'):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2' ):
       self.valid = False
       return
 
@@ -123,6 +123,15 @@ class JsonMessage(BaseMessage):
         return
 
       #TODO: Validate all fields of Order Cancel Message
+
+
+    elif self.type == 'U2' :
+      self.valid = self.valid and  'BalanceReqID' in self.message
+
+      if not self.valid:
+        return
+
+      #TODO: Validate all fields of Request For Balance Message
 
 
   def get(self, attr):

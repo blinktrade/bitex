@@ -15,8 +15,9 @@ from execution import  OrderMatcher, execution_report_signal
 from message import  JsonMessage
 
 from sqlalchemy.orm import scoped_session, sessionmaker
-from models import  User, engine, Order
+from models import  User, engine, Order, balance_signal
 import config
+
 
 from market_data_signals import *
 
@@ -44,6 +45,10 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
   def on_market_data(self, sender, md):
     self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
+
+  def on_balance_update(self, sender, balance_update_msg):
+    self.write_message( str(json.dumps(balance_update_msg, cls=JsonEncoder )) )
+
 
   def on_message(self, raw_message):
     msg = JsonMessage(raw_message)
@@ -149,12 +154,19 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.write_message( json.dumps(login_response) )
 
 
-      # subscribe to all execution reports for this account.
-      execution_report_signal.connect(  self.on_execution_report, self.user.account_id )
+      # subscribe to all execution reports for this user account.
+      execution_report_signal.connect(  self.on_execution_report, self.user.id )
+
+      # subscribe to balance updates for this user account
+      balance_signal.connect( self.on_balance_update, self.user.id  )
 
       # add the user to the session/
       self.application.session.add(self.user)
       self.application.session.commit()
+
+
+      self.user.publish_balance_update()
+
       return
 
 
@@ -163,6 +175,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       order = Order( user_id          = self.user.id,
                      account_id       = self.user.account_id,
                      user             = self.user,
+                     username         = self.user.username,
                      client_order_id  = msg.get('ClOrdID'),
                      symbol           = msg.get('Symbol'),
                      side             = msg.get('Side'),
@@ -178,6 +191,10 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.application.session.commit()
       return
 
+
+    elif msg.type == 'U2': # Request for Balances
+      self.user.publish_balance_update(msg.get('BalanceReqID'))
+      return
 
   def on_close(self):
     pass
