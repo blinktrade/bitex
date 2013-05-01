@@ -148,7 +148,7 @@ class Order(Base):
   user            = relationship("User",  backref=backref('orders', order_by=id))
   account_id      = Column(Integer,       nullable=False)
   client_order_id = Column(String(30),    nullable=False, index=True)
-  status          = Column(String(1),     nullable=False, default='0')
+  status          = Column(String(1),     nullable=False, default='0', index=True)
   symbol          = Column(String(12),    nullable=False)
   side            = Column(String(1),     nullable=False)
   type            = Column(String(1),     nullable=False)

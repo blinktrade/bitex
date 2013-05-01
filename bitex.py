@@ -199,6 +199,12 @@ class Application(tornado.web.Application):
     # check BTC deposits every 5 seconds
     tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=5), self.cron_check_btc_deposits)
 
+    # Load all open orders
+    orders = self.session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
+    for order in orders:
+      OrderMatcher.get( order.symbol  ).match(self.session, order)
+
+    
   def cron_check_btc_deposits(self):
     # TODO: Invoke bitcoind rpc process to check for all deposits
 
@@ -218,7 +224,7 @@ def main():
     "keyfile": os.path.join(os.path.dirname(__file__), "ssl/", "privatekey.pem"),
   }
   print "starting server with " + str(ssl_options)
-
+  
   http_server = tornado.httpserver.HTTPServer(application,ssl_options=ssl_options)
   http_server.listen(8443)
 
