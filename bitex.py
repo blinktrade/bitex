@@ -24,9 +24,9 @@ import  datetime
 class JsonEncoder(json.JSONEncoder):
   def default(self, obj):
     if isinstance(obj, datetime.datetime):
-      return obj.strftime('%Y%m%d %H:%M:%S')
+      return obj.strftime('%Y-%m-%d %H:%M:%S')
     elif isinstance(obj, datetime.date):
-      return obj.strftime('%Y%m%d')
+      return obj.strftime('%Y-%m-%d')
     if isinstance(obj, datetime.time):
       return obj.strftime('%H:%M:%S')
     return json.JSONEncoder.default(self, obj)
@@ -66,7 +66,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
         for instrument in  instruments:
           om = OrderMatcher.get(instrument)
-          md = generate_md_full_refresh( instrument, market_depth, om, entries )
+          md = generate_md_full_refresh( self.application.session, instrument, market_depth, om, entries )
           self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
 
 
@@ -79,7 +79,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
         entries = msg.get('MDEntryTypes')
         for instrument in  instruments:
           om = OrderMatcher.get(instrument)
-          md = generate_md_full_refresh( instrument, market_depth, om, entries )
+          md = generate_md_full_refresh(self.application.session, instrument, market_depth, om, entries )
           self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
 
           for entry in entries:
@@ -160,8 +160,6 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
     elif msg.type == 'D':  # New Order Single
       # process the new order.
-
-      print ('***************** create the order')
       order = Order( user_id          = self.user.id,
                      account_id       = self.user.account_id,
                      user             = self.user,
@@ -175,12 +173,7 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.application.session.add( order)
       self.application.session.commit() # just to assign an ID for the order.
 
-      print ('***************** Order id is : ' + str( order.id) )
-
       OrderMatcher.get(msg.get('Symbol')).match(self.application.session, order)
-
-
-      print ('***************** Match done oder_id: ' + str( order.id) )
 
       self.application.session.commit()
       return

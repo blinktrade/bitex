@@ -299,7 +299,7 @@ class Trade(Base):
   buyer_username    = Column(String(15),    nullable=False)
   seller_username   = Column(String(15),    nullable=False)
   side              = Column(String(1),     nullable=False)
-  symbol            = Column(String(12),    nullable=False)
+  symbol            = Column(String(12),    nullable=False, index=True)
   size              = Column(Integer,       nullable=False)
   price             = Column(Integer,       nullable=False)
   when              = Column(DateTime,      nullable=False, index=True)
@@ -308,6 +308,11 @@ class Trade(Base):
   def __repr__(self):
     return "<Trade('%d', buy_order:%d, sell_order:%d, side:%s, size:%d, price:%d )>"\
     % (self.id, self.buy_order_id , self.sell_order_id, self.side, self.size, self.price)
+
+  @staticmethod
+  def get_last_100_trades(session, symbol):
+    trades = session.query(Trade).filter_by(symbol=symbol).order_by(Trade.when.desc() ).limit(100)
+    return trades
 
 
 Base.metadata.create_all(engine)

@@ -14,6 +14,7 @@
 
 
   <link href="/css/style-test.css" rel="stylesheet">
+  <link href="/css/fuelux.css" rel="stylesheet">
 
   <!-- jQuery -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
@@ -145,24 +146,30 @@
           </div>
         </div>
 
-        <table id="id_execution_report_table" class="table">
-          <thead>
-          <tr>
-            <th>ExecID</th>
-            <th>ClOrdID</th>
-            <th>OrderID</th>
-            <th>OrdStatus</th>
-            <th>Side</th>
-            <th>LastPx</th>
-            <th>LastShares</th>
-            <th>LeavesQty</th>
-          </tr>
-          </thead>
-          <tbody>
-
-          </tbody>
-        </table>
-
+        <div class="fuelux" style="height:400px;width:100%;margin-bottom:20px;">
+          <table class="table table-bordered datagrid datagrid-stretch-header">
+            <thead>
+              <tr>
+                <th colspan="8">
+                  <span class="datagrid-header-title">Relatório de Execuções</span>
+                </th>
+              </tr>
+              <tr>
+                <th style="width: 75px">Código da Ordem</th>
+                <th style="width: 100px">Status</th>
+                <th style="width: 75px">Lado</th>
+                <th style="width: 100px">Últ. Preço</th>
+                <th style="width: 100px">Últ. Volume</th>
+                <th style="width: 100px">Qtd. Disp.</th>
+              </tr>
+            </thead>
+          </table>
+          <div class="datagrid-stretch-wrapper" style="height: 256px;">
+            <table id="id_execution_report_table" class="table table-bordered datagrid">
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
 
       </section>
 
@@ -208,6 +215,32 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+          <div class="fuelux" >
+            <table class="table table-bordered datagrid datagrid-stretch-header">
+              <thead>
+              <tr>
+                <th colspan="8">
+                  <span class="datagrid-header-title">Negócios</span>
+                </th>
+              </tr>
+              <tr>
+                <th style="width: 75px">Data</th>
+                <th style="width: 75px">Horário</th>
+                <th style="width: 110px">Comprador</th>
+                <th style="width: 110px">Vendedor</th>
+                <th style="width: 100px">Quantidade</th>
+                <th style="width: 100px">Preço</th>
+                <th>Volume</th>
+              </tr>
+              </thead>
+            </table>
+            <div class="datagrid-stretch-wrapper" style="height: 256px;">
+              <table id="id_trades_table" class="table table-bordered datagrid">
+                <tbody></tbody>
+              </table>
             </div>
           </div>
 
@@ -311,38 +344,6 @@ $(document).ready(function(){
       alert(msg.UserStatusText);
     };
 
-
-    bitEx.onExecutionReport = function(msg){
-      var sideDict = {
-        '1':'BUY',
-        '2':'SELL'
-      };
-
-      var orderStatusDict = {
-        '0': 'NEW',
-        '1': 'PARTIAL_FILL',
-        '2': 'FILL',
-        '4': 'CANCELLED'
-      };
-
-      var lastPrice =  (msg.LastPx/1e5).toFixed(5);
-      var lastShares = (msg.LastShares/1e8).toFixed(8);
-      var leavesQty = (msg.LeavesQty/1e8).toFixed(8);
-
-      var row = '<tr>';
-      row += '<td>' + msg.ExecID + '</td>';
-      row += '<td>' + msg.ClOrdID + '</td>';
-      row += '<td>' + msg.OrderID + '</td>';
-      row += '<td>' + orderStatusDict[msg.OrdStatus] + '</td>';
-      row += '<td>' + sideDict[msg.Side] + '</td>';
-      row += '<td>' + lastPrice + '</td>';
-      row += '<td>' + lastShares + '</td>';
-      row += '<td>' + leavesQty + '</td>';
-      row += '</tr>';
-
-      $(row).prependTo("#id_execution_report_table > tbody");
-    };
-
     bitEx.onHeartBeat = function(msg){
       var heartBeatAlertHtml = '<div class="alert">';
       heartBeatAlertHtml += '<button type="button" class="close" data-dismiss="alert">&times;</button>';
@@ -351,9 +352,62 @@ $(document).ready(function(){
       $("#id_div_heartbeats").html(heartBeatAlertHtml);
     };
 
+    var sideDict = {
+      '1':'COMPRA',
+      '2':'VENDA'
+    };
+
+    var orderStatusDict = {
+      '0': 'NOVA ORDEM',
+      '1': 'EXC. PARCIAL',
+      '2': 'EXECUTADA',
+      '4': 'CANCELADA'
+    };
+
+    var orderStatusClassDict = {
+      '0': 'execution-report-new',
+      '1': 'execution-report-partial',
+      '2': 'execution-report-fill',
+      '4': 'execution-report-cancel'
+    };
+
+    bitEx.onExecutionReport = function(msg){
+      var lastPrice =  (msg.LastPx/1e5).toFixed(5);
+      var lastShares = (msg.LastShares/1e8).toFixed(8);
+      var leavesQty = (msg.LeavesQty/1e8).toFixed(8);
+
+      var row = '<tr id="execution_report_id_' + msg.ExecID  +  '"  class="' + orderStatusClassDict[msg.OrdStatus] +  '" >';
+      row += '<td style="width: 75px">' + msg.OrderID + '</td>';
+      row += '<td style="width: 100px">' + orderStatusDict[msg.OrdStatus] + '</td>';
+      row += '<td style="width: 75px">' + sideDict[msg.Side] + '</td>';
+      row += '<td style="width: 100px">' + lastPrice + '</td>';
+      row += '<td style="width: 100px">' + lastShares + '</td>';
+      row += '<td style="width: 100px">' + leavesQty + '</td>';
+      row += '</tr>';
+
+      $(row).prependTo("#id_execution_report_table > tbody");
+    };
+
+    bitEx.onTradeClear = function( msg ){
+      $("#id_trades_table > tbody").html('');
+    };
 
     bitEx.onTrade = function( msg ){
+      var price  =  (msg.MDEntryPx/1e5).toFixed(5);
+      var size =    (msg.MDEntrySize/1e8).toFixed(8);
+      var volume =  (msg.MDEntryPx/1e5 * msg.MDEntrySize/1e8).toFixed(5);
 
+      var row = '<tr id="market_data_trade_id_' + msg.TradeID  +  '">';
+      row += '<td style="width: 75px">' + msg.MDEntryDate + '</td>';
+      row += '<td style="width: 75px">' + msg.MDEntryTime + '</td>';
+      row += '<td style="width: 110px">' + msg.MDEntryBuyer  + '</td>';
+      row += '<td style="width: 110px">' + msg.MDEntrySeller + '</td>';
+      row += '<td style="width: 100px">' + size + '</td>';
+      row += '<td style="width: 100px">' + price + '</td>';
+      row += '<td>' + volume + '</td>';
+      row += '</tr>';
+
+      $(row).prependTo("#id_trades_table > tbody");
     };
 
     bitEx.onOrderBookClear = function(msg) {

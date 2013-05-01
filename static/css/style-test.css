@@ -77,6 +77,9 @@ section {
   margin-top: 15px;
 }
 
+
+/*  Form Login */
+
 .form-signin {
   max-width: 300px;
   padding: 19px 29px 29px;
@@ -101,3 +104,22 @@ section {
   margin-bottom: 15px;
   padding: 7px 9px;
 }
+
+
+/* Execution report status */
+.execution-report-new {
+  background-color: #e0ffff;
+}
+
+.execution-report-partial {
+  background-color: #00ffff;
+}
+
+.execution-report-fill {
+  background-color: #008b8b;
+}
+
+.execution-report-cancel {
+  background-color: #f08080;
+}
+
