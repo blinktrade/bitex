@@ -65,6 +65,21 @@ class MdSubscriptionHelper(object):
     order_book_signal( symbol + '.' + entry_type , md )
 
   @staticmethod
+  def publish_cancel_order(symbol, entry_type, order_position ):
+    md = {
+      "MsgType":"X",
+      "MDBkTyp": '3', # Order Depth
+      "MDIncGrp": [{
+        "MDUpdateAction":"2",  # Delete
+        "Symbol": symbol,
+        "MDEntryType": entry_type,
+        "MDEntryPositionNo": order_position,
+        }]
+    }
+    order_book_signal( symbol + '.' + entry_type , md )
+
+
+  @staticmethod
   def publish_new_order(symbol, entry_type, order_position, order ):
     md = {
       "MsgType":"X",

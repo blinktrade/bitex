@@ -75,6 +75,7 @@ class User(Base):
       elif operation == 'DEBIT':
         setattr(self , balance_attribute, current_balance - value )
 
+
   def publish_balance_update(self, reqId = None):
     balance_update_msg = {
       'MsgType': 'U3',
@@ -297,7 +298,16 @@ class Order(Base):
 
   @staticmethod
   def get_order( session, order_id=None, client_order_id=None ):
-    return  None
+    if  client_order_id is not None:
+      order = session.query(Order).\
+                filter_by( user_id = self.user.id ).\
+                filter_by( client_order_id =  client_order_id  ).first()
+    else:
+      order = session.query(Order).\
+                filter_by( user_id = self.user.id ).\
+                filter_by( id =  order_id  ).first()
+
+    return  order
 
   @staticmethod
   def cancel_order(session, user_id, order_id, client_order_id ):

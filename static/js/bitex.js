@@ -142,6 +142,7 @@ BitEx.prototype.onLoginResponseOk = function(msg) {};
 BitEx.prototype.onLoginResponseError = function(msg) {};
 
 BitEx.prototype.onBalanceResponse = function(msg) {};
+BitEx.prototype.onOrderListResponse = function(msg) {};
 
 BitEx.prototype.onHeartBeat = function(msg) {};
 BitEx.prototype.onExecutionReport = function(msg) {};
@@ -179,8 +180,12 @@ BitEx.prototype.onMessage_ = function(e) {
       }
       break;
 
-    case 'U3':
+    case 'U3': // Balance Response
       this.onBalanceResponse(msg);
+      break;
+
+    case 'U5': // Order List Response
+      this.onOrderListResponse(msg);
       break;
 
     case 'W':
@@ -340,7 +345,21 @@ BitEx.prototype.signUp = function(username, password, first_name, last_name, ema
   this.ws_.send(JSON.stringify( msg ));
 };
 
+/**
+ * Request a list of open orders
+ * @param {number=} opt_requestId. Defaults to random generated number
+ */
+BitEx.prototype.requestOpenOrders = function(opt_requestId){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() );
 
+  var msg = {
+    'MsgType': 'U4',
+    'OpenOrdersReqID': requestId
+  };
+  this.ws_.send(JSON.stringify( msg ));
+
+  return requestId;
+};
 
 /**
  *
@@ -371,6 +390,18 @@ BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_clientOrder
   this.ws_.send(JSON.stringify( msg ));
 
   return clientOrderId;
+};
+
+/**
+ * @param {string} clientOrderId
+ */
+BitEx.prototype.cancelOrder = function( clientOrderId  ) {
+  var msg = {
+    'MsgType': 'F',
+    'OrigClOrdID': '' + clientOrderId
+  };
+
+  this.ws_.send(JSON.stringify( msg ));
 };
 
 /**

@@ -67,8 +67,9 @@ section {
 }
 
 
-.btn-execution {
-  width: 85px;
+#id_btn_buy,
+#id_btn_sell {
+  width: 107px;
   font-weight: bold;
   padding: 10px;
   font-size: 16px;
@@ -105,19 +106,23 @@ section {
 
 
 /* Execution report status */
-.execution-report-new {
+.order-status-pending {
+  background-color: #b8860b;
+}
+
+.order-status-new {
   background-color: #e0ffff;
 }
 
-.execution-report-partial {
+.order-status-partial {
   background-color: #00ffff;
 }
 
-.execution-report-fill {
+.order-status-fill {
   background-color: #008b8b;
 }
 
-.execution-report-cancel {
+.order-status-cancel {
   background-color: #f08080;
 }
 

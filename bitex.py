@@ -191,10 +191,57 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.application.session.commit()
       return
 
+    elif  msg.type == 'F' : # Cancel Order Request
+      if  msg.has('OrigClOrdID'):
+        order = self.application.session.query(Order).\
+                    filter(Order.status.in_(("0", "1"))).\
+                    filter_by( user_id = self.user.id ).\
+                    filter_by( client_order_id =  msg.get('OrigClOrdID')  ).first()
+      else:
+        order = self.application.session.query(Order).\
+                    filter(Order.status.in_(("0", "1"))).\
+                    filter_by( user_id = self.user.id ).\
+                    filter_by( id =  msg.get('OrderID')  ).first()
+
+
+      OrderMatcher.get( order.symbol ).cancel(self.application.session, order)
+      return
+
 
     elif msg.type == 'U2': # Request for Balances
       self.user.publish_balance_update(msg.get('BalanceReqID'))
       return
+
+    elif msg.type == 'U4': # Request for Open Orders
+      orders = self.application.session.query(Order).\
+                      filter(Order.status.in_(("0", "1"))).\
+                      filter_by( user_id = self.user.id ).\
+                        order_by(Order.created.desc())
+
+      order_list = []
+      for order in orders:
+        order_list.append( {
+          'ClOrdID': order.client_order_id,
+          'OrderID': order.id,
+          'CumQty': order.cum_qty,
+          'OrdStatus': order.status,
+          'LeavesQty': order.leaves_qty,
+          'CxlQty': order.cxl_qty,
+          'AvgPx': order.average_price,
+          'Symbol': order.symbol,
+          'Side': order.side,
+          'OrdType': order.type,
+        })
+
+      open_orders_response_msg = {
+        'MsgType': 'U5',
+        'OpenOrdersReqID': msg.get('OpenOrdersReqID'),
+        'OrdListGrp' : order_list
+      }
+
+      self.write_message( str(json.dumps(open_orders_response_msg, cls=JsonEncoder )) )
+      return
+
 
   def on_close(self):
     pass

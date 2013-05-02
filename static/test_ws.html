@@ -153,10 +153,10 @@
             </div>
 
             <div class="span2">
-              <a id="id_btn_buy" class="btn btn-success btn-execution">COMPRAR</a>
+              <button id="id_btn_buy" class="btn btn-success btn-execution">COMPRAR</button>
             </div>
             <div class="span2">
-              <a id="id_btn_sell" class="btn btn-danger btn-execution">VENDER</a>
+              <button id="id_btn_sell" class="btn btn-danger btn-execution">VENDER</button>
             </div>
           </div>
         </div>
@@ -166,21 +166,22 @@
             <thead>
               <tr>
                 <th colspan="8">
-                  <span class="datagrid-header-title">Relatório de Execuções</span>
+                  <span class="datagrid-header-title">Ordens em Aberto</span>
                 </th>
               </tr>
               <tr>
                 <th style="width: 75px">Código da Ordem</th>
                 <th style="width: 100px">Status</th>
                 <th style="width: 75px">Lado</th>
-                <th style="width: 100px">Últ. Preço</th>
-                <th style="width: 100px">Últ. Volume</th>
-                <th style="width: 100px">Qtd. Disp.</th>
+                <th style="width: 100px">Qtd. Disponível</th>
+                <th style="width: 100px">Qtd. Executada</th>
+                <th style="width: 100px">Preço médio</th>
+                <th>Ações</th>
               </tr>
             </thead>
           </table>
           <div class="datagrid-stretch-wrapper" style="height: 256px;">
-            <table id="id_execution_report_table" class="table table-bordered datagrid">
+            <table id="id_order_table" class="table table-bordered datagrid">
               <tbody></tbody>
             </table>
           </div>
@@ -205,12 +206,13 @@
           <div class="well">
             <div class="row-fluid">
               <div class="span6">
-                <div class="text-center"><h4>Bid</h4></div>
+                <div class="text-center"><h4>Ofertas de Compra</h4></div>
                 <table id="order_book_bid"  class="table">
                   <thead>
                   <tr>
-                    <th>Volume</th>
-                    <th>Price</th>
+                    <th>Comprador</th>
+                    <th>Quantidade ( BTC )</th>
+                    <th>Preço ( R$ )</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -218,12 +220,13 @@
                 </table>
               </div>
               <div class="span6">
-                <div class="text-center"><h4>Offer</h4></div>
+                <div class="text-center"><h4>Ofertas de Venda</h4></div>
                 <table id="order_book_offer"  class="table">
                   <thead>
                   <tr>
-                    <th>Price</th>
-                    <th>Volume</th>
+                    <th>Preço ( R$ )</th>
+                    <th>Quantidade (BTC)</th>
+                    <th>Vendedor</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -305,6 +308,26 @@ var bitEx = null;
 
 $(document).ready(function(){
 
+  var sideDict = {
+    '1':'COMPRA',
+    '2':'VENDA'
+  };
+
+  var orderStatusDict = {
+    '-': 'PENDENTE',
+    '0': 'NOVA ORDEM',
+    '1': 'EXC. PARCIAL',
+    '2': 'EXECUTADA',
+    '4': 'CANCELADA'
+  };
+
+  var orderStatusClassDict = {
+    '0': 'order-status-new',
+    '1': 'order-status-partial',
+    '2': 'order-status-fill',
+    '4': 'order-status-cancel'
+  };
+
   var disconnect = function() {
     var btn = $("#btn_ws_connect");
     btn.button('loading');
@@ -353,6 +376,9 @@ $(document).ready(function(){
       $(document.body).addClass('bitex-logged');
 
       $("#user_username").text( msg.Username);
+
+      // Get the list of all open orders
+      bitEx.requestOpenOrders();
     };
 
     bitEx.onLoginResponseError = function(msg) {
@@ -369,26 +395,43 @@ $(document).ready(function(){
       $("#id_div_heartbeats").html(heartBeatAlertHtml);
     };
 
-    var sideDict = {
-      '1':'COMPRA',
-      '2':'VENDA'
-    };
-
-    var orderStatusDict = {
-      '0': 'NOVA ORDEM',
-      '1': 'EXC. PARCIAL',
-      '2': 'EXECUTADA',
-      '4': 'CANCELADA'
-    };
-
-    var orderStatusClassDict = {
-      '0': 'execution-report-new',
-      '1': 'execution-report-partial',
-      '2': 'execution-report-fill',
-      '4': 'execution-report-cancel'
-    };
 
     bitEx.onExecutionReport = function(msg){
+      if (msg.LeavesQty == 0 ) {
+        // Order was either fully executed or cancelled ...
+        // Let's just remove the order from the open orders table
+
+        $("#order_id_" + msg.ClOrdID ).remove();
+      } else {
+        // Let's update the order
+        var leavesQty = (msg.LeavesQty/1e8).toFixed(8);
+        var cumQty = (msg.CumQty/1e8).toFixed(8);
+        var avgPx =  (msg.AvgPx/1e5).toFixed(5);
+
+        if ( msg.CumQty == 0) {
+          cumQty = '-';
+        }
+
+        if ( msg.AvgPx == 0) {
+          avgPx = '-';
+        }
+
+
+        var row = '<tr id="order_id_' + msg.ClOrdID  +  '"  class="' + orderStatusClassDict[msg.OrdStatus] +  '" >';
+        row += '<td style="width: 75px">' + msg.OrderID + '</td>';
+        row += '<td style="width: 100px">' + orderStatusDict[msg.OrdStatus] + '</td>';
+        row += '<td style="width: 75px">' + sideDict[msg.Side] + '</td>';
+        row += '<td style="width: 100px">' + leavesQty + '</td>';
+        row += '<td style="width: 100px">' + cumQty + '</td>';
+        row += '<td style="width: 100px">' + avgPx + '</td>';
+        row += '<td><button class="btn btn-mini btn-danger btn-cancel-order" data-client-order-id="' + msg.ClOrdID + '">Cancelar</button></td>';
+        row += '</tr>';
+
+        $("#order_id_" + msg.ClOrdID ).replaceWith(row);
+      }
+
+
+      /*
       var lastPrice =  (msg.LastPx/1e5).toFixed(5);
       var lastShares = (msg.LastShares/1e8).toFixed(8);
       var leavesQty = (msg.LeavesQty/1e8).toFixed(8);
@@ -403,7 +446,50 @@ $(document).ready(function(){
       row += '</tr>';
 
       $(row).prependTo("#id_execution_report_table > tbody");
+      */
     };
+
+    bitEx.onOrderListResponse = function( msg ) {
+      var rows = "";
+      for (var x in msg.OrdListGrp ) {
+        var order = msg.OrdListGrp[x];
+
+        var leavesQty = (order.LeavesQty/1e8).toFixed(8);
+        var cumQty = (order.CumQty/1e8).toFixed(8);
+        var avgPx =  (order.AvgPx/1e5).toFixed(5);
+
+        if ( order.CumQty == 0) {
+          cumQty = '-';
+        }
+
+        if ( order.AvgPx == 0) {
+          avgPx = '-';
+        }
+
+
+        var row = '<tr id="order_id_' + order.ClOrdID  +  '"  class="' + orderStatusClassDict[order.OrdStatus] +  '" >';
+        row += '<td style="width: 75px">' + order.OrderID + '</td>';
+        row += '<td style="width: 100px">' + orderStatusDict[order.OrdStatus] + '</td>';
+        row += '<td style="width: 75px">' + sideDict[order.Side] + '</td>';
+        row += '<td style="width: 100px">' + leavesQty + '</td>';
+        row += '<td style="width: 100px">' + cumQty + '</td>';
+        row += '<td style="width: 100px">' + avgPx + '</td>';
+        row += '<td><button class="btn btn-mini btn-danger btn-cancel-order" data-client-order-id="' + order.ClOrdID + '">Cancelar</button></td>';
+        row += '</tr>';
+
+        rows += row;
+      }
+      $("#id_order_table > tbody").html( rows );
+    };
+
+    bitEx.onBalanceResponse = function(msg) {
+      var balance_brl = (msg.balance_brl/1e5).toFixed(2);
+      var balance_btc = (msg.balance_btc/1e8).toFixed(8);
+
+      $("#user_balance_brl").text(balance_brl);
+      $("#user_balance_btc").text(balance_btc);
+    };
+
 
     bitEx.onTradeClear = function( msg ){
       $("#id_trades_table > tbody").html('');
@@ -463,13 +549,6 @@ $(document).ready(function(){
       $(selector).remove();
     };
 
-    bitEx.onBalanceResponse = function(msg) {
-      var balance_brl = (msg.balance_brl/1e5).toFixed(2);
-      var balance_btc = (msg.balance_btc/1e8).toFixed(8);
-
-      $("#user_balance_brl").text(balance_brl);
-      $("#user_balance_btc").text(balance_btc);
-    };
 
     bitEx.onOrderBookNewOrder = function( msg ){
       var selector = "";
@@ -543,7 +622,20 @@ $(document).ready(function(){
     var order_qty = $("#id_order_qty").val();
     var price     = $("#id_price").val();
 
-    bitEx.sendBuyLimitedOrder( symbol, order_qty, price );
+    var client_order_id = bitEx.sendBuyLimitedOrder( symbol, order_qty, price );
+
+
+    var row = '<tr id="order_id_' + client_order_id  +  '"  class="order-status-pending" >';
+    row += '<td style="width: 75px">-</td>';
+    row += '<td style="width: 100px">' + orderStatusDict['-'] + '</td>';
+    row += '<td style="width: 75px">' + sideDict['1'] + '</td>';
+    row += '<td style="width: 100px">' + order_qty + '</td>';
+    row += '<td style="width: 100px">-</td>';
+    row += '<td style="width: 100px">-</td>';
+    row += '<td><button class="btn btn-mini btn-danger btn-cancel-order" data-client-order-id="' + client_order_id + '">Cancelar</button></td>';
+    row += '</tr>';
+
+    $(row).prependTo("#id_order_table > tbody");
   });
 
   $("#id_btn_sell").click(function(){
@@ -551,7 +643,25 @@ $(document).ready(function(){
     var order_qty = $("#id_order_qty").val();
     var price     = $("#id_price").val();
 
-    bitEx.sendSellLimitedOrder( symbol, order_qty, price );
+    var client_order_id = bitEx.sendSellLimitedOrder( symbol, order_qty, price );
+
+
+    var row = '<tr id="order_id_' + client_order_id  +  '"  class="order-status-pending" >';
+    row += '<td style="width: 75px">-</td>';
+    row += '<td style="width: 100px">' + orderStatusDict['-'] + '</td>';
+    row += '<td style="width: 75px">' + sideDict['2'] + '</td>';
+    row += '<td style="width: 100px">' + order_qty + '</td>';
+    row += '<td style="width: 100px">-</td>';
+    row += '<td style="width: 100px">-</td>';
+    row += '<td><button class="btn btn-mini btn-danger btn-cancel-order" data-client-order-id="' + client_order_id + '">Cancelar</button></td>';
+    row += '</tr>';
+
+    $(row).prependTo("#id_order_table > tbody");
+  });
+
+  $('body').on('click', 'button.btn-cancel-order', function() {
+    var client_order_id = $(this).attr('data-client-order-id');
+    bitEx.cancelOrder(client_order_id);
   });
 
   var subscription_id = null;

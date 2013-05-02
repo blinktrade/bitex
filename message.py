@@ -7,6 +7,9 @@ class BaseMessage(object):
   def __init__(self, message):
     pass
 
+  def has(self, attr):
+    raise  NotImplementedError()
+
   def get(self, attr):
     raise  NotImplementedError()
 
@@ -38,7 +41,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2' ):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4' ):
       self.valid = False
       return
 
@@ -117,22 +120,29 @@ class JsonMessage(BaseMessage):
 
     elif self.type == 'F':  #Order Cancel Request
       self.valid = self.valid and  ('OrderID'  in self.message or 'OrigClOrdID'  in self.message)
-      self.valid = self.valid and  'ClOrdID' in self.message
-      self.valid = self.valid and  'Symbol' in self.message
       if not self.valid:
         return
 
       #TODO: Validate all fields of Order Cancel Message
 
 
-    elif self.type == 'U2' :
+    elif self.type == 'U2' :  # User Balance
       self.valid = self.valid and  'BalanceReqID' in self.message
-
       if not self.valid:
         return
 
       #TODO: Validate all fields of Request For Balance Message
 
+
+    elif self.type == 'U4': # Open Orders
+      self.valid = self.valid and  'OpenOrdersReqID' in self.message
+      if not self.valid:
+        return
+
+      #TODO: Validate all fields of Request For Open Orders Message
+
+  def has(self, attr):
+    return attr in self.message
 
   def get(self, attr):
     return self.message[attr]

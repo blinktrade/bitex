@@ -35,15 +35,17 @@ class ExecutionReport(object):
     self.last_price = order.last_price
     self.last_shares = order.last_qty
     self.leaves_qty = order.leaves_qty
+    self.cum_qty = order.cum_qty
     self.cxl_qty = order.cxl_qty
+    self.average_price = order.average_price
 
   def __str__(self):
-    return '{"MsgType":"8", "OrderID":"%s", "ClOrdID":"%s", "ExecID":"%s", "ExecType":"%s",' \
-           ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":"%s", ' \
-           ' "LastShares":"%s", "LeavesQty":"%s", "CxlQty":"%s" }' \
+    return '{"MsgType":"8", "OrderID":"%s", "ClOrdID":"%s", "ExecID":%d, "ExecType":"%s",' \
+           ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":%d, ' \
+           ' "LastShares":%d, "LeavesQty":%d, "CxlQty":%d, "AvgPx":%d, "CumQty":%d }' \
             % ( self.order_id, self.client_order_id, self.execution_id, self.execution_type,
                 self.order_status, self.symbol, self.side, self.last_price,
-                self.last_shares, self.leaves_qty, self.cxl_qty)
+                self.last_shares, self.leaves_qty, self.cxl_qty, self.average_price, self.cum_qty)
 
 
 def on_execution_report(sender, rpt):
@@ -64,6 +66,7 @@ class OrderMatcher(object):
     for order in self.buy_side:
       res += str(order) + '\n'
     return  res[:-1]
+
 
   def match(self, session, order):
     other_side = []
@@ -217,14 +220,56 @@ class OrderMatcher(object):
         MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
 
 
-    #print str(self)
+  def cancel(self, session, order):
+    if not order:
+      # Generate an Order Cancel Reject - Order not found
+      return
 
 
-  def cancel(self, order):
-    # TODO: remove the order from the book
-    # TODO: Generate a cancel report
-    # TODO: update the market data
-    pass
+    # let's find the  order position
+    self_side = []
+    if order.is_buy:
+      self_side = self.buy_side
+    elif order.is_sell:
+      self_side = self.sell_side
+
+    order_found = False
+    order_pos = bisect.bisect_left(self_side, order)
+    for x in xrange( order_pos, len(self_side)):
+      tmp_order = self_side[x]
+
+      if tmp_order.id == order.id:
+        order_found = True
+        break
+
+      if tmp_order.price != order.price:
+        break
+
+      order_pos += 1
+
+
+    if not order_found:
+      # Generate an Order Cancel Reject - Order not found
+      return
+
+    print "order found at " ,  order_pos
+
+    # update the order
+    order.cancel_qty( order.leaves_qty )
+    session.commit()
+
+    # remove the order from the book
+    self_side.pop( order_pos )
+
+
+    # Generate a cancel report
+    cancel_rpt = ExecutionReport( order, '1' if order.is_buy else '2' )
+    execution_report_signal(order.user_id, cancel_rpt )
+
+    # market data
+    md_entry_type = '0' if order.is_buy else '1'
+    MdSubscriptionHelper.publish_cancel_order( self.symbol, md_entry_type, order_pos+1 )
+
 
   @staticmethod
   def get(symbol):
