@@ -305,6 +305,7 @@
 
 <script type="text/javascript">
 var bitEx = null;
+var currentUsername = null;
 
 $(document).ready(function(){
 
@@ -376,6 +377,7 @@ $(document).ready(function(){
       $(document.body).addClass('bitex-logged');
 
       $("#user_username").text( msg.Username);
+      currentUsername = msg.Username;
 
       // Get the list of all open orders
       bitEx.requestOpenOrders();
@@ -556,12 +558,16 @@ $(document).ready(function(){
       var price =  (msg.MDEntryPx/1e5).toFixed(5);
       var qty = (msg.MDEntrySize/1e8).toFixed(8);
 
+      var username = msg.Username;
+      if (username === currentUsername ) {
+        username = '<button class="btn btn-mini btn-danger btn-cancel-order" data-order-id="' + msg.OrderID + '">Cancelar</button>';
+      }
       if (msg.MDEntryType == '0' ) {
         selector = "#order_book_bid tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
-        order_row_html = "<tr><td>" + msg.Username + "</td><td>" + qty + "</td><td>" + price + "</td></tr>";
+        order_row_html = "<tr><td>" + username + "</td><td>" + qty + "</td><td>" + price + "</td></tr>";
       } else {
         selector = "#order_book_offer tr:eq(" + (msg.MDEntryPositionNo - 1)  +  ")";
-        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td><td>" + msg.Username + "</td></tr>";
+        order_row_html = "<tr><td>" + price + "</td><td>" + qty + "</td><td>" + username + "</td></tr>";
       }
 
       $(selector).after(order_row_html);
@@ -661,7 +667,8 @@ $(document).ready(function(){
 
   $('body').on('click', 'button.btn-cancel-order', function() {
     var client_order_id = $(this).attr('data-client-order-id');
-    bitEx.cancelOrder(client_order_id);
+    var order_id = $(this).attr('data-order-id');
+    bitEx.cancelOrder(client_order_id, order_id);
   });
 
   var subscription_id = null;

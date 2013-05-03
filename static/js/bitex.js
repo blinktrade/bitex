@@ -394,12 +394,18 @@ BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_clientOrder
 
 /**
  * @param {string} clientOrderId
+ * @param {string} OrderId
  */
-BitEx.prototype.cancelOrder = function( clientOrderId  ) {
+BitEx.prototype.cancelOrder = function( opt_clientOrderId, opt_OrderId  ) {
   var msg = {
-    'MsgType': 'F',
-    'OrigClOrdID': '' + clientOrderId
+    'MsgType': 'F'
   };
+
+  if (opt_clientOrderId) {
+    msg['OrigClOrdID'] = opt_clientOrderId;
+  } else if (opt_OrderId) {
+    msg['OrderID'] = opt_OrderId;
+  }
 
   this.ws_.send(JSON.stringify( msg ));
 };
