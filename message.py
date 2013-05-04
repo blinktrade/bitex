@@ -10,7 +10,7 @@ class BaseMessage(object):
   def has(self, attr):
     raise  NotImplementedError()
 
-  def get(self, attr):
+  def get(self, attr, default):
     raise  NotImplementedError()
 
   def is_valid(self):
@@ -41,7 +41,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4' ):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8' , 'USER_LIST', 'DEPOSIT' ):
       self.valid = False
       return
 
@@ -141,10 +141,38 @@ class JsonMessage(BaseMessage):
 
       #TODO: Validate all fields of Request For Open Orders Message
 
+    elif self.type == 'U6': # Request for BTC Withdraw
+      self.valid = self.valid and  'WithdrawReqID' in self.message
+      self.valid = self.valid and  'Amount' in self.message
+      self.valid = self.valid and  'Wallet' in self.message
+
+      if not self.valid:
+        return
+
+      #TODO: Validate all fields of Request For BTC Withdraw  Message
+
+    elif self.type == 'U8': # Request for BRL Withdraw
+      self.valid = self.valid and  'WithdrawReqID' in self.message
+      self.valid = self.valid and  'Amount' in self.message
+      self.valid = self.valid and  'BankNumber' in self.message
+      self.valid = self.valid and  'BankName' in self.message
+      self.valid = self.valid and  'AccountName' in self.message
+      self.valid = self.valid and  'AccountNumber' in self.message
+      self.valid = self.valid and  'AccountBranch' in self.message
+      self.valid = self.valid and  'CPFCNPJ' in self.message
+
+      if not self.valid:
+        return
+
+        #TODO: Validate all fields of Request For BTC Withdraw  Message
+
+
   def has(self, attr):
     return attr in self.message
 
-  def get(self, attr):
+  def get(self, attr , default=None):
+    if attr not in self.message:
+      return  default
     return self.message[attr]
 
   def is_valid(self):

@@ -15,7 +15,7 @@ from execution import  OrderMatcher, execution_report_signal
 from message import  JsonMessage
 
 from sqlalchemy.orm import scoped_session, sessionmaker
-from models import  User, engine, Order, balance_signal
+from models import  User, engine, Order, balance_signal, user_message_signal
 import config
 
 
@@ -43,12 +43,8 @@ class TradeConnectionWS(websocket.WebSocketHandler):
   def on_execution_report(self, sender, rpt):
     self.write_message( str(rpt) )
 
-  def on_market_data(self, sender, md):
-    self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
-
-  def on_balance_update(self, sender, balance_update_msg):
-    self.write_message( str(json.dumps(balance_update_msg, cls=JsonEncoder )) )
-
+  def on_send_json_msg_to_user(self, sender, json_msg):
+    self.write_message( str(json.dumps(json_msg, cls=JsonEncoder )) )
 
   def on_message(self, raw_message):
     msg = JsonMessage(raw_message)
@@ -92,15 +88,11 @@ class TradeConnectionWS(websocket.WebSocketHandler):
                                                                        market_depth,
                                                                        entry,
                                                                        instrument,
-                                                                       self.on_market_data ) )
+                                                                       self.on_send_json_msg_to_user ) )
 
       elif int(msg.get('SubscriptionRequestType')) == 2: # Disable previous Snapshot + Update Request
         if req_id in self.md_subscriptions:
           del self.md_subscriptions[req_id]
-
-
-
-      logging.info('received '  + str(msg) )
       return
 
 
@@ -158,7 +150,14 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       execution_report_signal.connect(  self.on_execution_report, self.user.id )
 
       # subscribe to balance updates for this user account
-      balance_signal.connect( self.on_balance_update, self.user.id  )
+      balance_signal.connect( self.on_send_json_msg_to_user, self.user.id  )
+
+      # subscribe to all emails sent to this user account:
+      user_message_signal.connect( self.on_send_json_msg_to_user, self.user.id )
+
+      # subscribe to all emails broadcast to all users :
+      user_message_signal.connect( self.on_send_json_msg_to_user )
+
 
       # add the user to the session/
       self.application.session.add(self.user)
@@ -170,7 +169,16 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       return
 
 
-    elif msg.type == 'D':  # New Order Single
+    # The user is logged
+    if self.user.is_system:
+      self._handle_system_messages(msg)
+
+    if self.user.is_staff:
+      self._handle_staff_messages(msg)
+
+
+
+    if msg.type == 'D':  # New Order Single
       # process the new order.
       order = Order( user_id          = self.user.id,
                      account_id       = self.user.account_id,
@@ -242,9 +250,86 @@ class TradeConnectionWS(websocket.WebSocketHandler):
       self.write_message( str(json.dumps(open_orders_response_msg, cls=JsonEncoder )) )
       return
 
+    elif msg.type == 'U6': # BTC Withdraw Request
+      self.user.withdraw_btc( session = self.application.session,
+                              amount  = msg.get('Amount'),
+                              wallet  = msg.get('Wallet') )
+      return
+
+
+    elif msg.type == 'U8': # BRL Withdraw Request
+      self.user.withdraw_brl( session       = self.application.session,
+                              amount        = msg.get('Amount'),
+                              bank_number   = msg.get('BankNumber'),
+                              bank_name     = msg.get('BankName'),
+                              account_name  = msg.get('AccountName'),
+                              account_number= msg.get('AccountNumber'),
+                              account_branch= msg.get('AccountBranch'),
+                              cpf_cnpj      = msg.get('CPFCNPJ'))
+      return
+
+
+  def _handle_system_messages(self, msg):
+    if not self.user.is_system:
+      self.close()
+
+    if msg.type == 'DEPOSIT':
+      user = self.application.session.query(User).filter_by(id= msg.get('UserID') ).first()
+      if user:
+        deposit = user.deposit(session       = self.application.session,
+                               currency      = msg.get('Currency'),
+                               amount        = msg.get('Amount'),
+                               origin        = msg.get('Origin'))
+
+      result = {
+        'MsgType'   : 'DEPOSIT_RESPONSE',
+        'DepositId' : deposit.id
+      }
+      self.on_send_json_msg_to_user( sender=None, json_msg=result )
+
+      return
+
+    if msg.type == 'USER_LIST':
+      page      = msg.get('Page', 0)
+      page_size = msg.get('PageSize', 100)
+
+
+      query = self.application.session.query(User).order_by(User.last_login.desc())
+      if page_size:
+        query = query.limit(page_size)
+      if page:
+        query = query.offset(page*page_size)
+
+      users_list = []
+      for user in query:
+        users_list.append( {
+          'Id'          : user.id,
+          'FirstName'   : user.first_name,
+          'LastName'    : user.last_name,
+          'Email'       : user.email,
+          'BalanceBTC'  : user.balance_btc,
+          'BalanceBRL'  : user.balance_brl,
+          'Verified'    : user.verified,
+          'LastLogin'   : user.last_login
+        })
+
+      result = {
+        'MsgType' : 'USER_LIST_RESPONSE',
+        'Page': page,
+        'PageSize': page_size,
+        'Users': users_list
+      }
+      self.on_send_json_msg_to_user( sender=None, json_msg=result )
+
+
+  def _handle_staff_messages(self, msg):
+    if not self.user.is_staff:
+      self.close()
+
 
   def on_close(self):
     pass
+
 
 
 class Application(tornado.web.Application):

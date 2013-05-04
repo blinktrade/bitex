@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __author__ = 'rodrigo'
 from utils import smart_str
 import hashlib
@@ -12,12 +14,17 @@ from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import  relationship, backref
 
-engine = create_engine('sqlite:///bitex.sqlite', echo=False)
+engine = create_engine('sqlite:///bitex.sqlite', echo=True)
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 balance_signal = Signal()
+user_message_signal = Signal()
+
+btc_hot_wallet_transfer_signal  = Signal()
+ltc_hot_wallet_transfer_signal  = Signal()
+brl_bank_transfer_signal = Signal()
 
 def get_hexdigest(algorithm, salt, raw_password):
   """
@@ -47,6 +54,22 @@ class User(Base):
 
   verified        = Column(Integer, nullable=False, default=0)
   is_staff        = Column(Boolean, nullable=False, default=False)
+  is_system       = Column(Boolean, nullable=False, default=False)
+
+  daily_withdraw_btc_limit = Column(Integer, nullable=False, default=0)
+  daily_withdraw_ltc_limit = Column(Integer, nullable=False, default=0)
+  daily_withdraw_brl_limit = Column(Integer, nullable=False, default=0)
+  daily_withdraw_usd_limit = Column(Integer, nullable=False, default=0)
+
+  daily_withdraw_btc = Column(Integer, nullable=False, default=0)
+  daily_withdraw_ltc = Column(Integer, nullable=False, default=0)
+  daily_withdraw_brl = Column(Integer, nullable=False, default=0)
+  daily_withdraw_usd = Column(Integer, nullable=False, default=0)
+
+  last_withdraw_btc = Column(DateTime, nullable=True)
+  last_withdraw_ltc = Column(DateTime, nullable=True)
+  last_withdraw_brl = Column(DateTime, nullable=True)
+  last_withdraw_usd = Column(DateTime, nullable=True)
 
   created         = Column(DateTime, default=datetime.datetime.now, nullable=False)
   last_login      = Column(DateTime, default=datetime.datetime.now, nullable=False)
@@ -65,7 +88,7 @@ class User(Base):
     return self.id
 
   def update_balance(self, operation, currency_symbol, value ):
-    balance_attribute = 'balance_' + currency_symbol
+    balance_attribute = 'balance_' + currency_symbol.lower()
 
     if hasattr( self,  balance_attribute ):
       current_balance = getattr( self, balance_attribute, 0)
@@ -112,6 +135,112 @@ class User(Base):
       return user
     return None
 
+  def deposit(self, session, currency, amount, origin):
+    deposit = Deposit( user_id=self.id, account_id=self.account_id,currency=currency.upper(), amount=amount, origin=origin, status=2)
+    session.add(deposit)
+
+    self.update_balance( 'CREDIT', currency, amount )
+    deposit.status = '2'
+
+    session.commit()
+
+    formatted_amount = ""
+    if currency == 'BTC':
+      formatted_amount =  u'BTC {0:.8f}'.format(amount/1.e8)
+    elif currency == 'BRL':
+      formatted_amount =  u'R$ {0:.2f}'.format(amount/1.e5)
+
+    msg = u"Depósito de " + formatted_amount + u" realizado em sua conta."
+    UserEmail.create( session = session,
+                      user_id = self.id,
+                      subject = msg )
+
+    self.publish_balance_update()
+
+    return deposit
+
+
+  def withdraw_btc(self, session, amount, wallet):
+    withdraw_btc =  WithdrawBTC( user_id = self.id,
+                                 amount  = amount,
+                                 wallet  = wallet)
+    session.add(withdraw_btc)
+    session.commit()
+
+    UserEmail.create( session = session,
+                      user_id = self.id,
+                      subject = u"Registrado pedido de saque de BTC número %d." % withdraw_btc.id )
+
+    if not self.last_withdraw_btc:
+      self.last_withdraw_btc = datetime.datetime.now()
+
+    if self.last_withdraw_btc.date() == datetime.datetime.now().date():
+      self.daily_withdraw_btc += amount
+    else:
+      self.last_withdraw_btc = datetime.datetime.now()
+      self.daily_withdraw_btc = amount
+
+    session.commit()
+
+    # Check if the user has exceed his daily limit for the hot wallet
+    if self.daily_withdraw_btc < self.daily_withdraw_btc_limit:
+      # Initiate the BTC transfer
+      btc_hot_wallet_transfer_msg = {
+        'MsgType'     : 'U10',
+        'TransferId'  : withdraw_btc.id,
+        'to'          : wallet,
+        'amount'      : amount,
+        'when'        : withdraw_btc.when
+      }
+
+      btc_hot_wallet_transfer_signal( self.id, btc_hot_wallet_transfer_msg )
+
+    self.publish_balance_update()
+
+  def withdraw_brl(self, session, amount, bank_number,bank_name,account_name,
+                   account_number,account_branch,cpf_cnpj ):
+
+    withdraw_brl =  WithdrawBRL( user_id        = self.id,
+                                 amount         = amount,
+                                 bank_number    = bank_number,
+                                 bank_name      = bank_name     ,
+                                 account_name   = account_name  ,
+                                 account_number = account_number,
+                                 account_branch = account_branch,
+                                 cpf_cnpj       = cpf_cnpj)
+    session.add(withdraw_brl)
+    session.commit()
+
+    UserEmail.create( session = session,
+                      user_id = self.id,
+                      subject = u"Registrado pedido de saque de R$ número %d." % withdraw_brl.id )
+
+    if not self.last_withdraw_brl:
+      self.last_withdraw_brl = datetime.datetime.now()
+
+    if self.last_withdraw_brl.date() == datetime.datetime.now().date():
+      self.daily_withdraw_brl += amount
+    else:
+      self.last_withdraw_brl = datetime.datetime.now()
+      self.daily_withdraw_brl = amount
+
+    session.commit()
+
+    # Check if the user has exceed his daily limit for the hot wallet
+    if self.daily_withdraw_brl < self.daily_withdraw_brl_limit:
+      # Initiate the BTC transfer
+      brl_bank_transfer_msg = {
+        'MsgType'     : 'U10',
+        'TransferId'  : withdraw_brl.id,
+        'to'          : account_number,
+        'amount'      : amount,
+        'when'        : withdraw_brl.when
+      }
+
+      brl_bank_transfer_signal( self.id, brl_bank_transfer_msg )
+
+    self.publish_balance_update()
+
 
 class Deposit(Base):
   __tablename__   = 'deposits'
@@ -120,27 +249,56 @@ class Deposit(Base):
   user            = relationship("User",  backref=backref('deposits', order_by=id))
   account_id      = Column(Integer,       nullable=False)
   currency        = Column(String(3),     nullable=False)
-  value           = Column(Integer,       nullable=False)
-  status          = Column(Integer,       nullable=False)
+  amount          = Column(Integer,       nullable=False)
+  status          = Column(Integer,       nullable=False, default=0)
   when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
   origin          = Column(String(255),   nullable=False)
+
+class UserEmail(Base):
+  __tablename__   = 'user_email'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  user            = relationship("User",  backref=backref('withdraws_btc', order_by=id))
+  subject         = Column(String,        nullable=False)
+  body            = Column(String,        nullable=True)
+  when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+  @staticmethod
+  def create( session, user_id, subject, body = None ):
+    user_email = UserEmail( user_id = user_id,
+                            subject = subject,
+                            body    = body)
+    session.add(user_email)
+    session.commit()
+
+    msg = {
+      'MsgType' : 'C',
+      'OrigTime': user_email.when,
+      'Subject' : subject,
+    }
+
+    if body:
+      msg['Body'] = body
+
+    user_message_signal( user_id, msg )
+
+    return  user_email
+
 
 
 class WithdrawBTC(Base):
   __tablename__   = 'withdraws_btc'
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('withdraws_btc', order_by=id))
   amount          = Column(Integer,       nullable=False)
   wallet          = Column(String,        nullable=False)
-  status          = Column(Integer,       nullable=False)
+  status          = Column(Integer,       nullable=False, default=0)
   when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
 class WithdrawBRL(Base):
   __tablename__   = 'withdraws_brl'
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('withdraws_brl', order_by=id))
   amount          = Column(Integer,       nullable=False)
   bank_number     = Column(Integer,       nullable=False)
   bank_name       = Column(String,        nullable=False)
@@ -148,7 +306,7 @@ class WithdrawBRL(Base):
   account_number  = Column(String,        nullable=False)
   account_branch  = Column(String,        nullable=False)  # Agencia
   cpf_cnpj        = Column(String,        nullable=False)
-  status          = Column(Integer,       nullable=False)
+  status          = Column(Integer,       nullable=False, default=0)
   when            = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
 

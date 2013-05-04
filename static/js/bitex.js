@@ -137,6 +137,7 @@ BitEx.prototype.onopen = function(e) {};
 BitEx.prototype.onerror = function(e) {};
 BitEx.prototype.onclose = function(e) {};
 
+BitEx.prototype.onRawMessage = function(e) {};
 
 BitEx.prototype.onLoginResponseOk = function(msg) {};
 BitEx.prototype.onLoginResponseError = function(msg) {};
@@ -166,6 +167,7 @@ BitEx.prototype.onOrderBookUpdateOrder = function( msg ){};
  */
 BitEx.prototype.onMessage_ = function(e) {
   var msg = JSON.parse(e.data);
+  this.onRawMessage(msg);
 
   switch( msg.MsgType ) {
     case '0':  //Heartbeat
@@ -407,6 +409,13 @@ BitEx.prototype.cancelOrder = function( opt_clientOrderId, opt_OrderId  ) {
     msg['OrderID'] = opt_OrderId;
   }
 
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * @param {Object} msg
+ */
+BitEx.prototype.sendRawMessage  = function(msg) {
   this.ws_.send(JSON.stringify( msg ));
 };
 

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <!--Bootstrap-->
+  <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
+
+  <link href="/css/bootstrap-docs.css" rel="stylesheet">
+
+
+  <link href="/css/style-test.css" rel="stylesheet">
+  <link href="/css/fuelux.css" rel="stylesheet">
+
+  <!-- jQuery, Bootstrap, Parsley -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+  <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+  <script src="/js/parsley.min.js"></script>
+
+  <script src="/js/bitex.js" type="text/javascript"></script>
+
+</head>
+<body class="ws-not-connected bitex-not-logged">
+
+<div class="navbar navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="brand" href="/">BitEx</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="row">
+<div class="span3 bs-docs-sidebar">
+  <ul class="nav nav-list bs-docs-sidenav affix">
+    <li class="bitex-hide-if-ws-connected"><a href="#websocket"><i class="icon-chevron-right"></i> WebSocket</a></li>
+    <li class="bitex-display-if-ws-connected bitex-hide-if-logged"><a href="#login"><i class="icon-chevron-right"></i> Login</a></li>
+    <li class="bitex-display-if-logged"><a href="#user_list"><i class="icon-chevron-right"></i> User List</a></li>
+  </ul>
+</div>
+
+
+<div class="span9">
+  <section id="websocket" class="bitex-hide-if-ws-connected" >
+    <div class="page-header">
+      <h1>Websocket</h1>
+    </div>
+
+    <div class="form-signin">
+      <h2 class="form-signin-heading">Conexão</h2>
+      <input id="ws_url" type="text" class="input-block-level" placeholder="WebSocket URL" value="wss://localhost:8443/trade">
+      <button id="btn_ws_connect" data-loading-text="Aguarde..." class="btn btn-large btn-primary" type="submit">Conectar</button>
+    </div>
+
+  </section>
+
+
+  <section id="login" class="bitex-display-if-ws-connected bitex-hide-if-logged">
+    <div class="page-header">
+      <h1>Login</h1>
+    </div>
+    <div class="form-signin">
+      <h2 class="form-signin-heading">Entrar com o Login</h2>
+      <input id="id_username" type="text" class="input-block-level" placeholder="Email address">
+      <input id="id_password" type="password" class="input-block-level" placeholder="Password">
+      <button id="id_btn_login" class="btn btn-large btn-primary" type="submit">Login</button>
+    </div>
+  </section>
+
+  <section id="user_list"  class="bitex-display-if-logged">
+    <div class="fuelux" style="height:400px;width:100%;margin-bottom:20px;">
+      <table class="table table-bordered datagrid datagrid-stretch-header">
+        <thead>
+        <tr>
+          <th colspan="8">
+            <span class="datagrid-header-title">Users</span>
+          </th>
+        </tr>
+        <tr>
+          <th style="width: 75px">First Name</th>
+          <th style="width: 75px">Last Name</th>
+          <th style="width: 75px">Email</th>
+          <th style="width: 75px">Balance BTC</th>
+          <th style="width: 75px">Balance BRL</th>
+          <th style="width: 75px">Verified</th>
+          <th style="width: 75px">Last Login</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+      </table>
+      <div class="datagrid-stretch-wrapper" style="height: 256px;">
+        <table id="id_user_table" class="table table-bordered datagrid">
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <button id="user_table_reload_btn" class="btn">reload</button>
+  </section>
+</div>
+</div>
+</div>
+
+<!-- Modal -->
+<div id="deposit_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3>Deposit</h3>
+  </div>
+  <div class="modal-body">
+    <form id="deposit-form" data-validate="parsley">
+      <label for="id_deposit_user_id">User ID * :</label>
+      <input id="id_deposit_user_id" type="text" placeholder="UserID">
+
+      <label for="id_deposit_currency">Currency * :</label>
+      <input id="id_deposit_currency" type="text" placeholder="Currency" data-required="true" data-rangelength="[3,3]" data-type="alphanum">
+
+      <label for="id_deposit_amount">Amount * :</label>
+      <input id="id_deposit_amount" type="text" placeholder="Amount" data-required="true" data-type="number" >
+
+      <label for="id_deposit_origin">Origin * :</label>
+      <textarea id="id_deposit_origin" data-required="true" placeholder="Message">Depositado manualmente pelo administrador</textarea>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button  id="id_deposit" data-dismiss="modal" aria-hidden="true" class="btn btn-primary">Deposit</button>
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="no_websockets_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3>Seu Browser não suporta WebSockets</h3>
+  </div>
+  <div class="modal-body">
+    <p>Por favor, faça o download do Google Chrome / Firefox ou IE 10</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+
+<div id="error_websocket_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Erro se conectando ao servidor ....</h3>
+  </div>
+  <div class="modal-body">
+    <p id="websocket_error_msg"></p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+
+
+<footer class="footer">
+  <div class="container">
+    <p>Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">Rodrigo Souza</a> and Clebson Derivan</p>
+  </div>
+</footer>
+
+<script type="text/javascript">
+var bitEx = null;
+var currentUsername = null;
+
+$(document).ready(function(){
+  var user_list_page = 0;
+  var user_list_page_count = 100;
+
+  var disconnect = function() {
+    var btn = $("#btn_ws_connect");
+    btn.button('loading');
+    bitEx.close();
+    delete bitEx;
+  };
+
+  var connect = function() {
+    var btn = $("#btn_ws_connect");
+
+    var url = $("#ws_url").val();
+    btn.button('loading');
+
+    var onOpen = function(e) {
+      btn.button('reset');
+      $(document.body).removeClass('ws-not-connected');
+      $(document.body).addClass('ws-connected');
+
+      btn.html('Desconectar');
+    };
+
+    var onClose = function(e) {
+      btn.button('reset');
+      btn.html('Conectar');
+      $(document.body).removeClass('ws-connected');
+      $(document.body).addClass('ws-not-connected');
+
+      $(document.body).removeClass('bitex-logged');
+      $(document.body).addClass('bitex-not-logged');
+    };
+
+    var onError = function(e) {
+      btn.button('reset');
+      $("#websocket_error_msg").html( 'Erro se conectando c/ o servidor' );
+      $("#error_websocket_modal").modal();
+    };
+
+    try{
+      bitEx = new BitEx(url , onOpen, onClose,onError );
+    } catch( WEB_SOCKET_NOT_AVAILABLE_EXCEPTION ) {
+      $("#no_websockets_modal").modal();
+    }
+
+    bitEx.onLoginResponseOk = function(msg) {
+      $(document.body).removeClass('bitex-not-logged');
+      $(document.body).addClass('bitex-logged');
+
+      $("#user_username").text( msg.Username);
+      currentUsername = msg.Username;
+
+      // Get the list of all users
+      bitEx.sendRawMessage( { 'MsgType': 'USER_LIST',  'Page':user_list_page, 'PageSize': user_list_page_count} );
+    };
+
+    bitEx.onLoginResponseError = function(msg) {
+      $(document.body).removeClass('bitex-logged');
+      $(document.body).addClass('bitex-not-logged');
+      alert(msg.UserStatusText);
+    };
+
+    bitEx.onRawMessage = function(msg){
+      if (msg.MsgType == 'USER_LIST_RESPONSE') {
+
+        var users = "";
+        for (var x in msg.Users) {
+          var user = msg.Users[x];
+
+          var balance_btc = (user.BalanceBTC/1e8).toFixed(8);
+          var balance_brl = (user.BalanceBRL/1e5).toFixed(5);
+
+          var row = '<tr id="user_' + user.Id +  '">';
+          row += '<td style="width: 75px">' + user.FirstName + '</td>';
+          row += '<td style="width: 75px">' + user.LastName + '</td>';
+          row += '<td style="width: 75px">' + user.Email + '</td>';
+          row += '<td style="width: 75px">' + balance_btc + '</td>';
+          row += '<td style="width: 75px">' + balance_brl + '</td>';
+          row += '<td style="width: 75px">' + user.Verified + '</td>';
+          row += '<td style="width: 75px">' + user.LastLogin + '</td>';
+          row += '<td><button class="btn btn-mini btn-primary btn-deposit" data-user-id="' + user.Id + '">Deposit</button></td>';
+          row += '</tr>';
+          users += row;
+        }
+        $("#id_user_table > tbody").html( users );
+      }
+    };
+  };
+
+  $("#id_deposit").click(function(e){
+    if ($('#deposit-form').parsley( 'validate' )) {
+
+      var currency = $('#id_deposit_currency').val();
+      var amount = 0;
+      if (currency == 'BRL' || currency == 'USD' ) {
+        amount = parseInt($('#id_deposit_amount').val() * 1e5) ;
+      } else if (currency == 'BTC' || currency == 'LTC' ) {
+        amount = parseInt($('#id_deposit_amount').val() * 1e8)
+      } else {
+        alert('invalid currency code');
+        e.stopPropagation();
+        return;
+      }
+
+      if (amount === 0) {
+        alert('invalid amount');
+        e.stopPropagation();
+        return;
+      }
+
+
+      var depositMsg = {
+        'MsgType': 'DEPOSIT',
+        'UserID': parseInt( $('#id_deposit_user_id').val() ),
+        'Origin': $('#id_deposit_origin').val(),
+        'Amount': amount,
+        'Currency': currency
+      };
+
+      bitEx.sendRawMessage(depositMsg);
+
+      // get the user list again :)
+      bitEx.sendRawMessage( { 'MsgType': 'USER_LIST',  'Page':user_list_page, 'PageSize': user_list_page_count} );
+
+    } else {
+      // Invalid data
+      e.stopPropagation();
+    }
+  });
+
+  $("#user_table_reload_btn").click( function(){
+    bitEx.sendRawMessage( { 'MsgType': 'USER_LIST',  'Page':user_list_page, 'PageSize': user_list_page_count} );
+  });
+
+  $("#btn_ws_connect").click(function(){
+    if ($(document.body).hasClass('ws-not-connected') ) {
+      connect();
+    } else {
+      disconnect();
+    }
+  });
+
+  $("#id_btn_login").click(function(){
+    var username = $("#id_username").val();
+    var password = $("#id_password").val();
+
+    bitEx.login(username, password);
+  });
+
+  $('body').on('click', 'button.btn-deposit', function() {
+    var user_id = $(this).attr('data-user-id');
+    $("#id_deposit_user_id ").val(user_id);
+    $("#deposit_modal").modal();
+
+  });
+
+});
+
+
+
+</script>
+
+</body>
+</html>
