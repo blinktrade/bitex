@@ -124,8 +124,9 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
         login_response = {
           'MsgType': 'BF',
-          'Username': self.user.username,
-          'UserStatus': 3
+          'Username': '',
+          'UserStatus': 3,
+          'UserStatusText': 'Invalid Username or Password'
         }
         self.write_message( json.dumps(login_response) )
 
@@ -268,6 +269,10 @@ class TradeConnectionWS(websocket.WebSocketHandler):
                               cpf_cnpj      = msg.get('CPFCNPJ'))
       return
 
+    else:
+      # invalid message - Close the connection ....
+      print 'Invalid message'
+      self.close()
 
   def _handle_system_messages(self, msg):
     if not self.user.is_system:
@@ -289,37 +294,36 @@ class TradeConnectionWS(websocket.WebSocketHandler):
 
       return
 
-    if msg.type == 'USER_LIST':
+    if msg.type == 'ADMIN_SELECT':
       page      = msg.get('Page', 0)
       page_size = msg.get('PageSize', 100)
+      columns   = msg.get('Columns', [])
+      table     = msg.get('Table', '')
+
+      offset    = page * page_size
+
+      # TODO: Check all parameters to avoid an sql injection :(
 
 
-      query = self.application.session.query(User).order_by(User.last_login.desc())
-      if page_size:
-        query = query.limit(page_size)
-      if page:
-        query = query.offset(page*page_size)
+      # This is definitively not secure, but this code will only run with inside a system account.
+      raw_sql = 'SELECT '
+      raw_sql += ','.join(columns)
+      raw_sql += ' FROM ' + table
+      raw_sql += ' LIMIT ' + str(page_size)
+      raw_sql += ' OFFSET ' + str(offset)
 
-      users_list = []
-      for user in query:
-        users_list.append( {
-          'Id'          : user.id,
-          'FirstName'   : user.first_name,
-          'LastName'    : user.last_name,
-          'Email'       : user.email,
-          'BalanceBTC'  : user.balance_btc,
-          'BalanceBRL'  : user.balance_brl,
-          'Verified'    : user.verified,
-          'LastLogin'   : user.last_login
-        })
-
+      result_set = self.application.session.execute(raw_sql)
       result = {
-        'MsgType' : 'USER_LIST_RESPONSE',
+        'MsgType' : 'ADMIN_SELECT_RESPONSE',
         'Page': page,
         'PageSize': page_size,
-        'Users': users_list
+        'Table': table,
+        'Columns': columns,
+        'ResultSet': [ [ l for l in res ] for res in  result_set ]
       }
+
       self.on_send_json_msg_to_user( sender=None, json_msg=result )
+      return
 
 
   def _handle_staff_messages(self, msg):

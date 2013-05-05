@@ -1,165 +1,110 @@
+// ==ClosureCompiler==
+// @compilation_level ADVANCED_OPTIMIZATIONS
+// @use_closure_library true
+// @externs_url https://closure-compiler.googlecode.com/git/contrib/externs/jquery-1.9.js
+// ==/ClosureCompiler==
+
+goog.provide('BitEx');
+goog.provide('BitEx.EventType');
+goog.provide('BitEx.BitExEvent');
+
+goog.require('goog.events');
+goog.require('goog.events.Event');
+goog.require('goog.events.EventTarget');
+
 var WEB_SOCKET_NOT_AVAILABLE_EXCEPTION = "WebSockets are not available";
 
-var goog = goog || {}; // Identifies this file as the Closure base.
-
 /**
- * A native implementation of goog.bind.
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which |this| should
- *     point to when the function is run.
- * @param {...*} var_args Additional arguments that are partially
- *     applied to the function.
- * @return {!Function} A partially-applied form of the function bind() was
- *     invoked as a method of.
- * @private
- * @suppress {deprecated} The compiler thinks that Function.prototype.bind
- *     is deprecated because some people have declared a pure-JS version.
- *     Only the pure-JS version is truly deprecated.
- */
-goog.bindNative_ = function(fn, selfObj, var_args) {
-  return /** @type {!Function} */ (fn.call.apply(fn.bind, arguments));
-};
-
-
-/**
- * A pure-JS implementation of goog.bind.
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which |this| should
- *     point to when the function is run.
- * @param {...*} var_args Additional arguments that are partially
- *     applied to the function.
- * @return {!Function} A partially-applied form of the function bind() was
- *     invoked as a method of.
- * @private
- */
-goog.bindJs_ = function(fn, selfObj, var_args) {
-  if (!fn) {
-    throw new Error();
-  }
-
-  if (arguments.length > 2) {
-    var boundArgs = Array.prototype.slice.call(arguments, 2);
-    return function() {
-      // Prepend the bound arguments to the current arguments.
-      var newArgs = Array.prototype.slice.call(arguments);
-      Array.prototype.unshift.apply(newArgs, boundArgs);
-      return fn.apply(selfObj, newArgs);
-    };
-
-  } else {
-    return function() {
-      return fn.apply(selfObj, arguments);
-    };
-  }
-};
-
-/**
- * Partially applies this function to a particular 'this object' and zero or
- * more arguments. The result is a new function with some arguments of the first
- * function pre-filled and the value of |this| 'pre-specified'.<br><br>
- *
- * Remaining arguments specified at call-time are appended to the pre-
- * specified ones.<br><br>
- *
- * Also see: {@link #partial}.<br><br>
- *
- * Usage:
- * <pre>var barMethBound = bind(myFunction, myObj, 'arg1', 'arg2');
- * barMethBound('arg3', 'arg4');</pre>
- *
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which |this| should
- *     point to when the function is run.
- * @param {...*} var_args Additional arguments that are partially
- *     applied to the function.
- * @return {!Function} A partially-applied form of the function bind() was
- *     invoked as a method of.
- * @suppress {deprecated} See above.
- */
-goog.bind = function(fn, selfObj, var_args) {
-  // TODO(nicksantos): narrow the type signature.
-  if (Function.prototype.bind &&
-    // NOTE(nicksantos): Somebody pulled base.js into the default
-    // Chrome extension environment. This means that for Chrome extensions,
-    // they get the implementation of Function.prototype.bind that
-    // calls goog.bind instead of the native one. Even worse, we don't want
-    // to introduce a circular dependency between goog.bind and
-    // Function.prototype.bind, so we have to hack this to make sure it
-    // works correctly.
-      Function.prototype.bind.toString().indexOf('native code') != -1) {
-    goog.bind = goog.bindNative_;
-  } else {
-    goog.bind = goog.bindJs_;
-  }
-  return goog.bind.apply(null, arguments);
-};
-
-
-
-/**
- * @param {string} url
- * @param {function(*)=}  opt_onOpenCallback
- * @param {function(*)=}  opt_onCloseCallback
- * @param {function(*)=}  opt_onErrorCallback
  * @constructor
+ * @extends {goog.events.EventTarget}
  */
-var BitEx = function(url , opt_onOpenCallback, opt_onCloseCallback, opt_onErrorCallback ){
-
-  if ("WebSocket" in window) {
-    console.log("creating new websocket");
-    this.ws_ = new WebSocket(url);
-  } else if ("MozWebSocket" in window) {
-    console.log("creating new mozwebsocket");
-    this.ws_ = new MozWebSocket(url);
-  } else {
-    console.log("no websocket");
-    throw WEB_SOCKET_NOT_AVAILABLE_EXCEPTION;
-  }
-
-  this.ws_.onopen =  opt_onOpenCallback || this.onopen;
-  this.ws_.onerror = opt_onErrorCallback || this.onerror;
-  this.ws_.onclose = opt_onCloseCallback || this.onclose;
-
-  this.ws_.onmessage = goog.bind(  this.onMessage_, this);
-
+var BitEx = function(){
+  goog.base(this);
 
 };
+goog.inherits(BitEx, goog.events.EventTarget);
 
 
 /**
- * @type {!WebSocket}
+ * @type {WebSocket}
  * @private
  */
 BitEx.prototype.ws_ = null;
 
 
-BitEx.prototype.onopen = function(e) {};
-BitEx.prototype.onerror = function(e) {};
-BitEx.prototype.onclose = function(e) {};
 
-BitEx.prototype.onRawMessage = function(e) {};
+/**
+ * The events fired by the web socket.
+ * @enum {string} The event types for the web socket.
+ */
+BitEx.EventType = {
+  CLOSED: 'closed',
+  ERROR: 'error',
+  OPENED: 'opened',
 
-BitEx.prototype.onLoginResponseOk = function(msg) {};
-BitEx.prototype.onLoginResponseError = function(msg) {};
+  RAW_MESSAGE: 'raw_message',
+  LOGIN_OK: 'login_ok',
+  LOGIN_ERROR: 'login_error',
 
-BitEx.prototype.onBalanceResponse = function(msg) {};
-BitEx.prototype.onOrderListResponse = function(msg) {};
+  /* Trading */
+  BALANCE_RESPONSE: 'balance_response',
+  ORDER_LIST_RESPONSE: 'order_list_response',
+  HEARTBEAT: 'heartbeat',
+  EXECUTION_REPORT: 'execution_report',
 
-BitEx.prototype.onHeartBeat = function(msg) {};
-BitEx.prototype.onExecutionReport = function(msg) {};
+  /* Market Data */
+  MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
+  MARKET_DATA_INCREMENTAL_REFRESH: 'md_incremental_refresh',
+  MARKET_DATA_REQUEST_REJECT: 'md_request_reject',
+  TRADE: 'trade',
+  TRADE_CLEAR: 'trade_clear',
+  ORDER_BOOK_CLEAR: 'ob_clear',
+  ORDER_BOOK_DELETE_ORDERS_THRU: 'ob_delete_orders_thru',
+  ORDER_BOOK_DELETE_ORDER: 'ob_delete_order',
+  ORDER_BOOK_NEW_ORDER: 'ob_new_order',
+  ORDER_BOOK_UPDATE_ORDER: 'ob_update_order'
+};
 
-BitEx.prototype.onMarketDataFullRefresh = function(msg) {};
-BitEx.prototype.onMarketDataIncrementalRefresh = function(msg) {};
-BitEx.prototype.onMarketDataRequestReject = function(msg) {};
+/**
+ * Open a connection with BitEx server
+ * @param {string} url
+ */
+BitEx.prototype.open = function(url) {
 
-BitEx.prototype.onTrade = function( msg ){};
-BitEx.prototype.onTradeClear = function( msg ){};
+  if ("WebSocket" in window) {
+    this.ws_ = new WebSocket(url);
+  } else if ("MozWebSocket" in window) {
+    this.ws_ = new MozWebSocket(url);
+  } else {
+    throw WEB_SOCKET_NOT_AVAILABLE_EXCEPTION;
+  }
 
-BitEx.prototype.onOrderBookClear = function(){};
-BitEx.prototype.onOrderBookDeleteOrdersThru = function( msg ){};
-BitEx.prototype.onOrderBookDeleteOrder = function( msg ){};
-BitEx.prototype.onOrderBookNewOrder = function( msg ){};
-BitEx.prototype.onOrderBookUpdateOrder = function( msg ){};
+  this.ws_.onopen = goog.bind(this.onOpen_, this);
+  this.ws_.onclose = goog.bind(this.onClose_, this);
+  this.ws_.onmessage = goog.bind(this.onMessage_, this);
+  this.ws_.onerror = goog.bind(this.onError_, this);
+};
+
+/**
+ * @private
+ */
+BitEx.prototype.onOpen_ = function() {
+  this.dispatchEvent(BitEx.EventType.OPENED);
+};
+
+/**
+ * @private
+ */
+BitEx.prototype.onClose_ = function() {
+  this.dispatchEvent(BitEx.EventType.CLOSED);
+};
+
+/**
+ * @private
+ */
+BitEx.prototype.onError_ = function() {
+  this.dispatchEvent(BitEx.EventType.ERROR);
+};
 
 /**
  * @param {*} e
@@ -167,93 +112,91 @@ BitEx.prototype.onOrderBookUpdateOrder = function( msg ){};
  */
 BitEx.prototype.onMessage_ = function(e) {
   var msg = JSON.parse(e.data);
-  this.onRawMessage(msg);
 
-  switch( msg.MsgType ) {
+  this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.RAW_MESSAGE, msg ) );
+
+  switch( msg['MsgType'] ) {
     case '0':  //Heartbeat
-      this.onHeartBeat(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.HEARTBEAT, msg ) );
       break;
 
     case 'BF': // Login response:
-      if (msg.UserStatus == 1 ) {
-        this.onLoginResponseOk(msg);
+      if (msg['UserStatus'] == 1 ) {
+        this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.LOGIN_OK, msg ) );
       } else {
-        this.onLoginResponseError(msg);
+        this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.LOGIN_ERROR, msg ) );
       }
       break;
 
     case 'U3': // Balance Response
-      this.onBalanceResponse(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.BALANCE_RESPONSE, msg ) );
       break;
 
     case 'U5': // Order List Response
-      this.onOrderListResponse(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_LIST_RESPONSE, msg ) );
       break;
 
     case 'W':
-      if ( msg.MarketDepth != 1 ) { // Has Market Depth
-        this.onOrderBookClear();
-        this.onTradeClear();
+      if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
+        this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_BOOK_CLEAR) );
+        this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.TRADE_CLEAR) );
 
-        for ( var x in msg.MDFullGrp) {
-          var entry = msg.MDFullGrp[x];
+        for ( var x in msg['MDFullGrp']) {
+          var entry = msg['MDFullGrp'][x];
 
-          switch (entry.MDEntryType) {
+          switch (entry['MDEntryType']) {
             case '0': // Bid
             case '1': // Offer
-              this.onOrderBookNewOrder(entry);
+              this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_BOOK_NEW_ORDER, entry) );
               break;
             case '2': // Trade
-              this.onTrade(entry);
+              this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.TRADE, entry) );
               break;
           }
         }
       }
-      this.onMarketDataFullRefresh(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.MARKET_DATA_FULL_REFRESH, msg) );
       break;
     case 'X':
-      if (msg.MDBkTyp == '3') {  // Order Depth
-        for ( var x in msg.MDIncGrp) {
-          var entry = msg.MDIncGrp[x];
+      if (msg['MDBkTyp'] == '3') {  // Order Depth
+        for ( var x in msg['MDIncGrp']) {
+          var entry = msg['MDIncGrp'][x];
 
-          switch (entry.MDEntryType) {
+          switch (entry['MDEntryType']) {
             case '0': // Bid
             case '1': // Offer
-              switch( entry.MDUpdateAction ) {
+              switch( entry['MDUpdateAction'] ) {
                 case '0':
-                  this.onOrderBookNewOrder(entry);
+                  this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_BOOK_NEW_ORDER, entry) );
                   break;
                 case '1':
-                  this.onOrderBookUpdateOrder(entry);
+                  this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_BOOK_UPDATE_ORDER, entry) );
                   break;
                 case '2':
-                  this.onOrderBookDeleteOrder(entry);
+                  this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_BOOK_DELETE_ORDER, entry) );
                   break;
                 case '3':
-                  this.onOrderBookDeleteOrdersThru(entry);
+                  this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU, entry) );
                   break;
               }
               break;
             case '2': // Trade
-              this.onTrade(entry);
+              this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.TRADE, entry) );
               break;
           }
         }
       } else {
         // TODO:  Top of the book handling.
       }
-      this.onMarketDataIncrementalRefresh(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.MARKET_DATA_INCREMENTAL_REFRESH, msg) );
       break;
     case 'Y':
-      this.onMarketDataRequestReject(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.MARKET_DATA_REQUEST_REJECT, msg) );
       break;
 
     case '8':  //Execution Report
-      this.onExecutionReport(msg);
+      this.dispatchEvent( new BitEx.BitExEvent( BitEx.EventType.EXECUTION_REPORT, msg) );
       break;
-
-    default:
-      console.log( 'Unknow message ... ' + e.data);
   }
 };
 
@@ -299,7 +242,7 @@ BitEx.prototype.changePassword = function(password, new_password ){
  * @return {number}
  */
 BitEx.prototype.subscribeMarketData = function(market_depth, symbols, entries ){
-  var reqId = parseInt(Math.random() * 1000000);
+  var reqId = parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'V',
     'MDReqID': reqId,
@@ -352,7 +295,7 @@ BitEx.prototype.signUp = function(username, password, first_name, last_name, ema
  * @param {number=} opt_requestId. Defaults to random generated number
  */
 BitEx.prototype.requestOpenOrders = function(opt_requestId){
-  var requestId = opt_requestId || parseInt( 1e7 * Math.random() );
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
     'MsgType': 'U4',
@@ -374,10 +317,10 @@ BitEx.prototype.requestOpenOrders = function(opt_requestId){
  * @return {number}
  */
 BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_clientOrderId, opt_orderType  ){
-  var clientOrderId = opt_clientOrderId || parseInt( 1e7 * Math.random() );
+  var clientOrderId = opt_clientOrderId || parseInt( 1e7 * Math.random() , 10 );
   var orderType = '' + opt_orderType || '2';
-  price = parseInt(price * 1e5);
-  qty = parseInt(qty * 1e8);
+  price = parseInt(price * 1e5, 10);
+  qty = parseInt(qty * 1e8, 10);
 
   var msg = {
     'MsgType': 'D',
@@ -395,8 +338,8 @@ BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_clientOrder
 };
 
 /**
- * @param {string} clientOrderId
- * @param {string} OrderId
+ * @param {string} opt_clientOrderId
+ * @param {string} opt_OrderId
  */
 BitEx.prototype.cancelOrder = function( opt_clientOrderId, opt_OrderId  ) {
   var msg = {
@@ -453,4 +396,23 @@ BitEx.prototype.testRequest = function(){
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+
+/**
+ *
+ * @param {string} type
+ * @param {Object=} opt_data
+ * @extends {goog.events.Event}
+ * @constructor
+ */
+BitEx.BitExEvent = function(type, opt_data) {
+  goog.events.Event.call(this, type);
+
+  /**
+   * The new message from the web socket.
+   * @type {Object|null|undefined}
+   */
+  this.data = opt_data;
+};
+goog.inherits(BitEx.BitExEvent, goog.events.Event);
 

@@ -21,7 +21,7 @@
   <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
   <script src="/js/parsley.min.js"></script>
 
-  <script src="/js/bitex.js" type="text/javascript"></script>
+  <!-- <script src="/js/bitex.compiled.js" type="text/javascript"></script> -->
 
 </head>
 <body class="ws-not-connected bitex-not-logged">
@@ -79,33 +79,45 @@
   </section>
 
   <section id="user_list"  class="bitex-display-if-logged">
-    <div class="fuelux" style="height:400px;width:100%;margin-bottom:20px;">
+
+    <div id="user_list_data_grid"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
       <table class="table table-bordered datagrid datagrid-stretch-header">
         <thead>
         <tr>
-          <th colspan="8">
-            <span class="datagrid-header-title">Users</span>
+          <th colspan="4">
+            <span class="datagrid-header-title">User's</span>
           </th>
-        </tr>
-        <tr>
-          <th style="width: 75px">First Name</th>
-          <th style="width: 75px">Last Name</th>
-          <th style="width: 75px">Email</th>
-          <th style="width: 75px">Balance BTC</th>
-          <th style="width: 75px">Balance BRL</th>
-          <th style="width: 75px">Verified</th>
-          <th style="width: 75px">Last Login</th>
-          <th>Actions</th>
         </tr>
         </thead>
       </table>
-      <div class="datagrid-stretch-wrapper" style="height: 256px;">
-        <table id="id_user_table" class="table table-bordered datagrid">
+      <div class="datagrid-stretch-wrapper" style="height: 320px;">
+        <table class="table table-bordered datagrid">
           <tbody></tbody>
         </table>
       </div>
+      <table class="table table-bordered datagrid datagrid-stretch-footer">
+        <tfoot>
+          <tr>
+            <th colspan="4">
+              <div class="datagrid-footer-left" style="visibility: visible;">
+                <div class="grid-controls">
+                  <span>
+                    <span class="grid-start"></span> -
+                    <span class="grid-end"></span>
+                  </span>
+                </div>
+              </div>
+              <div class="datagrid-footer-right" style="visibility: visible;">
+                <div class="grid-pager">
+                  <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                  <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
     </div>
-    <button id="user_table_reload_btn" class="btn">reload</button>
   </section>
 </div>
 </div>
@@ -172,173 +184,8 @@
   </div>
 </footer>
 
-<script type="text/javascript">
-var bitEx = null;
-var currentUsername = null;
-
-$(document).ready(function(){
-  var user_list_page = 0;
-  var user_list_page_count = 100;
-
-  var disconnect = function() {
-    var btn = $("#btn_ws_connect");
-    btn.button('loading');
-    bitEx.close();
-    delete bitEx;
-  };
-
-  var connect = function() {
-    var btn = $("#btn_ws_connect");
-
-    var url = $("#ws_url").val();
-    btn.button('loading');
-
-    var onOpen = function(e) {
-      btn.button('reset');
-      $(document.body).removeClass('ws-not-connected');
-      $(document.body).addClass('ws-connected');
-
-      btn.html('Desconectar');
-    };
-
-    var onClose = function(e) {
-      btn.button('reset');
-      btn.html('Conectar');
-      $(document.body).removeClass('ws-connected');
-      $(document.body).addClass('ws-not-connected');
-
-      $(document.body).removeClass('bitex-logged');
-      $(document.body).addClass('bitex-not-logged');
-    };
-
-    var onError = function(e) {
-      btn.button('reset');
-      $("#websocket_error_msg").html( 'Erro se conectando c/ o servidor' );
-      $("#error_websocket_modal").modal();
-    };
-
-    try{
-      bitEx = new BitEx(url , onOpen, onClose,onError );
-    } catch( WEB_SOCKET_NOT_AVAILABLE_EXCEPTION ) {
-      $("#no_websockets_modal").modal();
-    }
-
-    bitEx.onLoginResponseOk = function(msg) {
-      $(document.body).removeClass('bitex-not-logged');
-      $(document.body).addClass('bitex-logged');
-
-      $("#user_username").text( msg.Username);
-      currentUsername = msg.Username;
-
-      // Get the list of all users
-      bitEx.sendRawMessage( { 'MsgType': 'USER_LIST',  'Page':user_list_page, 'PageSize': user_list_page_count} );
-    };
-
-    bitEx.onLoginResponseError = function(msg) {
-      $(document.body).removeClass('bitex-logged');
-      $(document.body).addClass('bitex-not-logged');
-      alert(msg.UserStatusText);
-    };
-
-    bitEx.onRawMessage = function(msg){
-      if (msg.MsgType == 'USER_LIST_RESPONSE') {
-
-        var users = "";
-        for (var x in msg.Users) {
-          var user = msg.Users[x];
-
-          var balance_btc = (user.BalanceBTC/1e8).toFixed(8);
-          var balance_brl = (user.BalanceBRL/1e5).toFixed(5);
-
-          var row = '<tr id="user_' + user.Id +  '">';
-          row += '<td style="width: 75px">' + user.FirstName + '</td>';
-          row += '<td style="width: 75px">' + user.LastName + '</td>';
-          row += '<td style="width: 75px">' + user.Email + '</td>';
-          row += '<td style="width: 75px">' + balance_btc + '</td>';
-          row += '<td style="width: 75px">' + balance_brl + '</td>';
-          row += '<td style="width: 75px">' + user.Verified + '</td>';
-          row += '<td style="width: 75px">' + user.LastLogin + '</td>';
-          row += '<td><button class="btn btn-mini btn-primary btn-deposit" data-user-id="' + user.Id + '">Deposit</button></td>';
-          row += '</tr>';
-          users += row;
-        }
-        $("#id_user_table > tbody").html( users );
-      }
-    };
-  };
-
-  $("#id_deposit").click(function(e){
-    if ($('#deposit-form').parsley( 'validate' )) {
-
-      var currency = $('#id_deposit_currency').val();
-      var amount = 0;
-      if (currency == 'BRL' || currency == 'USD' ) {
-        amount = parseInt($('#id_deposit_amount').val() * 1e5) ;
-      } else if (currency == 'BTC' || currency == 'LTC' ) {
-        amount = parseInt($('#id_deposit_amount').val() * 1e8)
-      } else {
-        alert('invalid currency code');
-        e.stopPropagation();
-        return;
-      }
-
-      if (amount === 0) {
-        alert('invalid amount');
-        e.stopPropagation();
-        return;
-      }
-
-
-      var depositMsg = {
-        'MsgType': 'DEPOSIT',
-        'UserID': parseInt( $('#id_deposit_user_id').val() ),
-        'Origin': $('#id_deposit_origin').val(),
-        'Amount': amount,
-        'Currency': currency
-      };
-
-      bitEx.sendRawMessage(depositMsg);
-
-      // get the user list again :)
-      bitEx.sendRawMessage( { 'MsgType': 'USER_LIST',  'Page':user_list_page, 'PageSize': user_list_page_count} );
-
-    } else {
-      // Invalid data
-      e.stopPropagation();
-    }
-  });
-
-  $("#user_table_reload_btn").click( function(){
-    bitEx.sendRawMessage( { 'MsgType': 'USER_LIST',  'Page':user_list_page, 'PageSize': user_list_page_count} );
-  });
-
-  $("#btn_ws_connect").click(function(){
-    if ($(document.body).hasClass('ws-not-connected') ) {
-      connect();
-    } else {
-      disconnect();
-    }
-  });
-
-  $("#id_btn_login").click(function(){
-    var username = $("#id_username").val();
-    var password = $("#id_password").val();
-
-    bitEx.login(username, password);
-  });
-
-  $('body').on('click', 'button.btn-deposit', function() {
-    var user_id = $(this).attr('data-user-id');
-    $("#id_deposit_user_id ").val(user_id);
-    $("#deposit_modal").modal();
-
-  });
-
-});
-
-
-
-</script>
+<!-- Load the admin application -->
+<script src="/js/bitex_admin_app.compiled.js?v1" type="text/javascript"></script>
 
 </body>
 </html>
