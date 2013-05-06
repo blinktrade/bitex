@@ -147,3 +147,17 @@ ul.parsley-error-list li {
   line-height: 11px;
 }
 
+
+/* Active view */
+#withdraw_requests_btc,
+#withdraw_requests_brl,
+#user_list {
+  display: none;
+}
+
+.active-view-withdraw_requests_btc #withdraw_requests_btc,
+.active-view-withdraw_requests_brl #withdraw_requests_brl,
+.active-view-user_list #user_list {
+  display: block;
+}
+
