@@ -526,9 +526,9 @@ $(document).ready(function(){
     var selector = "";
     var order_row_html;
     if (msg['MDEntryType'] == '0' ) {
-      selector = "#order_book_bid tr:eq(" + msg.MDEntryPositionNo + ")";
+      selector = "#order_book_bid tr:eq(" + msg['MDEntryPositionNo'] + ")";
     } else {
-      selector = "#order_book_offer tr:eq(" + msg.MDEntryPositionNo + ")";
+      selector = "#order_book_offer tr:eq(" + msg['MDEntryPositionNo'] + ")";
     }
     $(selector).remove();
   });
@@ -541,7 +541,7 @@ $(document).ready(function(){
     var price =  (msg['MDEntryPx']/1e5).toFixed(5);
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
 
-    var username = msg.Username;
+    var username = msg['Username'];
     if (username === currentUsername ) {
       username = '<button class="btn btn-mini btn-danger btn-cancel-order" data-order-id="' + msg['OrderID'] + '">Cancelar</button>';
     }

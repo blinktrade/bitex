@@ -169,7 +169,7 @@ class OrderMatcher(object):
                         symbol            = self.symbol,
                         size              = executed_qty,
                         price             = executed_price,
-                        when              = datetime.datetime.now())
+                        created           = datetime.datetime.now())
         session.add(trade)
         MdSubscriptionHelper.publish_trade(trade)
 

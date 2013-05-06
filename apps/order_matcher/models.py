@@ -351,6 +351,10 @@ class Order(Base):
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
       kwargs['leaves_qty'] = kwargs.get('order_qty')
+
+    if 'user' in kwargs and 'username' not in kwargs:
+      kwargs['username'] = kwargs.get('user').username
+
     super(Order, self).__init__(*args, **kwargs)
 
   def __cmp__(self, other):
@@ -359,19 +363,19 @@ class Order(Base):
         return -1
       elif self.price < other.price:
         return  1
-      elif self.created > other.created:
-        return  -1
+      #elif self.created > other.created:
+      #  return  -1
       else:
-        return  1
+        return  0
     elif self.is_sell and other.is_sell:
       if self.price < other.price:
         return -1
       elif self.price > other.price:
         return  1
-      elif self.created < other.created:
-        return  -1
+      #elif self.created < other.created:
+      #  return  -1
       else:
-        return  1
+        return  0
 
   def match(self, other, execute_qty):
     if self.is_buy and other.is_sell:

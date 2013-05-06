@@ -151,13 +151,20 @@ ul.parsley-error-list li {
 /* Active view */
 #withdraw_requests_btc,
 #withdraw_requests_brl,
+#order_book_brlbtc,
 #user_list {
   display: none;
 }
 
 .active-view-withdraw_requests_btc #withdraw_requests_btc,
 .active-view-withdraw_requests_brl #withdraw_requests_brl,
+.active-view-order_book_brlbtc #order_book_brlbtc,
 .active-view-user_list #user_list {
   display: block;
+}
+
+
+.order-book-blink {
+  background-color: #ff8c00;
 }
 

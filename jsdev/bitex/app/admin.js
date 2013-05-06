@@ -5,6 +5,9 @@ goog.require('bitex.ui.DataGrid');
 goog.require('bitex.ui.DataGrid.EventType');
 goog.require('bitex.ui.DataGridEvent');
 
+goog.require('bitex.ui.OrderBook');
+goog.require('bitex.ui.OrderBook.Side');
+
 goog.require('goog.events');
 goog.require('goog.dom.forms');
 goog.require('goog.dom.classes');
@@ -73,6 +76,9 @@ bitex.app.admin = function() {
 
   var bitEx = new bitex.api.BitEx();
   var currentUsername = null;
+
+  var order_book_bid = null;
+  var order_book_offer = null;
 
   var button_login = new goog.ui.Button();
   button_login.decorate(goog.dom.getElement('id_btn_login'));
@@ -233,6 +239,19 @@ bitex.app.admin = function() {
     goog.dom.classes.remove( document.body, 'bitex-not-logged' );
     currentUsername = msg['Username'];
 
+    if (goog.isDefAndNotNull(order_book_bid)) {
+      order_book_bid.dispose() ;
+      order_book_offer.dispose();
+    }
+
+    order_book_bid = new bitex.ui.OrderBook(currentUsername, bitex.ui.OrderBook.Side.BUY);
+    order_book_offer = new bitex.ui.OrderBook(currentUsername, bitex.ui.OrderBook.Side.SELL);
+    order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
+    order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
+
+
+    bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
+
     if (userListDataGrid.wasDecorated()) {
       userListDataGrid.reload();
       withdrawBtcDataGrid.reload();
@@ -252,6 +271,61 @@ bitex.app.admin = function() {
     });
   });
 
+  bitEx.addEventListener('ob_delete_orders_thru',  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'];
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      order_book_bid.deleteOrderThru(index);
+    } else if (side == '1') {
+      order_book_offer.deleteOrderThru(index);
+    }
+  });
+
+  bitEx.addEventListener('ob_delete_order',  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      order_book_bid.deleteOrder(index);
+    } else if (side == '1') {
+      order_book_offer.deleteOrder(index);
+    }
+
+  });
+  bitEx.addEventListener('ob_update_order',  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var qty = (msg['MDEntrySize']/1e8).toFixed(8);
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      order_book_bid.updateOrder(index, qty);
+    } else if (side == '1') {
+      order_book_offer.updateOrder(index, qty);
+    }
+  });
+
+  bitEx.addEventListener('ob_new_order',  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    var qty = (msg['MDEntrySize']/1e8).toFixed(8);
+    var username = msg['Username'];
+    var orderId =  msg['OrderID'];
+    var side = msg['MDEntryType'];
+
+    console.log('ob_new_order: ' + index );
+
+    if (side == '0') {
+      order_book_bid.insertOrder(index, orderId, price, qty, username );
+    } else if (side == '1') {
+      order_book_offer.insertOrder(index, orderId, price, qty, username );
+    }
+
+  });
 
 
   bitEx.addEventListener('login_error',  function(e) {
