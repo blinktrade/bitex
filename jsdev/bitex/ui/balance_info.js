@@ -82,7 +82,7 @@ bitex.ui.BalanceInfo.prototype.updateBalanceBRL = function(value) {
  */
 bitex.ui.BalanceInfo.prototype.updateBalanceBTC = function(value) {
   var el = goog.dom.getElementByClass(goog.getCssName(this.getBaseCssClass(),'btc'));
-  var formatted_value = (value/1e8).toFixed(2);
+  var formatted_value = (value/1e8).toFixed(8);
 
   var blink_class = goog.getCssName(this.getBaseCssClass(), 'blink');
   goog.dom.classes.add( el,  blink_class );

@@ -176,14 +176,15 @@
           <div class="span9">
             <div class="alert alert-success">Bem-vindo de volta, rodrigo!</div>
 
-            <div class="well">
+            <div id="id_order_entry" class="well order-entry">
+              <input type="hidden" name="symbol" class="order-entry-symbol" value="BRLBTC">
               <div class="row-fluid">
 
                 <div class="span4">
                   <div class="control-group">
                     <label class="control-label" for="id_order_qty">Quantidade (BTC) </label>
                     <div class="controls">
-                      <input type="text" class="input-block-level" name="amount" id="id_order_qty" value="1">
+                      <input type="text" class="input-block-level order-entry-qty" name="amount" id="id_order_qty" value="1">
                     </div>
                   </div>
                 </div>
@@ -192,16 +193,16 @@
                   <div class="control-group">
                     <label class="control-label" for="id_price">Preço (BRL)</label>
                     <div class="controls">
-                      <input type="text" class="input-block-level" name="price" id="id_price" value="">
+                      <input type="text" class="input-block-level order-entry-price" name="price" id="id_price" value="">
                     </div>
                   </div>
                 </div>
 
                 <div class="span2">
-                  <button id="id_btn_buy" class="btn btn-success btn-execution">COMPRAR</button>
+                  <button id="id_btn_buy" class="btn btn-success btn-execution order-entry-buy">COMPRAR</button>
                 </div>
                 <div class="span2">
-                  <button id="id_btn_sell" class="btn btn-danger btn-execution">VENDER</button>
+                  <button id="id_btn_sell" class="btn btn-danger btn-execution order-entry-sell">VENDER</button>
                 </div>
               </div>
             </div>

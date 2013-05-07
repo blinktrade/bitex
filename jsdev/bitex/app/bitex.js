@@ -6,7 +6,8 @@ goog.require('bitex.api.BitEx');
 goog.require('bitex.ui.OrderBook');
 goog.require('bitex.ui.OrderBook.Side');
 goog.require('bitex.ui.BalanceInfo');
-
+goog.require('bitex.ui.OrderEntry');
+goog.require('bitex.ui.OrderEntry.EventType');
 
 goog.require('goog.events');
 goog.require('goog.dom.forms');
@@ -68,6 +69,16 @@ bitex.app.bitex = function( url ) {
 
   var balance_info = new bitex.ui.BalanceInfo();
   balance_info.decorate( goog.dom.getElement('account_overview') );
+
+  var order_entry = new bitex.ui.OrderEntry();
+  order_entry.decorate( goog.dom.getElement('id_order_entry') );
+
+  order_entry.addEventListener( bitex.ui.OrderEntry.EventType.BUY_LIMITED, function(e){
+    var client_order_id = bitEx.sendBuyLimitedOrder( e.symbol, e.qty, e.price );
+  });
+  order_entry.addEventListener( bitex.ui.OrderEntry.EventType.SELL_LIMITED, function(e){
+    var client_order_id = bitEx.sendSellLimitedOrder( e.symbol, e.qty, e.price );
+  });
 
   bitEx.addEventListener('login_ok',  function(e) {
     var msg = e.data;
