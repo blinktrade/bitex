@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt_BR">
+  <head>
+    <meta charset="utf-8">
+    <title>BitEx - Bolsa Brasileira de Moedas Criptografadas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compre e venda Bitcoin, Litecoin com rapidez e segurança.">
+
+    <meta name="keywords" content="bitcoin, litecoin, BTC, LTC">
+
+    <meta name="author" content="BitEx">
+
+    <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+    <meta charset="utf-8">
+
+
+    <meta property="og:site_name" content="BitEx - Bolsa Brasileira de Moedas Criptografadas"/>
+    <meta property="og:locale" content="pt_BR"/>
+
+    <meta property="og:url" content="https://www.bitex.com.br/"/>
+    <meta property="og:title" content="BitEx - Bolsa Brasileira de Moedas Criptografadas"/>
+    <meta property="og:description" content="Compre e venda Bitcoin, Litecoin com rapidez e segurança.">
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" content="http://www.bitex.com.br/static/images/bitcoin530.png"/>
+
+
+    <meta itemprop="name" content="BitEx - Bolsa Brasileira de Moedas Criptografadas">
+    <meta itemprop="description" content="Compre e venda Bitcoin, Litecoin com rapidez e segurança.">
+
+
+    <!--Bootstrap-->
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
+
+    <link href="/css/style-test.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+
+
+    <!-- bitex application -->
+    <script src="/js/bitex_app_bitex.compiled.pt_BR.js?v1" type="text/javascript"></script>
+
+  </head>
+
+  <body class="ws-not-connected bitex-not-logged">
+
+    <div class="navbar navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">BitEx</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="clearfix" style="padding: 30px;"></div>
+
+    <div class="container">
+
+        <div id="start" class="page  row-fluid">
+
+            <!-- Main content -->
+          <div class="tagline">
+            <h1 class="tk-vera-sans">Bitex - Bolsa Brasileira de Moedas Criptografadas</h1>
+            <h2>Compra e venda de Bitcoins. Câmbio financeiro, Liquidez e Transparência</h2>
+          </div>
+          <div class="row signup">
+            <div class="text-center">
+              <h3 style="margin-top: 5px">O Registro é feito menos de um minuto.<br> É possivel negociar com apenas R$ 1 ou ฿ 1.</h3>
+            </div>
+            <div class="text-center"><button data-switch-view="signup" class="btn btn-large btn-primary">Registre agora</button></div>
+          </div>
+        </div>
+
+        <div id="signup" class="page  row-fluid">
+          <div class="page-header">
+            <h1>Registre-se</h1>
+          </div>
+          <p>Já tem uma conta? <a href="#" data-switch-view="signin" >Entrar</a>.</p>
+
+          <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
+            <div class="control-group">
+              <label class="control-label">Primeiro nome</label>
+              <div class="controls">
+                <input id="id_signup_first_name" name="FirstName" size="30" type="text" placeholder="ex.: João">
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Último nome</label>
+              <div class="controls">
+                <input id="id_signup_last_name" name="LastName" size="30" type="text" placeholder="ex.: Silva">
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Nome do Usuário</label>
+              <div class="controls">
+                <input id="id_signup_username" name="Username" size="30" type="text" placeholder="ex.: joaozinho">
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Endereço de e-mail</label>
+              <div class="controls">
+                <input id="id_signup_email" name="Email" size="30" type="text" placeholder="ex.: joao@email.com">
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Senha</label>
+              <div class="controls">
+                <input id="id_signup_password" name="Password" size="30" type="password">
+                <p class="help-block">Pelo menos 8 caracteres</p>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Confirmação de senha</label>
+              <div class="controls">
+                <input id="id_signup_password2" name="Password2" size="30" type="password">
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Termos e Serviços</label>
+              <div class="controls">
+
+                <label class="checkbox">
+                  <input id="user_agreed_tos" name="" type="checkbox" checked>
+                  Concordo com os <a href="#" data-switch-view="tos">termos de uso da BitEx</a>.
+                </label>
+              </div>
+            </div>
+          </form>
+
+          <div class="form-actions">
+            <button id="id_btn_signup" class="btn btn-primary">Registre-se</button>
+          </div>
+        </div>
+
+        <div id="signin" class="page  row-fluid">
+          <div class="page-header">
+            <h1>Entrar</h1>
+          </div>
+          <div class="alert alert-alert">Você deve primeiro conectar ou cadastre-se antes de acessar esta página.</div>
+
+          <p>Não possui uma conta? <a href="#" data-switch-view="signup">Registre-se</a></p>
+
+          <form accept-charset="UTF-8" action="" method="post">
+            <div class="clearfix">
+              <label for="id_username">Nome de usuário ou e-mail</label>
+              <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
+            </div>
+            <div class="clearfix">
+              <label for="id_password">Senha</label>
+              <div class="input"><input id="id_password" name="password" type="password"></div>
+            </div>
+          </form>
+          <div class="actions">
+            <input id="id_btn_login"  class="btn primary" name="commit" type="submit" value="Entrar">
+          </div>
+        </div>
+
+        <div id="trading" class="page row-fluid">
+          <div class="span9">
+            <div class="alert alert-success">Bem-vindo de volta, rodrigo!</div>
+
+            <div class="well">
+              <div class="row-fluid">
+
+                <div class="span4">
+                  <div class="control-group">
+                    <label class="control-label" for="id_order_qty">Quantidade (BTC) </label>
+                    <div class="controls">
+                      <input type="text" class="input-block-level" name="amount" id="id_order_qty" value="1">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="span4">
+                  <div class="control-group">
+                    <label class="control-label" for="id_price">Preço (BRL)</label>
+                    <div class="controls">
+                      <input type="text" class="input-block-level" name="price" id="id_price" value="">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="span2">
+                  <button id="id_btn_buy" class="btn btn-success btn-execution">COMPRAR</button>
+                </div>
+                <div class="span2">
+                  <button id="id_btn_sell" class="btn btn-danger btn-execution">VENDER</button>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="well">
+              <div class="row-fluid">
+                <div class="span6">
+                  <div class="text-center"><h4>Ofertas de Compra</h4></div>
+                  <table id="order_book_bid"  class="table">
+                    <thead>
+                    <tr>
+                      <th>Comprador</th>
+                      <th>Quantidade(BTC)</th>
+                      <th>Preço(R$)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="span6">
+                  <div class="text-center"><h4>Ofertas de Venda</h4></div>
+                  <table id="order_book_offer"  class="table">
+                    <thead>
+                    <tr>
+                      <th>Preço(R$)</th>
+                      <th>Quantidade(BTC)</th>
+                      <th>Vendedor</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="span3 sidebar">
+            <h3>Olá, rodrigo!</h3>
+            <div id="account_overview" class="balance-info"><h6>Sua Conta</h6>
+              <table class="data">
+                <tbody>
+                  <tr><td><strong>R$</strong></td><td ><span class="balance-info-brl"></span></td></tr>
+                  <tr><td><strong>฿</strong></td><td><span class="balance-info-btc"></span></td></tr>
+                </tbody></table>
+            </div>
+            <h6>Ações</h6>
+            <ul class="nav nav-list">
+              <li><a href="#"><i class="icon-plus"></i> Depósito</a></li>
+              <li><a href="#"><i class="icon-minus"></i> Retirada</a></li>
+              <li><a href="#"><i class="icon-cog"></i> Configurações</a></li>
+              <li><a href="#"><i class="icon-list-alt"></i> Histórico</a></li>
+              <li><a href="#"><i class="icon-check"></i> Verificação</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div id="tos" class="page">
+
+          <div class="page-header">
+            <h1>BitEx Termos de uso</h1>
+          </div>
+          <!-- Main content -->
+          <div class="well">
+            [Estamos regularizando a empresa e preparando os termos de uso e serviço. Aguarde.]
+          </div>
+        </div>
+
+
+    </div>
+
+
+    <footer class="footer">
+      <div class="container">
+        <p>© 2013 BitEx - Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
+        Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a></p>
+      </div>
+    </footer>
+
+    <script>
+      bitex.app.bitex('wss://localhost:8443/trade');
+    </script>
+
+  </body>
+
+</html>
+

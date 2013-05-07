@@ -32,7 +32,7 @@ class OrderMatcherApplication(tornado.web.Application):
     handlers = [
       (r'/trade', OrderMatcherHandler),
       (r'/admin/.*', AdminHandler),
-      (r"/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static'), "default_filename":"index.html" }),
+      (r"/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static'), "default_filename":"bitex.html" }),
     ]
     settings = dict(
       cookie_secret=config.cookie_secret

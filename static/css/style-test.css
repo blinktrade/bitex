@@ -1,19 +1,47 @@
-/*body {
-  padding-top: 40px;
-  padding-bottom: 40px;
-  background-color: #f5f5f5;
-}*/
+.tk-vera-sans {
+  font-family: "vera-sans",sans-serif;
+}
 
-section {
-  padding-top: 30px;
+html, body {
+  background-color: #eee;
+}
+
+body {
+  padding-bottom: 40px;
+}
+
+/* The white background content wrapper */
+.page {
+  background-color: #fff;
+  padding: 20px;
+  margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
+  -webkit-border-radius: 0 0 6px 6px;
+  -moz-border-radius: 0 0 6px 6px;
+  border-radius: 0 0 6px 6px;
+  -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  box-shadow: 0 1px 2px rgba(0,0,0,.15);
+}
+
+/* Page header tweaks */
+.page-header {
+  background-color: #f5f5f5;
+  padding: 20px 20px 10px;
+  margin: -20px -20px 20px;
+}
+
+/* Give a quick and non-cross-browser friendly divider */
+.sidebar {
+  margin-left: 0;
+  padding-left: 19px;
+  border-left: 1px solid #eee;
 }
 
 .footer {
   text-align: center;
   padding: 30px 0;
-  margin-top: 70px;
+  margin-top: 100px;
   border-top: 1px solid #e5e5e5;
-  background-color: #f5f5f5;
 }
 
 .footer p {
@@ -36,7 +64,6 @@ section {
   display: block;
 }
 
-
 .ws-connected .bitex-display-if-ws-connected {
   display: block;
 }
@@ -48,7 +75,6 @@ section {
 .ws-not-connected .bitex-hide-if-ws-connected {
   display: block;
 }
-
 
 .bitex-not-logged .bitex-display-if-logged {
   display: none;
@@ -64,6 +90,42 @@ section {
 
 .ws-not-connected .bitex-display-if-ws-connected {
   display: none;
+}
+
+.tagline {
+  background-image: url("/images/screenshot.png");
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  border-bottom: 1px solid #E3E3E3;
+  margin: -20px -20px 20px -20px;
+  padding-top: 50px;
+  padding-bottom: 380px;
+  text-align: center;
+}
+
+.tagline h1 {
+  font-size: 48px;
+  margin: auto;
+  font-family: museo-slab,serif;
+  font-weight: 300;
+  letter-spacing: -2px;
+}
+
+.tagline h2 {
+  margin-top: 20px;
+  font-size: 20px;
+  color: #555;
+  text-shadow: #FFF 1px 1px 2px;
+  line-height: 20px;
+  font-family: museo-slab,serif;
+  font-weight: 300;
+}
+
+.signup {
+  background-color: #F6F6F6;
+  border-bottom: 1px solid #E3E3E3;
+  margin: -20px -20px 0 -20px;
+  padding: 20px;
 }
 
 
@@ -149,6 +211,11 @@ ul.parsley-error-list li {
 
 
 /* Active view */
+#start,
+#signup,
+#signin,
+#trading,
+#tos,
 #withdraw_requests_btc,
 #withdraw_requests_brl,
 #order_book_brlbtc,
@@ -156,6 +223,11 @@ ul.parsley-error-list li {
   display: none;
 }
 
+.active-view-start #start,
+.active-view-signup #signup,
+.active-view-signin #signin,
+.active-view-trading #trading,
+.active-view-tos #tos,
 .active-view-withdraw_requests_btc #withdraw_requests_btc,
 .active-view-withdraw_requests_brl #withdraw_requests_brl,
 .active-view-order_book_brlbtc #order_book_brlbtc,
@@ -164,7 +236,16 @@ ul.parsley-error-list li {
 }
 
 
+.order-book-row {
+  font-size: 12px;
+}
+.order-book-row td {
+  line-height: 2px;
+}
+
+.balance-info-blink,
 .order-book-blink {
   background-color: #ff8c00;
 }
+
 

@@ -14,34 +14,19 @@ goog.require('goog.dom.classes');
 
 goog.require('goog.ui.Button');
 
-goog.require('goog.history.Html5History');
 goog.require('goog.array');
 goog.require('goog.string');
 
+goog.require('bitex.app.UrlRouter');
+
+
+
 bitex.app.admin = function() {
-  var BASE_URL = 'admin/';
-  var DEFAULT_VIEW = 'user_list';
+  var router = new bitex.app.UrlRouter( 'admin/', 'user_list' );
 
-  var history = new goog.history.Html5History();
-  history.setUseFragment(false);
 
-  history.addEventListener( goog.history.EventType.NAVIGATE, function(e){
-    if (e.isNavigation) {
-      console.log('goog.history.EventType.NAVIGATE isNavigation '  +  e.token);
-      setActiveView(e.token);
-    }
-  });
-
-  history.setEnabled(true);
-
-  /**
-   * @param {string} view_name
-   */
-  var setActiveView = function( view_name ) {
-    view_name = goog.string.remove(view_name, BASE_URL );
-    if  ( view_name === "" ) {
-      view_name = DEFAULT_VIEW;
-    }
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
+    var view_name = e.view;
 
     // remove any active view classes from document body
     var classes = goog.dom.classes.get(document.body );
@@ -57,7 +42,8 @@ bitex.app.admin = function() {
 
     // set the current view
     goog.dom.classes.add( document.body, 'active-view-' + view_name );
-  };
+  });
+
 
   goog.events.listen( document.body, 'click' , function(e){
     var element = e.target;
@@ -67,9 +53,7 @@ bitex.app.admin = function() {
       e.preventDefault();
       e.stopPropagation();
 
-      view_name = BASE_URL + view_name;
-      setActiveView(view_name);
-      history.setToken(view_name);
+      router.setView(view_name );
     }
   });
 
@@ -316,8 +300,6 @@ bitex.app.admin = function() {
     var username = msg['Username'];
     var orderId =  msg['OrderID'];
     var side = msg['MDEntryType'];
-
-    console.log('ob_new_order: ' + index );
 
     if (side == '0') {
       order_book_bid.insertOrder(index, orderId, price, qty, username );
