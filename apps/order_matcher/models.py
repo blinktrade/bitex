@@ -403,9 +403,11 @@ class Order(Base):
 
 
     if side == '1' : # buy
+      #qty_to_buy = min( qty, int((float(max (balance_price, 0))/float(price)) * 1e8) )
       qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8) )
       return qty_to_buy
     elif side == '2': # Sell
+      #qty_to_sell = min( qty, max ( 0 ,(balance_qty - total_executed_qty) ) )
       qty_to_sell = min( qty, balance_qty - total_executed_qty )
       return qty_to_sell
     return  qty

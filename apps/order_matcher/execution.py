@@ -104,7 +104,7 @@ class OrderMatcher(object):
         if order.is_buy:
           available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price, total_executed_qty )
           if available_qty_to_buy < executed_qty:
-            cancelled_qty = executed_qty - available_qty_to_buy
+            cancelled_qty = order.leaves_qty - total_executed_qty - available_qty_to_buy
             total_cancelled_qty += cancelled_qty
             executed_qty = available_qty_to_buy
             cancelled_order[order.id] = (cancelled_qty, order)
@@ -118,7 +118,7 @@ class OrderMatcher(object):
         elif order.is_sell:
           available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price, total_executed_qty )
           if available_qty_to_sell < executed_qty:
-            cancelled_qty = executed_qty - available_qty_to_sell
+            cancelled_qty = order.leaves_qty - total_executed_qty - available_qty_to_sell
             total_cancelled_qty += cancelled_qty
             executed_qty = available_qty_to_sell
             cancelled_order[order.id] = (cancelled_qty, order)
@@ -215,7 +215,8 @@ class OrderMatcher(object):
 
     else:
       if len(other_side) and len(executed_orders):
-        MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos, other_side[0] )
+        if not (len(executed_orders) == 1 and executed_orders[0][0] == 0):
+          MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos, other_side[0] )
       else:
         MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
 

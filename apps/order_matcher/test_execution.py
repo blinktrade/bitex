@@ -95,7 +95,7 @@ class TestForbiddenExecutions(unittest.TestCase):
     self.execution_reports.append(rpt)
 
   def test_self_execute(self):
-    """Send a buy order that would execute an sell order from the same client. The sending order should be cancelled"""
+    """Send a buy order that would execute an sell order from the same client. The counter order should be cancelled"""
     o = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
                      client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
                      side             = '1',   price   = 101e5,    order_qty = 6e8)
@@ -720,6 +720,75 @@ class TestOrderMatcher(unittest.TestCase):
     self.assertEqual(250e5 +  self.get_total_executed_brl( "107" ), self.user_h.balance_brl )
 
 
+  def testSellingBTCtoAnotherUserWhoDoesntHaveCash(self):
+    # user_h, has 1BTC and 250BRL
+    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+                        balance_btc=1e8, balance_brl=250e5 )
+    self.session.add( self.user_h )
+    self.session.commit()
+
+    # user_h  sends 3 buy orders of 1 BTC @ 200BRL
+    oh1 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                client_order_id  = '1081', symbol  = 'BRLBTC', type      = '2',
+                side             = '1',   price   = 200e5,    order_qty = 1e8)
+    oh2 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                 client_order_id  = '1082', symbol  = 'BRLBTC', type      = '2',
+                 side             = '1',   price   = 200e5,    order_qty = 1e8)
+    oh3 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                 client_order_id  = '1083', symbol  = 'BRLBTC', type      = '2',
+                 side             = '1',   price   = 200e5,    order_qty = 1e8)
+
+    self.session.add( oh1 )
+    self.session.add( oh2 )
+    self.session.add( oh3 )
+    self.session.commit()
+
+
+    self.execution_reports = []
+    self.om.match(self.session, oh1 )
+    self.om.match(self.session, oh2 )
+    self.om.match(self.session, oh3 )
+
+    self.assertEqual( 0, len(self.om.sell_side) )
+    self.assertEqual( 3, len(self.om.buy_side) )
+    self.assertEqual('0' , oh1.status)
+    self.assertEqual('0' , oh2.status)
+    self.assertEqual('0' , oh3.status)
+
+
+    # user_i has 20BTC and 250BRL
+    self.user_i = User( username='i', first_name='i', last_name='_', email='i@example.com', password ='i',
+                        balance_btc=20e8, balance_brl=250e5 )
+    self.session.add( self.user_i )
+    self.session.commit()
+
+    # user_i will sell 10 BTC  @ 200 BRL
+    oi1 = Order( user_id = self.user_i.id,account_id = self.user_i.account_id, user = self.user_i,
+                 client_order_id  = '1091', symbol  = 'BRLBTC', type      = '2',
+                 side             = '2',   price   = 200e5,    order_qty = 10e8)
+    self.session.add( oi1 )
+    self.session.commit()
+
+    self.execution_reports = []
+    self.om.match(self.session, oi1 )
+
+    self.assertEqual( 1, len(self.om.sell_side) )
+    self.assertEqual( 0, len(self.om.buy_side) )
+
+    print oh1
+    print oh2
+    print oh3
+    print self.user_h
+    print self.user_i
+
+    self.assertEqual('2' , oh1.status)
+    self.assertEqual('4' , oh2.status)
+    self.assertEqual('4' , oh3.status)
+
+    self.assertEqual('1' , oi1.status)
+
+
+
   def testUserSellingWithoutEnoughBTC_1(self):
     """user without enough money trying to buy more BTC he can possible byu. """
     self.om.match(self.session, self.o1 )
@@ -842,6 +911,59 @@ class TestOrderMatcher(unittest.TestCase):
     self.assertEqual(1000e5 -  self.get_total_executed_brl( "102" ), self.user_b.balance_brl )
     self.assertEqual(1000e5 -  self.get_total_executed_brl( "103" ), self.user_c.balance_brl )
     self.assertEqual(self.get_total_executed_brl( "107" ), self.user_h.balance_brl )
+
+  def testUserBuyingWithoutBRL(self):
+    """user without enough money trying to buy more BTC he can possible byu. """
+    self.om.match(self.session, self.o1 )
+    self.om.match(self.session, self.o2 )
+    self.om.match(self.session, self.o3 )
+    self.om.match(self.session, self.o4 )
+    self.om.match(self.session, self.o5 )
+    self.om.match(self.session, self.o6 )
+
+    # user_h, 0 BTC and 0 BRL on his account
+    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+                        balance_btc=0, balance_brl=0 )
+    self.session.add( self.user_h )
+    self.session.commit()
+
+
+    # user_h [o7] send a buy order of 5 BTC  @ $105.
+    # o7 would match o4, o5 and o6 if user_h had money, but since he doesn't o7 should be fully cancelled
+    # and o4,5,6 should remain intact
+    o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
+                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                side             = '1',   price   = 105e5,      order_qty = 10e8)
+    self.session.add( o7 )
+    self.session.commit()
+
+    self.execution_reports = []
+    self.om.match(self.session, o7 )
+
+    self.assertEqual( 3, len(self.om.sell_side) )
+
+    self.assertEqual( "0"               , self.o4.status )
+    self.assertEqual(  0                , self.o4.last_price )
+    self.assertEqual(  0                , self.o4.cum_qty )
+    self.assertEqual( self.o4.order_qty , self.o4.leaves_qty )
+
+    self.assertEqual( "0"               , self.o5.status )
+    self.assertEqual(  0                , self.o5.last_price )
+    self.assertEqual(  0                , self.o5.cum_qty )
+    self.assertEqual( self.o5.order_qty , self.o5.leaves_qty )
+
+    self.assertEqual( "0"               , self.o6.status )
+    self.assertEqual(  0                , self.o6.last_price )
+    self.assertEqual(  0                , self.o6.cum_qty )
+    self.assertEqual( self.o6.order_qty , self.o6.leaves_qty )
+
+
+    self.assertEqual( 3, len(self.om.buy_side) )
+
+    self.assertEqual( "4"               , o7.status )
+    self.assertEqual(  0                , o7.last_price )
+    self.assertEqual(  0                , o7.cum_qty )
+    self.assertEqual( o7.order_qty      , o7.cxl_qty )
 
 
   def testUserBuyingWithoutEnoughBRL(self):
