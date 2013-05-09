@@ -377,6 +377,14 @@ class Order(Base):
       else:
         return  0
 
+  def has_match(self, other):
+    if self.is_buy and other.is_sell and self.price >= other.price:
+        return True
+    elif self.is_sell and other.is_buy and self.price <= other.price:
+        return True
+    return  False
+
+
   def match(self, other, execute_qty):
     if self.is_buy and other.is_sell:
       if self.price >= other.price:
@@ -386,7 +394,7 @@ class Order(Base):
         return min( execute_qty, other.leaves_qty)
     return  0
 
-  def get_available_qty_to_execute(self, side, qty, price, total_executed_qty = 0):
+  def get_available_qty_to_execute(self, side, qty, price):
     """This function returns qty that are available for execution"""
 
     price_attribute = 'balance_' + self.symbol[:3].lower()
@@ -403,12 +411,10 @@ class Order(Base):
 
 
     if side == '1' : # buy
-      #qty_to_buy = min( qty, int((float(max (balance_price, 0))/float(price)) * 1e8) )
       qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8) )
       return qty_to_buy
     elif side == '2': # Sell
-      #qty_to_sell = min( qty, max ( 0 ,(balance_qty - total_executed_qty) ) )
-      qty_to_sell = min( qty, balance_qty - total_executed_qty )
+      qty_to_sell = min( qty, balance_qty )
       return qty_to_sell
     return  qty
 
@@ -455,6 +461,9 @@ class Order(Base):
 
     self.user.publish_balance_update()
 
+  @property
+  def is_cancelled(self):
+    return self.status == '4'
 
   @property
   def has_leaves_qty(self):

@@ -78,81 +78,104 @@ class OrderMatcher(object):
       other_side = self.buy_side
       self_side = self.sell_side
 
-    # get all executions
-    executed_orders = []
-    cancelled_order = {}
-    total_executed_qty = 0
-    total_cancelled_qty = 0
-    for x in xrange(0, len(other_side)):
-      counter_order = other_side[x]
-
-      executed_qty = order.match( counter_order, max(order.leaves_qty-total_executed_qty-total_cancelled_qty, 0) )
-
-      # Cancel counter_order if both orders belong to the same client
-      if executed_qty and order.account_id == counter_order.account_id:
-        executed_qty = 0
-        executed_price = 0
-        cancelled_qty = counter_order.leaves_qty
-        cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
-      else:
-        if not executed_qty:
-          break
-
-        executed_price = counter_order.price
-
-        # Check if the both accounts have funding to execute the order
-        if order.is_buy:
-          available_qty_to_buy = order.get_available_qty_to_execute('1',executed_qty, executed_price, total_executed_qty )
-          if available_qty_to_buy < executed_qty:
-            cancelled_qty = order.leaves_qty - total_executed_qty - available_qty_to_buy
-            total_cancelled_qty += cancelled_qty
-            executed_qty = available_qty_to_buy
-            cancelled_order[order.id] = (cancelled_qty, order)
-
-          available_qty_to_sell =  counter_order.get_available_qty_to_execute('2',executed_qty, executed_price )
-          if available_qty_to_sell < executed_qty:
-            executed_qty = available_qty_to_sell
-            cancelled_qty = counter_order.leaves_qty - executed_qty
-            cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
-
-        elif order.is_sell:
-          available_qty_to_sell =  order.get_available_qty_to_execute('2',executed_qty, executed_price, total_executed_qty )
-          if available_qty_to_sell < executed_qty:
-            cancelled_qty = order.leaves_qty - total_executed_qty - available_qty_to_sell
-            total_cancelled_qty += cancelled_qty
-            executed_qty = available_qty_to_sell
-            cancelled_order[order.id] = (cancelled_qty, order)
-
-          available_qty_to_buy = counter_order.get_available_qty_to_execute('1',executed_qty, executed_price )
-          if available_qty_to_buy < executed_qty:
-            cancelled_qty = executed_qty - available_qty_to_buy
-            executed_qty = available_qty_to_buy
-            cancelled_order[counter_order.id] = (cancelled_qty, counter_order)
-
-      total_executed_qty += executed_qty
-      executed_orders.append( ( executed_qty, executed_price, counter_order ) )
 
 
+    execution_reports = []
+    trades_to_publish = []
 
-    # let's include the order in the book if the order is not fully executed.
-    insert_pos = 0
-    if total_executed_qty + total_cancelled_qty < order.leaves_qty:
-      insert_pos = bisect.bisect_right(self_side, order)
+    execution_side = '1' if order.is_buy else '2'
 
-    # generate a execution report if the order was accepted ( not cancelled )
-    if total_cancelled_qty != order.order_qty:
-      rpt_order         = ExecutionReport( order,         '1' if order.is_buy else '2' )
-      execution_report_signal( order.user_id, rpt_order )
+    rpt_order  = ExecutionReport( order, execution_side )
+    execution_reports.append( ( order.user_id, rpt_order )  )
 
 
-    # order execution
-    delete_pos = 0
-    for executed_qty, executed_price, counter_order in executed_orders:
+    is_last_match_a_partial_execution_on_counter_order = False
+    execution_counter = 0
+    for execution_counter in xrange(0, len(other_side) + 1):
+      if execution_counter == len(other_side):
+        break # workaround to make the execution_counter be counted until the last order.
 
+      counter_order = other_side[execution_counter]
+
+      if not order.has_match(counter_order):
+        break
+
+      # check for self execution
+      if order.account_id == counter_order.account_id:
+        # self execution.... let's cancel the counter order
+        counter_order.cancel_qty( counter_order.leaves_qty )
+
+        # generate a cancel report
+        cancel_rpt_counter_order  = ExecutionReport( counter_order, execution_side )
+        execution_reports.append( ( counter_order.user_id, cancel_rpt_counter_order )  )
+
+        # go to the next order
+        is_last_match_a_partial_execution_on_counter_order = False
+        continue
+
+      # Get the desired executed price and qty, by matching agains the counter_order
+      executed_qty = order.match( counter_order, order.leaves_qty)
+      executed_price = counter_order.price
+
+
+      # let's get the available qty to execute on the order side
+      available_qty_on_order_side = order.get_available_qty_to_execute('1' if order.is_buy else '2',
+                                                                       executed_qty,
+                                                                       executed_price )
+
+      qty_to_cancel_from_order = 0
+      if available_qty_on_order_side <  executed_qty:
+        # ops ... looks like the order.user didn't have enough to execute the order
+        executed_qty = available_qty_on_order_side
+
+        # cancel the remaining  qty
+        qty_to_cancel_from_order = order.leaves_qty - executed_qty
+
+
+      # check if the order got fully cancelled
+      if not executed_qty:
+        order.cancel_qty( qty_to_cancel_from_order )
+        cancel_rpt_order  = ExecutionReport( order, execution_side )
+        execution_reports.append( ( order.user_id, cancel_rpt_order )  )
+        break
+
+
+      # let's get the available qty to execute on the counter side
+      available_qty_on_counter_side = counter_order.get_available_qty_to_execute('1' if counter_order.is_buy else '2',
+                                                                                 executed_qty,
+                                                                                 executed_price )
+
+      qty_to_cancel_from_counter_order = 0
+      if available_qty_on_counter_side <  executed_qty:
+        if qty_to_cancel_from_order:
+          qty_to_cancel_from_order -= executed_qty - available_qty_on_order_side
+
+          # ops ... looks like the counter_order.user didn't have enough to execute the order
+        executed_qty = available_qty_on_counter_side
+
+        # cancel the remaining  qty
+        qty_to_cancel_from_counter_order = counter_order.leaves_qty - executed_qty
+
+
+      # check if the counter order was fully cancelled due the lack
+      if not executed_qty:
+        # just cancel the counter order, and go to the next order.
+        counter_order.cancel_qty( qty_to_cancel_from_counter_order )
+
+        # generate a cancel report
+        cancel_rpt_counter_order  = ExecutionReport( counter_order, execution_side )
+        execution_reports.append( ( counter_order.user_id, cancel_rpt_counter_order )  )
+
+        # go to the next order
+        is_last_match_a_partial_execution_on_counter_order = False
+        continue
+
+      # lets perform the execution
       if executed_qty:
         order.execute( executed_qty, executed_price )
         counter_order.execute(executed_qty, executed_price )
 
+        # create a Trade record
         buyer_username = order.user.username
         seller_username = counter_order.user.username
         if order.is_sell:
@@ -171,54 +194,73 @@ class OrderMatcher(object):
                         price             = executed_price,
                         created           = datetime.datetime.now())
         session.add(trade)
-        MdSubscriptionHelper.publish_trade(trade)
-
-        rpt_order         = ExecutionReport( order, '1' if order.is_buy else '2' )
-        execution_report_signal(order.user_id, rpt_order )
+        trades_to_publish.append(trade)
 
 
-        rpt_counter_order = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
-        execution_report_signal(counter_order.user_id, rpt_counter_order )
+        rpt_order         = ExecutionReport( order, execution_side )
+        execution_reports.append( ( order.user_id, rpt_order )  )
 
+        rpt_counter_order = ExecutionReport( counter_order, execution_side )
+        execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )
 
-      if counter_order.id in cancelled_order:
-        counter_order.cancel_qty(cancelled_order[counter_order.id][0])
-        cancel_rpt_counter_order  = ExecutionReport( counter_order, '1' if order.is_buy else '2' )
-        execution_report_signal( counter_order.user_id, cancel_rpt_counter_order )
-        del cancelled_order[counter_order.id]
+      #
+      # let's do the partial cancels
+      #
 
-      if not counter_order.has_leaves_qty:
-        delete_pos += 1
-        other_side.pop(0)
+      # Cancel the qty from the current order
+      if qty_to_cancel_from_order:
+        order.cancel_qty(qty_to_cancel_from_order)
 
-    # cancelling all quantities that could not be filled
-    for cancelled_qty, cxl_order in cancelled_order.values():
-      cxl_order.cancel_qty(cancelled_qty)
+        # generate a cancel report
+        cancel_rpt_order  = ExecutionReport( order, execution_side )
+        execution_reports.append( ( order.user_id, cancel_rpt_order )  )
 
-      rpt_cancel_order = ExecutionReport( cxl_order, '1' if cxl_order.is_buy else '2' )
-      execution_report_signal(cxl_order.user_id, rpt_cancel_order )
+      if qty_to_cancel_from_counter_order:
+        counter_order.cancel_qty(qty_to_cancel_from_counter_order)
+
+        # generate a cancel report
+        cancel_rpt_counter_order  = ExecutionReport( counter_order, execution_side )
+        execution_reports.append( ( counter_order.user_id, cancel_rpt_counter_order )  )
+
+      if counter_order.has_leaves_qty:
+        is_last_match_a_partial_execution_on_counter_order = True
 
 
     md_entry_type = '0' if order.is_buy else '1'
     counter_md_entry_type = '1' if order.is_buy else '0'
 
+    # let's include the order in the book if the order is not fully executed.
     if order.has_leaves_qty:
+      insert_pos = bisect.bisect_right(self_side, order)
       self_side.insert( insert_pos, order )
 
-      MdSubscriptionHelper.publish_new_order( self.symbol, md_entry_type  , insert_pos, order)
+      MdSubscriptionHelper.publish_new_order( self.symbol, md_entry_type , insert_pos, order)
 
-      if len(executed_orders):
-        if len(other_side):
-          MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos, other_side[0] )
-        else:
-          MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
+    # don't send the first execution report (NEW) if the order was fully cancelled
+    if order.is_cancelled and order.cum_qty == 0:
+      execution_reports.pop(0)
 
-    else:
-      if len(other_side) and len(executed_orders):
-        if not (len(executed_orders) == 1 and executed_orders[0][0] == 0):
-          MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos, other_side[0] )
+
+    # Publish all execution reports
+    for user_id, execution_report in execution_reports:
+      execution_report_signal( user_id, execution_report )
+
+
+
+    # Publish Market Data for the counter order
+    if execution_counter:
+      if is_last_match_a_partial_execution_on_counter_order:
+        del other_side[0: execution_counter-1]
+        MdSubscriptionHelper.publish_executions( self.symbol,
+                                                 counter_md_entry_type,
+                                                 execution_counter,
+                                                 other_side[0] )
       else:
-        MdSubscriptionHelper.publish_executions( self.symbol, counter_md_entry_type, delete_pos)
+        del other_side[0: execution_counter]
+        MdSubscriptionHelper.publish_executions( self.symbol,
+                                                 counter_md_entry_type,
+                                                 execution_counter )
+
 
 
   def cancel(self, session, order):
