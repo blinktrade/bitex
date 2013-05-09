@@ -1,5 +1,7 @@
 goog.provide('bitex.ui.OrderBook');
 goog.provide('bitex.ui.OrderBook.Side');
+goog.provide('bitex.ui.OrderBook.EventType');
+goog.provide('bitex.ui.OrderBookEvent');
 
 goog.require('goog.ui.Component');
 goog.require('goog.dom.classes');
@@ -26,12 +28,19 @@ bitex.ui.OrderBook = function ( username, side, opt_blinkDelay, opt_domHelper) {
 goog.inherits( bitex.ui.OrderBook, goog.ui.Component);
 
 /**
- * Events fired by Grid
  * @enum {string}
  */
 bitex.ui.OrderBook.Side = {
   BUY: '0',
   SELL: '1'
+};
+
+/**
+ * Events fired by Grid
+ * @enum {string}
+ */
+bitex.ui.OrderBook.EventType = {
+  CANCEL: 'cancel'
 };
 
 
@@ -81,6 +90,44 @@ bitex.ui.OrderBook.prototype.decorateInternal = function(element) {
   this.bodyEl_ = dom.getElementsByTagNameAndClass('tbody', undefined, element)[0];
 
 };
+
+/** @override */
+bitex.ui.OrderBook.prototype.enterDocument = function() {
+  this.getHandler().listen( this.getElement(), goog.events.EventType.CLICK, this.onClick_ );
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.ui.OrderBook.prototype.onClick_  = function(e){
+  var buttonEl = e.target;
+  if (buttonEl.tagName == goog.dom.TagName.BUTTON ) {
+    var orderId = buttonEl.getAttribute('data-order-id');
+    if ( goog.isDefAndNotNull(orderId)  ) {
+      this.dispatchEvent( new bitex.ui.OrderBookEvent (bitex.ui.OrderBook.EventType.CANCEL, orderId) );
+    }
+  }
+};
+
+
+/**
+ *
+ * @param {string} type
+ * @param {string} orderId
+ * @extends {goog.events.Event}
+ * @constructor
+ */
+bitex.ui.OrderBookEvent = function(type, orderId) {
+  goog.events.Event.call(this, type);
+
+  /**
+   * @type {string}
+   */
+  this.order_id = orderId;
+};
+goog.inherits(bitex.ui.OrderBookEvent, goog.events.Event);
+
+
 
 
 bitex.ui.OrderBook.prototype.clear  = function(){

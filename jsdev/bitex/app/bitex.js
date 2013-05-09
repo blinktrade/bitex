@@ -9,6 +9,9 @@ goog.require('bitex.ui.BalanceInfo');
 goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderEntry.EventType');
 
+goog.require('bitex.ui.OrderBook.EventType');
+goog.require('bitex.ui.OrderBookEvent');
+
 goog.require('goog.events');
 goog.require('goog.dom.forms');
 goog.require('goog.dom.classes');
@@ -80,6 +83,13 @@ bitex.app.bitex = function( url ) {
     var client_order_id = bitEx.sendSellLimitedOrder( e.symbol, e.qty, e.price );
   });
 
+  /**
+   * @param {bitex.ui.OrderBookEvent} e
+   */
+  var onCancelOrder_ = function(e) {
+    bitEx.cancelOrder(undefined, e.order_id);
+  };
+
   bitEx.addEventListener('login_ok',  function(e) {
     var msg = e.data;
 
@@ -92,10 +102,14 @@ bitex.app.bitex = function( url ) {
       order_book_offer.dispose();
     }
 
+
     order_book_bid = new bitex.ui.OrderBook(currentUsername, bitex.ui.OrderBook.Side.BUY);
     order_book_offer = new bitex.ui.OrderBook(currentUsername, bitex.ui.OrderBook.Side.SELL);
     order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
     order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
+
+    order_book_bid.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
+    order_book_offer.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
 
     // Get the list of all open orders
     bitEx.requestOpenOrders();
@@ -116,7 +130,10 @@ bitex.app.bitex = function( url ) {
     alert(msg['UserStatusText']);
   });
 
-
+  bitEx.addEventListener('ob_clear', function(e){
+    order_book_bid.clear();
+    order_book_offer.clear();
+  });
 
   bitEx.addEventListener('ob_delete_orders_thru',  function(e) {
     var msg = e.data;
