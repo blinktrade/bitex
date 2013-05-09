@@ -253,7 +253,7 @@ class OrderMatcher(object):
         del other_side[0: execution_counter-1]
         MdSubscriptionHelper.publish_executions( self.symbol,
                                                  counter_md_entry_type,
-                                                 execution_counter,
+                                                 execution_counter - 1,
                                                  other_side[0] )
       else:
         del other_side[0: execution_counter]
