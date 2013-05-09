@@ -45,6 +45,8 @@ bitex.app.bitex = function( url ) {
       goog.dom.classes.remove( document.body, cls );
     });
 
+    document.body.scrollTop = 0;
+
     // set the current view
     goog.dom.classes.add( document.body, 'active-view-' + view_name );
   });

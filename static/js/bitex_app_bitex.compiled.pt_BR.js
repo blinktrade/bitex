@@ -2267,6 +2267,7 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $goog$array$forEach$$($classes_to_remove$$, function($cls$$2$$) {
       $goog$dom$classes$remove$$(document.body, $cls$$2$$)
     });
+    document.body.scrollTop = 0;
     $goog$dom$classes$add$$(document.body, "active-view-" + $e$$50_view_name$$2$$)
   });
   $goog$events$listen$$(document.body, "click", function($e$$51$$) {
