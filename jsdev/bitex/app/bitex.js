@@ -12,6 +12,8 @@ goog.require('bitex.ui.OrderEntry.EventType');
 goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
 
+goog.require('bitex.ui.OrderManager');
+
 goog.require('goog.events');
 goog.require('goog.dom.forms');
 goog.require('goog.dom.classes');
@@ -77,6 +79,10 @@ bitex.app.bitex = function( url ) {
 
   var order_entry = new bitex.ui.OrderEntry();
   order_entry.decorate( goog.dom.getElement('id_order_entry') );
+
+  var order_manager = new bitex.ui.OrderManager();
+  order_manager.decorate(goog.dom.getElement('id_orders_table'));
+
 
   order_entry.addEventListener( bitex.ui.OrderEntry.EventType.BUY_LIMITED, function(e){
     var client_order_id = bitEx.sendBuyLimitedOrder( e.symbol, e.qty, e.price );
@@ -196,6 +202,26 @@ bitex.app.bitex = function( url ) {
     balance_info.updateBalanceBTC(msg['balance_btc']);
   });
 
+  bitEx.addEventListener('execution_report', function(e){
+
+  });
+
+  bitEx.addEventListener('order_list_response',  function(e) {
+    var msg = e.data;
+
+    for (var x in msg['OrdListGrp'] ) {
+      var order = msg['OrdListGrp'][x];
+      order_manager.insertOrder(order['ClOrdID'],
+                                order['OrdStatus'],
+                                order['Side'],
+                                order['OrderQty'],
+                                order['Price'],
+                                order['LeavesQty'],
+                                order['CumQty'],
+                                order['AvgPx'],
+                                order['OrderID'] );
+    }
+  });
 
   var button_signup = new goog.ui.Button();
   button_signup.decorate(goog.dom.getElement('id_btn_signup'));

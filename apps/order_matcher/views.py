@@ -234,6 +234,8 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           'Symbol': order.symbol,
           'Side': order.side,
           'OrdType': order.type,
+          'OrderQty': order.order_qty,
+          'Price': order.price
           })
 
       open_orders_response_msg = {

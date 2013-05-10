@@ -145,59 +145,59 @@ function $goog$userAgent$getUserAgentString$$() {
   return $goog$global$$.navigator ? $goog$global$$.navigator.userAgent : $JSCompiler_alias_NULL$$
 }
 $goog$userAgent$detectedGecko_$$ = $goog$userAgent$detectedWebkit_$$ = $goog$userAgent$detectedIe_$$ = $goog$userAgent$detectedOpera_$$ = $JSCompiler_alias_FALSE$$;
-var $ua$$inline_42$$;
-if($ua$$inline_42$$ = $goog$userAgent$getUserAgentString$$()) {
-  var $navigator$$inline_43$$ = $goog$global$$.navigator;
-  $goog$userAgent$detectedOpera_$$ = 0 == $ua$$inline_42$$.indexOf("Opera");
-  $goog$userAgent$detectedIe_$$ = !$goog$userAgent$detectedOpera_$$ && -1 != $ua$$inline_42$$.indexOf("MSIE");
-  $goog$userAgent$detectedWebkit_$$ = !$goog$userAgent$detectedOpera_$$ && -1 != $ua$$inline_42$$.indexOf("WebKit");
-  $goog$userAgent$detectedGecko_$$ = !$goog$userAgent$detectedOpera_$$ && !$goog$userAgent$detectedWebkit_$$ && "Gecko" == $navigator$$inline_43$$.product
+var $ua$$inline_43$$;
+if($ua$$inline_43$$ = $goog$userAgent$getUserAgentString$$()) {
+  var $navigator$$inline_44$$ = $goog$global$$.navigator;
+  $goog$userAgent$detectedOpera_$$ = 0 == $ua$$inline_43$$.indexOf("Opera");
+  $goog$userAgent$detectedIe_$$ = !$goog$userAgent$detectedOpera_$$ && -1 != $ua$$inline_43$$.indexOf("MSIE");
+  $goog$userAgent$detectedWebkit_$$ = !$goog$userAgent$detectedOpera_$$ && -1 != $ua$$inline_43$$.indexOf("WebKit");
+  $goog$userAgent$detectedGecko_$$ = !$goog$userAgent$detectedOpera_$$ && !$goog$userAgent$detectedWebkit_$$ && "Gecko" == $navigator$$inline_44$$.product
 }
-var $goog$userAgent$OPERA$$ = $goog$userAgent$detectedOpera_$$, $goog$userAgent$IE$$ = $goog$userAgent$detectedIe_$$, $goog$userAgent$GECKO$$ = $goog$userAgent$detectedGecko_$$, $goog$userAgent$WEBKIT$$ = $goog$userAgent$detectedWebkit_$$, $navigator$$inline_45$$ = $goog$global$$.navigator, $goog$userAgent$MAC$$ = -1 != ($navigator$$inline_45$$ && $navigator$$inline_45$$.platform || "").indexOf("Mac");
+var $goog$userAgent$OPERA$$ = $goog$userAgent$detectedOpera_$$, $goog$userAgent$IE$$ = $goog$userAgent$detectedIe_$$, $goog$userAgent$GECKO$$ = $goog$userAgent$detectedGecko_$$, $goog$userAgent$WEBKIT$$ = $goog$userAgent$detectedWebkit_$$, $navigator$$inline_46$$ = $goog$global$$.navigator, $goog$userAgent$MAC$$ = -1 != ($navigator$$inline_46$$ && $navigator$$inline_46$$.platform || "").indexOf("Mac");
 function $goog$userAgent$getDocumentMode_$$() {
   var $doc$$4$$ = $goog$global$$.document;
   return $doc$$4$$ ? $doc$$4$$.documentMode : $JSCompiler_alias_VOID$$
 }
 var $goog$userAgent$VERSION$$;
 a: {
-  var $version$$inline_48$$ = "", $re$$inline_49$$;
+  var $version$$inline_49$$ = "", $re$$inline_50$$;
   if($goog$userAgent$OPERA$$ && $goog$global$$.opera) {
-    var $operaVersion$$inline_50$$ = $goog$global$$.opera.version, $version$$inline_48$$ = "function" == typeof $operaVersion$$inline_50$$ ? $operaVersion$$inline_50$$() : $operaVersion$$inline_50$$
+    var $operaVersion$$inline_51$$ = $goog$global$$.opera.version, $version$$inline_49$$ = "function" == typeof $operaVersion$$inline_51$$ ? $operaVersion$$inline_51$$() : $operaVersion$$inline_51$$
   }else {
-    if($goog$userAgent$GECKO$$ ? $re$$inline_49$$ = /rv\:([^\);]+)(\)|;)/ : $goog$userAgent$IE$$ ? $re$$inline_49$$ = /MSIE\s+([^\);]+)(\)|;)/ : $goog$userAgent$WEBKIT$$ && ($re$$inline_49$$ = /WebKit\/(\S+)/), $re$$inline_49$$) {
-      var $arr$$inline_51$$ = $re$$inline_49$$.exec($goog$userAgent$getUserAgentString$$()), $version$$inline_48$$ = $arr$$inline_51$$ ? $arr$$inline_51$$[1] : ""
+    if($goog$userAgent$GECKO$$ ? $re$$inline_50$$ = /rv\:([^\);]+)(\)|;)/ : $goog$userAgent$IE$$ ? $re$$inline_50$$ = /MSIE\s+([^\);]+)(\)|;)/ : $goog$userAgent$WEBKIT$$ && ($re$$inline_50$$ = /WebKit\/(\S+)/), $re$$inline_50$$) {
+      var $arr$$inline_52$$ = $re$$inline_50$$.exec($goog$userAgent$getUserAgentString$$()), $version$$inline_49$$ = $arr$$inline_52$$ ? $arr$$inline_52$$[1] : ""
     }
   }
   if($goog$userAgent$IE$$) {
-    var $docMode$$inline_52$$ = $goog$userAgent$getDocumentMode_$$();
-    if($docMode$$inline_52$$ > parseFloat($version$$inline_48$$)) {
-      $goog$userAgent$VERSION$$ = String($docMode$$inline_52$$);
+    var $docMode$$inline_53$$ = $goog$userAgent$getDocumentMode_$$();
+    if($docMode$$inline_53$$ > parseFloat($version$$inline_49$$)) {
+      $goog$userAgent$VERSION$$ = String($docMode$$inline_53$$);
       break a
     }
   }
-  $goog$userAgent$VERSION$$ = $version$$inline_48$$
+  $goog$userAgent$VERSION$$ = $version$$inline_49$$
 }
 var $goog$userAgent$isVersionCache_$$ = {};
 function $goog$userAgent$isVersion$$($version$$8$$) {
-  var $JSCompiler_temp$$38_order$$inline_56$$;
-  if(!($JSCompiler_temp$$38_order$$inline_56$$ = $goog$userAgent$isVersionCache_$$[$version$$8$$])) {
-    $JSCompiler_temp$$38_order$$inline_56$$ = 0;
-    for(var $v1Subs$$inline_57$$ = String($goog$userAgent$VERSION$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $v2Subs$$inline_58$$ = String($version$$8$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $subCount$$inline_59$$ = Math.max($v1Subs$$inline_57$$.length, $v2Subs$$inline_58$$.length), $subIdx$$inline_60$$ = 0;0 == $JSCompiler_temp$$38_order$$inline_56$$ && $subIdx$$inline_60$$ < $subCount$$inline_59$$;$subIdx$$inline_60$$++) {
-      var $v1Sub$$inline_61$$ = $v1Subs$$inline_57$$[$subIdx$$inline_60$$] || "", $v2Sub$$inline_62$$ = $v2Subs$$inline_58$$[$subIdx$$inline_60$$] || "", $v1CompParser$$inline_63$$ = RegExp("(\\d*)(\\D*)", "g"), $v2CompParser$$inline_64$$ = RegExp("(\\d*)(\\D*)", "g");
+  var $JSCompiler_temp$$38_order$$inline_57$$;
+  if(!($JSCompiler_temp$$38_order$$inline_57$$ = $goog$userAgent$isVersionCache_$$[$version$$8$$])) {
+    $JSCompiler_temp$$38_order$$inline_57$$ = 0;
+    for(var $v1Subs$$inline_58$$ = String($goog$userAgent$VERSION$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $v2Subs$$inline_59$$ = String($version$$8$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $subCount$$inline_60$$ = Math.max($v1Subs$$inline_58$$.length, $v2Subs$$inline_59$$.length), $subIdx$$inline_61$$ = 0;0 == $JSCompiler_temp$$38_order$$inline_57$$ && $subIdx$$inline_61$$ < $subCount$$inline_60$$;$subIdx$$inline_61$$++) {
+      var $v1Sub$$inline_62$$ = $v1Subs$$inline_58$$[$subIdx$$inline_61$$] || "", $v2Sub$$inline_63$$ = $v2Subs$$inline_59$$[$subIdx$$inline_61$$] || "", $v1CompParser$$inline_64$$ = RegExp("(\\d*)(\\D*)", "g"), $v2CompParser$$inline_65$$ = RegExp("(\\d*)(\\D*)", "g");
       do {
-        var $v1Comp$$inline_65$$ = $v1CompParser$$inline_63$$.exec($v1Sub$$inline_61$$) || ["", "", ""], $v2Comp$$inline_66$$ = $v2CompParser$$inline_64$$.exec($v2Sub$$inline_62$$) || ["", "", ""];
-        if(0 == $v1Comp$$inline_65$$[0].length && 0 == $v2Comp$$inline_66$$[0].length) {
+        var $v1Comp$$inline_66$$ = $v1CompParser$$inline_64$$.exec($v1Sub$$inline_62$$) || ["", "", ""], $v2Comp$$inline_67$$ = $v2CompParser$$inline_65$$.exec($v2Sub$$inline_63$$) || ["", "", ""];
+        if(0 == $v1Comp$$inline_66$$[0].length && 0 == $v2Comp$$inline_67$$[0].length) {
           break
         }
-        $JSCompiler_temp$$38_order$$inline_56$$ = ((0 == $v1Comp$$inline_65$$[1].length ? 0 : parseInt($v1Comp$$inline_65$$[1], 10)) < (0 == $v2Comp$$inline_66$$[1].length ? 0 : parseInt($v2Comp$$inline_66$$[1], 10)) ? -1 : (0 == $v1Comp$$inline_65$$[1].length ? 0 : parseInt($v1Comp$$inline_65$$[1], 10)) > (0 == $v2Comp$$inline_66$$[1].length ? 0 : parseInt($v2Comp$$inline_66$$[1], 10)) ? 1 : 0) || ((0 == $v1Comp$$inline_65$$[2].length) < (0 == $v2Comp$$inline_66$$[2].length) ? -1 : (0 == $v1Comp$$inline_65$$[2].length) > 
-        (0 == $v2Comp$$inline_66$$[2].length) ? 1 : 0) || ($v1Comp$$inline_65$$[2] < $v2Comp$$inline_66$$[2] ? -1 : $v1Comp$$inline_65$$[2] > $v2Comp$$inline_66$$[2] ? 1 : 0)
-      }while(0 == $JSCompiler_temp$$38_order$$inline_56$$)
+        $JSCompiler_temp$$38_order$$inline_57$$ = ((0 == $v1Comp$$inline_66$$[1].length ? 0 : parseInt($v1Comp$$inline_66$$[1], 10)) < (0 == $v2Comp$$inline_67$$[1].length ? 0 : parseInt($v2Comp$$inline_67$$[1], 10)) ? -1 : (0 == $v1Comp$$inline_66$$[1].length ? 0 : parseInt($v1Comp$$inline_66$$[1], 10)) > (0 == $v2Comp$$inline_67$$[1].length ? 0 : parseInt($v2Comp$$inline_67$$[1], 10)) ? 1 : 0) || ((0 == $v1Comp$$inline_66$$[2].length) < (0 == $v2Comp$$inline_67$$[2].length) ? -1 : (0 == $v1Comp$$inline_66$$[2].length) > 
+        (0 == $v2Comp$$inline_67$$[2].length) ? 1 : 0) || ($v1Comp$$inline_66$$[2] < $v2Comp$$inline_67$$[2] ? -1 : $v1Comp$$inline_66$$[2] > $v2Comp$$inline_67$$[2] ? 1 : 0)
+      }while(0 == $JSCompiler_temp$$38_order$$inline_57$$)
     }
-    $JSCompiler_temp$$38_order$$inline_56$$ = $goog$userAgent$isVersionCache_$$[$version$$8$$] = 0 <= $JSCompiler_temp$$38_order$$inline_56$$
+    $JSCompiler_temp$$38_order$$inline_57$$ = $goog$userAgent$isVersionCache_$$[$version$$8$$] = 0 <= $JSCompiler_temp$$38_order$$inline_57$$
   }
-  return $JSCompiler_temp$$38_order$$inline_56$$
+  return $JSCompiler_temp$$38_order$$inline_57$$
 }
-var $doc$$inline_68$$ = $goog$global$$.document, $goog$userAgent$DOCUMENT_MODE$$ = !$doc$$inline_68$$ || !$goog$userAgent$IE$$ ? $JSCompiler_alias_VOID$$ : $goog$userAgent$getDocumentMode_$$() || ("CSS1Compat" == $doc$$inline_68$$.compatMode ? parseInt($goog$userAgent$VERSION$$, 10) : 5);
+var $doc$$inline_69$$ = $goog$global$$.document, $goog$userAgent$DOCUMENT_MODE$$ = !$doc$$inline_69$$ || !$goog$userAgent$IE$$ ? $JSCompiler_alias_VOID$$ : $goog$userAgent$getDocumentMode_$$() || ("CSS1Compat" == $doc$$inline_69$$.compatMode ? parseInt($goog$userAgent$VERSION$$, 10) : 5);
 // Input 3
 function $goog$object$forEach$$($obj$$40$$, $f$$) {
   for(var $key$$18$$ in $obj$$40$$) {
@@ -300,8 +300,8 @@ function $goog$dom$classes$get$$($className$$5_element$$9$$) {
   return $goog$isString$$($className$$5_element$$9$$) && $className$$5_element$$9$$.match(/\S+/g) || []
 }
 function $goog$dom$classes$add$$($element$$10$$, $var_args$$66$$) {
-  for(var $classes$$ = $goog$dom$classes$get$$($element$$10$$), $args$$6_args$$inline_78$$ = $goog$array$slice$$(arguments, 1), $expectedCount$$ = $classes$$.length + $args$$6_args$$inline_78$$.length, $classes$$inline_77$$ = $classes$$, $i$$inline_79$$ = 0;$i$$inline_79$$ < $args$$6_args$$inline_78$$.length;$i$$inline_79$$++) {
-    $goog$array$contains$$($classes$$inline_77$$, $args$$6_args$$inline_78$$[$i$$inline_79$$]) || $classes$$inline_77$$.push($args$$6_args$$inline_78$$[$i$$inline_79$$])
+  for(var $classes$$ = $goog$dom$classes$get$$($element$$10$$), $args$$6_args$$inline_79$$ = $goog$array$slice$$(arguments, 1), $expectedCount$$ = $classes$$.length + $args$$6_args$$inline_79$$.length, $classes$$inline_78$$ = $classes$$, $i$$inline_80$$ = 0;$i$$inline_80$$ < $args$$6_args$$inline_79$$.length;$i$$inline_80$$++) {
+    $goog$array$contains$$($classes$$inline_78$$, $args$$6_args$$inline_79$$[$i$$inline_80$$]) || $classes$$inline_78$$.push($args$$6_args$$inline_79$$[$i$$inline_80$$])
   }
   $element$$10$$.className = $classes$$.join(" ");
   return $classes$$.length == $expectedCount$$
@@ -331,10 +331,10 @@ function $goog$dom$getElement$$($element$$17$$) {
   return $goog$isString$$($element$$17$$) ? document.getElementById($element$$17$$) : $element$$17$$
 }
 function $goog$dom$getElementByClass$$($className$$10$$, $opt_el$$2$$) {
-  var $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$ = $opt_el$$2$$ || document;
-  $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.querySelectorAll && $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.querySelector ? $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$ = $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.querySelector("." + $className$$10$$) : ($JSCompiler_temp$$10_parent$$3_parent$$inline_89$$ = $opt_el$$2$$ || document, $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$ = ($JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.querySelectorAll && $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.querySelector ? 
-  $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.querySelectorAll("." + $className$$10$$) : $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.getElementsByClassName ? $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$.getElementsByClassName($className$$10$$) : $goog$dom$getElementsByTagNameAndClass_$$(document, "*", $className$$10$$, $opt_el$$2$$))[0]);
-  return $JSCompiler_temp$$10_parent$$3_parent$$inline_89$$ || $JSCompiler_alias_NULL$$
+  var $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$ = $opt_el$$2$$ || document;
+  $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.querySelectorAll && $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.querySelector ? $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$ = $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.querySelector("." + $className$$10$$) : ($JSCompiler_temp$$10_parent$$3_parent$$inline_90$$ = $opt_el$$2$$ || document, $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$ = ($JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.querySelectorAll && $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.querySelector ? 
+  $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.querySelectorAll("." + $className$$10$$) : $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.getElementsByClassName ? $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$.getElementsByClassName($className$$10$$) : $goog$dom$getElementsByTagNameAndClass_$$(document, "*", $className$$10$$, $opt_el$$2$$))[0]);
+  return $JSCompiler_temp$$10_parent$$3_parent$$inline_90$$ || $JSCompiler_alias_NULL$$
 }
 function $goog$dom$getElementsByTagNameAndClass_$$($doc$$6_els_parent$$5$$, $className$$11_opt_tag$$1_tagName$$1$$, $opt_class$$1$$, $arrayLike_opt_el$$3$$) {
   $doc$$6_els_parent$$5$$ = $arrayLike_opt_el$$3$$ || $doc$$6_els_parent$$5$$;
@@ -473,24 +473,24 @@ $JSCompiler_prototypeAlias$$.$getElementByClass$ = function $$JSCompiler_prototy
   return $goog$dom$getElementByClass$$($className$$14$$, $opt_el$$6$$ || this.$document_$)
 };
 $JSCompiler_prototypeAlias$$.$createDom$ = function $$JSCompiler_prototypeAlias$$$$createDom$$($tagName$$5$$, $opt_attributes$$1$$, $var_args$$71$$) {
-  var $doc$$inline_93$$ = this.$document_$, $args$$inline_94$$ = arguments, $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$ = $args$$inline_94$$[0], $attributes$$inline_96$$ = $args$$inline_94$$[1];
-  if(!$goog$dom$BrowserFeature$CAN_ADD_NAME_OR_TYPE_ATTRIBUTES$$ && $attributes$$inline_96$$ && ($attributes$$inline_96$$.name || $attributes$$inline_96$$.type)) {
-    $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$ = ["<", $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$];
-    $attributes$$inline_96$$.name && $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$.push(' name="', $goog$string$htmlEscape$$($attributes$$inline_96$$.name), '"');
-    if($attributes$$inline_96$$.type) {
-      $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$.push(' type="', $goog$string$htmlEscape$$($attributes$$inline_96$$.type), '"');
-      var $clone$$inline_98$$ = {};
-      $goog$object$extend$$($clone$$inline_98$$, $attributes$$inline_96$$);
-      delete $clone$$inline_98$$.type;
-      $attributes$$inline_96$$ = $clone$$inline_98$$
+  var $doc$$inline_94$$ = this.$document_$, $args$$inline_95$$ = arguments, $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$ = $args$$inline_95$$[0], $attributes$$inline_97$$ = $args$$inline_95$$[1];
+  if(!$goog$dom$BrowserFeature$CAN_ADD_NAME_OR_TYPE_ATTRIBUTES$$ && $attributes$$inline_97$$ && ($attributes$$inline_97$$.name || $attributes$$inline_97$$.type)) {
+    $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$ = ["<", $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$];
+    $attributes$$inline_97$$.name && $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$.push(' name="', $goog$string$htmlEscape$$($attributes$$inline_97$$.name), '"');
+    if($attributes$$inline_97$$.type) {
+      $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$.push(' type="', $goog$string$htmlEscape$$($attributes$$inline_97$$.type), '"');
+      var $clone$$inline_99$$ = {};
+      $goog$object$extend$$($clone$$inline_99$$, $attributes$$inline_97$$);
+      delete $clone$$inline_99$$.type;
+      $attributes$$inline_97$$ = $clone$$inline_99$$
     }
-    $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$.push(">");
-    $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$ = $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$.join("")
+    $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$.push(">");
+    $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$ = $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$.join("")
   }
-  $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$ = $doc$$inline_93$$.createElement($element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$);
-  $attributes$$inline_96$$ && ($goog$isString$$($attributes$$inline_96$$) ? $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$.className = $attributes$$inline_96$$ : $goog$isArray$$($attributes$$inline_96$$) ? $goog$dom$classes$add$$.apply($JSCompiler_alias_NULL$$, [$element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$].concat($attributes$$inline_96$$)) : $goog$dom$setProperties$$($element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$, $attributes$$inline_96$$));
-  2 < $args$$inline_94$$.length && $goog$dom$append_$$($doc$$inline_93$$, $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$, $args$$inline_94$$);
-  return $element$$inline_99_tagName$$inline_95_tagNameArr$$inline_97$$
+  $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$ = $doc$$inline_94$$.createElement($element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$);
+  $attributes$$inline_97$$ && ($goog$isString$$($attributes$$inline_97$$) ? $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$.className = $attributes$$inline_97$$ : $goog$isArray$$($attributes$$inline_97$$) ? $goog$dom$classes$add$$.apply($JSCompiler_alias_NULL$$, [$element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$].concat($attributes$$inline_97$$)) : $goog$dom$setProperties$$($element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$, $attributes$$inline_97$$));
+  2 < $args$$inline_95$$.length && $goog$dom$append_$$($doc$$inline_94$$, $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$, $args$$inline_95$$);
+  return $element$$inline_100_tagName$$inline_96_tagNameArr$$inline_98$$
 };
 $JSCompiler_prototypeAlias$$.createElement = function $$JSCompiler_prototypeAlias$$$createElement$($name$$64$$) {
   return this.$document_$.createElement($name$$64$$)
@@ -629,7 +629,7 @@ $JSCompiler_prototypeAlias$$.init = function $$JSCompiler_prototypeAlias$$$init$
           $goog$reflect$sinkValue$$($relatedTarget$$.nodeName);
           $JSCompiler_inline_result$$33$$ = $JSCompiler_alias_TRUE$$;
           break a
-        }catch($e$$inline_106$$) {
+        }catch($e$$inline_107$$) {
         }
         $JSCompiler_inline_result$$33$$ = $JSCompiler_alias_FALSE$$
       }
@@ -842,75 +842,75 @@ function $goog$events$handleBrowserEvent_$$($listener$$48$$, $opt_evt$$) {
   if(!($be$$1_type$$74$$ in $map$$6$$)) {
     return $JSCompiler_alias_TRUE$$
   }
-  var $map$$6$$ = $map$$6$$[$be$$1_type$$74$$], $ieEvent_part$$inline_112_retval$$1$$, $targetsMap$$1$$;
+  var $map$$6$$ = $map$$6$$[$be$$1_type$$74$$], $ieEvent_part$$inline_113_retval$$1$$, $targetsMap$$1$$;
   if(!$goog$events$BrowserFeature$HAS_W3C_EVENT_SUPPORT$$) {
-    var $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$;
-    if(!($JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$ = $opt_evt$$)) {
+    var $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$;
+    if(!($JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$ = $opt_evt$$)) {
       a: {
-        $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$ = ["window", "event"];
-        for(var $cur$$inline_111_hasBubble$$1$$ = $goog$global$$;$ieEvent_part$$inline_112_retval$$1$$ = $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$.shift();) {
-          if($cur$$inline_111_hasBubble$$1$$[$ieEvent_part$$inline_112_retval$$1$$] != $JSCompiler_alias_NULL$$) {
-            $cur$$inline_111_hasBubble$$1$$ = $cur$$inline_111_hasBubble$$1$$[$ieEvent_part$$inline_112_retval$$1$$]
+        $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$ = ["window", "event"];
+        for(var $cur$$inline_112_hasBubble$$1$$ = $goog$global$$;$ieEvent_part$$inline_113_retval$$1$$ = $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$.shift();) {
+          if($cur$$inline_112_hasBubble$$1$$[$ieEvent_part$$inline_113_retval$$1$$] != $JSCompiler_alias_NULL$$) {
+            $cur$$inline_112_hasBubble$$1$$ = $cur$$inline_112_hasBubble$$1$$[$ieEvent_part$$inline_113_retval$$1$$]
           }else {
-            $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$ = $JSCompiler_alias_NULL$$;
+            $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$ = $JSCompiler_alias_NULL$$;
             break a
           }
         }
-        $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$ = $cur$$inline_111_hasBubble$$1$$
+        $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$ = $cur$$inline_112_hasBubble$$1$$
       }
     }
-    $ieEvent_part$$inline_112_retval$$1$$ = $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$;
-    $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$ = $JSCompiler_alias_TRUE$$ in $map$$6$$;
-    $cur$$inline_111_hasBubble$$1$$ = $JSCompiler_alias_FALSE$$ in $map$$6$$;
-    if($JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$) {
-      if(0 > $ieEvent_part$$inline_112_retval$$1$$.keyCode || $ieEvent_part$$inline_112_retval$$1$$.returnValue != $JSCompiler_alias_VOID$$) {
+    $ieEvent_part$$inline_113_retval$$1$$ = $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$;
+    $JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$ = $JSCompiler_alias_TRUE$$ in $map$$6$$;
+    $cur$$inline_112_hasBubble$$1$$ = $JSCompiler_alias_FALSE$$ in $map$$6$$;
+    if($JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$) {
+      if(0 > $ieEvent_part$$inline_113_retval$$1$$.keyCode || $ieEvent_part$$inline_113_retval$$1$$.returnValue != $JSCompiler_alias_VOID$$) {
         return $JSCompiler_alias_TRUE$$
       }
       a: {
-        var $evt$$16_useReturnValue$$inline_115$$ = $JSCompiler_alias_FALSE$$;
-        if(0 == $ieEvent_part$$inline_112_retval$$1$$.keyCode) {
+        var $evt$$16_useReturnValue$$inline_116$$ = $JSCompiler_alias_FALSE$$;
+        if(0 == $ieEvent_part$$inline_113_retval$$1$$.keyCode) {
           try {
-            $ieEvent_part$$inline_112_retval$$1$$.keyCode = -1;
+            $ieEvent_part$$inline_113_retval$$1$$.keyCode = -1;
             break a
-          }catch($ex$$inline_116$$) {
-            $evt$$16_useReturnValue$$inline_115$$ = $JSCompiler_alias_TRUE$$
+          }catch($ex$$inline_117$$) {
+            $evt$$16_useReturnValue$$inline_116$$ = $JSCompiler_alias_TRUE$$
           }
         }
-        if($evt$$16_useReturnValue$$inline_115$$ || $ieEvent_part$$inline_112_retval$$1$$.returnValue == $JSCompiler_alias_VOID$$) {
-          $ieEvent_part$$inline_112_retval$$1$$.returnValue = $JSCompiler_alias_TRUE$$
+        if($evt$$16_useReturnValue$$inline_116$$ || $ieEvent_part$$inline_113_retval$$1$$.returnValue == $JSCompiler_alias_VOID$$) {
+          $ieEvent_part$$inline_113_retval$$1$$.returnValue = $JSCompiler_alias_TRUE$$
         }
       }
     }
-    $evt$$16_useReturnValue$$inline_115$$ = new $goog$events$BrowserEvent$$;
-    $evt$$16_useReturnValue$$inline_115$$.init($ieEvent_part$$inline_112_retval$$1$$, this);
-    $ieEvent_part$$inline_112_retval$$1$$ = $JSCompiler_alias_TRUE$$;
+    $evt$$16_useReturnValue$$inline_116$$ = new $goog$events$BrowserEvent$$;
+    $evt$$16_useReturnValue$$inline_116$$.init($ieEvent_part$$inline_113_retval$$1$$, this);
+    $ieEvent_part$$inline_113_retval$$1$$ = $JSCompiler_alias_TRUE$$;
     try {
-      if($JSCompiler_temp$$15_hasCapture$$2_parts$$inline_110$$) {
-        for(var $ancestors$$2$$ = [], $parent$$19$$ = $evt$$16_useReturnValue$$inline_115$$.currentTarget;$parent$$19$$;$parent$$19$$ = $parent$$19$$.parentNode) {
+      if($JSCompiler_temp$$15_hasCapture$$2_parts$$inline_111$$) {
+        for(var $ancestors$$2$$ = [], $parent$$19$$ = $evt$$16_useReturnValue$$inline_116$$.currentTarget;$parent$$19$$;$parent$$19$$ = $parent$$19$$.parentNode) {
           $ancestors$$2$$.push($parent$$19$$)
         }
         $targetsMap$$1$$ = $map$$6$$[$JSCompiler_alias_TRUE$$];
         $targetsMap$$1$$.$remaining_$ = $targetsMap$$1$$.$count_$;
-        for(var $i$$70$$ = $ancestors$$2$$.length - 1;!$evt$$16_useReturnValue$$inline_115$$.$propagationStopped_$ && 0 <= $i$$70$$ && $targetsMap$$1$$.$remaining_$;$i$$70$$--) {
-          $evt$$16_useReturnValue$$inline_115$$.currentTarget = $ancestors$$2$$[$i$$70$$], $ieEvent_part$$inline_112_retval$$1$$ &= $goog$events$fireListeners_$$($targetsMap$$1$$, $ancestors$$2$$[$i$$70$$], $be$$1_type$$74$$, $JSCompiler_alias_TRUE$$, $evt$$16_useReturnValue$$inline_115$$)
+        for(var $i$$70$$ = $ancestors$$2$$.length - 1;!$evt$$16_useReturnValue$$inline_116$$.$propagationStopped_$ && 0 <= $i$$70$$ && $targetsMap$$1$$.$remaining_$;$i$$70$$--) {
+          $evt$$16_useReturnValue$$inline_116$$.currentTarget = $ancestors$$2$$[$i$$70$$], $ieEvent_part$$inline_113_retval$$1$$ &= $goog$events$fireListeners_$$($targetsMap$$1$$, $ancestors$$2$$[$i$$70$$], $be$$1_type$$74$$, $JSCompiler_alias_TRUE$$, $evt$$16_useReturnValue$$inline_116$$)
         }
-        if($cur$$inline_111_hasBubble$$1$$) {
+        if($cur$$inline_112_hasBubble$$1$$) {
           $targetsMap$$1$$ = $map$$6$$[$JSCompiler_alias_FALSE$$];
           $targetsMap$$1$$.$remaining_$ = $targetsMap$$1$$.$count_$;
-          for($i$$70$$ = 0;!$evt$$16_useReturnValue$$inline_115$$.$propagationStopped_$ && $i$$70$$ < $ancestors$$2$$.length && $targetsMap$$1$$.$remaining_$;$i$$70$$++) {
-            $evt$$16_useReturnValue$$inline_115$$.currentTarget = $ancestors$$2$$[$i$$70$$], $ieEvent_part$$inline_112_retval$$1$$ &= $goog$events$fireListeners_$$($targetsMap$$1$$, $ancestors$$2$$[$i$$70$$], $be$$1_type$$74$$, $JSCompiler_alias_FALSE$$, $evt$$16_useReturnValue$$inline_115$$)
+          for($i$$70$$ = 0;!$evt$$16_useReturnValue$$inline_116$$.$propagationStopped_$ && $i$$70$$ < $ancestors$$2$$.length && $targetsMap$$1$$.$remaining_$;$i$$70$$++) {
+            $evt$$16_useReturnValue$$inline_116$$.currentTarget = $ancestors$$2$$[$i$$70$$], $ieEvent_part$$inline_113_retval$$1$$ &= $goog$events$fireListeners_$$($targetsMap$$1$$, $ancestors$$2$$[$i$$70$$], $be$$1_type$$74$$, $JSCompiler_alias_FALSE$$, $evt$$16_useReturnValue$$inline_116$$)
           }
         }
       }else {
-        $ieEvent_part$$inline_112_retval$$1$$ = $goog$events$fireListener$$($listener$$48$$, $evt$$16_useReturnValue$$inline_115$$)
+        $ieEvent_part$$inline_113_retval$$1$$ = $goog$events$fireListener$$($listener$$48$$, $evt$$16_useReturnValue$$inline_116$$)
       }
     }finally {
       $ancestors$$2$$ && ($ancestors$$2$$.length = 0)
     }
-    return $ieEvent_part$$inline_112_retval$$1$$
+    return $ieEvent_part$$inline_113_retval$$1$$
   }
   $be$$1_type$$74$$ = new $goog$events$BrowserEvent$$($opt_evt$$, this);
-  return $ieEvent_part$$inline_112_retval$$1$$ = $goog$events$fireListener$$($listener$$48$$, $be$$1_type$$74$$)
+  return $ieEvent_part$$inline_113_retval$$1$$ = $goog$events$fireListener$$($listener$$48$$, $be$$1_type$$74$$)
 }
 ;
 // Input 31
@@ -929,27 +929,27 @@ function $JSCompiler_StaticMethods_listen$$($JSCompiler_StaticMethods_listen$sel
   }
   return $JSCompiler_StaticMethods_listen$self$$
 }
-function $JSCompiler_StaticMethods_unlisten$$($JSCompiler_StaticMethods_unlisten$self$$, $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$, $i$$inline_126_type$$77$$, $listener$$inline_121_opt_fn$$6$$, $capture$$inline_124_opt_capture$$3$$, $opt_handler$$12_opt_handler$$inline_123$$) {
-  if($goog$isArray$$($i$$inline_126_type$$77$$)) {
-    for(var $i$$73$$ = 0;$i$$73$$ < $i$$inline_126_type$$77$$.length;$i$$73$$++) {
-      $JSCompiler_StaticMethods_unlisten$$($JSCompiler_StaticMethods_unlisten$self$$, $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$, $i$$inline_126_type$$77$$[$i$$73$$], $listener$$inline_121_opt_fn$$6$$, $capture$$inline_124_opt_capture$$3$$, $opt_handler$$12_opt_handler$$inline_123$$)
+function $JSCompiler_StaticMethods_unlisten$$($JSCompiler_StaticMethods_unlisten$self$$, $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$, $i$$inline_127_type$$77$$, $listener$$inline_122_opt_fn$$6$$, $capture$$inline_125_opt_capture$$3$$, $opt_handler$$12_opt_handler$$inline_124$$) {
+  if($goog$isArray$$($i$$inline_127_type$$77$$)) {
+    for(var $i$$73$$ = 0;$i$$73$$ < $i$$inline_127_type$$77$$.length;$i$$73$$++) {
+      $JSCompiler_StaticMethods_unlisten$$($JSCompiler_StaticMethods_unlisten$self$$, $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$, $i$$inline_127_type$$77$$[$i$$73$$], $listener$$inline_122_opt_fn$$6$$, $capture$$inline_125_opt_capture$$3$$, $opt_handler$$12_opt_handler$$inline_124$$)
     }
   }else {
     a: {
-      $listener$$inline_121_opt_fn$$6$$ = $listener$$inline_121_opt_fn$$6$$ || $JSCompiler_StaticMethods_unlisten$self$$;
-      $opt_handler$$12_opt_handler$$inline_123$$ = $opt_handler$$12_opt_handler$$inline_123$$ || $JSCompiler_StaticMethods_unlisten$self$$.$handler_$ || $JSCompiler_StaticMethods_unlisten$self$$;
-      $capture$$inline_124_opt_capture$$3$$ = !!$capture$$inline_124_opt_capture$$3$$;
-      if($key$$54_listener$$51_listenerArray$$inline_125_src$$20$$ = $goog$events$getListeners_$$($key$$54_listener$$51_listenerArray$$inline_125_src$$20$$, $i$$inline_126_type$$77$$, $capture$$inline_124_opt_capture$$3$$)) {
-        for($i$$inline_126_type$$77$$ = 0;$i$$inline_126_type$$77$$ < $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$.length;$i$$inline_126_type$$77$$++) {
-          if(!$key$$54_listener$$51_listenerArray$$inline_125_src$$20$$[$i$$inline_126_type$$77$$].$removed$ && $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$[$i$$inline_126_type$$77$$].$listener$ == $listener$$inline_121_opt_fn$$6$$ && $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$[$i$$inline_126_type$$77$$].capture == $capture$$inline_124_opt_capture$$3$$ && $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$[$i$$inline_126_type$$77$$].$handler$ == $opt_handler$$12_opt_handler$$inline_123$$) {
-            $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$ = $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$[$i$$inline_126_type$$77$$];
+      $listener$$inline_122_opt_fn$$6$$ = $listener$$inline_122_opt_fn$$6$$ || $JSCompiler_StaticMethods_unlisten$self$$;
+      $opt_handler$$12_opt_handler$$inline_124$$ = $opt_handler$$12_opt_handler$$inline_124$$ || $JSCompiler_StaticMethods_unlisten$self$$.$handler_$ || $JSCompiler_StaticMethods_unlisten$self$$;
+      $capture$$inline_125_opt_capture$$3$$ = !!$capture$$inline_125_opt_capture$$3$$;
+      if($key$$54_listener$$51_listenerArray$$inline_126_src$$20$$ = $goog$events$getListeners_$$($key$$54_listener$$51_listenerArray$$inline_126_src$$20$$, $i$$inline_127_type$$77$$, $capture$$inline_125_opt_capture$$3$$)) {
+        for($i$$inline_127_type$$77$$ = 0;$i$$inline_127_type$$77$$ < $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$.length;$i$$inline_127_type$$77$$++) {
+          if(!$key$$54_listener$$51_listenerArray$$inline_126_src$$20$$[$i$$inline_127_type$$77$$].$removed$ && $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$[$i$$inline_127_type$$77$$].$listener$ == $listener$$inline_122_opt_fn$$6$$ && $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$[$i$$inline_127_type$$77$$].capture == $capture$$inline_125_opt_capture$$3$$ && $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$[$i$$inline_127_type$$77$$].$handler$ == $opt_handler$$12_opt_handler$$inline_124$$) {
+            $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$ = $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$[$i$$inline_127_type$$77$$];
             break a
           }
         }
       }
-      $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$ = $JSCompiler_alias_NULL$$
+      $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$ = $JSCompiler_alias_NULL$$
     }
-    $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$ && ($key$$54_listener$$51_listenerArray$$inline_125_src$$20$$ = $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$.key, $goog$events$unlistenByKey$$($key$$54_listener$$51_listenerArray$$inline_125_src$$20$$), $goog$array$remove$$($JSCompiler_StaticMethods_unlisten$self$$.$keys_$, $key$$54_listener$$51_listenerArray$$inline_125_src$$20$$))
+    $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$ && ($key$$54_listener$$51_listenerArray$$inline_126_src$$20$$ = $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$.key, $goog$events$unlistenByKey$$($key$$54_listener$$51_listenerArray$$inline_126_src$$20$$), $goog$array$remove$$($JSCompiler_StaticMethods_unlisten$self$$.$keys_$, $key$$54_listener$$51_listenerArray$$inline_126_src$$20$$))
   }
   return $JSCompiler_StaticMethods_unlisten$self$$
 }
@@ -987,50 +987,50 @@ $JSCompiler_prototypeAlias$$.addEventListener = function $$JSCompiler_prototypeA
 $JSCompiler_prototypeAlias$$.removeEventListener = function $$JSCompiler_prototypeAlias$$$removeEventListener$($type$$79$$, $handler$$41$$, $opt_capture$$5$$, $opt_handlerScope$$1$$) {
   $goog$events$unlisten$$(this, $type$$79$$, $handler$$41$$, $opt_capture$$5$$, $opt_handlerScope$$1$$)
 };
-$JSCompiler_prototypeAlias$$.dispatchEvent = function $$JSCompiler_prototypeAlias$$$dispatchEvent$($JSCompiler_inline_result$$22_e$$24_e$$inline_129$$) {
-  var $hasCapture$$inline_135_type$$inline_130$$ = $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.type || $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$, $map$$inline_131$$ = $goog$events$listenerTree_$$;
-  if($hasCapture$$inline_135_type$$inline_130$$ in $map$$inline_131$$) {
-    if($goog$isString$$($JSCompiler_inline_result$$22_e$$24_e$$inline_129$$)) {
-      $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$ = new $goog$events$Event$$($JSCompiler_inline_result$$22_e$$24_e$$inline_129$$, this)
+$JSCompiler_prototypeAlias$$.dispatchEvent = function $$JSCompiler_prototypeAlias$$$dispatchEvent$($JSCompiler_inline_result$$22_e$$24_e$$inline_130$$) {
+  var $hasCapture$$inline_136_type$$inline_131$$ = $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.type || $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$, $map$$inline_132$$ = $goog$events$listenerTree_$$;
+  if($hasCapture$$inline_136_type$$inline_131$$ in $map$$inline_132$$) {
+    if($goog$isString$$($JSCompiler_inline_result$$22_e$$24_e$$inline_130$$)) {
+      $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$ = new $goog$events$Event$$($JSCompiler_inline_result$$22_e$$24_e$$inline_130$$, this)
     }else {
-      if($JSCompiler_inline_result$$22_e$$24_e$$inline_129$$ instanceof $goog$events$Event$$) {
-        $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.target = $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.target || this
+      if($JSCompiler_inline_result$$22_e$$24_e$$inline_130$$ instanceof $goog$events$Event$$) {
+        $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.target = $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.target || this
       }else {
-        var $oldEvent$$inline_132_rv$$inline_133$$ = $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$;
-        $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$ = new $goog$events$Event$$($hasCapture$$inline_135_type$$inline_130$$, this);
-        $goog$object$extend$$($JSCompiler_inline_result$$22_e$$24_e$$inline_129$$, $oldEvent$$inline_132_rv$$inline_133$$)
+        var $oldEvent$$inline_133_rv$$inline_134$$ = $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$;
+        $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$ = new $goog$events$Event$$($hasCapture$$inline_136_type$$inline_131$$, this);
+        $goog$object$extend$$($JSCompiler_inline_result$$22_e$$24_e$$inline_130$$, $oldEvent$$inline_133_rv$$inline_134$$)
       }
     }
-    var $oldEvent$$inline_132_rv$$inline_133$$ = 1, $ancestors$$inline_134_current$$inline_139$$, $map$$inline_131$$ = $map$$inline_131$$[$hasCapture$$inline_135_type$$inline_130$$], $hasCapture$$inline_135_type$$inline_130$$ = $JSCompiler_alias_TRUE$$ in $map$$inline_131$$, $parent$$inline_137_targetsMap$$inline_136$$;
-    if($hasCapture$$inline_135_type$$inline_130$$) {
-      $ancestors$$inline_134_current$$inline_139$$ = [];
-      for($parent$$inline_137_targetsMap$$inline_136$$ = this;$parent$$inline_137_targetsMap$$inline_136$$;$parent$$inline_137_targetsMap$$inline_136$$ = $parent$$inline_137_targetsMap$$inline_136$$.$parentEventTarget_$) {
-        $ancestors$$inline_134_current$$inline_139$$.push($parent$$inline_137_targetsMap$$inline_136$$)
+    var $oldEvent$$inline_133_rv$$inline_134$$ = 1, $ancestors$$inline_135_current$$inline_140$$, $map$$inline_132$$ = $map$$inline_132$$[$hasCapture$$inline_136_type$$inline_131$$], $hasCapture$$inline_136_type$$inline_131$$ = $JSCompiler_alias_TRUE$$ in $map$$inline_132$$, $parent$$inline_138_targetsMap$$inline_137$$;
+    if($hasCapture$$inline_136_type$$inline_131$$) {
+      $ancestors$$inline_135_current$$inline_140$$ = [];
+      for($parent$$inline_138_targetsMap$$inline_137$$ = this;$parent$$inline_138_targetsMap$$inline_137$$;$parent$$inline_138_targetsMap$$inline_137$$ = $parent$$inline_138_targetsMap$$inline_137$$.$parentEventTarget_$) {
+        $ancestors$$inline_135_current$$inline_140$$.push($parent$$inline_138_targetsMap$$inline_137$$)
       }
-      $parent$$inline_137_targetsMap$$inline_136$$ = $map$$inline_131$$[$JSCompiler_alias_TRUE$$];
-      $parent$$inline_137_targetsMap$$inline_136$$.$remaining_$ = $parent$$inline_137_targetsMap$$inline_136$$.$count_$;
-      for(var $i$$inline_138$$ = $ancestors$$inline_134_current$$inline_139$$.length - 1;!$JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.$propagationStopped_$ && 0 <= $i$$inline_138$$ && $parent$$inline_137_targetsMap$$inline_136$$.$remaining_$;$i$$inline_138$$--) {
-        $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.currentTarget = $ancestors$$inline_134_current$$inline_139$$[$i$$inline_138$$], $oldEvent$$inline_132_rv$$inline_133$$ &= $goog$events$fireListeners_$$($parent$$inline_137_targetsMap$$inline_136$$, $ancestors$$inline_134_current$$inline_139$$[$i$$inline_138$$], $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.type, $JSCompiler_alias_TRUE$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$) && $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.$returnValue_$ != 
+      $parent$$inline_138_targetsMap$$inline_137$$ = $map$$inline_132$$[$JSCompiler_alias_TRUE$$];
+      $parent$$inline_138_targetsMap$$inline_137$$.$remaining_$ = $parent$$inline_138_targetsMap$$inline_137$$.$count_$;
+      for(var $i$$inline_139$$ = $ancestors$$inline_135_current$$inline_140$$.length - 1;!$JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.$propagationStopped_$ && 0 <= $i$$inline_139$$ && $parent$$inline_138_targetsMap$$inline_137$$.$remaining_$;$i$$inline_139$$--) {
+        $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.currentTarget = $ancestors$$inline_135_current$$inline_140$$[$i$$inline_139$$], $oldEvent$$inline_133_rv$$inline_134$$ &= $goog$events$fireListeners_$$($parent$$inline_138_targetsMap$$inline_137$$, $ancestors$$inline_135_current$$inline_140$$[$i$$inline_139$$], $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.type, $JSCompiler_alias_TRUE$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$) && $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.$returnValue_$ != 
         $JSCompiler_alias_FALSE$$
       }
     }
-    if($JSCompiler_alias_FALSE$$ in $map$$inline_131$$) {
-      if($parent$$inline_137_targetsMap$$inline_136$$ = $map$$inline_131$$[$JSCompiler_alias_FALSE$$], $parent$$inline_137_targetsMap$$inline_136$$.$remaining_$ = $parent$$inline_137_targetsMap$$inline_136$$.$count_$, $hasCapture$$inline_135_type$$inline_130$$) {
-        for($i$$inline_138$$ = 0;!$JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.$propagationStopped_$ && $i$$inline_138$$ < $ancestors$$inline_134_current$$inline_139$$.length && $parent$$inline_137_targetsMap$$inline_136$$.$remaining_$;$i$$inline_138$$++) {
-          $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.currentTarget = $ancestors$$inline_134_current$$inline_139$$[$i$$inline_138$$], $oldEvent$$inline_132_rv$$inline_133$$ &= $goog$events$fireListeners_$$($parent$$inline_137_targetsMap$$inline_136$$, $ancestors$$inline_134_current$$inline_139$$[$i$$inline_138$$], $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.type, $JSCompiler_alias_FALSE$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$) && $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.$returnValue_$ != 
+    if($JSCompiler_alias_FALSE$$ in $map$$inline_132$$) {
+      if($parent$$inline_138_targetsMap$$inline_137$$ = $map$$inline_132$$[$JSCompiler_alias_FALSE$$], $parent$$inline_138_targetsMap$$inline_137$$.$remaining_$ = $parent$$inline_138_targetsMap$$inline_137$$.$count_$, $hasCapture$$inline_136_type$$inline_131$$) {
+        for($i$$inline_139$$ = 0;!$JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.$propagationStopped_$ && $i$$inline_139$$ < $ancestors$$inline_135_current$$inline_140$$.length && $parent$$inline_138_targetsMap$$inline_137$$.$remaining_$;$i$$inline_139$$++) {
+          $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.currentTarget = $ancestors$$inline_135_current$$inline_140$$[$i$$inline_139$$], $oldEvent$$inline_133_rv$$inline_134$$ &= $goog$events$fireListeners_$$($parent$$inline_138_targetsMap$$inline_137$$, $ancestors$$inline_135_current$$inline_140$$[$i$$inline_139$$], $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.type, $JSCompiler_alias_FALSE$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$) && $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.$returnValue_$ != 
           $JSCompiler_alias_FALSE$$
         }
       }else {
-        for($ancestors$$inline_134_current$$inline_139$$ = this;!$JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.$propagationStopped_$ && $ancestors$$inline_134_current$$inline_139$$ && $parent$$inline_137_targetsMap$$inline_136$$.$remaining_$;$ancestors$$inline_134_current$$inline_139$$ = $ancestors$$inline_134_current$$inline_139$$.$parentEventTarget_$) {
-          $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.currentTarget = $ancestors$$inline_134_current$$inline_139$$, $oldEvent$$inline_132_rv$$inline_133$$ &= $goog$events$fireListeners_$$($parent$$inline_137_targetsMap$$inline_136$$, $ancestors$$inline_134_current$$inline_139$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.type, $JSCompiler_alias_FALSE$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$) && $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$.$returnValue_$ != $JSCompiler_alias_FALSE$$
+        for($ancestors$$inline_135_current$$inline_140$$ = this;!$JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.$propagationStopped_$ && $ancestors$$inline_135_current$$inline_140$$ && $parent$$inline_138_targetsMap$$inline_137$$.$remaining_$;$ancestors$$inline_135_current$$inline_140$$ = $ancestors$$inline_135_current$$inline_140$$.$parentEventTarget_$) {
+          $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.currentTarget = $ancestors$$inline_135_current$$inline_140$$, $oldEvent$$inline_133_rv$$inline_134$$ &= $goog$events$fireListeners_$$($parent$$inline_138_targetsMap$$inline_137$$, $ancestors$$inline_135_current$$inline_140$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.type, $JSCompiler_alias_FALSE$$, $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$) && $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$.$returnValue_$ != $JSCompiler_alias_FALSE$$
         }
       }
     }
-    $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$ = Boolean($oldEvent$$inline_132_rv$$inline_133$$)
+    $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$ = Boolean($oldEvent$$inline_133_rv$$inline_134$$)
   }else {
-    $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$ = $JSCompiler_alias_TRUE$$
+    $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$ = $JSCompiler_alias_TRUE$$
   }
-  return $JSCompiler_inline_result$$22_e$$24_e$$inline_129$$
+  return $JSCompiler_inline_result$$22_e$$24_e$$inline_130$$
 };
 $JSCompiler_prototypeAlias$$.$disposeInternal$ = function $$JSCompiler_prototypeAlias$$$$disposeInternal$$() {
   $goog$events$EventTarget$$.$superClass_$.$disposeInternal$.call(this);
@@ -1077,11 +1077,11 @@ $JSCompiler_prototypeAlias$$.$childIndex_$ = $JSCompiler_alias_NULL$$;
 $JSCompiler_prototypeAlias$$.$wasDecorated_$ = $JSCompiler_alias_FALSE$$;
 function $JSCompiler_StaticMethods_setId$$($JSCompiler_StaticMethods_setId$self$$, $id$$3$$) {
   if($JSCompiler_StaticMethods_setId$self$$.$parent_$ && $JSCompiler_StaticMethods_setId$self$$.$parent_$.$childIndex_$) {
-    var $obj$$inline_142_obj$$inline_334$$ = $JSCompiler_StaticMethods_setId$self$$.$parent_$.$childIndex_$, $key$$inline_335$$ = $JSCompiler_StaticMethods_setId$self$$.$id_$;
-    $key$$inline_335$$ in $obj$$inline_142_obj$$inline_334$$ && delete $obj$$inline_142_obj$$inline_334$$[$key$$inline_335$$];
-    $obj$$inline_142_obj$$inline_334$$ = $JSCompiler_StaticMethods_setId$self$$.$parent_$.$childIndex_$;
-    $id$$3$$ in $obj$$inline_142_obj$$inline_334$$ && $JSCompiler_alias_THROW$$(Error('The object already contains the key "' + $id$$3$$ + '"'));
-    $obj$$inline_142_obj$$inline_334$$[$id$$3$$] = $JSCompiler_StaticMethods_setId$self$$
+    var $obj$$inline_143_obj$$inline_339$$ = $JSCompiler_StaticMethods_setId$self$$.$parent_$.$childIndex_$, $key$$inline_340$$ = $JSCompiler_StaticMethods_setId$self$$.$id_$;
+    $key$$inline_340$$ in $obj$$inline_143_obj$$inline_339$$ && delete $obj$$inline_143_obj$$inline_339$$[$key$$inline_340$$];
+    $obj$$inline_143_obj$$inline_339$$ = $JSCompiler_StaticMethods_setId$self$$.$parent_$.$childIndex_$;
+    $id$$3$$ in $obj$$inline_143_obj$$inline_339$$ && $JSCompiler_alias_THROW$$(Error('The object already contains the key "' + $id$$3$$ + '"'));
+    $obj$$inline_143_obj$$inline_339$$[$id$$3$$] = $JSCompiler_StaticMethods_setId$self$$
   }
   $JSCompiler_StaticMethods_setId$self$$.$id_$ = $id$$3$$
 }
@@ -1151,12 +1151,12 @@ function $JSCompiler_StaticMethods_forEachChild$$($JSCompiler_StaticMethods_forE
 }
 $JSCompiler_prototypeAlias$$.removeChild = function $$JSCompiler_prototypeAlias$$$removeChild$($child$$15$$, $opt_unrender$$) {
   if($child$$15$$) {
-    var $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ = $goog$isString$$($child$$15$$) ? $child$$15$$ : $child$$15$$.$id_$ || ($child$$15$$.$id_$ = ":" + ($child$$15$$.$idGenerator_$.$nextId_$++).toString(36)), $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$;
-    this.$childIndex_$ && $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ ? ($JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$ = this.$childIndex_$, $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$ = ($JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ in $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$ ? $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$[$JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$] : $JSCompiler_alias_VOID$$) || 
-    $JSCompiler_alias_NULL$$) : $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$ = $JSCompiler_alias_NULL$$;
-    $child$$15$$ = $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$;
-    $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ && $child$$15$$ && ($JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$ = this.$childIndex_$, $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ in $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$ && delete $JSCompiler_temp$$inline_343_obj$$inline_344_obj$$inline_347$$[$JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$], $goog$array$remove$$(this.$children_$, $child$$15$$), $opt_unrender$$ && 
-    ($child$$15$$.$exitDocument$(), $child$$15$$.$element_$ && $goog$dom$removeNode$$($child$$15$$.$element_$)), $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ = $child$$15$$, $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$ == $JSCompiler_alias_NULL$$ && $JSCompiler_alias_THROW$$(Error("Unable to set parent component")), $JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$.$parent_$ = $JSCompiler_alias_NULL$$, $goog$ui$Component$$.$superClass_$.$setParentEventTarget$.call($JSCompiler_StaticMethods_setParent$self$$inline_150_id$$6$$, 
+    var $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ = $goog$isString$$($child$$15$$) ? $child$$15$$ : $child$$15$$.$id_$ || ($child$$15$$.$id_$ = ":" + ($child$$15$$.$idGenerator_$.$nextId_$++).toString(36)), $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$;
+    this.$childIndex_$ && $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ ? ($JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$ = this.$childIndex_$, $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$ = ($JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ in $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$ ? $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$[$JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$] : $JSCompiler_alias_VOID$$) || 
+    $JSCompiler_alias_NULL$$) : $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$ = $JSCompiler_alias_NULL$$;
+    $child$$15$$ = $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$;
+    $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ && $child$$15$$ && ($JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$ = this.$childIndex_$, $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ in $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$ && delete $JSCompiler_temp$$inline_348_obj$$inline_349_obj$$inline_352$$[$JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$], $goog$array$remove$$(this.$children_$, $child$$15$$), $opt_unrender$$ && 
+    ($child$$15$$.$exitDocument$(), $child$$15$$.$element_$ && $goog$dom$removeNode$$($child$$15$$.$element_$)), $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ = $child$$15$$, $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$ == $JSCompiler_alias_NULL$$ && $JSCompiler_alias_THROW$$(Error("Unable to set parent component")), $JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$.$parent_$ = $JSCompiler_alias_NULL$$, $goog$ui$Component$$.$superClass_$.$setParentEventTarget$.call($JSCompiler_StaticMethods_setParent$self$$inline_151_id$$6$$, 
     $JSCompiler_alias_NULL$$))
   }
   $child$$15$$ || $JSCompiler_alias_THROW$$(Error("Child is not in parent component"));
@@ -1224,24 +1224,24 @@ $JSCompiler_prototypeAlias$$.$decorate$ = function $$JSCompiler_prototypeAlias$$
   var $contentElem_hasCombinedClassName$$ = this.$getContentElement$($element$$88$$);
   $contentElem_hasCombinedClassName$$ && $contentElem_hasCombinedClassName$$.firstChild ? $JSCompiler_StaticMethods_setContentInternal$$($control$$3$$, $contentElem_hasCombinedClassName$$.firstChild.nextSibling ? $goog$array$toArray$$($contentElem_hasCombinedClassName$$.childNodes) : $contentElem_hasCombinedClassName$$.firstChild) : $control$$3$$.$content_$ = $JSCompiler_alias_NULL$$;
   var $state$$2$$ = 0, $rendererClassName$$ = this.$getCssClass$(), $structuralClassName$$ = this.$getCssClass$(), $hasRendererClassName$$ = $JSCompiler_alias_FALSE$$, $hasStructuralClassName$$ = $JSCompiler_alias_FALSE$$, $contentElem_hasCombinedClassName$$ = $JSCompiler_alias_FALSE$$, $classNames$$1$$ = $goog$dom$classes$get$$($element$$88$$);
-  $goog$array$forEach$$($classNames$$1$$, function($className$$19_state$$inline_165$$) {
-    if(!$hasRendererClassName$$ && $className$$19_state$$inline_165$$ == $rendererClassName$$) {
+  $goog$array$forEach$$($classNames$$1$$, function($className$$19_state$$inline_166$$) {
+    if(!$hasRendererClassName$$ && $className$$19_state$$inline_166$$ == $rendererClassName$$) {
       $hasRendererClassName$$ = $JSCompiler_alias_TRUE$$, $structuralClassName$$ == $rendererClassName$$ && ($hasStructuralClassName$$ = $JSCompiler_alias_TRUE$$)
     }else {
-      if(!$hasStructuralClassName$$ && $className$$19_state$$inline_165$$ == $structuralClassName$$) {
+      if(!$hasStructuralClassName$$ && $className$$19_state$$inline_166$$ == $structuralClassName$$) {
         $hasStructuralClassName$$ = $JSCompiler_alias_TRUE$$
       }else {
         var $JSCompiler_temp_const$$25$$ = $state$$2$$;
         if(!this.$stateByClass_$) {
           this.$classByState_$ || $JSCompiler_StaticMethods_createClassByStateMap_$$(this);
-          var $obj$$inline_379$$ = this.$classByState_$, $transposed$$inline_380$$ = {}, $key$$inline_381$$;
-          for($key$$inline_381$$ in $obj$$inline_379$$) {
-            $transposed$$inline_380$$[$obj$$inline_379$$[$key$$inline_381$$]] = $key$$inline_381$$
+          var $obj$$inline_384$$ = this.$classByState_$, $transposed$$inline_385$$ = {}, $key$$inline_386$$;
+          for($key$$inline_386$$ in $obj$$inline_384$$) {
+            $transposed$$inline_385$$[$obj$$inline_384$$[$key$$inline_386$$]] = $key$$inline_386$$
           }
-          this.$stateByClass_$ = $transposed$$inline_380$$
+          this.$stateByClass_$ = $transposed$$inline_385$$
         }
-        $className$$19_state$$inline_165$$ = parseInt(this.$stateByClass_$[$className$$19_state$$inline_165$$], 10);
-        $state$$2$$ = $JSCompiler_temp_const$$25$$ | (isNaN($className$$19_state$$inline_165$$) ? 0 : $className$$19_state$$inline_165$$)
+        $className$$19_state$$inline_166$$ = parseInt(this.$stateByClass_$[$className$$19_state$$inline_166$$], 10);
+        $state$$2$$ = $JSCompiler_temp_const$$25$$ | (isNaN($className$$19_state$$inline_166$$) ? 0 : $className$$19_state$$inline_166$$)
       }
     }
   }, this);
@@ -1262,17 +1262,17 @@ $JSCompiler_prototypeAlias$$.$decorate$ = function $$JSCompiler_prototypeAlias$$
 };
 $JSCompiler_prototypeAlias$$.$initializeDom$ = function $$JSCompiler_prototypeAlias$$$$initializeDom$$($control$$4$$) {
   if($control$$4$$.$rightToLeft_$ == $JSCompiler_alias_NULL$$) {
-    var $el$$inline_352$$ = $control$$4$$.$inDocument_$ ? $control$$4$$.$element_$ : $control$$4$$.$dom_$.$document_$.body, $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$;
+    var $el$$inline_357$$ = $control$$4$$.$inDocument_$ ? $control$$4$$.$element_$ : $control$$4$$.$dom_$.$document_$.body, $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$;
     a: {
-      $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$ = $goog$dom$getOwnerDocument$$($el$$inline_352$$);
-      if($JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$.defaultView && $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$.defaultView.getComputedStyle && ($JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$ = $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$.defaultView.getComputedStyle($el$$inline_352$$, $JSCompiler_alias_NULL$$))) {
-        $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$ = $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$.direction || $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$.getPropertyValue("direction") || "";
+      $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$ = $goog$dom$getOwnerDocument$$($el$$inline_357$$);
+      if($JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$.defaultView && $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$.defaultView.getComputedStyle && ($JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$ = $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$.defaultView.getComputedStyle($el$$inline_357$$, $JSCompiler_alias_NULL$$))) {
+        $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$ = $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$.direction || $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$.getPropertyValue("direction") || "";
         break a
       }
-      $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$ = ""
+      $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$ = ""
     }
-    $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$ || ($JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$ = ($el$$inline_352$$.currentStyle ? $el$$inline_352$$.currentStyle.direction : $JSCompiler_alias_NULL$$) || $el$$inline_352$$.style && $el$$inline_352$$.style.direction);
-    $control$$4$$.$rightToLeft_$ = "rtl" == $JSCompiler_inline_result$$378_JSCompiler_temp$$376_doc$$inline_385_styles$$inline_386$$
+    $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$ || ($JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$ = ($el$$inline_357$$.currentStyle ? $el$$inline_357$$.currentStyle.direction : $JSCompiler_alias_NULL$$) || $el$$inline_357$$.style && $el$$inline_357$$.style.direction);
+    $control$$4$$.$rightToLeft_$ = "rtl" == $JSCompiler_inline_result$$383_JSCompiler_temp$$381_doc$$inline_390_styles$$inline_391$$
   }
   $control$$4$$.$rightToLeft_$ && this.$setRightToLeft$($control$$4$$.$getElement$(), $JSCompiler_alias_TRUE$$);
   $control$$4$$.isEnabled() && this.$setFocusable$($control$$4$$, $control$$4$$.$visible_$)
@@ -1285,18 +1285,18 @@ function $JSCompiler_StaticMethods_setAriaStates$$($JSCompiler_StaticMethods_set
   $control$$5$$.$supportedStates_$ & 64 && $JSCompiler_StaticMethods_setAriaStates$self$$.$updateAriaState$($element$$90$$, 64, !!($control$$5$$.$state_$ & 64))
 }
 $JSCompiler_prototypeAlias$$.$setAllowTextSelection$ = function $$JSCompiler_prototypeAlias$$$$setAllowTextSelection$$($element$$91$$, $allow$$) {
-  var $unselectable$$inline_180_value$$inline_183$$ = !$allow$$, $descendants$$inline_182$$ = $goog$userAgent$IE$$ || $goog$userAgent$OPERA$$ ? $element$$91$$.getElementsByTagName("*") : $JSCompiler_alias_NULL$$;
+  var $unselectable$$inline_181_value$$inline_184$$ = !$allow$$, $descendants$$inline_183$$ = $goog$userAgent$IE$$ || $goog$userAgent$OPERA$$ ? $element$$91$$.getElementsByTagName("*") : $JSCompiler_alias_NULL$$;
   if($goog$style$unselectableStyle_$$) {
-    if($unselectable$$inline_180_value$$inline_183$$ = $unselectable$$inline_180_value$$inline_183$$ ? "none" : "", $element$$91$$.style[$goog$style$unselectableStyle_$$] = $unselectable$$inline_180_value$$inline_183$$, $descendants$$inline_182$$) {
-      for(var $i$$inline_184$$ = 0, $descendant$$inline_185$$;$descendant$$inline_185$$ = $descendants$$inline_182$$[$i$$inline_184$$];$i$$inline_184$$++) {
-        $descendant$$inline_185$$.style[$goog$style$unselectableStyle_$$] = $unselectable$$inline_180_value$$inline_183$$
+    if($unselectable$$inline_181_value$$inline_184$$ = $unselectable$$inline_181_value$$inline_184$$ ? "none" : "", $element$$91$$.style[$goog$style$unselectableStyle_$$] = $unselectable$$inline_181_value$$inline_184$$, $descendants$$inline_183$$) {
+      for(var $i$$inline_185$$ = 0, $descendant$$inline_186$$;$descendant$$inline_186$$ = $descendants$$inline_183$$[$i$$inline_185$$];$i$$inline_185$$++) {
+        $descendant$$inline_186$$.style[$goog$style$unselectableStyle_$$] = $unselectable$$inline_181_value$$inline_184$$
       }
     }
   }else {
     if($goog$userAgent$IE$$ || $goog$userAgent$OPERA$$) {
-      if($unselectable$$inline_180_value$$inline_183$$ = $unselectable$$inline_180_value$$inline_183$$ ? "on" : "", $element$$91$$.setAttribute("unselectable", $unselectable$$inline_180_value$$inline_183$$), $descendants$$inline_182$$) {
-        for($i$$inline_184$$ = 0;$descendant$$inline_185$$ = $descendants$$inline_182$$[$i$$inline_184$$];$i$$inline_184$$++) {
-          $descendant$$inline_185$$.setAttribute("unselectable", $unselectable$$inline_180_value$$inline_183$$)
+      if($unselectable$$inline_181_value$$inline_184$$ = $unselectable$$inline_181_value$$inline_184$$ ? "on" : "", $element$$91$$.setAttribute("unselectable", $unselectable$$inline_181_value$$inline_184$$), $descendants$$inline_183$$) {
+        for($i$$inline_185$$ = 0;$descendant$$inline_186$$ = $descendants$$inline_183$$[$i$$inline_185$$];$i$$inline_185$$++) {
+          $descendant$$inline_186$$.setAttribute("unselectable", $unselectable$$inline_181_value$$inline_184$$)
         }
       }
     }
@@ -1310,16 +1310,16 @@ $JSCompiler_prototypeAlias$$.$isFocusable$ = function $$JSCompiler_prototypeAlia
   return $control$$6$$.$supportedStates_$ & 32 && ($keyTarget$$ = $control$$6$$.$getKeyEventTarget$()) ? $goog$dom$isFocusableTabIndex$$($keyTarget$$) : $JSCompiler_alias_FALSE$$
 };
 $JSCompiler_prototypeAlias$$.$setFocusable$ = function $$JSCompiler_prototypeAlias$$$$setFocusable$$($control$$7$$, $focusable$$) {
-  var $element$$inline_187_keyTarget$$1$$;
-  if($control$$7$$.$supportedStates_$ & 32 && ($element$$inline_187_keyTarget$$1$$ = $control$$7$$.$getKeyEventTarget$())) {
+  var $element$$inline_188_keyTarget$$1$$;
+  if($control$$7$$.$supportedStates_$ & 32 && ($element$$inline_188_keyTarget$$1$$ = $control$$7$$.$getKeyEventTarget$())) {
     if(!$focusable$$ && $control$$7$$.$state_$ & 32) {
       try {
-        $element$$inline_187_keyTarget$$1$$.blur()
+        $element$$inline_188_keyTarget$$1$$.blur()
       }catch($e$$26$$) {
       }
       $control$$7$$.$state_$ & 32 && $control$$7$$.$handleBlur$()
     }
-    $goog$dom$isFocusableTabIndex$$($element$$inline_187_keyTarget$$1$$) != $focusable$$ && ($focusable$$ ? $element$$inline_187_keyTarget$$1$$.tabIndex = 0 : ($element$$inline_187_keyTarget$$1$$.tabIndex = -1, $element$$inline_187_keyTarget$$1$$.removeAttribute("tabIndex")))
+    $goog$dom$isFocusableTabIndex$$($element$$inline_188_keyTarget$$1$$) != $focusable$$ && ($focusable$$ ? $element$$inline_188_keyTarget$$1$$.tabIndex = 0 : ($element$$inline_188_keyTarget$$1$$.tabIndex = -1, $element$$inline_188_keyTarget$$1$$.removeAttribute("tabIndex")))
   }
 };
 $JSCompiler_prototypeAlias$$.$setVisible$ = function $$JSCompiler_prototypeAlias$$$$setVisible$$($element$$93$$, $visible$$) {
@@ -1343,16 +1343,16 @@ $JSCompiler_prototypeAlias$$.$getKeyEventTarget$ = function $$JSCompiler_prototy
 };
 $JSCompiler_prototypeAlias$$.$getCssClass$ = $JSCompiler_returnArg$$("goog-control");
 function $JSCompiler_StaticMethods_getClassNames$$($JSCompiler_StaticMethods_getClassNames$self$$, $control$$10$$) {
-  var $cssClass_extraClassNames$$1_state$$inline_202$$ = $JSCompiler_StaticMethods_getClassNames$self$$.$getCssClass$(), $classNames$$2$$ = [$cssClass_extraClassNames$$1_state$$inline_202$$], $classNames$$inline_203_structuralCssClass$$ = $JSCompiler_StaticMethods_getClassNames$self$$.$getCssClass$();
-  $classNames$$inline_203_structuralCssClass$$ != $cssClass_extraClassNames$$1_state$$inline_202$$ && $classNames$$2$$.push($classNames$$inline_203_structuralCssClass$$);
-  $cssClass_extraClassNames$$1_state$$inline_202$$ = $control$$10$$.$state_$;
-  for($classNames$$inline_203_structuralCssClass$$ = [];$cssClass_extraClassNames$$1_state$$inline_202$$;) {
-    var $mask$$inline_204$$ = $cssClass_extraClassNames$$1_state$$inline_202$$ & -$cssClass_extraClassNames$$1_state$$inline_202$$;
-    $classNames$$inline_203_structuralCssClass$$.push($JSCompiler_StaticMethods_getClassForState$$($JSCompiler_StaticMethods_getClassNames$self$$, $mask$$inline_204$$));
-    $cssClass_extraClassNames$$1_state$$inline_202$$ &= ~$mask$$inline_204$$
+  var $cssClass_extraClassNames$$1_state$$inline_203$$ = $JSCompiler_StaticMethods_getClassNames$self$$.$getCssClass$(), $classNames$$2$$ = [$cssClass_extraClassNames$$1_state$$inline_203$$], $classNames$$inline_204_structuralCssClass$$ = $JSCompiler_StaticMethods_getClassNames$self$$.$getCssClass$();
+  $classNames$$inline_204_structuralCssClass$$ != $cssClass_extraClassNames$$1_state$$inline_203$$ && $classNames$$2$$.push($classNames$$inline_204_structuralCssClass$$);
+  $cssClass_extraClassNames$$1_state$$inline_203$$ = $control$$10$$.$state_$;
+  for($classNames$$inline_204_structuralCssClass$$ = [];$cssClass_extraClassNames$$1_state$$inline_203$$;) {
+    var $mask$$inline_205$$ = $cssClass_extraClassNames$$1_state$$inline_203$$ & -$cssClass_extraClassNames$$1_state$$inline_203$$;
+    $classNames$$inline_204_structuralCssClass$$.push($JSCompiler_StaticMethods_getClassForState$$($JSCompiler_StaticMethods_getClassNames$self$$, $mask$$inline_205$$));
+    $cssClass_extraClassNames$$1_state$$inline_203$$ &= ~$mask$$inline_205$$
   }
-  $classNames$$2$$.push.apply($classNames$$2$$, $classNames$$inline_203_structuralCssClass$$);
-  ($cssClass_extraClassNames$$1_state$$inline_202$$ = $control$$10$$.$extraClassNames_$) && $classNames$$2$$.push.apply($classNames$$2$$, $cssClass_extraClassNames$$1_state$$inline_202$$);
+  $classNames$$2$$.push.apply($classNames$$2$$, $classNames$$inline_204_structuralCssClass$$);
+  ($cssClass_extraClassNames$$1_state$$inline_203$$ = $control$$10$$.$extraClassNames_$) && $classNames$$2$$.push.apply($classNames$$2$$, $cssClass_extraClassNames$$1_state$$inline_203$$);
   $goog$userAgent$IE$$ && !$goog$userAgent$isVersion$$("7") && $classNames$$2$$.push.apply($classNames$$2$$, $JSCompiler_StaticMethods_getAppliedCombinedClassNames_$$($classNames$$2$$));
   return $classNames$$2$$
 }
@@ -1559,20 +1559,20 @@ function $goog$events$KeyEvent$$($keyCode$$4$$, $charCode$$1$$, $repeat$$1$$, $b
 }
 $goog$inherits$$($goog$events$KeyEvent$$, $goog$events$BrowserEvent$$);
 // Input 45
-function $goog$ui$Control$$($content$$7$$, $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$, $opt_domHelper$$2$$) {
+function $goog$ui$Control$$($content$$7$$, $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$, $opt_domHelper$$2$$) {
   $goog$ui$Component$$.call(this, $opt_domHelper$$2$$);
-  if(!$JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$) {
-    $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$ = this.constructor;
-    for(var $key$$inline_213_rendererCtor$$inline_214$$;$JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$;) {
-      $key$$inline_213_rendererCtor$$inline_214$$ = $goog$getUid$$($JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$);
-      if($key$$inline_213_rendererCtor$$inline_214$$ = $goog$ui$registry$defaultRenderers_$$[$key$$inline_213_rendererCtor$$inline_214$$]) {
+  if(!$JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$) {
+    $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$ = this.constructor;
+    for(var $key$$inline_214_rendererCtor$$inline_215$$;$JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$;) {
+      $key$$inline_214_rendererCtor$$inline_215$$ = $goog$getUid$$($JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$);
+      if($key$$inline_214_rendererCtor$$inline_215$$ = $goog$ui$registry$defaultRenderers_$$[$key$$inline_214_rendererCtor$$inline_215$$]) {
         break
       }
-      $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$ = $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$.$superClass_$ ? $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$.$superClass_$.constructor : $JSCompiler_alias_NULL$$
+      $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$ = $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$.$superClass_$ ? $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$.$superClass_$.constructor : $JSCompiler_alias_NULL$$
     }
-    $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$ = $key$$inline_213_rendererCtor$$inline_214$$ ? $goog$isFunction$$($key$$inline_213_rendererCtor$$inline_214$$.$getInstance$) ? $key$$inline_213_rendererCtor$$inline_214$$.$getInstance$() : new $key$$inline_213_rendererCtor$$inline_214$$ : $JSCompiler_alias_NULL$$
+    $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$ = $key$$inline_214_rendererCtor$$inline_215$$ ? $goog$isFunction$$($key$$inline_214_rendererCtor$$inline_215$$.$getInstance$) ? $key$$inline_214_rendererCtor$$inline_215$$.$getInstance$() : new $key$$inline_214_rendererCtor$$inline_215$$ : $JSCompiler_alias_NULL$$
   }
-  this.$renderer_$ = $JSCompiler_temp$$18_componentCtor$$inline_212_opt_renderer$$;
+  this.$renderer_$ = $JSCompiler_temp$$18_componentCtor$$inline_213_opt_renderer$$;
   this.$content_$ = $content$$7$$
 }
 $goog$inherits$$($goog$ui$Control$$, $goog$ui$Component$$);
@@ -1601,8 +1601,8 @@ $JSCompiler_prototypeAlias$$.$enableClassName$ = function $$JSCompiler_prototype
 $JSCompiler_prototypeAlias$$.$createDom$ = function $$JSCompiler_prototypeAlias$$$$createDom$$() {
   var $element$$100$$ = this.$renderer_$.$createDom$(this);
   this.$element_$ = $element$$100$$;
-  var $ariaRole$$inline_241$$ = this.$preferredAriaRole_$ || this.$renderer_$.$getAriaRole$();
-  $ariaRole$$inline_241$$ && $element$$100$$.setAttribute("role", $ariaRole$$inline_241$$);
+  var $ariaRole$$inline_242$$ = this.$preferredAriaRole_$ || this.$renderer_$.$getAriaRole$();
+  $ariaRole$$inline_242$$ && $element$$100$$.setAttribute("role", $ariaRole$$inline_242$$);
   this.$allowTextSelection_$ || this.$renderer_$.$setAllowTextSelection$($element$$100$$, $JSCompiler_alias_FALSE$$);
   this.$visible_$ || this.$renderer_$.$setVisible$($element$$100$$, $JSCompiler_alias_FALSE$$)
 };
@@ -1614,8 +1614,8 @@ $JSCompiler_prototypeAlias$$.$canDecorate$ = function $$JSCompiler_prototypeAlia
 };
 $JSCompiler_prototypeAlias$$.$decorateInternal$ = function $$JSCompiler_prototypeAlias$$$$decorateInternal$$($element$$102$$) {
   this.$element_$ = $element$$102$$ = this.$renderer_$.$decorate$(this, $element$$102$$);
-  var $ariaRole$$inline_249$$ = this.$preferredAriaRole_$ || this.$renderer_$.$getAriaRole$();
-  $ariaRole$$inline_249$$ && $element$$102$$.setAttribute("role", $ariaRole$$inline_249$$);
+  var $ariaRole$$inline_250$$ = this.$preferredAriaRole_$ || this.$renderer_$.$getAriaRole$();
+  $ariaRole$$inline_250$$ && $element$$102$$.setAttribute("role", $ariaRole$$inline_250$$);
   this.$allowTextSelection_$ || this.$renderer_$.$setAllowTextSelection$($element$$102$$, $JSCompiler_alias_FALSE$$);
   this.$visible_$ = "none" != $element$$102$$.style.display
 };
@@ -1652,29 +1652,29 @@ $JSCompiler_prototypeAlias$$.$disposeInternal$ = function $$JSCompiler_prototype
 function $JSCompiler_StaticMethods_setContentInternal$$($JSCompiler_StaticMethods_setContentInternal$self$$, $content$$9$$) {
   $JSCompiler_StaticMethods_setContentInternal$self$$.$content_$ = $content$$9$$
 }
-function $JSCompiler_StaticMethods_getCaption$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$) {
-  $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.$content_$;
-  if(!$JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$) {
+function $JSCompiler_StaticMethods_getCaption$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$) {
+  $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.$content_$;
+  if(!$JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$) {
     return""
   }
-  if(!$goog$isString$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$)) {
-    if($goog$isArray$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$)) {
-      $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $goog$array$map$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$, $goog$dom$getRawTextContent$$).join("")
+  if(!$goog$isString$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$)) {
+    if($goog$isArray$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$)) {
+      $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $goog$array$map$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$, $goog$dom$getRawTextContent$$).join("")
     }else {
-      if($goog$dom$BrowserFeature$CAN_USE_INNER_TEXT$$ && "innerText" in $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$) {
-        $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.innerText.replace(/(\r\n|\r|\n)/g, "\n")
+      if($goog$dom$BrowserFeature$CAN_USE_INNER_TEXT$$ && "innerText" in $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$) {
+        $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.innerText.replace(/(\r\n|\r|\n)/g, "\n")
       }else {
-        var $buf$$inline_253$$ = [];
-        $goog$dom$getTextContent_$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$, $buf$$inline_253$$, $JSCompiler_alias_TRUE$$);
-        $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $buf$$inline_253$$.join("")
+        var $buf$$inline_254$$ = [];
+        $goog$dom$getTextContent_$$($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$, $buf$$inline_254$$, $JSCompiler_alias_TRUE$$);
+        $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $buf$$inline_254$$.join("")
       }
-      $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.replace(/ \xAD /g, " ").replace(/\xAD/g, "");
-      $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.replace(/\u200B/g, "");
-      $goog$dom$BrowserFeature$CAN_USE_INNER_TEXT$$ || ($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.replace(/ +/g, " "));
-      " " != $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ && ($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.replace(/^\s*/, ""))
+      $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.replace(/ \xAD /g, " ").replace(/\xAD/g, "");
+      $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.replace(/\u200B/g, "");
+      $goog$dom$BrowserFeature$CAN_USE_INNER_TEXT$$ || ($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.replace(/ +/g, " "));
+      " " != $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ && ($JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$ = $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.replace(/^\s*/, ""))
     }
   }
-  return $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_252$$.replace(/[\t\r\n ]+/g, " ").replace(/^[\t\r\n ]+|[\t\r\n ]+$/g, "")
+  return $JSCompiler_StaticMethods_getCaption$self_JSCompiler_temp$$19_JSCompiler_temp$$20_content$$10_textContent$$inline_253$$.replace(/[\t\r\n ]+/g, " ").replace(/^[\t\r\n ]+|[\t\r\n ]+$/g, "")
 }
 $JSCompiler_prototypeAlias$$.$setRightToLeft$ = function $$JSCompiler_prototypeAlias$$$$setRightToLeft$$($rightToLeft$$3$$) {
   $goog$ui$Control$$.$superClass_$.$setRightToLeft$.call(this, $rightToLeft$$3$$);
@@ -1700,8 +1700,8 @@ $JSCompiler_prototypeAlias$$.isEnabled = function $$JSCompiler_prototypeAlias$$$
   return!(this.$state_$ & 1)
 };
 $JSCompiler_prototypeAlias$$.$setEnabled$ = function $$JSCompiler_prototypeAlias$$$$setEnabled$$($enable$$8$$) {
-  var $parent$$inline_256$$ = this.getParent();
-  if((!$parent$$inline_256$$ || "function" != typeof $parent$$inline_256$$.isEnabled || $parent$$inline_256$$.isEnabled()) && $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 1, !$enable$$8$$)) {
+  var $parent$$inline_257$$ = this.getParent();
+  if((!$parent$$inline_257$$ || "function" != typeof $parent$$inline_257$$.isEnabled || $parent$$inline_257$$.isEnabled()) && $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 1, !$enable$$8$$)) {
     $enable$$8$$ || (this.setActive($JSCompiler_alias_FALSE$$), $JSCompiler_StaticMethods_setHighlighted$$(this, $JSCompiler_alias_FALSE$$)), this.$visible_$ && this.$renderer_$.$setFocusable$(this, $enable$$8$$), this.$setState$(1, !$enable$$8$$)
   }
 };
@@ -1748,14 +1748,14 @@ $JSCompiler_prototypeAlias$$.$handleDblClick$ = function $$JSCompiler_prototypeA
 };
 $JSCompiler_prototypeAlias$$.$performActionInternal$ = function $$JSCompiler_prototypeAlias$$$$performActionInternal$$($e$$37$$) {
   if($JSCompiler_StaticMethods_isAutoState$$(this, 16)) {
-    var $actionEvent_check$$inline_259_open$$inline_265$$ = !(this.$state_$ & 16);
-    $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 16, $actionEvent_check$$inline_259_open$$inline_265$$) && this.$setState$(16, $actionEvent_check$$inline_259_open$$inline_265$$)
+    var $actionEvent_check$$inline_260_open$$inline_266$$ = !(this.$state_$ & 16);
+    $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 16, $actionEvent_check$$inline_260_open$$inline_266$$) && this.$setState$(16, $actionEvent_check$$inline_260_open$$inline_266$$)
   }
   $JSCompiler_StaticMethods_isAutoState$$(this, 8) && $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 8, $JSCompiler_alias_TRUE$$) && this.$setState$(8, $JSCompiler_alias_TRUE$$);
-  $JSCompiler_StaticMethods_isAutoState$$(this, 64) && ($actionEvent_check$$inline_259_open$$inline_265$$ = !(this.$state_$ & 64), $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 64, $actionEvent_check$$inline_259_open$$inline_265$$) && this.$setState$(64, $actionEvent_check$$inline_259_open$$inline_265$$));
-  $actionEvent_check$$inline_259_open$$inline_265$$ = new $goog$events$Event$$("action", this);
-  $e$$37$$ && ($actionEvent_check$$inline_259_open$$inline_265$$.altKey = $e$$37$$.altKey, $actionEvent_check$$inline_259_open$$inline_265$$.ctrlKey = $e$$37$$.ctrlKey, $actionEvent_check$$inline_259_open$$inline_265$$.metaKey = $e$$37$$.metaKey, $actionEvent_check$$inline_259_open$$inline_265$$.shiftKey = $e$$37$$.shiftKey, $actionEvent_check$$inline_259_open$$inline_265$$.$platformModifierKey$ = $e$$37$$.$platformModifierKey$);
-  return this.dispatchEvent($actionEvent_check$$inline_259_open$$inline_265$$)
+  $JSCompiler_StaticMethods_isAutoState$$(this, 64) && ($actionEvent_check$$inline_260_open$$inline_266$$ = !(this.$state_$ & 64), $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 64, $actionEvent_check$$inline_260_open$$inline_266$$) && this.$setState$(64, $actionEvent_check$$inline_260_open$$inline_266$$));
+  $actionEvent_check$$inline_260_open$$inline_266$$ = new $goog$events$Event$$("action", this);
+  $e$$37$$ && ($actionEvent_check$$inline_260_open$$inline_266$$.altKey = $e$$37$$.altKey, $actionEvent_check$$inline_260_open$$inline_266$$.ctrlKey = $e$$37$$.ctrlKey, $actionEvent_check$$inline_260_open$$inline_266$$.metaKey = $e$$37$$.metaKey, $actionEvent_check$$inline_260_open$$inline_266$$.shiftKey = $e$$37$$.shiftKey, $actionEvent_check$$inline_260_open$$inline_266$$.$platformModifierKey$ = $e$$37$$.$platformModifierKey$);
+  return this.dispatchEvent($actionEvent_check$$inline_260_open$$inline_266$$)
 };
 $JSCompiler_prototypeAlias$$.$handleFocus$ = function $$JSCompiler_prototypeAlias$$$$handleFocus$$() {
   $JSCompiler_StaticMethods_isAutoState$$(this, 32) && $JSCompiler_StaticMethods_isTransitionAllowed$$(this, 32, $JSCompiler_alias_TRUE$$) && this.$setState$(32, $JSCompiler_alias_TRUE$$)
@@ -1772,8 +1772,8 @@ $JSCompiler_prototypeAlias$$.$handleKeyEventInternal$ = function $$JSCompiler_pr
 };
 $goog$isFunction$$($goog$ui$Control$$) || $JSCompiler_alias_THROW$$(Error("Invalid component class " + $goog$ui$Control$$));
 $goog$isFunction$$($goog$ui$ControlRenderer$$) || $JSCompiler_alias_THROW$$(Error("Invalid renderer class " + $goog$ui$ControlRenderer$$));
-var $key$$inline_275$$ = $goog$getUid$$($goog$ui$Control$$);
-$goog$ui$registry$defaultRenderers_$$[$key$$inline_275$$] = $goog$ui$ControlRenderer$$;
+var $key$$inline_276$$ = $goog$getUid$$($goog$ui$Control$$);
+$goog$ui$registry$defaultRenderers_$$[$key$$inline_276$$] = $goog$ui$ControlRenderer$$;
 $goog$ui$registry$setDecoratorByClassName$$("goog-control", function() {
   return new $goog$ui$Control$$($JSCompiler_alias_NULL$$)
 });
@@ -1797,8 +1797,8 @@ $JSCompiler_prototypeAlias$$.$createDom$ = function $$JSCompiler_prototypeAlias$
 };
 $JSCompiler_prototypeAlias$$.$decorate$ = function $$JSCompiler_prototypeAlias$$$$decorate$$($button$$2$$, $element$$109$$) {
   $element$$109$$ = $goog$ui$ButtonRenderer$$.$superClass_$.$decorate$.call(this, $button$$2$$, $element$$109$$);
-  var $value$$inline_282$$ = this.$getValue$($element$$109$$);
-  $button$$2$$.$value_$ = $value$$inline_282$$;
+  var $value$$inline_283$$ = this.$getValue$($element$$109$$);
+  $button$$2$$.$value_$ = $value$$inline_283$$;
   $button$$2$$.$tooltip_$ = this.$getTooltip$($element$$109$$);
   $button$$2$$.$supportedStates_$ & 16 && this.$updateAriaState$($element$$109$$, 16, !!($button$$2$$.$state_$ & 16));
   return $element$$109$$
@@ -1908,8 +1908,8 @@ $goog$inherits$$($bitex$ui$OrderBook$$, $goog$ui$Component$$);
 $bitex$ui$OrderBook$$.prototype.$getBaseCssClass$ = $JSCompiler_returnArg$$("order-book");
 $bitex$ui$OrderBook$$.prototype.$decorateInternal$ = function $$bitex$ui$OrderBook$$$$$decorateInternal$$($element$$117$$) {
   this.$element_$ = $element$$117$$;
-  var $JSCompiler_StaticMethods_getElementsByTagNameAndClass$self$$inline_294$$ = this.$getDomHelper$();
-  this.$bodyEl_$ = $goog$dom$getElementsByTagNameAndClass_$$($JSCompiler_StaticMethods_getElementsByTagNameAndClass$self$$inline_294$$.$document_$, "tbody", $JSCompiler_alias_VOID$$, $element$$117$$)[0]
+  var $JSCompiler_StaticMethods_getElementsByTagNameAndClass$self$$inline_295$$ = this.$getDomHelper$();
+  this.$bodyEl_$ = $goog$dom$getElementsByTagNameAndClass_$$($JSCompiler_StaticMethods_getElementsByTagNameAndClass$self$$inline_295$$.$document_$, "tbody", $JSCompiler_alias_VOID$$, $element$$117$$)[0]
 };
 $bitex$ui$OrderBook$$.prototype.$enterDocument$ = function $$bitex$ui$OrderBook$$$$$enterDocument$$() {
   $JSCompiler_StaticMethods_listen$$($JSCompiler_StaticMethods_getHandler$$(this), this.$getElement$(), "click", this.$onClick_$)
@@ -1948,22 +1948,21 @@ function $JSCompiler_StaticMethods_updateOrder$$($JSCompiler_StaticMethods_updat
     $goog$dom$classes$remove$$($tdQtyEl$$, $blink_class$$2$$)
   }, $JSCompiler_StaticMethods_updateOrder$self$$.$blink_delay_$, $JSCompiler_StaticMethods_updateOrder$self$$)
 }
-function $JSCompiler_StaticMethods_insertOrder$$($JSCompiler_StaticMethods_insertOrder$self$$, $index$$64$$, $id$$8$$, $price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$) {
-  var $dom$$6$$ = $JSCompiler_StaticMethods_insertOrder$self$$.$getDomHelper$();
-  $price_priceEl$$ = $dom$$6$$.$createDom$("td", $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-price", $price_priceEl$$);
-  $qty$$1_qtyEl$$ = $dom$$6$$.$createDom$("td", $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-qty", $qty$$1_qtyEl$$);
-  $td_list_userNameEl_username$$1$$ = $td_list_userNameEl_username$$1$$ === $JSCompiler_StaticMethods_insertOrder$self$$.$username_$ ? $dom$$6$$.$createDom$("td", $JSCompiler_alias_VOID$$, $dom$$6$$.$createDom$("button", {"data-order-id":$id$$8$$, "class":"btn btn-mini btn-danger btn-cancel-order"}, "Cancelar")) : $dom$$6$$.$createDom$("td", $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-username", $td_list_userNameEl_username$$1$$);
-  "0" == $JSCompiler_StaticMethods_insertOrder$self$$.$side_$ ? ($goog$dom$classes$add$$($td_list_userNameEl_username$$1$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-left"), $goog$dom$classes$add$$($price_priceEl$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-right"), $td_list_userNameEl_username$$1$$ = [$td_list_userNameEl_username$$1$$, $qty$$1_qtyEl$$, $price_priceEl$$]) : ($goog$dom$classes$add$$($td_list_userNameEl_username$$1$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + 
-  "-right"), $goog$dom$classes$add$$($price_priceEl$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-left"), $td_list_userNameEl_username$$1$$ = [$price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$]);
-  var $rowEl$$ = $dom$$6$$.$createDom$("tr", {"data-order-id":$id$$8$$, "class":$JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-row"}, $td_list_userNameEl_username$$1$$);
-  $JSCompiler_StaticMethods_insertChildAt$$($JSCompiler_StaticMethods_insertOrder$self$$.$bodyEl_$, $rowEl$$, $index$$64$$);
-  var $blink_class$$3$$ = $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-blink";
+$bitex$ui$OrderBook$$.prototype.$insertOrder$ = function $$bitex$ui$OrderBook$$$$$insertOrder$$($index$$64$$, $id$$8$$, $price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$) {
+  var $dom$$6$$ = this.$getDomHelper$();
+  $price_priceEl$$ = $dom$$6$$.$createDom$("td", this.$getBaseCssClass$() + "-price", $price_priceEl$$);
+  $qty$$1_qtyEl$$ = $dom$$6$$.$createDom$("td", this.$getBaseCssClass$() + "-qty", $qty$$1_qtyEl$$);
+  $td_list_userNameEl_username$$1$$ = $td_list_userNameEl_username$$1$$ === this.$username_$ ? $dom$$6$$.$createDom$("td", $JSCompiler_alias_VOID$$, $dom$$6$$.$createDom$("button", {"data-order-id":$id$$8$$, "class":"btn btn-mini btn-danger btn-cancel-order"}, "Cancelar")) : $dom$$6$$.$createDom$("td", this.$getBaseCssClass$() + "-username", $td_list_userNameEl_username$$1$$);
+  "0" == this.$side_$ ? ($goog$dom$classes$add$$($td_list_userNameEl_username$$1$$, this.$getBaseCssClass$() + "-left"), $goog$dom$classes$add$$($price_priceEl$$, this.$getBaseCssClass$() + "-right"), $td_list_userNameEl_username$$1$$ = [$td_list_userNameEl_username$$1$$, $qty$$1_qtyEl$$, $price_priceEl$$]) : ($goog$dom$classes$add$$($td_list_userNameEl_username$$1$$, this.$getBaseCssClass$() + "-right"), $goog$dom$classes$add$$($price_priceEl$$, this.$getBaseCssClass$() + "-left"), $td_list_userNameEl_username$$1$$ = 
+  [$price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$]);
+  var $rowEl$$ = $dom$$6$$.$createDom$("tr", {"data-order-id":$id$$8$$, "class":this.$getBaseCssClass$() + "-row"}, $td_list_userNameEl_username$$1$$);
+  $JSCompiler_StaticMethods_insertChildAt$$(this.$bodyEl_$, $rowEl$$, $index$$64$$);
+  var $blink_class$$3$$ = this.$getBaseCssClass$() + "-blink";
   $goog$dom$classes$add$$($rowEl$$, $blink_class$$3$$);
   $goog$Timer$callOnce$$(function() {
     $goog$dom$classes$remove$$($rowEl$$, $blink_class$$3$$)
-  }, $JSCompiler_StaticMethods_insertOrder$self$$.$blink_delay_$, $JSCompiler_StaticMethods_insertOrder$self$$)
-}
-;
+  }, this.$blink_delay_$, this)
+};
 // Input 52
 function $bitex$ui$OrderEntry$$($opt_blinkDelay$$2$$, $opt_domHelper$$5$$) {
   $goog$ui$Component$$.call(this, $opt_domHelper$$5$$);
@@ -1991,6 +1990,78 @@ function $bitex$ui$OrderEntryEvent$$($type$$92$$, $symbol$$2$$, $qty$$3$$, $pric
 }
 $goog$inherits$$($bitex$ui$OrderEntryEvent$$, $goog$events$Event$$);
 // Input 53
+// Input 54
+function $goog$history$Event$$($token$$4$$, $isNavigation$$) {
+  $goog$events$Event$$.call(this, "navigate");
+  this.$token$ = $token$$4$$;
+  this.$isNavigation$ = $isNavigation$$
+}
+$goog$inherits$$($goog$history$Event$$, $goog$events$Event$$);
+// Input 55
+function $goog$history$Html5History$$($opt_win$$, $opt_transformer$$) {
+  $goog$Disposable$$.call(this);
+  this.$window_$ = $opt_win$$ || window;
+  this.$transformer_$ = $opt_transformer$$ || $JSCompiler_alias_NULL$$;
+  $goog$events$listen$$(this.$window_$, "popstate", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this);
+  $goog$events$listen$$(this.$window_$, "hashchange", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this)
+}
+$goog$inherits$$($goog$history$Html5History$$, $goog$events$EventTarget$$);
+$JSCompiler_prototypeAlias$$ = $goog$history$Html5History$$.prototype;
+$JSCompiler_prototypeAlias$$.$enabled_$ = $JSCompiler_alias_FALSE$$;
+$JSCompiler_prototypeAlias$$.$useFragment_$ = $JSCompiler_alias_TRUE$$;
+$JSCompiler_prototypeAlias$$.$pathPrefix_$ = "/";
+$JSCompiler_prototypeAlias$$.$setEnabled$ = function $$JSCompiler_prototypeAlias$$$$setEnabled$$($enable$$15$$) {
+  $enable$$15$$ != this.$enabled_$ && (this.$enabled_$ = $enable$$15$$) && this.dispatchEvent(new $goog$history$Event$$($JSCompiler_StaticMethods_getToken$$(this), $JSCompiler_alias_FALSE$$))
+};
+function $JSCompiler_StaticMethods_getToken$$($JSCompiler_StaticMethods_getToken$self_loc$$) {
+  if($JSCompiler_StaticMethods_getToken$self_loc$$.$useFragment_$) {
+    $JSCompiler_StaticMethods_getToken$self_loc$$ = $JSCompiler_StaticMethods_getToken$self_loc$$.$window_$.location.href;
+    var $index$$65$$ = $JSCompiler_StaticMethods_getToken$self_loc$$.indexOf("#");
+    return 0 > $index$$65$$ ? "" : $JSCompiler_StaticMethods_getToken$self_loc$$.substring($index$$65$$ + 1)
+  }
+  return $JSCompiler_StaticMethods_getToken$self_loc$$.$transformer_$ ? $JSCompiler_StaticMethods_getToken$self_loc$$.$transformer_$.$retrieveToken$($JSCompiler_StaticMethods_getToken$self_loc$$.$pathPrefix_$, $JSCompiler_StaticMethods_getToken$self_loc$$.$window_$.location) : $JSCompiler_StaticMethods_getToken$self_loc$$.$window_$.location.pathname.substr($JSCompiler_StaticMethods_getToken$self_loc$$.$pathPrefix_$.length)
+}
+$JSCompiler_prototypeAlias$$.$disposeInternal$ = function $$JSCompiler_prototypeAlias$$$$disposeInternal$$() {
+  $goog$events$unlisten$$(this.$window_$, "popstate", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this);
+  this.$useFragment_$ && $goog$events$unlisten$$(this.$window_$, "hashchange", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this)
+};
+$JSCompiler_prototypeAlias$$.$onHistoryEvent_$ = function $$JSCompiler_prototypeAlias$$$$onHistoryEvent_$$() {
+  this.$enabled_$ && this.dispatchEvent(new $goog$history$Event$$($JSCompiler_StaticMethods_getToken$$(this), $JSCompiler_alias_TRUE$$))
+};
+// Input 56
+function $bitex$app$UrlRouter$$($baseUrl$$, $defaultView$$) {
+  var $JSCompiler_StaticMethods_setUseFragment$self$$inline_304$$ = this.$history_$ = new $goog$history$Html5History$$;
+  $JSCompiler_StaticMethods_setUseFragment$self$$inline_304$$.$useFragment_$ != $JSCompiler_alias_FALSE$$ && ($goog$events$unlisten$$($JSCompiler_StaticMethods_setUseFragment$self$$inline_304$$.$window_$, "hashchange", $JSCompiler_StaticMethods_setUseFragment$self$$inline_304$$.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, $JSCompiler_StaticMethods_setUseFragment$self$$inline_304$$), $JSCompiler_StaticMethods_setUseFragment$self$$inline_304$$.$useFragment_$ = $JSCompiler_alias_FALSE$$);
+  this.$base_url_$ = $baseUrl$$;
+  this.$default_view_$ = $defaultView$$;
+  $JSCompiler_StaticMethods_setViewInternal$$(this, $defaultView$$);
+  this.$history_$.addEventListener("navigate", this.$onNavigate_$, $JSCompiler_alias_VOID$$, this);
+  this.$history_$.$setEnabled$($JSCompiler_alias_TRUE$$)
+}
+$goog$inherits$$($bitex$app$UrlRouter$$, $goog$events$EventTarget$$);
+function $JSCompiler_StaticMethods_setViewInternal$$($JSCompiler_StaticMethods_setViewInternal$self$$, $view_name$$) {
+  var $JSCompiler_inline_result$$17_re$$inline_309$$;
+  $JSCompiler_inline_result$$17_re$$inline_309$$ = RegExp(String($JSCompiler_StaticMethods_setViewInternal$self$$.$base_url_$).replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1").replace(/\x08/g, "\\x08"), "");
+  $JSCompiler_inline_result$$17_re$$inline_309$$ = $view_name$$.replace($JSCompiler_inline_result$$17_re$$inline_309$$, "");
+  $JSCompiler_StaticMethods_setViewInternal$self$$.$current_view_$ = $JSCompiler_inline_result$$17_re$$inline_309$$;
+  "" === $JSCompiler_StaticMethods_setViewInternal$self$$.$current_view_$ && ($JSCompiler_StaticMethods_setViewInternal$self$$.$current_view_$ = $JSCompiler_StaticMethods_setViewInternal$self$$.$default_view_$)
+}
+function $JSCompiler_StaticMethods_setView$$($JSCompiler_StaticMethods_setView$self$$, $view_name$$1$$) {
+  $JSCompiler_StaticMethods_setViewInternal$$($JSCompiler_StaticMethods_setView$self$$, $view_name$$1$$);
+  var $JSCompiler_StaticMethods_setToken$self$$inline_311$$ = $JSCompiler_StaticMethods_setView$self$$.$history_$, $token$$inline_312$$ = $JSCompiler_StaticMethods_setView$self$$.$base_url_$ + $view_name$$1$$;
+  $token$$inline_312$$ != $JSCompiler_StaticMethods_getToken$$($JSCompiler_StaticMethods_setToken$self$$inline_311$$) && ($JSCompiler_StaticMethods_setToken$self$$inline_311$$.$window_$.history.pushState($JSCompiler_alias_NULL$$, $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$window_$.document.title || "", $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$useFragment_$ ? "#" + $token$$inline_312$$ : $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$transformer_$ ? $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$transformer_$.$createUrl$($token$$inline_312$$, 
+  $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$pathPrefix_$, $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$window_$.location) : $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$pathPrefix_$ + $token$$inline_312$$ + $JSCompiler_StaticMethods_setToken$self$$inline_311$$.$window_$.location.search), $JSCompiler_StaticMethods_setToken$self$$inline_311$$.dispatchEvent(new $goog$history$Event$$($token$$inline_312$$, $JSCompiler_alias_FALSE$$)));
+  $JSCompiler_StaticMethods_setView$self$$.dispatchEvent(new $bitex$app$UrlRouterEvent$$("set_view", $JSCompiler_StaticMethods_setView$self$$.$current_view_$))
+}
+$bitex$app$UrlRouter$$.prototype.$onNavigate_$ = function $$bitex$app$UrlRouter$$$$$onNavigate_$$($e$$46$$) {
+  $e$$46$$.$isNavigation$ && ($JSCompiler_StaticMethods_setViewInternal$$(this, $e$$46$$.$token$), this.dispatchEvent(new $bitex$app$UrlRouterEvent$$("set_view", this.$current_view_$)))
+};
+function $bitex$app$UrlRouterEvent$$($type$$93$$, $view$$3$$) {
+  $goog$events$Event$$.call(this, $type$$93$$);
+  this.view = $view$$3$$
+}
+$goog$inherits$$($bitex$app$UrlRouterEvent$$, $goog$events$Event$$);
+// Input 57
 function $bitex$api$BitEx$$() {
   $goog$Disposable$$.call(this)
 }
@@ -2013,28 +2084,28 @@ $JSCompiler_prototypeAlias$$.$onClose_$ = function $$JSCompiler_prototypeAlias$$
 $JSCompiler_prototypeAlias$$.$onError_$ = function $$JSCompiler_prototypeAlias$$$$onError_$$() {
   this.dispatchEvent("error")
 };
-$JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias$$$$onMessage_$$($e$$45_msg$$) {
-  $e$$45_msg$$ = JSON.parse($e$$45_msg$$.data);
-  this.dispatchEvent(new $bitex$api$BitExEvent$$("raw_message", $e$$45_msg$$));
-  switch($e$$45_msg$$.MsgType) {
+$JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias$$$$onMessage_$$($e$$47_msg$$) {
+  $e$$47_msg$$ = JSON.parse($e$$47_msg$$.data);
+  this.dispatchEvent(new $bitex$api$BitExEvent$$("raw_message", $e$$47_msg$$));
+  switch($e$$47_msg$$.MsgType) {
     case "0":
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("heartbeat", $e$$45_msg$$));
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("heartbeat", $e$$47_msg$$));
       break;
     case "BF":
-      1 == $e$$45_msg$$.UserStatus ? this.dispatchEvent(new $bitex$api$BitExEvent$$("login_ok", $e$$45_msg$$)) : this.dispatchEvent(new $bitex$api$BitExEvent$$("login_error", $e$$45_msg$$));
+      1 == $e$$47_msg$$.UserStatus ? this.dispatchEvent(new $bitex$api$BitExEvent$$("login_ok", $e$$47_msg$$)) : this.dispatchEvent(new $bitex$api$BitExEvent$$("login_error", $e$$47_msg$$));
       break;
     case "U3":
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("balance_response", $e$$45_msg$$));
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("balance_response", $e$$47_msg$$));
       break;
     case "U5":
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("order_list_response", $e$$45_msg$$));
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("order_list_response", $e$$47_msg$$));
       break;
     case "W":
-      if(1 != $e$$45_msg$$.MarketDepth) {
+      if(1 != $e$$47_msg$$.MarketDepth) {
         this.dispatchEvent(new $bitex$api$BitExEvent$$("ob_clear"));
         this.dispatchEvent(new $bitex$api$BitExEvent$$("trade_clear"));
-        for(var $x$$63$$ in $e$$45_msg$$.MDFullGrp) {
-          var $entry$$ = $e$$45_msg$$.MDFullGrp[$x$$63$$];
+        for(var $x$$63$$ in $e$$47_msg$$.MDFullGrp) {
+          var $entry$$ = $e$$47_msg$$.MDFullGrp[$x$$63$$];
           switch($entry$$.MDEntryType) {
             case "0":
             ;
@@ -2046,12 +2117,12 @@ $JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias
           }
         }
       }
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("md_full_refresh", $e$$45_msg$$));
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("md_full_refresh", $e$$47_msg$$));
       break;
     case "X":
-      if("3" == $e$$45_msg$$.MDBkTyp) {
-        for($x$$63$$ in $e$$45_msg$$.MDIncGrp) {
-          switch($entry$$ = $e$$45_msg$$.MDIncGrp[$x$$63$$], $entry$$.MDEntryType) {
+      if("3" == $e$$47_msg$$.MDBkTyp) {
+        for($x$$63$$ in $e$$47_msg$$.MDIncGrp) {
+          switch($entry$$ = $e$$47_msg$$.MDIncGrp[$x$$63$$], $entry$$.MDEntryType) {
             case "0":
             ;
             case "1":
@@ -2074,13 +2145,13 @@ $JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias
           }
         }
       }
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("md_incremental_refresh", $e$$45_msg$$));
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("md_incremental_refresh", $e$$47_msg$$));
       break;
     case "Y":
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("md_request_reject", $e$$45_msg$$));
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("md_request_reject", $e$$47_msg$$));
       break;
     case "8":
-      this.dispatchEvent(new $bitex$api$BitExEvent$$("execution_report", $e$$45_msg$$))
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("execution_report", $e$$47_msg$$))
   }
 };
 $JSCompiler_prototypeAlias$$.close = function $$JSCompiler_prototypeAlias$$$close$() {
@@ -2133,8 +2204,8 @@ $JSCompiler_prototypeAlias$$.$sendSellLimitedOrder$ = function $$JSCompiler_prot
 $JSCompiler_prototypeAlias$$.$testRequest$ = function $$JSCompiler_prototypeAlias$$$$testRequest$$() {
   this.$ws_$.send(JSON.stringify({MsgType:"1", TestReqID:Math.random()}))
 };
-function $bitex$api$BitExEvent$$($type$$93$$, $opt_data$$2$$) {
-  $goog$events$Event$$.call(this, $type$$93$$);
+function $bitex$api$BitExEvent$$($type$$94$$, $opt_data$$2$$) {
+  $goog$events$Event$$.call(this, $type$$94$$);
   this.data = $opt_data$$2$$
 }
 $goog$inherits$$($bitex$api$BitExEvent$$, $goog$events$Event$$);
@@ -2154,105 +2225,84 @@ $goog$exportProperty$$("sendSellLimitedOrder", $bitex$api$BitEx$$.prototype.$sen
 $goog$exportProperty$$("testRequest", $bitex$api$BitEx$$.prototype.$testRequest$);
 $goog$exportProperty$$("addEventListener", $bitex$api$BitEx$$.prototype.addEventListener);
 $goog$exportProperty$$("removeEventListener", $bitex$api$BitEx$$.prototype.removeEventListener);
-// Input 54
-// Input 55
-function $goog$history$Event$$($token$$4$$, $isNavigation$$) {
-  $goog$events$Event$$.call(this, "navigate");
-  this.$token$ = $token$$4$$;
-  this.$isNavigation$ = $isNavigation$$
-}
-$goog$inherits$$($goog$history$Event$$, $goog$events$Event$$);
-// Input 56
-function $goog$history$Html5History$$($opt_win$$, $opt_transformer$$) {
-  $goog$Disposable$$.call(this);
-  this.$window_$ = $opt_win$$ || window;
-  this.$transformer_$ = $opt_transformer$$ || $JSCompiler_alias_NULL$$;
-  $goog$events$listen$$(this.$window_$, "popstate", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this);
-  $goog$events$listen$$(this.$window_$, "hashchange", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this)
-}
-$goog$inherits$$($goog$history$Html5History$$, $goog$events$EventTarget$$);
-$JSCompiler_prototypeAlias$$ = $goog$history$Html5History$$.prototype;
-$JSCompiler_prototypeAlias$$.$enabled_$ = $JSCompiler_alias_FALSE$$;
-$JSCompiler_prototypeAlias$$.$useFragment_$ = $JSCompiler_alias_TRUE$$;
-$JSCompiler_prototypeAlias$$.$pathPrefix_$ = "/";
-$JSCompiler_prototypeAlias$$.$setEnabled$ = function $$JSCompiler_prototypeAlias$$$$setEnabled$$($enable$$15$$) {
-  $enable$$15$$ != this.$enabled_$ && (this.$enabled_$ = $enable$$15$$) && this.dispatchEvent(new $goog$history$Event$$($JSCompiler_StaticMethods_getToken$$(this), $JSCompiler_alias_FALSE$$))
-};
-function $JSCompiler_StaticMethods_getToken$$($JSCompiler_StaticMethods_getToken$self_loc$$) {
-  if($JSCompiler_StaticMethods_getToken$self_loc$$.$useFragment_$) {
-    $JSCompiler_StaticMethods_getToken$self_loc$$ = $JSCompiler_StaticMethods_getToken$self_loc$$.$window_$.location.href;
-    var $index$$65$$ = $JSCompiler_StaticMethods_getToken$self_loc$$.indexOf("#");
-    return 0 > $index$$65$$ ? "" : $JSCompiler_StaticMethods_getToken$self_loc$$.substring($index$$65$$ + 1)
-  }
-  return $JSCompiler_StaticMethods_getToken$self_loc$$.$transformer_$ ? $JSCompiler_StaticMethods_getToken$self_loc$$.$transformer_$.$retrieveToken$($JSCompiler_StaticMethods_getToken$self_loc$$.$pathPrefix_$, $JSCompiler_StaticMethods_getToken$self_loc$$.$window_$.location) : $JSCompiler_StaticMethods_getToken$self_loc$$.$window_$.location.pathname.substr($JSCompiler_StaticMethods_getToken$self_loc$$.$pathPrefix_$.length)
-}
-$JSCompiler_prototypeAlias$$.$disposeInternal$ = function $$JSCompiler_prototypeAlias$$$$disposeInternal$$() {
-  $goog$events$unlisten$$(this.$window_$, "popstate", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this);
-  this.$useFragment_$ && $goog$events$unlisten$$(this.$window_$, "hashchange", this.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, this)
-};
-$JSCompiler_prototypeAlias$$.$onHistoryEvent_$ = function $$JSCompiler_prototypeAlias$$$$onHistoryEvent_$$() {
-  this.$enabled_$ && this.dispatchEvent(new $goog$history$Event$$($JSCompiler_StaticMethods_getToken$$(this), $JSCompiler_alias_TRUE$$))
-};
-// Input 57
-function $bitex$app$UrlRouter$$($baseUrl$$, $defaultView$$) {
-  var $JSCompiler_StaticMethods_setUseFragment$self$$inline_308$$ = this.$history_$ = new $goog$history$Html5History$$;
-  $JSCompiler_StaticMethods_setUseFragment$self$$inline_308$$.$useFragment_$ != $JSCompiler_alias_FALSE$$ && ($goog$events$unlisten$$($JSCompiler_StaticMethods_setUseFragment$self$$inline_308$$.$window_$, "hashchange", $JSCompiler_StaticMethods_setUseFragment$self$$inline_308$$.$onHistoryEvent_$, $JSCompiler_alias_FALSE$$, $JSCompiler_StaticMethods_setUseFragment$self$$inline_308$$), $JSCompiler_StaticMethods_setUseFragment$self$$inline_308$$.$useFragment_$ = $JSCompiler_alias_FALSE$$);
-  this.$base_url_$ = $baseUrl$$;
-  this.$default_view_$ = $defaultView$$;
-  $JSCompiler_StaticMethods_setViewInternal$$(this, $defaultView$$);
-  this.$history_$.addEventListener("navigate", this.$onNavigate_$, $JSCompiler_alias_VOID$$, this);
-  this.$history_$.$setEnabled$($JSCompiler_alias_TRUE$$)
-}
-$goog$inherits$$($bitex$app$UrlRouter$$, $goog$events$EventTarget$$);
-function $JSCompiler_StaticMethods_setViewInternal$$($JSCompiler_StaticMethods_setViewInternal$self$$, $view_name$$) {
-  var $JSCompiler_inline_result$$17_re$$inline_313$$;
-  $JSCompiler_inline_result$$17_re$$inline_313$$ = RegExp(String($JSCompiler_StaticMethods_setViewInternal$self$$.$base_url_$).replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1").replace(/\x08/g, "\\x08"), "");
-  $JSCompiler_inline_result$$17_re$$inline_313$$ = $view_name$$.replace($JSCompiler_inline_result$$17_re$$inline_313$$, "");
-  $JSCompiler_StaticMethods_setViewInternal$self$$.$current_view_$ = $JSCompiler_inline_result$$17_re$$inline_313$$;
-  "" === $JSCompiler_StaticMethods_setViewInternal$self$$.$current_view_$ && ($JSCompiler_StaticMethods_setViewInternal$self$$.$current_view_$ = $JSCompiler_StaticMethods_setViewInternal$self$$.$default_view_$)
-}
-function $JSCompiler_StaticMethods_setView$$($JSCompiler_StaticMethods_setView$self$$, $view_name$$1$$) {
-  $JSCompiler_StaticMethods_setViewInternal$$($JSCompiler_StaticMethods_setView$self$$, $view_name$$1$$);
-  var $JSCompiler_StaticMethods_setToken$self$$inline_315$$ = $JSCompiler_StaticMethods_setView$self$$.$history_$, $token$$inline_316$$ = $JSCompiler_StaticMethods_setView$self$$.$base_url_$ + $view_name$$1$$;
-  $token$$inline_316$$ != $JSCompiler_StaticMethods_getToken$$($JSCompiler_StaticMethods_setToken$self$$inline_315$$) && ($JSCompiler_StaticMethods_setToken$self$$inline_315$$.$window_$.history.pushState($JSCompiler_alias_NULL$$, $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$window_$.document.title || "", $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$useFragment_$ ? "#" + $token$$inline_316$$ : $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$transformer_$ ? $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$transformer_$.$createUrl$($token$$inline_316$$, 
-  $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$pathPrefix_$, $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$window_$.location) : $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$pathPrefix_$ + $token$$inline_316$$ + $JSCompiler_StaticMethods_setToken$self$$inline_315$$.$window_$.location.search), $JSCompiler_StaticMethods_setToken$self$$inline_315$$.dispatchEvent(new $goog$history$Event$$($token$$inline_316$$, $JSCompiler_alias_FALSE$$)));
-  $JSCompiler_StaticMethods_setView$self$$.dispatchEvent(new $bitex$app$UrlRouterEvent$$("set_view", $JSCompiler_StaticMethods_setView$self$$.$current_view_$))
-}
-$bitex$app$UrlRouter$$.prototype.$onNavigate_$ = function $$bitex$app$UrlRouter$$$$$onNavigate_$$($e$$47$$) {
-  $e$$47$$.$isNavigation$ && ($JSCompiler_StaticMethods_setViewInternal$$(this, $e$$47$$.$token$), this.dispatchEvent(new $bitex$app$UrlRouterEvent$$("set_view", this.$current_view_$)))
-};
-function $bitex$app$UrlRouterEvent$$($type$$94$$, $view$$3$$) {
-  $goog$events$Event$$.call(this, $type$$94$$);
-  this.view = $view$$3$$
-}
-$goog$inherits$$($bitex$app$UrlRouterEvent$$, $goog$events$Event$$);
 // Input 58
+function $bitex$ui$OrderManager$$($opt_domHelper$$6$$) {
+  $goog$ui$Component$$.call(this, $opt_domHelper$$6$$)
+}
+$goog$inherits$$($bitex$ui$OrderManager$$, $goog$ui$Component$$);
+var $bitex$ui$OrderManager$Status$$ = {"-":"pendente", 0:"nova", 1:"exec. parcial", 2:"executada", 4:"cancelada"};
+$bitex$ui$OrderManager$$.prototype.$getCssClass$ = $JSCompiler_returnArg$$("order-manager");
+$bitex$ui$OrderManager$$.prototype.$decorateInternal$ = function $$bitex$ui$OrderManager$$$$$decorateInternal$$($element$$119$$) {
+  $bitex$ui$OrderManager$$.$superClass_$.$decorateInternal$.call(this, $element$$119$$);
+  this.$getDomHelper$();
+  this.$tbody_$ = $goog$dom$getElementsByTagNameAndClass_$$(document, "TBODY", $JSCompiler_alias_VOID$$, this.$getElement$())[0];
+  return $element$$119$$
+};
+$bitex$ui$OrderManager$$.prototype.$insertOrder$ = function $$bitex$ui$OrderManager$$$$$insertOrder$$($clientOrderId$$1_tr_attributes$$, $dom$$9_status$$, $side$$2_tr$$, $orderQty$$, $price$$6$$, $leavesQty$$, $cumQty_opt_cumQty$$, $avgPx_opt_avgPrice$$, $opt_orderId_orderId$$2$$) {
+  var $status_class_status_desc$$;
+  switch($dom$$9_status$$) {
+    case "-":
+      $status_class_status_desc$$ = this.$getCssClass$() + "-pending";
+      break;
+    case "0":
+      $status_class_status_desc$$ = this.$getCssClass$() + "-new";
+      break;
+    case "1":
+      $status_class_status_desc$$ = this.$getCssClass$() + "-partial";
+      break;
+    case "2":
+      $status_class_status_desc$$ = this.$getCssClass$() + "-fill";
+      break;
+    case "4":
+      $status_class_status_desc$$ = this.$getCssClass$() + "-cancel"
+  }
+  $clientOrderId$$1_tr_attributes$$ = {id:"client_order_id_" + $clientOrderId$$1_tr_attributes$$, "class":$status_class_status_desc$$};
+  $orderQty$$ = ($orderQty$$ / 1E8).toFixed(8);
+  $price$$6$$ = ($price$$6$$ / 1E5).toFixed(5);
+  $leavesQty$$ = ($leavesQty$$ / 1E8).toFixed(8);
+  $cumQty_opt_cumQty$$ = ($cumQty_opt_cumQty$$ | 0).toFixed(8);
+  $avgPx_opt_avgPrice$$ = ($avgPx_opt_avgPrice$$ | 0).toFixed(5);
+  $opt_orderId_orderId$$2$$ |= 0;
+  $status_class_status_desc$$ = $bitex$ui$OrderManager$Status$$[$dom$$9_status$$];
+  $dom$$9_status$$ = this.$getDomHelper$();
+  $side$$2_tr$$ = $dom$$9_status$$.$createDom$("tr", $clientOrderId$$1_tr_attributes$$, $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-id", "" + $opt_orderId_orderId$$2$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-status", "" + $status_class_status_desc$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-side", "" + $side$$2_tr$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-order-qty", "" + $orderQty$$), $dom$$9_status$$.$createDom$("td", 
+  this.$getCssClass$() + "-price", "" + $price$$6$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-leaves-qty", "" + $leavesQty$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-cum-qty", "" + $cumQty_opt_cumQty$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-avg-px", "" + $avgPx_opt_avgPrice$$), $dom$$9_status$$.$createDom$("td", this.$getCssClass$() + "-actions", $dom$$9_status$$.$createDom$("button", ["btn", "btn-mini", "btn-danger"], "Cancelar")));
+  $dom$$9_status$$.appendChild(this.$tbody_$, $side$$2_tr$$)
+};
+$bitex$ui$OrderManager$$.prototype.$enterDocument$ = function $$bitex$ui$OrderManager$$$$$enterDocument$$() {
+  $bitex$ui$OrderManager$$.$superClass_$.$enterDocument$.call(this);
+  $JSCompiler_StaticMethods_getHandler$$(this)
+};
+$goog$ui$registry$setDecoratorByClassName$$("order-manager", function() {
+  return new $bitex$ui$OrderManager$$
+});
 // Input 59
 // Input 60
 // Input 61
+// Input 62
 function $goog$dom$forms$getValue$$($el$$37$$) {
-  var $selectedIndex$$inline_320_type$$95_values$$inline_323$$ = $el$$37$$.type;
-  if($selectedIndex$$inline_320_type$$95_values$$inline_323$$ === $JSCompiler_alias_VOID$$) {
+  var $selectedIndex$$inline_325_type$$95_values$$inline_328$$ = $el$$37$$.type;
+  if($selectedIndex$$inline_325_type$$95_values$$inline_328$$ === $JSCompiler_alias_VOID$$) {
     return $JSCompiler_alias_NULL$$
   }
-  switch($selectedIndex$$inline_320_type$$95_values$$inline_323$$.toLowerCase()) {
+  switch($selectedIndex$$inline_325_type$$95_values$$inline_328$$.toLowerCase()) {
     case "checkbox":
     ;
     case "radio":
       return $el$$37$$.checked ? $el$$37$$.value : $JSCompiler_alias_NULL$$;
     case "select-one":
-      return $selectedIndex$$inline_320_type$$95_values$$inline_323$$ = $el$$37$$.selectedIndex, 0 <= $selectedIndex$$inline_320_type$$95_values$$inline_323$$ ? $el$$37$$.options[$selectedIndex$$inline_320_type$$95_values$$inline_323$$].value : $JSCompiler_alias_NULL$$;
+      return $selectedIndex$$inline_325_type$$95_values$$inline_328$$ = $el$$37$$.selectedIndex, 0 <= $selectedIndex$$inline_325_type$$95_values$$inline_328$$ ? $el$$37$$.options[$selectedIndex$$inline_325_type$$95_values$$inline_328$$].value : $JSCompiler_alias_NULL$$;
     case "select-multiple":
-      for(var $selectedIndex$$inline_320_type$$95_values$$inline_323$$ = [], $option$$inline_324$$, $i$$inline_325$$ = 0;$option$$inline_324$$ = $el$$37$$.options[$i$$inline_325$$];$i$$inline_325$$++) {
-        $option$$inline_324$$.selected && $selectedIndex$$inline_320_type$$95_values$$inline_323$$.push($option$$inline_324$$.value)
+      for(var $selectedIndex$$inline_325_type$$95_values$$inline_328$$ = [], $option$$inline_329$$, $i$$inline_330$$ = 0;$option$$inline_329$$ = $el$$37$$.options[$i$$inline_330$$];$i$$inline_330$$++) {
+        $option$$inline_329$$.selected && $selectedIndex$$inline_325_type$$95_values$$inline_328$$.push($option$$inline_329$$.value)
       }
-      return $selectedIndex$$inline_320_type$$95_values$$inline_323$$.length ? $selectedIndex$$inline_320_type$$95_values$$inline_323$$ : $JSCompiler_alias_NULL$$;
+      return $selectedIndex$$inline_325_type$$95_values$$inline_328$$.length ? $selectedIndex$$inline_325_type$$95_values$$inline_328$$ : $JSCompiler_alias_NULL$$;
     default:
       return $el$$37$$.value !== $JSCompiler_alias_VOID$$ ? $el$$37$$.value : $JSCompiler_alias_NULL$$
   }
 }
 ;
-// Input 62
+// Input 63
 $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   function $onCancelOrder_$$($e$$54$$) {
     $bitEx$$.$cancelOrder$($JSCompiler_alias_VOID$$, $e$$54$$.$order_id$)
@@ -2278,6 +2328,8 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   $balance_info$$.$decorate$($goog$dom$getElement$$("account_overview"));
   var $button_login_order_entry$$ = new $bitex$ui$OrderEntry$$;
   $button_login_order_entry$$.$decorate$($goog$dom$getElement$$("id_order_entry"));
+  var $order_manager$$ = new $bitex$ui$OrderManager$$;
+  $order_manager$$.$decorate$($goog$dom$getElement$$("id_orders_table"));
   $button_login_order_entry$$.addEventListener("buy_limited", function($e$$52$$) {
     $bitEx$$.$sendBuyLimitedOrder$($e$$52$$.$symbol$, $e$$52$$.$qty$, $e$$52$$.$price$)
   });
@@ -2310,44 +2362,52 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $order_book_offer$$.clear()
   });
   $bitEx$$.addEventListener("ob_delete_orders_thru", function($e$$58_index$$66$$) {
-    var $msg$$13_side$$2$$ = $e$$58_index$$66$$.data;
-    $e$$58_index$$66$$ = $msg$$13_side$$2$$.MDEntryPositionNo;
-    $msg$$13_side$$2$$ = $msg$$13_side$$2$$.MDEntryType;
-    "0" == $msg$$13_side$$2$$ ? $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_bid$$, $e$$58_index$$66$$) : "1" == $msg$$13_side$$2$$ && $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_offer$$, $e$$58_index$$66$$)
+    var $msg$$13_side$$3$$ = $e$$58_index$$66$$.data;
+    $e$$58_index$$66$$ = $msg$$13_side$$3$$.MDEntryPositionNo;
+    $msg$$13_side$$3$$ = $msg$$13_side$$3$$.MDEntryType;
+    "0" == $msg$$13_side$$3$$ ? $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_bid$$, $e$$58_index$$66$$) : "1" == $msg$$13_side$$3$$ && $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_offer$$, $e$$58_index$$66$$)
   });
   $bitEx$$.addEventListener("ob_delete_order", function($e$$59_index$$67$$) {
-    var $msg$$14_side$$3$$ = $e$$59_index$$67$$.data;
-    $e$$59_index$$67$$ = $msg$$14_side$$3$$.MDEntryPositionNo - 1;
-    $msg$$14_side$$3$$ = $msg$$14_side$$3$$.MDEntryType;
-    "0" == $msg$$14_side$$3$$ ? $JSCompiler_StaticMethods_deleteOrder$$($order_book_bid$$, $e$$59_index$$67$$) : "1" == $msg$$14_side$$3$$ && $JSCompiler_StaticMethods_deleteOrder$$($order_book_offer$$, $e$$59_index$$67$$)
+    var $msg$$14_side$$4$$ = $e$$59_index$$67$$.data;
+    $e$$59_index$$67$$ = $msg$$14_side$$4$$.MDEntryPositionNo - 1;
+    $msg$$14_side$$4$$ = $msg$$14_side$$4$$.MDEntryType;
+    "0" == $msg$$14_side$$4$$ ? $JSCompiler_StaticMethods_deleteOrder$$($order_book_bid$$, $e$$59_index$$67$$) : "1" == $msg$$14_side$$4$$ && $JSCompiler_StaticMethods_deleteOrder$$($order_book_offer$$, $e$$59_index$$67$$)
   });
   $bitEx$$.addEventListener("ob_update_order", function($e$$60_index$$68$$) {
-    var $msg$$15_side$$4$$ = $e$$60_index$$68$$.data;
-    $e$$60_index$$68$$ = $msg$$15_side$$4$$.MDEntryPositionNo - 1;
-    var $qty$$7$$ = ($msg$$15_side$$4$$.MDEntrySize / 1E8).toFixed(8), $msg$$15_side$$4$$ = $msg$$15_side$$4$$.MDEntryType;
-    "0" == $msg$$15_side$$4$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$60_index$$68$$, $qty$$7$$) : "1" == $msg$$15_side$$4$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$60_index$$68$$, $qty$$7$$)
+    var $msg$$15_side$$5$$ = $e$$60_index$$68$$.data;
+    $e$$60_index$$68$$ = $msg$$15_side$$5$$.MDEntryPositionNo - 1;
+    var $qty$$7$$ = ($msg$$15_side$$5$$.MDEntrySize / 1E8).toFixed(8), $msg$$15_side$$5$$ = $msg$$15_side$$5$$.MDEntryType;
+    "0" == $msg$$15_side$$5$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$60_index$$68$$, $qty$$7$$) : "1" == $msg$$15_side$$5$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$60_index$$68$$, $qty$$7$$)
   });
   $bitEx$$.addEventListener("ob_new_order", function($e$$61_index$$69$$) {
-    var $msg$$16_side$$5$$ = $e$$61_index$$69$$.data;
-    $e$$61_index$$69$$ = $msg$$16_side$$5$$.MDEntryPositionNo - 1;
-    var $price$$6$$ = ($msg$$16_side$$5$$.MDEntryPx / 1E5).toFixed(5), $qty$$8$$ = ($msg$$16_side$$5$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$16_side$$5$$.Username, $orderId$$2$$ = $msg$$16_side$$5$$.OrderID, $msg$$16_side$$5$$ = $msg$$16_side$$5$$.MDEntryType;
-    "0" == $msg$$16_side$$5$$ ? $JSCompiler_StaticMethods_insertOrder$$($order_book_bid$$, $e$$61_index$$69$$, $orderId$$2$$, $price$$6$$, $qty$$8$$, $username$$4$$) : "1" == $msg$$16_side$$5$$ && $JSCompiler_StaticMethods_insertOrder$$($order_book_offer$$, $e$$61_index$$69$$, $orderId$$2$$, $price$$6$$, $qty$$8$$, $username$$4$$)
+    var $msg$$16_side$$6$$ = $e$$61_index$$69$$.data;
+    $e$$61_index$$69$$ = $msg$$16_side$$6$$.MDEntryPositionNo - 1;
+    var $price$$7$$ = ($msg$$16_side$$6$$.MDEntryPx / 1E5).toFixed(5), $qty$$8$$ = ($msg$$16_side$$6$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$16_side$$6$$.Username, $orderId$$3$$ = $msg$$16_side$$6$$.OrderID, $msg$$16_side$$6$$ = $msg$$16_side$$6$$.MDEntryType;
+    "0" == $msg$$16_side$$6$$ ? $order_book_bid$$.$insertOrder$($e$$61_index$$69$$, $orderId$$3$$, $price$$7$$, $qty$$8$$, $username$$4$$) : "1" == $msg$$16_side$$6$$ && $order_book_offer$$.$insertOrder$($e$$61_index$$69$$, $orderId$$3$$, $price$$7$$, $qty$$8$$, $username$$4$$)
   });
   $bitEx$$.addEventListener("balance_response", function($e$$62_msg$$17$$) {
     $e$$62_msg$$17$$ = $e$$62_msg$$17$$.data;
     $JSCompiler_StaticMethods_updateBalanceBRL$$($balance_info$$, $e$$62_msg$$17$$.balance_brl);
     $JSCompiler_StaticMethods_updateBalanceBTC$$($balance_info$$, $e$$62_msg$$17$$.balance_btc)
   });
+  $bitEx$$.addEventListener("execution_report", $JSCompiler_emptyFn$$());
+  $bitEx$$.addEventListener("order_list_response", function($e$$64_msg$$18$$) {
+    $e$$64_msg$$18$$ = $e$$64_msg$$18$$.data;
+    for(var $x$$64$$ in $e$$64_msg$$18$$.OrdListGrp) {
+      var $order$$1$$ = $e$$64_msg$$18$$.OrdListGrp[$x$$64$$];
+      $order_manager$$.$insertOrder$($order$$1$$.ClOrdID, $order$$1$$.OrdStatus, $order$$1$$.Side, $order$$1$$.OrderQty, $order$$1$$.Price, $order$$1$$.LeavesQty, $order$$1$$.CumQty, $order$$1$$.AvgPx, $order$$1$$.OrderID)
+    }
+  });
   var $button_signup$$ = new $goog$ui$Button$$;
   $button_signup$$.$decorate$($goog$dom$getElement$$("id_btn_signup"));
-  $goog$events$listen$$($goog$dom$getElement$$("user_agreed_tos"), "click", function($e$$63$$) {
-    $button_signup$$.$setEnabled$($e$$63$$.target.checked)
+  $goog$events$listen$$($goog$dom$getElement$$("user_agreed_tos"), "click", function($e$$65$$) {
+    $button_signup$$.$setEnabled$($e$$65$$.target.checked)
   });
-  $button_signup$$.addEventListener("action", function($e$$64_password2$$) {
-    $e$$64_password2$$.stopPropagation();
-    $e$$64_password2$$.preventDefault();
+  $button_signup$$.addEventListener("action", function($e$$66_password2$$) {
+    $e$$66_password2$$.stopPropagation();
+    $e$$66_password2$$.preventDefault();
     var $first_name$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_first_name")), $last_name$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_last_name")), $username$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_username")), $email$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_email")), $password$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password"));
-    $e$$64_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
+    $e$$66_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
     if($goog$string$isEmpty$$($first_name$$1$$)) {
       alert("Primeiro nome \u00e9 de preenchimento obrigat\u00f3rio")
     }else {
@@ -2361,13 +2421,13 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
             if($goog$string$isEmpty$$($password$$3$$) || 6 > $password$$3$$.length) {
               alert("Senha deve ter no m\u00ednimo 6 letras")
             }else {
-              if($password$$3$$ !== $e$$64_password2$$) {
+              if($password$$3$$ !== $e$$66_password2$$) {
                 alert("Senhas n\u00e3o conferem")
               }else {
                 if($goog$dom$classes$has$$()) {
                   try {
                     $bitEx$$.open($url$$30$$)
-                  }catch($e$$65$$) {
+                  }catch($e$$67$$) {
                     alert("Erro se conectando ao servidor...");
                     return
                   }
@@ -2393,7 +2453,7 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     if($goog$dom$classes$has$$()) {
       try {
         $bitEx$$.open($url$$30$$)
-      }catch($e$$68$$) {
+      }catch($e$$70$$) {
         alert("Erro se conectando ao servidor...");
         return
       }
