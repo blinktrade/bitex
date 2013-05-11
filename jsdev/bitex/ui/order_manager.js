@@ -1,28 +1,93 @@
 goog.provide('bitex.ui.OrderManager');
+goog.provide('bitex.ui.OrderManager.Status');
+goog.provide('bitex.ui.OrderManagerEvent');
 
 goog.require('goog.dom');
 goog.require('goog.object');
-goog.require('goog.ui.Component');
+goog.require('bitex.ui.DataGrid');
 goog.require('goog.ui.registry');
 
 goog.require('goog.dom.TagName');
 
 
 /**
+ * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.OrderManager = function(opt_domHelper) {
-  goog.ui.Component.call(this, opt_domHelper);
+bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
+  var grid_columns = [
+    {
+      'property': 'OrderID',
+      'label': 'ID',
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-id'); }
+    },{
+      'property': 'OrdStatus',
+      'label': 'Status',
+      'sortable': false,
+      'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'status'); }
+    },{
+      'property': 'Side',
+      'label': 'C/V',
+      'sortable': false,
+      'formatter': function(s){
+        switch(s){
+          case '1': return 'C';
+          case '2': return 'V';
+        }
+        return '';
+      },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'side'); }
+    },{
+      'property': 'OrderQty',
+      'label': 'Vol. BTC',
+      'sortable': false,
+      'formatter': function(s){return (s/1e8).toFixed(8);},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-qty'); }
+    },{
+      'property': 'Price',
+      'label': 'Preço R$',
+      'sortable': false,
+      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'price'); }
+    },{
+      'property': 'LeavesQty',
+      'label': 'BTC em aberto',
+      'sortable': false,
+      'formatter': function(s){return (s/1e8).toFixed(8);},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'leaves_qty'); }
+    },{
+      'property': 'CumQty',
+      'label': 'BTC executado',
+      'sortable': false,
+      'formatter': function(s){return (s/1e8).toFixed(8);},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'cum-qty'); }
+    },{
+      'property': 'AvgPx',
+      'label': 'Preço médio',
+      'sortable': false,
+      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
+    },{
+      'property': 'ClOrdID',
+      'label': 'Ações',
+      'sortable': false,
+      'formatter': function(id){
+        var classes = "btn btn-mini btn-danger";
+        return goog.dom.createDom( 'button', { 'class':classes, 'data-client-order-id':id }, 'Cancelar');
+      },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
+    }
+  ];
 
+  this.blink_delay_ = opt_blinkDelay || 700;
+
+  bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
 };
-goog.inherits(bitex.ui.OrderManager, goog.ui.Component);
-
-/**
- * @type {Element}
- */
-bitex.ui.OrderManager.prototype.tbody_ ;
+goog.inherits(bitex.ui.OrderManager, bitex.ui.DataGrid);
 
 /**
  * @enum {string}
@@ -36,6 +101,21 @@ bitex.ui.OrderManager.Status = {
 };
 
 /**
+ * Events fired by Grid
+ * @enum {string}
+ */
+bitex.ui.OrderManager.EventType = {
+  CANCEL: 'cancel'
+};
+
+/**
+ * @type {number}
+ * @private
+ */
+bitex.ui.OrderManager.prototype.blink_delay_;
+
+
+/**
  * @type {string}
  */
 bitex.ui.OrderManager.CSS_CLASS = goog.getCssName('order-manager');
@@ -45,19 +125,84 @@ bitex.ui.OrderManager.prototype.getCssClass = function() {
   return bitex.ui.OrderManager.CSS_CLASS;
 };
 
+/**
+ * @param {Object} row_set
+ * @return {Array.<string>|string|Object}
+ */
+bitex.ui.OrderManager.prototype.getRowClass = function(row_set) {
+  var status =  row_set['OrdStatus'];
 
-/** @inheritDoc */
-bitex.ui.OrderManager.prototype.decorateInternal = function(element) {
-  goog.base(this, 'decorateInternal', element);
-  var dom = this.getDomHelper();
+  var class_id = 'client-order-id-' + row_set['ClOrdID'];
+  var class_status;
+  switch(status) {
+    case '-':
+      class_status = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'pending');
+      break;
+    case '0':
+      class_status = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'new');
+      break;
+    case '1':
+      class_status = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'partial');
+      break;
+    case '2':
+      class_status = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'fill');
+      break;
+    case '4':
+      class_status = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'cancel');
+      break;
+  }
 
-
-  this.tbody_ = goog.dom.getElementsByTagNameAndClass( goog.dom.TagName.TBODY,
-                                                       undefined,
-                                                       this.getElement())[0];
-
-  return element;
+  return [class_id, class_status];
 };
+
+/**
+ * @param  {Object} execution_report_msg
+ */
+bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_report_msg){
+  var class_id = 'client-order-id-' + execution_report_msg['ClOrdID'];
+
+  var tr_element = goog.dom.getElementByClass(class_id, this.getElement());
+
+  if (execution_report_msg['LeavesQty'] === 0 ) {
+    // Remove order
+    if (goog.isDefAndNotNull(tr_element)) {
+      goog.dom.removeNode(tr_element);
+    }
+    return;
+  }
+
+  if (goog.isDefAndNotNull(tr_element)) {
+    goog.object.forEach(execution_report_msg, function(value,column, obj) {
+      var td_element = this.setColumnValue( tr_element, column, value );
+      if (goog.isDefAndNotNull( td_element)) {
+
+        var blink_class = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
+        goog.dom.classes.add( td_element,  blink_class );
+        goog.Timer.callOnce( function(){
+          goog.dom.classes.remove( td_element,  blink_class );
+        }, this.blink_delay_ , this);
+
+      }
+    }, this);
+
+    var current_classes = goog.dom.classes.get(tr_element);
+    var new_classes = this.getRowClass( execution_report_msg );
+
+    goog.dom.classes.addRemove( tr_element, current_classes, new_classes );
+    return;
+  }
+
+
+  var columns = goog.object.getKeys(execution_report_msg);
+  var values = goog.object.getValues(execution_report_msg);
+
+  var tr_elements = this.resultSetToElements( [ values ] , columns );
+  goog.dom.insertChildAt(this.table_data_body_el_, tr_elements[0], 0);
+
+  // TODO: call adjustSizes_ if this is the first row inserted
+  //this.adjustSizes_(tr_elements[0]);
+};
+
 
 /**
  *
@@ -137,13 +282,6 @@ bitex.ui.OrderManager.prototype.insertOrder = function(clientOrderId,
 };
 
 
-/**
- * A logger to help debugging
- * @type {goog.debug.Logger}
- * @private
- */
-bitex.ui.OrderManager.prototype.logger_ =
-    goog.debug.Logger.getLogger('bitex.ui.OrderManager');
 
 
 /** @inheritDoc */
@@ -151,7 +289,32 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
 
   var handler = this.getHandler();
+
+  handler.listen(this.getElement(), 'click', function(e){
+    var client_order_id = e.target.getAttribute('data-client-order-id');
+    if (goog.isDefAndNotNull(client_order_id)) {
+      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, client_order_id) );
+    }
+  });
 };
+
+
+/**
+ *
+ * @param {string} type
+ * @param {string} client_order_id
+ * @extends {goog.events.Event}
+ * @constructor
+ */
+bitex.ui.OrderManagerEvent = function(type, client_order_id) {
+  goog.events.Event.call(this, type);
+
+  /**
+   * @type {string}
+   */
+  this.client_order_id = client_order_id;
+};
+goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);
 
 
 goog.ui.registry.setDecoratorByClassName(

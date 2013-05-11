@@ -197,14 +197,14 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     elif  msg.type == 'F' : # Cancel Order Request
       if  msg.has('OrigClOrdID'):
         order = self.application.session.query(Order).\
-        filter(Order.status.in_(("0", "1"))).\
-        filter_by( user_id = self.user.id ).\
-        filter_by( client_order_id =  msg.get('OrigClOrdID')  ).first()
+                                        filter(Order.status.in_(("0", "1"))).\
+                                        filter_by( user_id = self.user.id ).\
+                                        filter_by( client_order_id =  msg.get('OrigClOrdID')  ).first()
       else:
         order = self.application.session.query(Order).\
-        filter(Order.status.in_(("0", "1"))).\
-        filter_by( user_id = self.user.id ).\
-        filter_by( id =  msg.get('OrderID')  ).first()
+                                        filter(Order.status.in_(("0", "1"))).\
+                                        filter_by( user_id = self.user.id ).\
+                                        filter_by( id =  msg.get('OrderID')  ).first()
 
 
       OrderMatcher.get( order.symbol ).cancel(self.application.session, order)
@@ -216,31 +216,42 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       return
 
     elif msg.type == 'U4': # Request for Open Orders
+      page        = msg.get('Page', 0)
+      page_size   = msg.get('PageSize', 100)
+      status_list = msg.get('StatusList', ['0', '1'] )
+      offset      = page * page_size
+
       orders = self.application.session.query(Order).\
-      filter(Order.status.in_(("0", "1"))).\
-      filter_by( user_id = self.user.id ).\
-      order_by(Order.created.desc())
+                                        filter(Order.status.in_( status_list )).\
+                                        filter_by( user_id = self.user.id ).\
+                                        order_by(Order.created.desc()).\
+                                        limit( page_size ).offset( offset )
 
       order_list = []
+      columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
+                  'Symbol', 'Side', 'OrdType', 'OrderQty', 'Price' ]
       for order in orders:
-        order_list.append( {
-          'ClOrdID': order.client_order_id,
-          'OrderID': order.id,
-          'CumQty': order.cum_qty,
-          'OrdStatus': order.status,
-          'LeavesQty': order.leaves_qty,
-          'CxlQty': order.cxl_qty,
-          'AvgPx': order.average_price,
-          'Symbol': order.symbol,
-          'Side': order.side,
-          'OrdType': order.type,
-          'OrderQty': order.order_qty,
-          'Price': order.price
-          })
+        order_list.append( [
+          order.client_order_id,
+          order.id,
+          order.cum_qty,
+          order.status,
+          order.leaves_qty,
+          order.cxl_qty,
+          order.average_price,
+          order.symbol,
+          order.side,
+          order.type,
+          order.order_qty,
+          order.price
+        ])
 
       open_orders_response_msg = {
         'MsgType': 'U5',
         'OpenOrdersReqID': msg.get('OpenOrdersReqID'),
+        'Page': page,
+        'PageSize': page_size,
+        'Columns': columns,
         'OrdListGrp' : order_list
       }
 

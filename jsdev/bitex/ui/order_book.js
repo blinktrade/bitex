@@ -5,6 +5,7 @@ goog.provide('bitex.ui.OrderBookEvent');
 
 goog.require('goog.ui.Component');
 goog.require('goog.dom.classes');
+goog.require('goog.object');
 
 goog.require('goog.Timer');
 
@@ -178,7 +179,6 @@ bitex.ui.OrderBook.prototype.updateOrder = function( index, qty) {
     goog.dom.classes.remove( tdQtyEl,  blink_class );
   }, this.blink_delay_ , this);
 };
-
 
 
 /**

@@ -81,14 +81,34 @@ bitex.app.bitex = function( url ) {
   order_entry.decorate( goog.dom.getElement('id_order_entry') );
 
   var order_manager = new bitex.ui.OrderManager();
-  order_manager.decorate(goog.dom.getElement('id_orders_table'));
-
 
   order_entry.addEventListener( bitex.ui.OrderEntry.EventType.BUY_LIMITED, function(e){
     var client_order_id = bitEx.sendBuyLimitedOrder( e.symbol, e.qty, e.price );
+    var pendingOrderMessage = {
+      'OrderID': '-',
+      'ClOrdID': '' + client_order_id,
+      'OrdStatus': '-',
+      'Symbol': e.symbol,
+      'Side': '1',
+      'OrderQty': e.qty * 1e8,
+      'Price': e.price * 1e5
+    };
+    order_manager.processExecutionReport(pendingOrderMessage);
   });
   order_entry.addEventListener( bitex.ui.OrderEntry.EventType.SELL_LIMITED, function(e){
     var client_order_id = bitEx.sendSellLimitedOrder( e.symbol, e.qty, e.price );
+
+    var pendingOrderMessage = {
+      'OrderID': '-',
+      'ClOrdID': '' + client_order_id,
+      'OrdStatus': '-',
+      'Symbol': e.symbol,
+      'Side': '2',
+      'OrderQty': e.qty * 1e8,
+      'Price': e.price * 1e5
+    };
+    order_manager.processExecutionReport(pendingOrderMessage);
+
   });
 
   /**
@@ -119,8 +139,12 @@ bitex.app.bitex = function( url ) {
     order_book_bid.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
     order_book_offer.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
 
-    // Get the list of all open orders
-    bitEx.requestOpenOrders();
+    if (order_manager.wasDecorated()) {
+      order_manager.reload();
+    } else {
+      order_manager.decorate( goog.dom.getElement('id_orders_table') );
+    }
+
 
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
@@ -129,6 +153,9 @@ bitex.app.bitex = function( url ) {
     router.setView('trading');
   });
 
+  order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
+    bitEx.cancelOrder(e.client_order_id );
+  });
 
   bitEx.addEventListener('login_error',  function(e) {
     goog.dom.classes.add( document.body, 'bitex-not-logged'  );
@@ -203,24 +230,22 @@ bitex.app.bitex = function( url ) {
   });
 
   bitEx.addEventListener('execution_report', function(e){
-
+    order_manager.processExecutionReport(e.data);
   });
+
+
+  order_manager.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,function(e) {
+    // Get the list of all open orders
+    var page = e.options['Page'];
+    var limit = e.options['Limit'];
+
+    bitEx.requestOpenOrders( 'open_orders', page, limit );
+  });
+
 
   bitEx.addEventListener('order_list_response',  function(e) {
     var msg = e.data;
-
-    for (var x in msg['OrdListGrp'] ) {
-      var order = msg['OrdListGrp'][x];
-      order_manager.insertOrder(order['ClOrdID'],
-                                order['OrdStatus'],
-                                order['Side'],
-                                order['OrderQty'],
-                                order['Price'],
-                                order['LeavesQty'],
-                                order['CumQty'],
-                                order['AvgPx'],
-                                order['OrderID'] );
-    }
+    order_manager.setResultSet( msg['OrdListGrp'], msg['Columns'] );
   });
 
   var button_signup = new goog.ui.Button();
@@ -293,14 +318,15 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-
-  var button_login = new goog.ui.Button();
-  button_login.decorate(goog.dom.getElement('id_btn_login'));
-
-  button_login.addEventListener( goog.ui.Component.EventType.ACTION, function(e){
-    var username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
-    var password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
-
+  var login = function(username, password) {
+    if (goog.string.isEmpty(username) || !goog.string.isAlphaNumeric(username) ) {
+      alert('Nome de usuário inválido');
+      return;
+    }
+    if ( goog.string.isEmpty(password)  || password.length < 6) {
+      alert('Senha deve ter no mínimo 6 letras');
+      return;
+    }
 
     if (goog.dom.classes.has( document.body, 'ws-not-connected' )) {
       try{
@@ -312,12 +338,29 @@ bitex.app.bitex = function( url ) {
 
       goog.events.listenOnce( bitEx, 'opened', function(e){
         bitEx.login(username, password);
-      } );
+      });
 
     } else {
       bitEx.close();
     }
+  };
+
+  goog.events.listen( goog.dom.getElement('id_landing_signin'), 'click', function(e){
+    e.stopPropagation();
+    e.preventDefault();
+    var username = goog.dom.forms.getValue( goog.dom.getElement("id_landing_username") );
+    var password = goog.dom.forms.getValue( goog.dom.getElement("id_landing_password") );
+    login(username, password);
   });
+
+  goog.events.listen( goog.dom.getElement('id_btn_login'), 'click', function(e){
+    e.stopPropagation();
+    e.preventDefault();
+    var username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
+    var password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
+    login(username, password);
+  });
+
 
   bitEx.addEventListener('opened', function(e) {
     goog.dom.classes.remove( document.body, 'ws-not-connected' );
@@ -328,14 +371,14 @@ bitex.app.bitex = function( url ) {
     goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
     goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
 
-    router.setView('signin');
+    router.setView('start');
   });
 
   bitEx.addEventListener('error',  function(e) {
     goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
     goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
 
-    router.setView('signin');
+    router.setView('start');
   });
 };
 

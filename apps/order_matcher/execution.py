@@ -14,7 +14,7 @@ execution_report_signal = Signal()
 
 class ExecutionReport(object):
   execution_id_generator = 0
-  def __init__(self, order, side):
+  def __init__(self, order, execution_side):
     ExecutionReport.execution_id_generator += 1
     self.execution_id = ExecutionReport.execution_id_generator
 
@@ -31,20 +31,23 @@ class ExecutionReport(object):
 
     self.order_status = order.status
     self.symbol = order.symbol
-    self.side = side
+    self.side =  '1' if order.is_buy else '2'
     self.last_price = order.last_price
     self.last_shares = order.last_qty
     self.leaves_qty = order.leaves_qty
     self.cum_qty = order.cum_qty
     self.cxl_qty = order.cxl_qty
     self.average_price = order.average_price
+    self.order_qty = order.order_qty
+    self.price = order.price
+    self.execution_side = execution_side
 
   def __str__(self):
-    return '{"MsgType":"8", "OrderID":"%s", "ClOrdID":"%s", "ExecID":%d, "ExecType":"%s",' \
-           ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":%d, ' \
+    return '{"MsgType":"8", "OrderID":"%s", "ClOrdID":"%s", "ExecID":%d,  "ExecType":"%s", "ExecSide":"%s", ' \
+           ' "OrdStatus":"%s", "Symbol":"%s", "Side":"%s", "LastPx":%d, "OrderQty":%d, "Price":%d, ' \
            ' "LastShares":%d, "LeavesQty":%d, "CxlQty":%d, "AvgPx":%d, "CumQty":%d }' \
-            % ( self.order_id, self.client_order_id, self.execution_id, self.execution_type,
-                self.order_status, self.symbol, self.side, self.last_price,
+            % ( self.order_id, self.client_order_id, self.execution_id, self.execution_type, self.execution_side,
+                self.order_status, self.symbol, self.side, self.last_price, self.order_qty, self.price,
                 self.last_shares, self.leaves_qty, self.cxl_qty, self.average_price, self.cum_qty)
 
 

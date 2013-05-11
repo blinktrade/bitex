@@ -73,7 +73,7 @@ bitex.app.admin = function() {
   var deposit_button = new goog.ui.Button();
   deposit_button.decorate(goog.dom.getElement('id_deposit'));
 
-  var withdrawBtcDataGrid = new bitex.ui.DataGrid([
+  var withdrawBtcDataGrid = new bitex.ui.DataGrid({'columns': [
     { 'property': 'username',
       'label': 'Username',
       'sortable': true,
@@ -108,9 +108,9 @@ bitex.app.admin = function() {
         ];
       }
     }
-  ]);
+  ]});
 
-  var userListDataGrid = new bitex.ui.DataGrid([
+  var userListDataGrid = new bitex.ui.DataGrid({'columns' : [
     { 'property': 'first_name',
       'label': 'First Name',
       'sortable': true,
@@ -148,7 +148,7 @@ bitex.app.admin = function() {
         var classes = "btn btn-mini btn-primary btn-deposit";
         return goog.dom.createDom( 'button', { 'class':classes, 'data-user-id':user_id }, 'deposit' );
       }
-    }]);
+    }]});
 
 
   bitEx.addEventListener('opened', function(e) {
@@ -206,10 +206,10 @@ bitex.app.admin = function() {
     if (msg['MsgType'] == 'ADMIN_SELECT_RESPONSE') {
       switch( msg['Table'] ) {
         case 'users':
-          userListDataGrid.setResultSet( msg['ResultSet'] );
+          userListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
           break;
         case 'withdraws_btc':
-          withdrawBtcDataGrid.setResultSet( msg['ResultSet'] );
+          withdrawBtcDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
           break;
       }
     }

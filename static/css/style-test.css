@@ -92,33 +92,9 @@ body {
   display: none;
 }
 
-.tagline {
-  background-image: url("/images/screenshot.png");
-  background-repeat: no-repeat;
-  background-position: bottom center;
-  border-bottom: 1px solid #E3E3E3;
-  margin: -20px -20px 20px -20px;
-  padding-top: 50px;
-  padding-bottom: 380px;
+.jumbotron {
+  position: relative;
   text-align: center;
-}
-
-.tagline h1 {
-  font-size: 48px;
-  margin: auto;
-  font-family: museo-slab,serif;
-  font-weight: 300;
-  letter-spacing: -2px;
-}
-
-.tagline h2 {
-  margin-top: 20px;
-  font-size: 20px;
-  color: #555;
-  text-shadow: #FFF 1px 1px 2px;
-  line-height: 20px;
-  font-family: museo-slab,serif;
-  font-weight: 300;
 }
 
 .signup {
@@ -168,23 +144,22 @@ body {
 
 
 /* Execution report status */
-.order-status-pending {
-  background-color: #b8860b;
-}
-
-.order-status-new {
-  background-color: #e0ffff;
-}
-
-.order-status-partial {
+.order-manager-pending {
   background-color: #00ffff;
 }
 
-.order-status-fill {
+.order-manager-new {
+}
+
+.order-manager-partial {
+  background-color: #e0ffff;
+}
+
+.order-manager-fill {
   background-color: #008b8b;
 }
 
-.order-status-cancel {
+.order-manager-cancel {
   background-color: #f08080;
 }
 
@@ -243,6 +218,7 @@ ul.parsley-error-list li {
   line-height: 2px;
 }
 
+.order-manager-blink,
 .balance-info-blink,
 .order-book-blink {
   background-color: #ff8c00;

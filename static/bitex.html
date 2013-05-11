@@ -33,6 +33,7 @@
     <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
     <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
 
+    <link href="/css/fuelux.css" rel="stylesheet">
     <link href="/css/style-test.css" rel="stylesheet">
 
     <!--[if lt IE 9]>
@@ -69,11 +70,26 @@
 
         <div id="start" class="page  row-fluid">
 
-            <!-- Main content -->
-          <div class="tagline">
-            <h1 class="tk-vera-sans">Bitex - Bolsa Brasileira de Moedas Criptografadas</h1>
-            <h2>Compra e venda de Bitcoins. Câmbio financeiro, Liquidez e Transparência</h2>
+
+          <header class="jumbotron">
+            <h1>BitEx - Bolsa Brasileira de Moedas Criptografadas</h1>
+            <p class="lead">A maneira mais fácil de comprar e vender BitCoins.</p>
+          </header>
+
+          <div class="row" style="text-align: center;">
+            <form action="" class="form-inline">
+              <label for="id_landing_username">Email:</label>
+              <input class="focus span2" id="id_landing_username" placeholder="Nome de usuário ou email" size="30" type="text">
+              <label for="id_landing_password">Senha:</label>
+              <input class="span2" id="id_landing_password" placeholder="Senha" size="30" type="password">
+              <button id="id_landing_signin" class="btn btn-success">login</button>
+            </form>
           </div>
+
+          <div class="row screenshot">
+            <img alt="BitEx " class="span8 offset2" src="/images/screenshot.png">
+          </div>
+
           <div class="row signup">
             <div class="text-center">
               <h3 style="margin-top: 5px">O Registro é feito menos de um minuto.<br> É possivel negociar com apenas R$ 1 ou ฿ 1.</h3>
@@ -208,9 +224,44 @@
             </div>
 
             <div class="well">
-              <table id="id_orders_table" class="table table-bordered">
-                <tbody></tbody>
-              </table>
+              <div id="id_orders_table"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
+                <table class="table table-bordered datagrid datagrid-stretch-header">
+                  <thead>
+                  <tr>
+                    <th colspan="4">
+                      <span class="datagrid-header-title">Ordens em aberto</span>
+                    </th>
+                  </tr>
+                  </thead>
+                </table>
+                <div class="datagrid-stretch-wrapper" style="height: 285px;">
+                  <table class="table table-bordered datagrid">
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <table class="table table-bordered datagrid datagrid-stretch-footer">
+                  <tfoot>
+                  <tr>
+                    <th colspan="4">
+                      <div class="datagrid-footer-left" style="visibility: visible;">
+                        <div class="grid-controls">
+                          <span>
+                            <span class="grid-start"></span> -
+                            <span class="grid-end"></span>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="datagrid-footer-right" style="visibility: visible;">
+                        <div class="grid-pager">
+                          <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                          <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
 
 
