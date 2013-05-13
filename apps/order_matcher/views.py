@@ -135,6 +135,8 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       login_response = {
         'MsgType': 'BF',
         'Username': self.user.username,
+        'FirstName': self.user.first_name,
+        'LastName': self.user.last_name,
         'UserStatus': 1
       }
       self.write_message( json.dumps(login_response) )

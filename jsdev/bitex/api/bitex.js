@@ -25,6 +25,17 @@ goog.inherits(bitex.api.BitEx, goog.events.EventTarget);
  */
 bitex.api.BitEx.prototype.ws_ = null;
 
+/**
+ * @type {boolean}
+ * @private
+ */
+bitex.api.BitEx.prototype.connected_ = false;
+
+/**
+ * @type {boolean}
+ * @private
+ */
+bitex.api.BitEx.prototype.logged_ = false;
 
 
 /**
@@ -80,10 +91,27 @@ bitex.api.BitEx.prototype.open = function(url) {
 };
 
 /**
+ * @return {boolean}
+ */
+bitex.api.BitEx.prototype.isConnected = function(){
+  return this.connected_;
+};
+
+/**
+ * @return {boolean}
+ */
+bitex.api.BitEx.prototype.isLogged = function(){
+  return this.logged_;
+};
+
+
+/**
  * @private
  */
 bitex.api.BitEx.prototype.onOpen_ = function() {
   this.dispatchEvent(bitex.api.BitEx.EventType.OPENED);
+  this.connected_ = true;
+  this.logged_ = false;
 };
 
 /**
@@ -91,6 +119,8 @@ bitex.api.BitEx.prototype.onOpen_ = function() {
  */
 bitex.api.BitEx.prototype.onClose_ = function() {
   this.dispatchEvent(bitex.api.BitEx.EventType.CLOSED);
+  this.connected_ = false;
+  this.logged_ = false;
 };
 
 /**
@@ -98,6 +128,8 @@ bitex.api.BitEx.prototype.onClose_ = function() {
  */
 bitex.api.BitEx.prototype.onError_ = function() {
   this.dispatchEvent(bitex.api.BitEx.EventType.ERROR);
+  this.connected_ = false;
+  this.logged_ = false;
 };
 
 /**
@@ -116,8 +148,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'BF': // Login response:
       if (msg['UserStatus'] == 1 ) {
+        this.logged_ = true;
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_OK, msg ) );
+
       } else {
+        this.logged_ = false;
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_ERROR, msg ) );
       }
       break;
@@ -196,6 +231,9 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
 
 bitex.api.BitEx.prototype.close = function(){
+  this.connected_ = false;
+  this.logged_ = false;
+
   this.ws_.close();
   this.ws_ = null; // dereference the WebSocket
 };
@@ -422,6 +460,8 @@ goog.exportSymbol('BitEx', bitex.api.BitEx);
 goog.exportProperty(BitEx.prototype, 'open', bitex.api.BitEx.prototype.open);
 goog.exportProperty(BitEx.prototype, 'close', bitex.api.BitEx.prototype.close);
 goog.exportProperty(BitEx.prototype, 'login', bitex.api.BitEx.prototype.login);
+goog.exportProperty(BitEx.prototype, 'isLogged', bitex.api.BitEx.prototype.isLogged);
+goog.exportProperty(BitEx.prototype, 'isConnected', bitex.api.BitEx.prototype.isConnected);
 goog.exportProperty(BitEx.prototype, 'changePassword', bitex.api.BitEx.prototype.changePassword);
 goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prototype.subscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);

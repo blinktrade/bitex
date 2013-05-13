@@ -75,10 +75,13 @@ bitex.app.UrlRouter.prototype.setViewInternal = function(view_name){
  * @param {string} view_name
  */
 bitex.app.UrlRouter.prototype.setView = function(view_name) {
-  this.setViewInternal(view_name);
-  this.history_.setToken( this.base_url_ + view_name);
+  var res = this.dispatchEvent(
+      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_name ));
 
-  this.dispatchEvent( new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, this.getCurrentView()));
+  if (res) {
+    this.setViewInternal(view_name);
+    this.history_.setToken( this.base_url_ + view_name);
+  }
 };
 
 /**
@@ -94,8 +97,12 @@ bitex.app.UrlRouter.prototype.getCurrentView = function() {
  */
 bitex.app.UrlRouter.prototype.onNavigate_ = function(e){
   if (e.isNavigation) {
-    this.setViewInternal(e.token);
-    this.dispatchEvent( new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, this.getCurrentView()));
+    var view_name = e.token;
+    var res = this.dispatchEvent(
+        new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_name ));
+    if (res) {
+      this.setViewInternal(view_name);
+    }
   }
 };
 

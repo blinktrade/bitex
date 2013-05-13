@@ -26,13 +26,23 @@ class AdminHandler(tornado.web.RequestHandler):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
     self.write( loader.load("admin.html").generate() )
 
+class BitExHandler(tornado.web.RequestHandler):
+  def get(self, *args, **kwargs):
+    loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
+    self.write( loader.load("bitex.html").generate() )
+
 
 class OrderMatcherApplication(tornado.web.Application):
   def __init__(self):
     handlers = [
       (r'/trade', OrderMatcherHandler),
       (r'/admin/.*', AdminHandler),
-      (r"/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static'), "default_filename":"bitex.html" }),
+
+      (r"/images/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static/images') }),
+      (r"/css/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static/css') }),
+      (r"/js/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static/js') }),
+
+      (r'/.*', BitExHandler)
     ]
     settings = dict(
       cookie_secret=config.cookie_secret

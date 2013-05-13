@@ -11,6 +11,7 @@
 python ./closure-library/closure/bin/build/closurebuilder.py  \
   --root=./closure-library/ \
   --root=./bitex \
+  --root=./closure-bootstrap/javascript/ \
   --namespace=bitex.api.BitEx \
   --output_mode=compiled \
   --compiler_jar=./tools/compiler.jar \
@@ -30,6 +31,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
 # BitEx Admin Application
 python ./closure-library/closure/bin/build/closurebuilder.py  \
   --root=./closure-library/ \
+  --root=./closure-bootstrap/javascript/ \
   --root=./bitex \
   --namespace=bitex.app.admin \
   --output_mode=compiled \
@@ -50,6 +52,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
 # BitEx Application
 python ./closure-library/closure/bin/build/closurebuilder.py  \
   --root=./closure-library/ \
+  --root=./closure-bootstrap/javascript/ \
   --root=./bitex \
   --namespace=bitex.app.bitex \
   --output_mode=compiled \

@@ -5,7 +5,6 @@ goog.require('bitex.api.BitEx');
 
 goog.require('bitex.ui.OrderBook');
 goog.require('bitex.ui.OrderBook.Side');
-goog.require('bitex.ui.BalanceInfo');
 goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderEntry.EventType');
 
@@ -24,6 +23,9 @@ goog.require('goog.array');
 goog.require('goog.string');
 
 goog.require('bitex.app.UrlRouter');
+goog.require('bitex.model.Model');
+
+goog.require('bootstrap.Dialog');
 
 /**
  * @param {string} url
@@ -31,9 +33,27 @@ goog.require('bitex.app.UrlRouter');
 bitex.app.bitex = function( url ) {
   var router = new bitex.app.UrlRouter( '', 'start' );
 
+  var bitEx = new bitex.api.BitEx();
+  var model = new bitex.model.Model(document.body);
+
+  var order_book_bid = null;
+  var order_book_offer = null;
+
 
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
     var view_name = e.view;
+    if (!bitEx.isLogged()) {
+      switch(view_name) {
+        case 'start':
+        case 'signin':
+        case 'signup':
+          break;
+        default:
+          // redirect non-logged users to the signin page
+          router.setView('signin');
+          return false;
+      }
+    }
 
     // remove any active view classes from document body
     var classes = goog.dom.classes.get(document.body );
@@ -54,6 +74,7 @@ bitex.app.bitex = function( url ) {
   });
 
 
+
   goog.events.listen( document.body, 'click' , function(e){
     var element = e.target;
 
@@ -66,16 +87,6 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-
-  var bitEx = new bitex.api.BitEx();
-  var currentUsername = null;
-
-
-  var order_book_bid = null;
-  var order_book_offer = null;
-
-  var balance_info = new bitex.ui.BalanceInfo();
-  balance_info.decorate( goog.dom.getElement('account_overview') );
 
   var order_entry = new bitex.ui.OrderEntry();
   order_entry.decorate( goog.dom.getElement('id_order_entry') );
@@ -108,7 +119,6 @@ bitex.app.bitex = function( url ) {
       'Price': e.price * 1e5
     };
     order_manager.processExecutionReport(pendingOrderMessage);
-
   });
 
   /**
@@ -123,7 +133,10 @@ bitex.app.bitex = function( url ) {
 
     goog.dom.classes.add( document.body, 'bitex-logged'  );
     goog.dom.classes.remove( document.body, 'bitex-not-logged' );
-    currentUsername = msg['Username'];
+
+    model.set('Username', msg['Username']);
+    model.set('FirstName', msg['FirstName']);
+    model.set('LastName', msg['LastName']);
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
@@ -131,8 +144,8 @@ bitex.app.bitex = function( url ) {
     }
 
 
-    order_book_bid = new bitex.ui.OrderBook(currentUsername, bitex.ui.OrderBook.Side.BUY);
-    order_book_offer = new bitex.ui.OrderBook(currentUsername, bitex.ui.OrderBook.Side.SELL);
+    order_book_bid = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.BUY);
+    order_book_offer = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.SELL);
     order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
     order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
 
@@ -162,7 +175,17 @@ bitex.app.bitex = function( url ) {
     goog.dom.classes.remove( document.body, 'bitex-logged' );
 
     var msg = e.data;
-    alert(msg['UserStatusText']);
+
+    model.set('Username', '');
+    model.set('FirstName', '');
+    model.set('LastName', '');
+
+
+    var error_dialog = new bootstrap.Dialog();
+    error_dialog.setTitle('Erro');
+    error_dialog.setContent(msg['UserStatusText']);
+    error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    error_dialog.setVisible(true);
   });
 
   bitEx.addEventListener('ob_clear', function(e){
@@ -198,11 +221,20 @@ bitex.app.bitex = function( url ) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
+    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
     var side = msg['MDEntryType'];
 
     if (side == '0') {
+      if (index === 0) {
+        model.set('formatted_best_bid_brl', price);
+      }
+
       order_book_bid.updateOrder(index, qty);
     } else if (side == '1') {
+      if (index === 0) {
+        model.set('formatted_best_offer_brl', price);
+      }
+
       order_book_offer.updateOrder(index, qty);
     }
   });
@@ -217,16 +249,31 @@ bitex.app.bitex = function( url ) {
     var side = msg['MDEntryType'];
 
     if (side == '0') {
+      if (index === 0) {
+        model.set('formatted_best_bid_brl', price);
+      }
+
       order_book_bid.insertOrder(index, orderId, price, qty, username );
     } else if (side == '1') {
+      if (index === 0) {
+        model.set('formatted_best_offer_brl', price);
+      }
+
+
       order_book_offer.insertOrder(index, orderId, price, qty, username );
     }
   });
 
   bitEx.addEventListener('balance_response',  function(e) {
     var msg = e.data;
-    balance_info.updateBalanceBRL(msg['balance_brl']);
-    balance_info.updateBalanceBTC(msg['balance_btc']);
+
+    model.set('balance_brl', msg['balance_brl']);
+    model.set('balance_btc', msg['balance_btc']);
+
+    var formatted_brl = (msg['balance_brl']/1e5).toFixed(2);
+    var formatted_btc = (msg['balance_btc']/1e8).toFixed(8);
+    model.set('formatted_balance_brl', formatted_brl);
+    model.set('formatted_balance_btc', formatted_btc);
   });
 
   bitEx.addEventListener('execution_report', function(e){
