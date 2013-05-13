@@ -3,7 +3,6 @@ __author__ = 'rodrigo'
 
 from market_data_signals import *
 
-import  datetime
 
 from tornado import  websocket
 import json
@@ -14,16 +13,7 @@ from order_matcher.execution import OrderMatcher, execution_report_signal
 
 from bitex.message import JsonMessage
 
-
-class JsonEncoder(json.JSONEncoder):
-  def default(self, obj):
-    if isinstance(obj, datetime.datetime):
-      return obj.strftime('%Y-%m-%d %H:%M:%S')
-    elif isinstance(obj, datetime.date):
-      return obj.strftime('%Y-%m-%d')
-    if isinstance(obj, datetime.time):
-      return obj.strftime('%H:%M:%S')
-    return json.JSONEncoder.default(self, obj)
+from bitex.json_encoder import  JsonEncoder
 
 class OrderMatcherHandler(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
