@@ -49,18 +49,27 @@ class OrderMatcherClient(object):
 
         # send Login Message
         loginMsg = {
+          'UserReqID': 'initial',
           'MsgType' : 'BE',
           'Username': self.username,
-          'Password': self.password
+          'Password': self.password,
+          'UserReqTyp': '1'
         }
         self.send( dumps(loginMsg))
 
+        time.sleep(4)
 
         while not self._terminating:
           str_json = self.socket.recv()
           self._time_last_received = time.time()
+          if not str_json:
+            continue
+          if str_json[0] != "{":
+            continue
+
           msg = loads(str_json)
           self.signal_recv(self, msg)
+
 
           if msg['MsgType'] == 'BF':
             if msg['UserStatus'] == 1:
