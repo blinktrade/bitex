@@ -17,6 +17,8 @@ import tornado.template
 from md_gateway import  config
 from views import MdGatewayHandler
 
+from order_matcher_client import OrderMatcherClient
+
 class MdGatewayApplication(tornado.web.Application):
   def __init__(self):
     handlers = [
@@ -25,6 +27,11 @@ class MdGatewayApplication(tornado.web.Application):
     settings = dict(
       cookie_secret=config.cookie_secret
     )
+
+    self.order_matcher_client = OrderMatcherClient( 'wss://localhost:8443/trade', 'rodrigo', 'abc123', ['BTCBRL'] )
+    self.order_matcher_client.signal_recv.connect( self.slot_receive_msg )
+    self.order_matcher_client.start()
+
     tornado.web.Application.__init__(self, handlers, **settings)
 
     tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.cron_check_md_updates)
@@ -34,9 +41,13 @@ class MdGatewayApplication(tornado.web.Application):
     tornado.ioloop.IOLoop.instance().add_timeout(timedelta(milliseconds=500), self.cron_check_md_updates)
 
 
+  def slot_receive_msg(self, _sender, _data):
+    print _data
 
 
 def main():
+
+
   application = MdGatewayApplication()
   http_server = tornado.httpserver.HTTPServer(application)
   http_server.listen(8000)

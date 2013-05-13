@@ -3,9 +3,11 @@ import weakref
 import inspect
 import traceback
 import logging
+import threading
 
 class Signal():
   signal_error = None
+  _lock = threading.RLock()
 
   def __init__(self):
     self._functions = weakref.WeakSet()
@@ -41,49 +43,50 @@ class Signal():
         self._functions.add(slot)
 
   def __call__(self, sender, data, error_signal_on_error=True):
-    sent = False
-    errors = []
+    with self._lock:
+      sent = False
+      errors = []
 
-    def publish_functions(functions):
-      for func in functions:
-        try:
-          func(sender, data)
-          sent = True
-
-        # pylint: disable=W0702
-        except:
-          errors.append(traceback.format_exc())
-    publish_functions(self._functions)
-    if sender in self._functions_subs:
-      publish_functions(self._functions_subs[sender])
-      if not self._functions_subs[sender]:
-        del self._functions_subs[sender]
-
-
-
-    def publish_methods( methods ):
-      for obj, funcs in methods.items():
-        for func in funcs:
+      def publish_functions(functions):
+        for func in functions:
           try:
-            func(obj, sender, data)
+            func(sender, data)
             sent = True
 
           # pylint: disable=W0702
           except:
             errors.append(traceback.format_exc())
-    publish_methods(self._methods)
+      publish_functions(self._functions)
+      if sender in self._functions_subs:
+        publish_functions(self._functions_subs[sender])
+        if not self._functions_subs[sender]:
+          del self._functions_subs[sender]
 
-    if sender in self._methods_subs:
-      publish_methods(self._methods_subs[sender])
-      if not self._methods_subs[sender]:
-        del self._methods_subs[sender]
 
 
-    for error in errors:
-      if error_signal_on_error:
-        Signal.signal_error(self, (error), False)
-      else:
-        logging.critical(error)
+      def publish_methods( methods ):
+        for obj, funcs in methods.items():
+          for func in funcs:
+            try:
+              func(obj, sender, data)
+              sent = True
 
-    return sent
+            # pylint: disable=W0702
+            except:
+              errors.append(traceback.format_exc())
+      publish_methods(self._methods)
+
+      if sender in self._methods_subs:
+        publish_methods(self._methods_subs[sender])
+        if not self._methods_subs[sender]:
+          del self._methods_subs[sender]
+
+
+      for error in errors:
+        if error_signal_on_error:
+          Signal.signal_error(self, (error), False)
+        else:
+          logging.critical(error)
+
+      return sent
 
