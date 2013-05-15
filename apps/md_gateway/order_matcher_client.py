@@ -68,10 +68,9 @@ class OrderMatcherClient(object):
             continue
 
           msg = loads(str_json)
-          self.signal_recv(self, msg)
-
 
           if msg['MsgType'] == 'BF':
+            self.signal_recv(self, msg)
             if msg['UserStatus'] == 1:
               self.logged = True
 
@@ -113,6 +112,7 @@ class OrderMatcherClient(object):
                     self.signal_book_offer_delete_thru(self, entry )
                 elif entry['MDEntryType'] == '2':
                   self.signal_trade(self, entry )
+            self.signal_recv(self, msg)
 
 
           elif msg['MsgType'] == 'W':  # Market Data Refresh
@@ -128,6 +128,7 @@ class OrderMatcherClient(object):
                   self.signal_book_offer_new_order(self, entry )
                 elif entry['MDEntryType'] == '2':
                   self.signal_trade(self, entry )
+            self.signal_recv(self, msg)
 
       except Exception as exc:
         self.connected = False

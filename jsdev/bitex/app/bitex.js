@@ -221,20 +221,11 @@ bitex.app.bitex = function( url ) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
     var side = msg['MDEntryType'];
 
     if (side == '0') {
-      if (index === 0) {
-        model.set('formatted_best_bid_brl', price);
-      }
-
       order_book_bid.updateOrder(index, qty);
     } else if (side == '1') {
-      if (index === 0) {
-        model.set('formatted_best_offer_brl', price);
-      }
-
       order_book_offer.updateOrder(index, qty);
     }
   });

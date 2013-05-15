@@ -12,7 +12,6 @@ class MdGatewayHandler(websocket.WebSocketHandler):
     super(MdGatewayHandler, self).__init__(application, request, **kwargs)
     self.md_subscriptions = {}
 
-
   def on_message(self, raw_message):
     msg = JsonMessage(raw_message)
     if not msg.is_valid():

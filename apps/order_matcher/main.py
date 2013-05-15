@@ -103,7 +103,7 @@ def main():
   print 'order_matcher_log', options.order_matcher_log
 
   input_log_file_handler = logging.handlers.TimedRotatingFileHandler( options.order_matcher_log, when='MIDNIGHT')
-  formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+  formatter = logging.Formatter('%(asctime)s - %(message)s')
   input_log_file_handler.setFormatter(formatter)
 
   replay_logger = logging.getLogger("REPLAY")
@@ -111,7 +111,7 @@ def main():
   replay_logger.addHandler(input_log_file_handler)
 
   replay_logger.info('START')
-  replay_logger.info('BEGIN,PARAM')
+  replay_logger.info('PARAM,BEGIN')
   replay_logger.info('PARAM,port,' + str(options.port))
   replay_logger.info('PARAM,ws_url,' + str(options.ws_url))
   replay_logger.info('PARAM,db_echo,' + str(options.db_echo))
@@ -119,7 +119,7 @@ def main():
   replay_logger.info('PARAM,certfile,' + str(options.certfile))
   replay_logger.info('PARAM,keyfile,' + str(options.keyfile))
   replay_logger.info('PARAM,order_matcher_log,' + str(options.order_matcher_log))
-  replay_logger.info('END,PARAM')
+  replay_logger.info('PARAM,END')
 
 
   application = OrderMatcherApplication()
