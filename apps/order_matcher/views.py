@@ -36,11 +36,15 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       return
 
     if  msg.type == '1': # TestRequest
+      self.application.replay_log.info('IN,' + raw_message)
+
       # send the heart beat back
       self.write_message( '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID"))
       return
 
     elif  msg.type == 'V':  # Market Data Request
+      self.application.replay_log.info('IN,' + raw_message)
+
       req_id = msg.get('MDReqID')
       if int(msg.get('SubscriptionRequestType')) == 0: # Snapshot
         # Generate a FullRefresh
@@ -81,6 +85,10 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
     if not self.is_logged:
       if msg.type == 'U0': # signup
+
+        raw_message = raw_message.replace(msg.get('Password'), '*')
+        self.application.replay_log.info('IN,' + raw_message )
+
         # signup the user
 
         # TODO: Create a wallet address
@@ -100,6 +108,9 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       if msg.type  != 'BE' and msg.type != 'U0':
         self.close()
         return
+
+      raw_message = raw_message.replace(msg.get('Password'), '*')
+      self.application.replay_log.info('IN,' + raw_message )
 
       # Authenticate the user
       self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'))
@@ -153,6 +164,8 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       return
 
     # The user is logged
+    self.application.replay_log.info('IN,' + raw_message )
+
 
     # handle system messages
     if self.user.is_system:

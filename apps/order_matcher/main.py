@@ -2,6 +2,7 @@
 
 import os
 import sys
+import  logging
 
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
@@ -21,6 +22,8 @@ define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex
 define("ws_url", default="wss://www.bitex.com.br:8443/trade", help="Websocket trade host")
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
+define("order_matcher_log", default=os.path.join(ROOT_PATH, "logs/", "order_matcher_replay.log"), help="logging" )
+
 
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "order_match.conf"))
 tornado.options.parse_command_line()
@@ -29,7 +32,7 @@ tornado.options.parse_command_line()
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from order_matcher import config
-from order_matcher.models import   engine, Order
+from order_matcher.models import   engine, Order, User
 from order_matcher.execution import  OrderMatcher
 from order_matcher.views import OrderMatcherHandler
 
@@ -67,10 +70,19 @@ class OrderMatcherApplication(tornado.web.Application):
     # check BTC deposits every 5 seconds
     tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=5), self.cron_check_btc_deposits)
 
+    self.replay_log = logging.getLogger("REPLAY")
+
+    # log all users on the replay log
+    users = self.session.query(User)
+    for user in users:
+      self.replay_log.info('DB_ENTITY,' + str(user))
+
     # Load all open orders
     orders = self.session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
+      self.replay_log.info('DB_ENTITY,' + str(order))
       OrderMatcher.get( order.symbol  ).match(self.session, order)
+
 
 
   def cron_check_btc_deposits(self):
@@ -82,13 +94,32 @@ class OrderMatcherApplication(tornado.web.Application):
 
 
 def main():
-
   print 'port', options.port
   print 'ws_url', options.ws_url
   print 'db_echo', options.db_echo
   print 'db_engine', options.db_engine
   print 'certfile', options.certfile
   print 'keyfile', options.keyfile
+  print 'order_matcher_log', options.order_matcher_log
+
+  input_log_file_handler = logging.handlers.TimedRotatingFileHandler( options.order_matcher_log, when='MIDNIGHT')
+  formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+  input_log_file_handler.setFormatter(formatter)
+
+  replay_logger = logging.getLogger("REPLAY")
+  replay_logger.setLevel(logging.INFO)
+  replay_logger.addHandler(input_log_file_handler)
+
+  replay_logger.info('START')
+  replay_logger.info('BEGIN,PARAM')
+  replay_logger.info('PARAM,port,' + str(options.port))
+  replay_logger.info('PARAM,ws_url,' + str(options.ws_url))
+  replay_logger.info('PARAM,db_echo,' + str(options.db_echo))
+  replay_logger.info('PARAM,db_engine,' + str(options.db_engine))
+  replay_logger.info('PARAM,certfile,' + str(options.certfile))
+  replay_logger.info('PARAM,keyfile,' + str(options.keyfile))
+  replay_logger.info('PARAM,order_matcher_log,' + str(options.order_matcher_log))
+  replay_logger.info('END,PARAM')
 
 
   application = OrderMatcherApplication()

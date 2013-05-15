@@ -82,7 +82,18 @@ class User(Base):
 
 
   def __repr__(self):
-    return "<User('%s', btc:%d, brl:%d )>" % (self.username, self.balance_btc, self.balance_brl )
+    return "<User(id=%d, username='%s', first_name='%s', last_name='%s', email='%s'," \
+           " balance_btc=%d, balance_ltc=%d, balance_brl=%d, balance_usd=%d, bitcoin_address='%s'," \
+           " verified=%d, is_staff=%s, is_system=%s, created='%s', last_login='%s'," \
+           " daily_withdraw_btc_limit=%d, daily_withdraw_ltc_limit=%d, daily_withdraw_brl_limit=%d, daily_withdraw_usd_limit=%d,"\
+           " daily_withdraw_btc=%d, daily_withdraw_ltc=%d, daily_withdraw_brl=%d, daily_withdraw_usd=%d," \
+           " last_withdraw_btc='%s', last_withdraw_ltc='%s', last_withdraw_brl='%s', last_withdraw_usd='%s' )>" \
+          % (self.id, self.username, self.first_name, self.last_name, self.email,
+             self.balance_btc, self.balance_ltc, self.balance_brl, self.balance_usd, self.bitcoin_address,
+             self.verified, self.is_staff, self.is_system,self.created, self.last_login,
+             self.daily_withdraw_btc_limit, self.daily_withdraw_ltc_limit, self.daily_withdraw_brl_limit, self.daily_withdraw_usd_limit,
+             self.daily_withdraw_btc, self.daily_withdraw_ltc, self.daily_withdraw_brl, self.daily_withdraw_usd,
+             self.last_withdraw_btc, self.last_withdraw_ltc,self.last_withdraw_brl,self.last_withdraw_usd)
 
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
@@ -350,6 +361,7 @@ class Order(Base):
   average_price   = Column(Integer,       nullable=False, default=0)
   cxl_qty         = Column(Integer,       nullable=False, default=0)
 
+  
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
       kwargs['leaves_qty'] = kwargs.get('order_qty')
@@ -358,6 +370,15 @@ class Order(Base):
       kwargs['username'] = kwargs.get('user').username
 
     super(Order, self).__init__(*args, **kwargs)
+
+
+  def __repr__(self):
+    return "<Order(id=%d, user_id=%d, username='%s',account_id=%d, client_order_id='%s', " \
+           "symbol='%s', side='%s', type='%s', price=%d, order_qty=%d, cum_qty=%d, leaves_qty=%d, " \
+           "created='%s', last_price=%d,  cxl_qty=%d, last_qty=%d, status='%s', average_price=%d)>" \
+            % (self.id, self.user_id, self.username, self.account_id, self.client_order_id,
+               self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
+               str(self.created), self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
@@ -471,9 +492,6 @@ class Order(Base):
   def has_leaves_qty(self):
     return self.leaves_qty > 0
 
-  def __repr__(self):
-    return "<Order(id:%s, price:%d, order_qty:%d, leaves_qty:%d, cum_qty:%d, cxl_qty:%d, last_price:%d, status:%s)>" % \
-           (self.id,  self.price,  self.order_qty ,self.leaves_qty, self.cum_qty, self.cxl_qty , self.last_price, self.status)
 
   @property
   def is_buy(self):

@@ -21,6 +21,9 @@ lib64
 # Installer logs
 pip-log.txt
 
+# logs
+*.log
+
 # Unit test / coverage reports
 .coverage
 .tox
@@ -34,3 +37,6 @@ nosetests.xml
 .project
 .pydevproject
 .idea
+
+# OS files
+.DS_Store
