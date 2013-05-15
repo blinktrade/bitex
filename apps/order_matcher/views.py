@@ -200,6 +200,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
 
       OrderMatcher.get( order.symbol ).cancel(self.application.session, order)
+      self.application.session.commit()
       return
 
 

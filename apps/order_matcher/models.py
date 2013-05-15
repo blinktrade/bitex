@@ -31,11 +31,14 @@ brl_bank_transfer_signal        = Signal()
 def get_hexdigest(algorithm, salt, raw_password):
   """
   Returns a string of the hexdigest of the given plaintext password and salt
-  using the given algorithm ('md5', 'sha1' or 'crypt').
+  using the given algorithm ('bcrypt' or 'sha1').
   """
   raw_password, salt = smart_str(raw_password), smart_str(salt)
   if algorithm == 'sha1':
     return hashlib.sha1(salt + raw_password).hexdigest()
+  elif algorithm == 'bcrypt':
+    import bcrypt
+    return bcrypt.hashpw(raw_password, salt)
   raise Exception("Got unknown password algorithm type in password.")
 
 
@@ -46,6 +49,9 @@ class User(Base):
   first_name      = Column(String(30), nullable=False)
   last_name       = Column(String(30), nullable=False)
   email           = Column(String(75), nullable=False, index=True, unique=True)
+
+  password_algo   = Column(String(8), nullable=False)
+  password_salt   = Column(String(128), nullable=False)
   password        = Column(String(128), nullable=False)
 
   balance_btc     = Column(Integer, nullable=False, default=0)
@@ -116,15 +122,13 @@ class User(Base):
 
   def set_password(self, raw_password):
     import random
-    algo = 'sha1'
-    salt = get_hexdigest(algo, str(random.random()), str(random.random()))[:5]
-    hsh = get_hexdigest(algo, salt, raw_password)
-    self.password = '%s$%s$%s' % (algo, salt, hsh)
+    self.password_algo = 'sha1'
+    self.password_salt = get_hexdigest(self.password_algo, str(random.random()), str(random.random()))[:5]
+    self.password = get_hexdigest(self.password_algo, self.password_salt, raw_password)
     return  self.password
 
   def check_password(self, raw_password):
-    algo, salt, hsh = self.password.split('$')
-    return hsh == get_hexdigest(algo, salt, raw_password)
+    return self.password == get_hexdigest(self.password_algo, self.password_salt, raw_password)
 
   @staticmethod
   def authenticate(session, user, password):
