@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
-DB_PATH = os.path.join(ROOT_PATH, 'db')
-
 import hashlib
 
 import datetime
@@ -17,8 +14,9 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
+from tornado.options import  options
 
-engine = create_engine('sqlite:///' + DB_PATH + '/bitex.sqlite', echo=True)
+engine = create_engine( options.db_engine, echo=options.db_echo)
 Base = declarative_base()
 
 balance_signal                  = Signal()

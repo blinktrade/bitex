@@ -13,6 +13,18 @@ import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.template
+from tornado.options import define, options
+
+define("port", default=8443, help="port" )
+define("db_echo", default=False, help="Prints every database command on the stdout" )
+define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex.sqlite"), help="SQLAlchemy database engine string")
+define("ws_url", default="wss://www.bitex.com.br:8443/trade", help="Websocket trade host")
+define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
+define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
+
+tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "order_match.conf"))
+tornado.options.parse_command_line()
+
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -24,12 +36,12 @@ from order_matcher.views import OrderMatcherHandler
 class AdminHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
-    self.write( loader.load("admin.html").generate() )
+    self.write( loader.load("admin.html").generate( ws_url=options.ws_url  ) )
 
 class BitExHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
-    self.write( loader.load("bitex.html").generate() )
+    self.write( loader.load("bitex.html").generate(ws_url=options.ws_url) )
 
 
 class OrderMatcherApplication(tornado.web.Application):
@@ -70,14 +82,23 @@ class OrderMatcherApplication(tornado.web.Application):
 
 
 def main():
+
+  print 'port', options.port
+  print 'ws_url', options.ws_url
+  print 'db_echo', options.db_echo
+  print 'db_engine', options.db_engine
+  print 'certfile', options.certfile
+  print 'keyfile', options.keyfile
+
+
   application = OrderMatcherApplication()
 
   ssl_options={
-    "certfile": os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem"),
-    "keyfile": os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem"),
+    "certfile": options.certfile,
+    "keyfile": options.keyfile,
   }
   http_server = tornado.httpserver.HTTPServer(application,ssl_options=ssl_options)
-  http_server.listen(8443)
+  http_server.listen(options.port)
 
   tornado.ioloop.IOLoop.instance().start()
 
