@@ -111,16 +111,7 @@ bitex.app.admin = function() {
   ]});
 
   var userListDataGrid = new bitex.ui.DataGrid({'columns' : [
-    { 'property': 'first_name',
-      'label': 'First Name',
-      'sortable': true,
-      'formatter': function(s){ return  s; }
-    },{
-      'property': 'last_name',
-      'label': 'Last Name',
-      'sortable': true,
-      'formatter': function(s){ return s; }
-    },{
+    {
       'property': 'email',
       'label': 'Email',
       'sortable': true,

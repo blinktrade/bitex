@@ -44,8 +44,6 @@ class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
   username        = Column(String(15), nullable=False, index=True, unique=True )
-  first_name      = Column(String(30), nullable=False)
-  last_name       = Column(String(30), nullable=False)
   email           = Column(String(75), nullable=False, index=True, unique=True)
 
   password_algo   = Column(String(8), nullable=False)
@@ -82,13 +80,13 @@ class User(Base):
 
 
   def __repr__(self):
-    return "<User(id=%d, username='%s', first_name='%s', last_name='%s', email='%s'," \
+    return "<User(id=%d, username='%s', email='%s'," \
            " balance_btc=%d, balance_ltc=%d, balance_brl=%d, balance_usd=%d, bitcoin_address='%s'," \
            " verified=%d, is_staff=%s, is_system=%s, created='%s', last_login='%s'," \
            " daily_withdraw_btc_limit=%d, daily_withdraw_ltc_limit=%d, daily_withdraw_brl_limit=%d, daily_withdraw_usd_limit=%d,"\
            " daily_withdraw_btc=%d, daily_withdraw_ltc=%d, daily_withdraw_brl=%d, daily_withdraw_usd=%d," \
            " last_withdraw_btc='%s', last_withdraw_ltc='%s', last_withdraw_brl='%s', last_withdraw_usd='%s' )>" \
-          % (self.id, self.username, self.first_name, self.last_name, self.email,
+          % (self.id, self.username, self.email,
              self.balance_btc, self.balance_ltc, self.balance_brl, self.balance_usd, self.bitcoin_address,
              self.verified, self.is_staff, self.is_system,self.created, self.last_login,
              self.daily_withdraw_btc_limit, self.daily_withdraw_ltc_limit, self.daily_withdraw_brl_limit, self.daily_withdraw_usd_limit,

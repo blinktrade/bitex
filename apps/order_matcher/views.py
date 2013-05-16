@@ -95,8 +95,6 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
         # create the user on Database
         u = User( username    = msg.get('Username'),
-                  first_name  = msg.get('FirstName'),
-                  last_name   = msg.get('LastName'),
                   email       = msg.get('Email'),
                   password    = msg.get('Password'))
 
@@ -136,8 +134,6 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       login_response = {
         'MsgType': 'BF',
         'Username': self.user.username,
-        'FirstName': self.user.first_name,
-        'LastName': self.user.last_name,
         'UserStatus': 1
       }
       self.write_message( json.dumps(login_response) )

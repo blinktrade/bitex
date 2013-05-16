@@ -2565,8 +2565,8 @@ $JSCompiler_prototypeAlias$$.$subscribeMarketData$ = function $$JSCompiler_proto
 $JSCompiler_prototypeAlias$$.$unSubscribeMarketData$ = function $$JSCompiler_prototypeAlias$$$$unSubscribeMarketData$$($market_data_id$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"V", MDReqID:$market_data_id$$, SubscriptionRequestType:"2"}))
 };
-$JSCompiler_prototypeAlias$$.$signUp$ = function $$JSCompiler_prototypeAlias$$$$signUp$$($username$$3$$, $password$$2$$, $first_name$$, $last_name$$, $email$$) {
-  this.$ws_$.send(JSON.stringify({MsgType:"U0", Username:$username$$3$$, Password:$password$$2$$, FirstName:$first_name$$, LastName:$last_name$$, Email:$email$$}))
+$JSCompiler_prototypeAlias$$.$signUp$ = function $$JSCompiler_prototypeAlias$$$$signUp$$($username$$3$$, $password$$2$$, $email$$) {
+  this.$ws_$.send(JSON.stringify({MsgType:"U0", Username:$username$$3$$, Password:$password$$2$$, Email:$email$$}))
 };
 $JSCompiler_prototypeAlias$$.$requestOpenOrders$ = function $$JSCompiler_prototypeAlias$$$$requestOpenOrders$$($opt_requestId_requestId$$, $opt_page$$, $opt_limit$$1$$) {
   $opt_requestId_requestId$$ = $opt_requestId_requestId$$ || parseInt(1E7 * Math.random(), 10);
@@ -3684,14 +3684,14 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   $bitEx$$.addEventListener("ob_update_order", function($e$$86_index$$72$$) {
     var $msg$$15_side$$5$$ = $e$$86_index$$72$$.data;
     $e$$86_index$$72$$ = $msg$$15_side$$5$$.MDEntryPositionNo - 1;
-    var $qty$$7$$ = ($msg$$15_side$$5$$.MDEntrySize / 1E8).toFixed(8), $price$$7$$ = ($msg$$15_side$$5$$.MDEntryPx / 1E5).toFixed(5), $msg$$15_side$$5$$ = $msg$$15_side$$5$$.MDEntryType;
-    "0" == $msg$$15_side$$5$$ ? (0 === $e$$86_index$$72$$ && $model$$.set("formatted_best_bid_brl", $price$$7$$), $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$86_index$$72$$, $qty$$7$$)) : "1" == $msg$$15_side$$5$$ && (0 === $e$$86_index$$72$$ && $model$$.set("formatted_best_offer_brl", $price$$7$$), $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$86_index$$72$$, $qty$$7$$))
+    var $qty$$7$$ = ($msg$$15_side$$5$$.MDEntrySize / 1E8).toFixed(8), $msg$$15_side$$5$$ = $msg$$15_side$$5$$.MDEntryType;
+    "0" == $msg$$15_side$$5$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$86_index$$72$$, $qty$$7$$) : "1" == $msg$$15_side$$5$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$86_index$$72$$, $qty$$7$$)
   });
   $bitEx$$.addEventListener("ob_new_order", function($e$$87_index$$73$$) {
     var $msg$$16_side$$6$$ = $e$$87_index$$73$$.data;
     $e$$87_index$$73$$ = $msg$$16_side$$6$$.MDEntryPositionNo - 1;
-    var $price$$8$$ = ($msg$$16_side$$6$$.MDEntryPx / 1E5).toFixed(5), $qty$$8$$ = ($msg$$16_side$$6$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$16_side$$6$$.Username, $orderId$$3$$ = $msg$$16_side$$6$$.OrderID, $msg$$16_side$$6$$ = $msg$$16_side$$6$$.MDEntryType;
-    "0" == $msg$$16_side$$6$$ ? (0 === $e$$87_index$$73$$ && $model$$.set("formatted_best_bid_brl", $price$$8$$), $order_book_bid$$.$insertOrder$($e$$87_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$8$$, $username$$4$$)) : "1" == $msg$$16_side$$6$$ && (0 === $e$$87_index$$73$$ && $model$$.set("formatted_best_offer_brl", $price$$8$$), $order_book_offer$$.$insertOrder$($e$$87_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$8$$, $username$$4$$))
+    var $price$$7$$ = ($msg$$16_side$$6$$.MDEntryPx / 1E5).toFixed(5), $qty$$8$$ = ($msg$$16_side$$6$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$16_side$$6$$.Username, $orderId$$3$$ = $msg$$16_side$$6$$.OrderID, $msg$$16_side$$6$$ = $msg$$16_side$$6$$.MDEntryType;
+    "0" == $msg$$16_side$$6$$ ? (0 === $e$$87_index$$73$$ && $model$$.set("formatted_best_bid_brl", $price$$7$$), $order_book_bid$$.$insertOrder$($e$$87_index$$73$$, $orderId$$3$$, $price$$7$$, $qty$$8$$, $username$$4$$)) : "1" == $msg$$16_side$$6$$ && (0 === $e$$87_index$$73$$ && $model$$.set("formatted_best_offer_brl", $price$$7$$), $order_book_offer$$.$insertOrder$($e$$87_index$$73$$, $orderId$$3$$, $price$$7$$, $qty$$8$$, $username$$4$$))
   });
   $bitEx$$.addEventListener("balance_response", function($e$$88_msg$$17$$) {
     $e$$88_msg$$17$$ = $e$$88_msg$$17$$.data;
@@ -3719,43 +3719,35 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   $button_signup$$.addEventListener("action", function($e$$93_password2$$) {
     $e$$93_password2$$.stopPropagation();
     $e$$93_password2$$.preventDefault();
-    var $first_name$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_first_name")), $last_name$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_last_name")), $username$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_username")), $email$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_email")), $password$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password"));
+    var $username$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_username")), $email$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_email")), $password$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password"));
     $e$$93_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
-    if($goog$string$isEmpty$$($first_name$$1$$)) {
-      alert("Primeiro nome \u00e9 de preenchimento obrigat\u00f3rio")
+    if($goog$string$isEmpty$$($username$$5$$) || /[^a-zA-Z0-9]/.test($username$$5$$)) {
+      alert("Nome de usu\u00e1rio inv\u00e1lido")
     }else {
-      if($goog$string$isEmpty$$($last_name$$1$$)) {
-        alert("Ultimo nome \u00e9 de preenchimento obrigat\u00f3rio")
-      }else {
-        if($goog$string$isEmpty$$($username$$5$$) || /[^a-zA-Z0-9]/.test($username$$5$$)) {
-          alert("Nome de usu\u00e1rio inv\u00e1lido")
+      if($email$$1$$.match(/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
+        if($goog$string$isEmpty$$($password$$3$$) || 6 > $password$$3$$.length) {
+          alert("Senha deve ter no m\u00ednimo 6 letras")
         }else {
-          if($email$$1$$.match(/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
-            if($goog$string$isEmpty$$($password$$3$$) || 6 > $password$$3$$.length) {
-              alert("Senha deve ter no m\u00ednimo 6 letras")
-            }else {
-              if($password$$3$$ !== $e$$93_password2$$) {
-                alert("Senhas n\u00e3o conferem")
-              }else {
-                if($goog$dom$classes$has$$()) {
-                  try {
-                    $bitEx$$.open($url$$30$$)
-                  }catch($e$$94$$) {
-                    alert("Erro se conectando ao servidor...");
-                    return
-                  }
-                  $goog$events$listenOnce$$($bitEx$$, "opened", function() {
-                    $bitEx$$.$signUp$($username$$5$$, $password$$3$$, $first_name$$1$$, $last_name$$1$$, $email$$1$$)
-                  })
-                }else {
-                  $bitEx$$.close()
-                }
-              }
-            }
+          if($password$$3$$ !== $e$$93_password2$$) {
+            alert("Senhas n\u00e3o conferem")
           }else {
-            alert("Endere\u00e7o de email inv\u00e1lido")
+            if($goog$dom$classes$has$$()) {
+              try {
+                $bitEx$$.open($url$$30$$)
+              }catch($e$$94$$) {
+                alert("Erro se conectando ao servidor...");
+                return
+              }
+              $goog$events$listenOnce$$($bitEx$$, "opened", function() {
+                $bitEx$$.$signUp$($username$$5$$, $password$$3$$, $email$$1$$)
+              })
+            }else {
+              $bitEx$$.close()
+            }
           }
         }
+      }else {
+        alert("Endere\u00e7o de email inv\u00e1lido")
       }
     }
   });

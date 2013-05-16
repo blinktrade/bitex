@@ -300,23 +300,11 @@ bitex.app.bitex = function( url ) {
 
 
     // Perform client validation
-    var first_name = goog.dom.forms.getValue( goog.dom.getElement("id_signup_first_name") );
-    var last_name = goog.dom.forms.getValue( goog.dom.getElement("id_signup_last_name") );
     var username = goog.dom.forms.getValue( goog.dom.getElement("id_signup_username") );
     var email = goog.dom.forms.getValue( goog.dom.getElement("id_signup_email") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_signup_password") );
     var password2 = goog.dom.forms.getValue( goog.dom.getElement("id_signup_password2") );
 
-
-    if (goog.string.isEmpty(first_name)) {
-      alert('Primeiro nome é de preenchimento obrigatório');
-      return;
-    }
-
-    if (goog.string.isEmpty(last_name)) {
-      alert('Ultimo nome é de preenchimento obrigatório');
-      return;
-    }
 
     if (goog.string.isEmpty(username) || !goog.string.isAlphaNumeric(username) ) {
       alert('Nome de usuário inválido');
@@ -348,7 +336,7 @@ bitex.app.bitex = function( url ) {
       }
 
       goog.events.listenOnce( bitEx, 'opened', function(e){
-        bitEx.signUp(username, password, first_name, last_name, email);
+        bitEx.signUp(username, password, email);
       });
 
     } else {

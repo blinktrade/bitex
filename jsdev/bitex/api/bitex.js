@@ -306,17 +306,13 @@ bitex.api.BitEx.prototype.unSubscribeMarketData = function(market_data_id){
 /**
  * @param {string} username
  * @param {string} password
- * @param {string} first_name
- * @param {string} last_name
  * @param {string} email
  */
-bitex.api.BitEx.prototype.signUp = function(username, password, first_name, last_name, email ){
+bitex.api.BitEx.prototype.signUp = function(username, password, email){
   var msg = {
     'MsgType': 'U0',
     'Username': username,
     'Password': password,
-    'FirstName': first_name,
-    'LastName': last_name,
     'Email': email
   };
   this.ws_.send(JSON.stringify( msg ));

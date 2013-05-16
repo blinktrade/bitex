@@ -18,17 +18,17 @@ class TestForbiddenExecutions(unittest.TestCase):
     Base.metadata.create_all(engine)
 
     self.session = scoped_session(sessionmaker(bind=engine))
-    self.user_a = User( username='a', first_name='a', last_name='_', email='a@example.com', password ='a',
+    self.user_a = User( username='a', email='a@example.com', password ='a',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_b = User( username='b', first_name='b', last_name='_', email='b@example.com', password ='b',
+    self.user_b = User( username='b', email='b@example.com', password ='b',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_c = User( username='c', first_name='c', last_name='_', email='c@example.com', password ='c',
+    self.user_c = User( username='c', email='c@example.com', password ='c',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_d = User( username='d', first_name='d', last_name='_', email='d@example.com', password ='d',
+    self.user_d = User( username='d', email='d@example.com', password ='d',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_e = User( username='e', first_name='e', last_name='_', email='e@example.com', password ='e',
+    self.user_e = User( username='e', email='e@example.com', password ='e',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_f = User( username='f', first_name='f', last_name='_', email='f@example.com', password ='f',
+    self.user_f = User( username='f', email='f@example.com', password ='f',
                         balance_btc=20e8, balance_brl=1000e5 )
 
 
@@ -272,19 +272,19 @@ class TestExecutions(unittest.TestCase):
 
     self.session = scoped_session(sessionmaker(bind=engine))
 
-    self.user_a = User( username='a', first_name='a', last_name='_', email='a@example.com', password ='a',
+    self.user_a = User( username='a', email='a@example.com', password ='a',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_b = User( username='b', first_name='b', last_name='_', email='b@example.com', password ='b',
+    self.user_b = User( username='b', email='b@example.com', password ='b',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_c = User( username='c', first_name='c', last_name='_', email='c@example.com', password ='c',
+    self.user_c = User( username='c', email='c@example.com', password ='c',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_d = User( username='d', first_name='d', last_name='_', email='d@example.com', password ='d',
+    self.user_d = User( username='d', email='d@example.com', password ='d',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_e = User( username='e', first_name='e', last_name='_', email='e@example.com', password ='e',
+    self.user_e = User( username='e', email='e@example.com', password ='e',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_f = User( username='f', first_name='f', last_name='_', email='f@example.com', password ='f',
+    self.user_f = User( username='f', email='f@example.com', password ='f',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_g = User( username='g', first_name='g', last_name='_', email='g@example.com', password ='g',
+    self.user_g = User( username='g', email='g@example.com', password ='g',
                         balance_btc=20e8, balance_brl=1000e5 )
 
 
@@ -569,17 +569,17 @@ class TestOrderMatcher(unittest.TestCase):
 
     self.session = scoped_session(sessionmaker(bind=engine))
 
-    self.user_a = User( username='a', first_name='a', last_name='_', email='a@example.com', password ='a',
+    self.user_a = User( username='a', email='a@example.com', password ='a',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_b = User( username='b', first_name='b', last_name='_', email='b@example.com', password ='b',
+    self.user_b = User( username='b', email='b@example.com', password ='b',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_c = User( username='c', first_name='c', last_name='_', email='c@example.com', password ='c',
+    self.user_c = User( username='c', email='c@example.com', password ='c',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_d = User( username='d', first_name='d', last_name='_', email='d@example.com', password ='d',
+    self.user_d = User( username='d', email='d@example.com', password ='d',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_e = User( username='e', first_name='e', last_name='_', email='e@example.com', password ='e',
+    self.user_e = User( username='e', email='e@example.com', password ='e',
                         balance_btc=20e8, balance_brl=1000e5 )
-    self.user_f = User( username='f', first_name='f', last_name='_', email='f@example.com', password ='f',
+    self.user_f = User( username='f', email='f@example.com', password ='f',
                         balance_btc=20e8, balance_brl=1000e5 )
 
     self.session.add( self.user_a )
@@ -661,7 +661,7 @@ class TestOrderMatcher(unittest.TestCase):
     self.om.match(self.session, self.o6 )
 
     # user_h, 1BTC and 250 BRL on his account
-    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+    self.user_h = User( username='h', email='h@example.com', password ='h',
                         balance_btc=1e8, balance_brl=250e5 )
     self.session.add( self.user_h )
     self.session.commit()
@@ -722,7 +722,7 @@ class TestOrderMatcher(unittest.TestCase):
 
   def testSellingBTCtoAnotherUserWhoDoesntHaveCash(self):
     # user_h, has 1BTC and 250BRL
-    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+    self.user_h = User( username='h', email='h@example.com', password ='h',
                         balance_btc=1e8, balance_brl=250e5 )
     self.session.add( self.user_h )
     self.session.commit()
@@ -757,7 +757,7 @@ class TestOrderMatcher(unittest.TestCase):
 
 
     # user_i has 20BTC and 250BRL
-    self.user_i = User( username='i', first_name='i', last_name='_', email='i@example.com', password ='i',
+    self.user_i = User( username='i', email='i@example.com', password ='i',
                         balance_btc=20e8, balance_brl=250e5 )
     self.session.add( self.user_i )
     self.session.commit()
@@ -799,7 +799,7 @@ class TestOrderMatcher(unittest.TestCase):
     self.om.match(self.session, self.o6 )
 
     # user_h, 4BTC and 0BRL on his account
-    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+    self.user_h = User( username='h', email='h@example.com', password ='h',
                         balance_btc=4e8, balance_brl=0 )
     self.session.add( self.user_h )
     self.session.commit()
@@ -862,7 +862,7 @@ class TestOrderMatcher(unittest.TestCase):
     self.om.match(self.session, self.o6 )
 
     # user_h, 4BTC and 0BRL on his account
-    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+    self.user_h = User( username='h', email='h@example.com', password ='h',
                         balance_btc=3e8, balance_brl=0 )
     self.session.add( self.user_h )
     self.session.commit()
@@ -922,7 +922,7 @@ class TestOrderMatcher(unittest.TestCase):
     self.om.match(self.session, self.o6 )
 
     # user_h, 0 BTC and 0 BRL on his account
-    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+    self.user_h = User( username='h', email='h@example.com', password ='h',
                         balance_btc=0, balance_brl=0 )
     self.session.add( self.user_h )
     self.session.commit()
@@ -976,7 +976,7 @@ class TestOrderMatcher(unittest.TestCase):
     self.om.match(self.session, self.o6 )
 
     # user_h, 0 BTC and 250 BRL on his account
-    self.user_h = User( username='h', first_name='h', last_name='_', email='h@example.com', password ='h',
+    self.user_h = User( username='h', email='h@example.com', password ='h',
                         balance_btc=0, balance_brl=250e5 )
     self.session.add( self.user_h )
     self.session.commit()
