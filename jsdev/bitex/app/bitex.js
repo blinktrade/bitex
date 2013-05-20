@@ -50,7 +50,7 @@ bitex.app.bitex = function( url ) {
           break;
         default:
           // redirect non-logged users to the signin page
-          router.setView('signin');
+          router.setView('start');
           return false;
       }
     }

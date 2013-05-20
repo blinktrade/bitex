@@ -44,6 +44,7 @@ bitex.model.Model.prototype.set = function(key, value) {
   goog.array.forEach( elements, function(el) {
     var model_key = el.getAttribute('data-model-key');
     if (model_key === key) {
+      // TODO: make sure this also works with value attribute
       var current_value = goog.dom.getTextContent(el);
 
       if (current_value !== value) {

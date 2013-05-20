@@ -3599,7 +3599,7 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
         case "signup":
           break;
         default:
-          return $JSCompiler_StaticMethods_setView$$($router$$, "signin"), $JSCompiler_alias_FALSE$$
+          return $JSCompiler_StaticMethods_setView$$($router$$, "start"), $JSCompiler_alias_FALSE$$
       }
     }
     var $classes$$8$$ = $goog$dom$classes$get$$(document.body), $classes_to_remove$$ = [];
