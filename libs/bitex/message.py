@@ -98,8 +98,6 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U0':  #Signup
       self.valid = self.valid and  'Username' in self.message
       self.valid = self.valid and  'Password' in self.message
-      self.valid = self.valid and  'FirstName' in self.message
-      self.valid = self.valid and  'LastName' in self.message
       self.valid = self.valid and  'Email' in self.message
       if not self.valid:
         return
