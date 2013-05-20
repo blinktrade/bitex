@@ -119,7 +119,6 @@ class JsonMessage(BaseMessage):
       #TODO: Validate all fields of New Order Single Message
 
     elif self.type == 'F':  #Order Cancel Request
-      self.valid = self.valid and  ('OrderID'  in self.message or 'OrigClOrdID'  in self.message)
       if not self.valid:
         return
 

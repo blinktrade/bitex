@@ -298,8 +298,6 @@ class OrderMatcher(object):
       # Generate an Order Cancel Reject - Order not found
       return
 
-    print "order found at " ,  order_pos
-
     # update the order
     order.cancel_qty( order.leaves_qty )
     session.commit()

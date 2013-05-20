@@ -30,8 +30,10 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     self.write_message( str(json.dumps(json_msg, cls=JsonEncoder )) )
 
   def on_message(self, raw_message):
+    print raw_message
     msg = JsonMessage(raw_message)
     if not msg.is_valid():
+      print 'Invalid message', raw_message
       self.close()
       return
 
@@ -96,7 +98,9 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         # create the user on Database
         u = User( username    = msg.get('Username'),
                   email       = msg.get('Email'),
-                  password    = msg.get('Password'))
+                  password    = msg.get('Password'),
+                  balance_btc = 1e8,   # only for testing purposes
+                  balance_brl = 250e5)
 
         self.application.session.add(u)
         self.application.session.commit()
@@ -196,21 +200,34 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       return
 
     elif  msg.type == 'F' : # Cancel Order Request
+      order_list = []
       if  msg.has('OrigClOrdID'):
         order = self.application.session.query(Order).\
                                         filter(Order.status.in_(("0", "1"))).\
                                         filter_by( user_id = self.user.id ).\
                                         filter_by( client_order_id =  msg.get('OrigClOrdID')  ).first()
-      else:
+        if order:
+          order_list.append(order)
+      elif msg.has('OrderID'):
         order = self.application.session.query(Order).\
                                         filter(Order.status.in_(("0", "1"))).\
                                         filter_by( user_id = self.user.id ).\
                                         filter_by( id =  msg.get('OrderID')  ).first()
+        if order:
+          order_list.append(order)
+      else:
+        orders = self.application.session.query(Order).\
+                                         filter(Order.status.in_(("0", "1"))).\
+                                         filter_by( user_id = self.user.id )
+
+        for order in orders:
+          order_list.append(order)
 
 
-      OrderMatcher.get( order.symbol ).cancel(self.application.session, order)
-      self.application.session.commit()
-      return
+      for order in order_list:
+        OrderMatcher.get( order.symbol ).cancel(self.application.session, order)
+        self.application.session.commit()
+
 
 
     elif msg.type == 'U2': # Request for Balances
@@ -279,6 +296,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       return
 
     else:
+      print 'Invalid Message' , msg
       # invalid message - Close the connection ....
       self.close()
 

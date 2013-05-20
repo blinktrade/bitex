@@ -17,7 +17,12 @@ import tornado.template
 from md_gateway import  config
 from views import MdGatewayHandler
 
-from order_matcher_client import OrderMatcherClient
+import tornado.platform.twisted
+tornado.platform.twisted.install()
+from twisted.internet import reactor
+
+
+from bitex.order_matcher_client import OrderMatcherClient
 
 class MdGatewayApplication(tornado.web.Application):
   def __init__(self):
