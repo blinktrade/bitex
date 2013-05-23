@@ -4,7 +4,7 @@ import bisect
 from bitex.signals import Signal
 
 import datetime
-from order_matcher.models import Trade
+from order_matcher.models import Trade, UserEmail
 
 from order_matcher.market_data_signals import MdSubscriptionHelper
 
@@ -203,7 +203,17 @@ class OrderMatcher(object):
         rpt_order         = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, rpt_order )  )
 
+        UserEmail.create( session = session,
+                          user_id = order.user_id,
+                          subject = u"Sua oferta #%d de %f@%f foi executada!" % (order.id, order.order_qty, order.price) )
+
         rpt_counter_order = ExecutionReport( counter_order, execution_side )
+        execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )
+
+        UserEmail.create( session = session,
+                          user_id = counter_order.user_id,
+                          subject = u"Sua oferta #%d de %f@%f foi executada!" % (counter_order.id, counter_order.order_qty, counter_order.price) )
+
         execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )
 
       #

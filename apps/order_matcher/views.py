@@ -155,7 +155,6 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       # subscribe to all emails broadcast to all users :
       user_message_signal.connect( self.on_send_json_msg_to_user )
 
-
       # add the user to the session/
       self.application.session.add(self.user)
       self.application.session.commit()
