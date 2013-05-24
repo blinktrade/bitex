@@ -2,6 +2,7 @@
 
 import os
 import hashlib
+import smtplib
 
 import datetime
 from bitex.utils import smart_str
@@ -303,6 +304,13 @@ class UserEmail(Base):
       msg['Body'] = body
 
     user_message_signal( user_id, msg )
+
+    try:
+       smtpObj = smtplib.SMTP('127.0.0.1')
+       smtpObj.ehlo()
+       smtpObj.sendmail('bzero@bitex.com.br', [ user_email.user.email ], body)
+    except smtplib.SMTPException as ex:
+       print "Error: unable to send email to " + str(user_email.user.email)
 
     return  user_email
 
