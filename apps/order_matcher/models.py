@@ -178,7 +178,7 @@ class User(Base):
     self.update_balance( 'CREDIT', currency, amount )
     deposit.status = '2'
 
-    session.commit()
+    session.flush()
 
     formatted_amount = ""
     if currency == 'BTC':
@@ -202,7 +202,7 @@ class User(Base):
                                  amount   = amount,
                                  wallet   = wallet)
     session.add(withdraw_btc)
-    session.commit()
+    session.flush()
 
     UserEmail.create( session = session,
                       user_id = self.id,
@@ -219,7 +219,7 @@ class User(Base):
         self.last_withdraw_btc = datetime.datetime.now()
         self.daily_withdraw_btc = amount
 
-    session.commit()
+    session.flush()
 
     # Check if the user has exceed his daily limit for the hot wallet
     if self.daily_withdraw_btc < self.daily_withdraw_btc_limit:
@@ -248,7 +248,7 @@ class User(Base):
                                  account_branch = account_branch,
                                  cpf_cnpj       = cpf_cnpj)
     session.add(withdraw_brl)
-    session.commit()
+    session.flush()
 
     UserEmail.create( session = session,
                       user_id = self.id,
@@ -264,7 +264,7 @@ class User(Base):
         self.last_withdraw_brl = datetime.datetime.now()
         self.daily_withdraw_brl = amount
 
-    session.commit()
+    session.flush()
 
     # Check if the user has exceed his daily limit for the hot wallet
     if self.daily_withdraw_brl < self.daily_withdraw_brl_limit:
@@ -331,7 +331,7 @@ class UserPasswordReset(Base):
     user.set_password(new_password)
 
     session.add(user)
-    session.commit()
+    session.flush()
 
     return  True
 
@@ -343,7 +343,7 @@ class UserPasswordReset(Base):
     req = UserPasswordReset( user_id = user_id,
                              token = token )
     session.add(req)
-    session.commit()
+    session.flush()
 
 
     subject = u"Redefina a sua senha."
@@ -370,7 +370,7 @@ class UserEmail(Base):
                             subject = subject,
                             body    = body)
     session.add(user_email)
-    session.commit()
+    session.flush()
 
     msg = {
       'MsgType' : 'C',

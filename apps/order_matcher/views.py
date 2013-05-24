@@ -30,6 +30,10 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     self.write_message( str(json.dumps(json_msg, cls=JsonEncoder )) )
 
   def on_message(self, raw_message):
+    if not self.application.session.is_active:
+      # in case of an error on last commit, let's just rollback it.
+      self.application.session.rollback()
+
     print raw_message
     msg = JsonMessage(raw_message)
     if not msg.is_valid():
@@ -91,6 +95,9 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
         user  = User.get_user( self.application.session, email = msg.get('Email') )
         user.request_reset_password( self.application.session )
+
+
+        self.application.session.commit()
         return
 
       if msg.type == 'U12': # Password request
@@ -103,6 +110,8 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
             'UserStatusText': u'Senha alterada com sucesso!'
           }
           self.write_message( json.dumps(response) )
+
+          self.application.session.commit()
         else:
           response = {
             'MsgType': 'U13',
@@ -128,6 +137,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           }
           self.write_message( json.dumps(login_response) )
           self.close()
+          self.application.session.rollback()
           return
 
 
@@ -149,6 +159,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       # The logon message must be the first message
       if msg.type  != 'BE' and msg.type != 'U0':
         self.close()
+        self.application.session.rollback()
         return
 
       raw_message = raw_message.replace(msg.get('Password'), '*')
@@ -165,6 +176,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           'UserStatusText': u'Nome de usuário ou senha inválidos'
         }
         self.write_message( json.dumps(login_response) )
+        self.application.session.rollback()
 
         # TODO: improve security.
         # Block the user accounts after 3 attempts
@@ -181,6 +193,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         'UserStatus': 1
       }
       self.write_message( json.dumps(login_response) )
+      self.application.session.commit()
 
 
       # subscribe to all execution reports for this user account.
@@ -230,8 +243,9 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
                      price            = msg.get('Price'),
                      order_qty        = msg.get('OrderQty'))
 
+
       self.application.session.add( order)
-      self.application.session.commit() # just to assign an ID for the order.
+      self.application.session.flush() # just to assign an ID for the order.
 
       OrderMatcher.get(msg.get('Symbol')).match(self.application.session, order)
 
@@ -265,9 +279,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
       for order in order_list:
         OrderMatcher.get( order.symbol ).cancel(self.application.session, order)
-        self.application.session.commit()
-
-
+      self.application.session.commit()
 
     elif msg.type == 'U2': # Request for Balances
       self.user.publish_balance_update(msg.get('BalanceReqID'))
@@ -320,6 +332,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.user.withdraw_btc( session = self.application.session,
                               amount  = msg.get('Amount'),
                               wallet  = msg.get('Wallet') )
+      self.application.session.commit()
       return
 
 
@@ -332,6 +345,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
                               account_number= msg.get('AccountNumber'),
                               account_branch= msg.get('AccountBranch'),
                               cpf_cnpj      = msg.get('CPFCNPJ'))
+      self.application.session.commit()
       return
 
     else:
@@ -352,11 +366,14 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
                                amount        = msg.get('Amount'),
                                origin        = msg.get('Origin'))
 
-      result = {
-        'MsgType'   : 'DEPOSIT_RESPONSE',
-        'DepositId' : deposit.id
-      }
-      self.on_send_json_msg_to_user( sender=None, json_msg=result )
+        self.application.session.commit()
+
+        result = {
+          'MsgType'   : 'DEPOSIT_RESPONSE',
+          'DepositId' : deposit.id
+        }
+        self.on_send_json_msg_to_user( sender=None, json_msg=result )
+
 
       return True
 
