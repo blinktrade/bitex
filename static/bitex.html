@@ -174,10 +174,66 @@
               <label for="id_password">Senha</label>
               <div class="input"><input id="id_password" name="password" type="password"></div>
             </div>
+            <p><a href="#" data-switch-view="forgot_password">Esqueceu a sua senha?</a></p>
+            <div class="actions">
+              <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Entrar">
+            </div>
           </form>
-          <div class="actions">
-            <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Entrar">
+        </div>
+
+
+        <div id="forgot_password" class="page row-fluid">
+          <div class="page-header">
+            <h1>Recuperação de senha</h1>
           </div>
+
+          <form accept-charset="UTF-8" action="" method="post">
+            <div class="clearfix">
+              <label for="id_forgot_password_email">e-mail</label>
+              <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
+            </div>
+            <div class="actions">
+              <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recuperar senha">
+            </div>
+          </form>
+        </div>
+
+
+        <div id="set_new_password" class="page  row-fluid">
+          <div class="page-header">
+            <h1>Redefinir sua senha</h1>
+          </div>
+          <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
+
+            <div class="control-group">
+              <label class="control-label">Código de segurança</label>
+              <div class="controls">
+                <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
+                <p class="help-block">Copie e cole o código de segurança que acabamos de enviar para o seu endereço de email.</p>
+              </div>
+
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Senha</label>
+              <div class="controls">
+                <input id="id_set_new_password_password" name="Password" size="30" type="password">
+                <p class="help-block">Pelo menos 8 caracteres</p>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Confirmação de senha</label>
+              <div class="controls">
+                <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
+              </div>
+            </div>
+
+
+            <div class="actions">
+              <input id="id_btn_set_new_password"  class="btn btn-primary" name="commit" type="submit" value="Redefinir senha">
+            </div>
+          </form>
         </div>
 
         <div class="page row-fluid bitex-display-if-logged">

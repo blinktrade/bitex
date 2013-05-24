@@ -16,7 +16,7 @@ import tornado.httpserver
 import tornado.template
 from tornado.options import define, options
 
-define("port", default=8449, help="port" )
+define("port", default=8443, help="port" )
 define("db_echo", default=False, help="Prints every database command on the stdout" )
 define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex.sqlite"), help="SQLAlchemy database engine string")
 define("ws_url", default="wss://www.bitex.com.br:8449/trade", help="Websocket trade host")

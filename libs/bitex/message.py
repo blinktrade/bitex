@@ -41,7 +41,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8' , 'ADMIN_SELECT', 'DEPOSIT' ):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U10', 'U12', 'ADMIN_SELECT', 'DEPOSIT' ):
       self.valid = False
       return
 
@@ -103,6 +103,14 @@ class JsonMessage(BaseMessage):
         return
 
       #TODO: Validate all fields of Signup Message
+
+    elif self.type == 'U10':  #Request Reset Password
+      self.valid = self.valid and  'Email' in self.message
+
+    elif self.type == 'U12':  #Reset Password
+      self.valid = self.valid and  'Token' in self.message
+      self.valid = self.valid and  'NewPassword' in self.message
+
 
     elif self.type == 'D':  #New Order Single
       self.valid = self.valid and  'ClOrdID' in self.message

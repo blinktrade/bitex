@@ -11,6 +11,7 @@ from bitex.errors import OrderNotFound
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
+from sqlalchemy.sql.expression import or_, exists
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
@@ -139,15 +140,31 @@ class User(Base):
     return self.password == get_hexdigest(self.password_algo, self.password_salt, raw_password)
 
   @staticmethod
+  def get_user( session, username=None, email=None):
+    if username and email:
+      filter_obj = or_( User.username==username, User.email==email )
+    elif username:
+      filter_obj = or_( User.username==username )
+    elif email:
+      filter_obj = or_( User.email==email )
+    else:
+      return  None
+    user = session.query(User).filter( filter_obj  ).first()
+    if user:
+      return  user
+    return None
+
+  @staticmethod
   def authenticate(session, user, password):
-    user = session.query(User).filter_by(username=user).first()
-    if not user:
-      user = session.query(User).filter_by(email=user).first()
+    user = User.get_user( session, user, user)
     if user and user.check_password(password):
       # update the last login
       user.last_login = datetime.datetime.now()
       return user
     return None
+
+  def request_reset_password(self, session):
+    UserPasswordReset.create( session, self.id )
 
   def deposit(self, session, currency, amount, origin):
     deposit = Deposit( user_id=self.id,
@@ -277,11 +294,72 @@ class Deposit(Base):
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
   origin          = Column(String(255),   nullable=False)
 
+class UserPasswordReset(Base):
+  __tablename__   = 'user_password_reset'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  user            = relationship("User",  backref=backref('user_password_reset', order_by=id))
+  token           = Column(String,        nullable=False, index=True)
+  used            = Column(Boolean,       default=False)
+  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+  @staticmethod
+  def get_valid_token(session, token):
+    req = session.query(UserPasswordReset).filter_by(token = token ).first()
+    if not req:
+      return  None
+
+    # Check if the token was already used
+    if req.used:
+      return  None
+
+    #TODO: Check if the token is at least 1 minute old
+
+
+    return  req
+
+  @staticmethod
+  def change_user_password(session, token, new_password):
+    req = UserPasswordReset.get_valid_token(session, token)
+    if not req:
+      return  False
+
+    req.used = True
+    session.add(req)
+
+    user = req.user
+    user.set_password(new_password)
+
+    session.add(user)
+    session.commit()
+
+    return  True
+
+  @staticmethod
+  def create( session, user_id ):
+    import uuid
+    token = uuid.uuid4().hex
+
+    req = UserPasswordReset( user_id = user_id,
+                             token = token )
+    session.add(req)
+    session.commit()
+
+
+    subject = u"Redefina a sua senha."
+    body = u"Entre com o seguinte código de segurança para resetar a sua senha: %s" % token
+
+    UserEmail.create( session = session,
+                      user_id = user_id,
+                      subject = subject,
+                      body = body )
+
+
 class UserEmail(Base):
   __tablename__   = 'user_email'
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('withdraws_btc', order_by=id))
+  user            = relationship("User",  backref=backref('user_email', order_by=id))
   subject         = Column(String,        nullable=False)
   body            = Column(String,        nullable=True)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
@@ -305,11 +383,12 @@ class UserEmail(Base):
 
     user_message_signal( user_id, msg )
 
+    # TODO: This has to be done in a different process
     try:
        smtpObj = smtplib.SMTP('127.0.0.1')
        smtpObj.ehlo()
        smtpObj.sendmail('bzero@bitex.com.br', [ user_email.user.email ], body)
-    except smtplib.SMTPException as ex:
+    except Exception as ex:
        print "Error: unable to send email to " + str(user_email.user.email)
 
     return  user_email

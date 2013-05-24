@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 __author__ = 'rodrigo'
-
 
 from market_data_signals import *
 
@@ -7,7 +7,7 @@ from market_data_signals import *
 from tornado import  websocket
 import json
 
-from models import  User, Order, balance_signal, user_message_signal
+from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal
 
 from order_matcher.execution import OrderMatcher, execution_report_signal
 
@@ -86,10 +86,50 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
 
     if not self.is_logged:
-      if msg.type == 'U0': # signup
+      if msg.type == 'U10': # Request password request
+        self.application.replay_log.info('IN,' + raw_message )
+
+        user  = User.get_user( self.application.session, email = msg.get('Email') )
+        user.request_reset_password( self.application.session )
+        return
+
+      if msg.type == 'U12': # Password request
+        self.application.replay_log.info('IN,' + raw_message )
+
+        if UserPasswordReset.change_user_password( self.application.session, msg.get('Token'), msg.get('NewPassword') ):
+          response = {
+            'MsgType': 'U13',
+            'UserStatus': 1,
+            'UserStatusText': u'Senha alterada com sucesso!'
+          }
+          self.write_message( json.dumps(response) )
+        else:
+          response = {
+            'MsgType': 'U13',
+            'UserStatus': 3,
+            'UserStatusText': u'Código de segurança inválido!'
+          }
+          self.write_message( json.dumps(response) )
+          self.close()
+        return
+
+      elif msg.type == 'U0': # signup
 
         raw_message = raw_message.replace(msg.get('Password'), '*')
         self.application.replay_log.info('IN,' + raw_message )
+
+        # check if the user is already registered
+        if User.get_user( self.application.session, msg.get('Username'), msg.get('Email') ):
+          login_response = {
+            'MsgType': 'BF',
+            'Username': '',
+            'UserStatus': 3,
+            'UserStatusText': u'Nome de usuário ou Email já estão registrados!'
+          }
+          self.write_message( json.dumps(login_response) )
+          self.close()
+          return
+
 
         # signup the user
 
@@ -122,7 +162,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           'MsgType': 'BF',
           'Username': '',
           'UserStatus': 3,
-          'UserStatusText': 'Invalid Username or Password'
+          'UserStatusText': u'Nome de usuário ou senha inválidos'
         }
         self.write_message( json.dumps(login_response) )
 

@@ -47,6 +47,8 @@ bitex.app.bitex = function( url ) {
         case 'start':
         case 'signin':
         case 'signup':
+        case 'forgot_password':
+        case 'set_new_password':
           break;
         default:
           // redirect non-logged users to the signin page
@@ -169,6 +171,28 @@ bitex.app.bitex = function( url ) {
   order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
     bitEx.cancelOrder(e.client_order_id );
   });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK,  function(e) {
+    var msg = e.data;
+    var dlg = new bootstrap.Dialog();
+    dlg.setTitle('Sucesso');
+    dlg.setContent(msg['UserStatusText']);
+    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setVisible(true);
+
+    router.setView('signin');
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR,  function(e) {
+    var msg = e.data;
+    var dlg = new bootstrap.Dialog();
+    dlg.setTitle('Erro');
+    dlg.setContent(msg['UserStatusText']);
+    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setVisible(true);
+
+  });
+
 
   bitEx.addEventListener('login_error',  function(e) {
     goog.dom.classes.add( document.body, 'bitex-not-logged'  );
@@ -334,7 +358,6 @@ bitex.app.bitex = function( url ) {
         alert('Erro se conectando ao servidor...');
         return;
       }
-
       goog.events.listenOnce( bitEx, 'opened', function(e){
         bitEx.signUp(username, password, email);
       });
@@ -371,6 +394,75 @@ bitex.app.bitex = function( url ) {
     }
   };
 
+  goog.events.listen( goog.dom.getElement('id_btn_forgot_password'), 'click', function(e){
+    e.stopPropagation();
+    e.preventDefault();
+
+    var email = goog.dom.forms.getValue( goog.dom.getElement("id_forgot_password_email") );
+    if (!email.match(/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
+      alert('Endereço de email inválido');
+      return;
+    }
+
+    if (goog.dom.classes.has( document.body, 'ws-not-connected' )) {
+      try{
+        bitEx.open(url);
+      } catch( e ) {
+        alert('Erro se conectando ao servidor...');
+        return;
+      }
+      goog.events.listenOnce( bitEx, 'opened', function(e){
+        bitEx.forgotPassword(email);
+      });
+
+    } else {
+      bitEx.forgotPassword(email);
+    }
+
+    router.setView('set_new_password');
+  });
+
+  goog.events.listen( goog.dom.getElement('id_btn_set_new_password'), 'click', function(e){
+    e.stopPropagation();
+    e.preventDefault();
+
+    var token = goog.dom.forms.getValue( goog.dom.getElement("id_set_new_password_token") );
+    var password = goog.dom.forms.getValue( goog.dom.getElement("id_set_new_password_password") );
+    var password2 = goog.dom.forms.getValue( goog.dom.getElement("id_set_new_password_password2") );
+
+    if (goog.string.isEmpty(token)) {
+      alert('Por favor, informe um código de confirmação');
+      return;
+    }
+
+    if ( goog.string.isEmpty(password)  || password.length < 6) {
+      alert('Senha deve ter no mínimo 6 letras');
+      return;
+    }
+
+    if ( password !== password2 ) {
+      alert('Senhas não conferem');
+      return;
+    }
+
+    if (goog.dom.classes.has( document.body, 'ws-not-connected' )) {
+      try{
+        bitEx.open(url);
+      } catch( e ) {
+        alert('Erro se conectando ao servidor...');
+        return;
+      }
+      goog.events.listenOnce( bitEx, 'opened', function(e){
+        bitEx.resetPassword(token, password);
+      });
+
+    } else {
+      bitEx.resetPassword(token, password);
+    }
+
+  });
+
+
   goog.events.listen( goog.dom.getElement('id_landing_signin'), 'click', function(e){
     e.stopPropagation();
     e.preventDefault();
@@ -403,6 +495,12 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener('error',  function(e) {
     goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
     goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
+
+    var dlg = new bootstrap.Dialog();
+    dlg.setTitle('Erro');
+    dlg.setContent('Ocorreu um erro ao se conectar com a BitEx. Por favor, verifique se você possui um Browser de última geração.');
+    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setVisible(true);
 
     router.setView('start');
   });

@@ -51,6 +51,9 @@ bitex.api.BitEx.EventType = {
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
 
+  PASSWORD_CHANGED_OK: 'pwd_changed_ok',
+  PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
+
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
   ORDER_LIST_RESPONSE: 'order_list_response',
@@ -157,6 +160,15 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       }
       break;
 
+    case 'U13': // Password change response:
+      if (msg['UserStatus'] == 1 ) {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK, msg ) );
+      } else {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, msg ) );
+      }
+      break;
+
+
     case 'U3': // Balance Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BALANCE_RESPONSE, msg ) );
       break;
@@ -252,6 +264,31 @@ bitex.api.BitEx.prototype.login = function(username, password){
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * @param {string} email
+ */
+bitex.api.BitEx.prototype.forgotPassword = function(email){
+  var msg = {
+    'MsgType': 'U10',
+    'Email': email
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * @param {string} token
+ * @param {string} new_password
+ */
+bitex.api.BitEx.prototype.resetPassword = function(token, new_password){
+  var msg = {
+    'MsgType': 'U12',
+    'Token': token,
+    'NewPassword': new_password
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
 
 /**
  * @param {string} password
@@ -462,6 +499,8 @@ goog.exportProperty(BitEx.prototype, 'changePassword', bitex.api.BitEx.prototype
 goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prototype.subscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
+goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
+goog.exportProperty(BitEx.prototype, 'resetPassword', bitex.api.BitEx.prototype.resetPassword);
 goog.exportProperty(BitEx.prototype, 'requestOpenOrders', bitex.api.BitEx.prototype.requestOpenOrders);
 goog.exportProperty(BitEx.prototype, 'cancelOrder', bitex.api.BitEx.prototype.cancelOrder);
 goog.exportProperty(BitEx.prototype, 'sendRawMessage', bitex.api.BitEx.prototype.sendRawMessage);
