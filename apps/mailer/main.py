@@ -13,6 +13,7 @@ from datetime import timedelta
 import  time
 from bitex.client import BitExThreadedClient
 
+import smtplib
 
 def main():
   while  True:
@@ -24,10 +25,17 @@ def main():
 
       def on_message(sender, msg):
         if msg['MsgType'] == 'C':
-          # TODO : Send email here
-          print 'sending email to:', msg['To']
-          print 'Subject:', msg['Subject']
-          print msg['Body']
+          try:
+            body = msg['To']
+            if not len(body):
+              body = '.'
+
+            smtpObj = smtplib.SMTP('127.0.0.1')
+            smtpObj.ehlo()
+            smtpObj.sendmail('bzero@bitex.com.br', [ msg['To'] ], body)
+          except Exception as ex:
+            print "Error: unable to send email to " + str(msg['To'])
+            
         else:
           print 'received ' , msg
           print ''
