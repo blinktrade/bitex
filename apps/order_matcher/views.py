@@ -27,14 +27,14 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     self.write_message( str(rpt) )
 
   def on_send_json_msg_to_user(self, sender, json_msg):
-    self.write_message( str(json.dumps(json_msg, cls=JsonEncoder )) )
+    s = json.dumps(json_msg, cls=JsonEncoder )
+    self.write_message(s)
 
   def on_message(self, raw_message):
     if not self.application.session.is_active:
       # in case of an error on last commit, let's just rollback it.
       self.application.session.rollback()
 
-    print raw_message
     msg = JsonMessage(raw_message)
     if not msg.is_valid():
       print 'Invalid message', raw_message
@@ -202,11 +202,6 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       # subscribe to balance updates for this user account
       balance_signal.connect( self.on_send_json_msg_to_user, self.user.id  )
 
-      # subscribe to all emails sent to this user account:
-      user_message_signal.connect( self.on_send_json_msg_to_user, self.user.id )
-
-      # subscribe to all emails broadcast to all users :
-      user_message_signal.connect( self.on_send_json_msg_to_user )
 
       # add the user to the session/
       self.application.session.add(self.user)
@@ -383,7 +378,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
       return True
 
-    if msg.type == 'ADMIN_SELECT':
+    elif msg.type == 'ADMIN_SELECT':
       page      = msg.get('Page', 0)
       page_size = msg.get('PageSize', 100)
       columns   = msg.get('Columns', [])
@@ -413,6 +408,13 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
       self.on_send_json_msg_to_user( sender=None, json_msg=result )
       return True
+
+    elif msg.type == 'S0':  # Subscribe to emails
+      # subscribe to all emails broadcast to all users :
+      user_message_signal.connect( self.on_send_json_msg_to_user )
+
+      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'S1', 'EmailReqID':msg.get('EmailReqID')  }  )
+      return  True
 
     return  False
 

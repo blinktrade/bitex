@@ -41,7 +41,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U10', 'U12', 'ADMIN_SELECT', 'DEPOSIT' ):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U10', 'U12', 'S0', 'ADMIN_SELECT', 'DEPOSIT' ):
       self.valid = False
       return
 
@@ -171,6 +171,11 @@ class JsonMessage(BaseMessage):
 
         #TODO: Validate all fields of Request For BTC Withdraw  Message
 
+    elif self.type == 'S0': # Subscribe to emails
+      self.valid = self.valid and  'EmailReqID' in self.message
+
+      if not self.valid:
+        return
 
   def has(self, attr):
     return attr in self.message

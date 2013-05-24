@@ -94,19 +94,18 @@ class BitExThreadedClient(WebSocketClient):
   def received_message(self, message):
     msg = json.loads(str(message))
 
+    self.signal_recv(self, msg)
+
     if msg['MsgType'] == '0':
       self.signal_heartbeat(self, msg)
-      self.signal_recv(self, msg)
     elif msg['MsgType'] == 'BF':
       if msg['UserStatus'] == 1:
         self.is_logged = True
         self.signal_logged(self, msg)
       else:
         self.signal_error_login(self, msg)
-      self.signal_recv(self, msg)
     elif msg['MsgType'] == '8':
       self.signal_execution_report(self, msg)
-      self.signal_recv(self, msg)
 
 
     elif msg['MsgType'] == 'X':  # Market Data Incremental Refresh
@@ -132,7 +131,6 @@ class BitExThreadedClient(WebSocketClient):
               self.signal_book_offer_delete_thru(self, entry )
           elif entry['MDEntryType'] == '2':
             self.signal_trade(self, entry )
-      self.signal_recv(self, msg)
 
 
     elif msg['MsgType'] == 'W':  # Market Data Refresh
@@ -148,7 +146,6 @@ class BitExThreadedClient(WebSocketClient):
             self.signal_book_offer_new_order(self, entry )
           elif entry['MDEntryType'] == '2':
             self.signal_trade(self, entry )
-      self.signal_recv(self, msg)
 
 
 

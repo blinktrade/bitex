@@ -375,7 +375,9 @@ class UserEmail(Base):
     msg = {
       'MsgType' : 'C',
       'OrigTime': user_email.created,
+      'To': user_email.user.email,
       'Subject' : subject,
+      'Body': ''
     }
 
     if body:
