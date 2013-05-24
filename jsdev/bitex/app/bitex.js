@@ -408,7 +408,7 @@ bitex.app.bitex = function( url ) {
   });
 
   var login = function(username, password) {
-    if (goog.string.isEmpty(username) || !goog.string.isAlphaNumeric(username) ) {
+    if (goog.string.isEmpty(username) ) {
       alert('Nome de usuário inválido');
       return;
     }

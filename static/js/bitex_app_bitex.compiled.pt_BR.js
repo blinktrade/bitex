@@ -3636,7 +3636,7 @@ function $goog$dom$forms$getValue$$($el$$38$$) {
 // Input 74
 $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   function $login$$($username$$6$$, $password$$4$$) {
-    if($goog$string$isEmpty$$($username$$6$$) || /[^a-zA-Z0-9]/.test($username$$6$$)) {
+    if($goog$string$isEmpty$$($username$$6$$)) {
       alert("Nome de usu\u00e1rio inv\u00e1lido")
     }else {
       if($goog$string$isEmpty$$($password$$4$$) || 6 > $password$$4$$.length) {
