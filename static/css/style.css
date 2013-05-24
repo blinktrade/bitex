@@ -228,6 +228,14 @@ ul.parsley-error-list li {
 }
 
 
+.account-activity-buy {
+  background-color: lightgreen;
+}
+
+.account-activity-sell {
+  background-color: lightcoral;
+}
+
 .order-book-row {
   font-size: 12px;
 }

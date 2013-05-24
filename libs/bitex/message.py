@@ -139,8 +139,8 @@ class JsonMessage(BaseMessage):
       #TODO: Validate all fields of Request For Balance Message
 
 
-    elif self.type == 'U4': # Open Orders
-      self.valid = self.valid and  'OpenOrdersReqID' in self.message
+    elif self.type == 'U4': #  Orders List
+      self.valid = self.valid and  'OrdersReqID' in self.message
       if not self.valid:
         return
 

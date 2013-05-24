@@ -299,8 +299,12 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
       order_list = []
       columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
-                  'Symbol', 'Side', 'OrdType', 'OrderQty', 'Price' ]
+                  'Symbol', 'Side', 'OrdType', 'OrderQty', 'Price', 'OrderDate', 'Volume' ]
       for order in orders:
+        order_total_value = order.average_price * order.cum_qty
+        if order_total_value:
+          order_total_value /=  1.e8
+
         order_list.append( [
           order.client_order_id,
           order.id,
@@ -313,12 +317,14 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           order.side,
           order.type,
           order.order_qty,
-          order.price
+          order.price,
+          order.created,
+          order_total_value
         ])
 
       open_orders_response_msg = {
         'MsgType': 'U5',
-        'OpenOrdersReqID': msg.get('OpenOrdersReqID'),
+        'OrdersReqID': msg.get('OrdersReqID'),
         'Page': page,
         'PageSize': page_size,
         'Columns': columns,

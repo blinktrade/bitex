@@ -12,6 +12,7 @@ goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
 
 goog.require('bitex.ui.OrderManager');
+goog.require('bitex.ui.AccountActivity');
 
 goog.require('goog.events');
 goog.require('goog.dom.forms');
@@ -38,6 +39,8 @@ bitex.app.bitex = function( url ) {
 
   var order_book_bid = null;
   var order_book_offer = null;
+
+  var account_activity_table = null;
 
 
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
@@ -73,6 +76,40 @@ bitex.app.bitex = function( url ) {
 
     // set the current view
     goog.dom.classes.add( document.body, 'active-view-' + view_name );
+  });
+
+
+  // when user select 'account_activity', let's load all transactions from this user.
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
+    var view_name = e.view;
+    if (view_name !== 'account_activity' || !bitEx.isLogged() ) {
+      return;
+    }
+
+    if (!goog.isDefAndNotNull(account_activity_table)) {
+      var el = goog.dom.getElement('id_trade_history_table');
+      account_activity_table = new bitex.ui.AccountActivity();
+
+
+      account_activity_table.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,function(e) {
+        // Get the list of all open orders
+        var page = e.options['Page'];
+        var limit = e.options['Limit'];
+
+        bitEx.requestOrderList( 'closed_orders', page, limit, ['1', '2'] );
+      });
+
+      account_activity_table.decorate(el);
+
+      bitEx.addEventListener('order_list_response',  function(e) {
+        var msg = e.data;
+
+        if (msg['OrdersReqID'] === 'closed_orders' && goog.isDefAndNotNull(account_activity_table) ) {
+          account_activity_table.setResultSet( msg['OrdListGrp'], msg['Columns'] );
+        }
+      });
+
+    }
   });
 
 
@@ -301,13 +338,16 @@ bitex.app.bitex = function( url ) {
     var page = e.options['Page'];
     var limit = e.options['Limit'];
 
-    bitEx.requestOpenOrders( 'open_orders', page, limit );
+    bitEx.requestOrderList( 'open_orders', page, limit, ['0', '1'] );
   });
 
 
   bitEx.addEventListener('order_list_response',  function(e) {
     var msg = e.data;
-    order_manager.setResultSet( msg['OrdListGrp'], msg['Columns'] );
+
+    if (msg['OrdersReqID'] === 'open_orders' ) {
+      order_manager.setResultSet( msg['OrdListGrp'], msg['Columns'] );
+    }
   });
 
   var button_signup = new goog.ui.Button();

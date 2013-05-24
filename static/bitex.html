@@ -353,9 +353,50 @@
   
             <div id="account_activity">
               <div class="section-title">
-                <h3>Saldo e Extrato</h3>
+                <h3>Histórico de compra e vendas</h3>
               </div>
-  
+
+              <div class="well">
+                <div id="id_trade_history_table"  class="fuelux account-activity" style="height: 550px;width:100%;margin-bottom:20px;">
+                  <table class="table table-bordered datagrid datagrid-stretch-header">
+                    <thead>
+                    <tr style="display: none;">
+                      <th colspan="4">
+                        <span class="datagrid-header-title">Histórico de compras e vendas</span>
+                      </th>
+                    </tr>
+                    </thead>
+                  </table>
+                  <div class="datagrid-stretch-wrapper" style="height: 460px;">
+                    <table class="table table-bordered datagrid">
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                  <table class="table table-bordered datagrid datagrid-stretch-footer">
+                    <tfoot>
+                    <tr>
+                      <th colspan="4">
+                        <div class="datagrid-footer-left" style="visibility: visible;">
+                          <div class="grid-controls">
+                            <span>
+                              <span class="grid-start"></span> -
+                              <span class="grid-end"></span>
+                            </span>
+                          </div>
+                        </div>
+                        <div class="datagrid-footer-right" style="visibility: visible;">
+                          <div class="grid-pager">
+                            <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                            <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                          </div>
+                        </div>
+                      </th>
+                    </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
             </div>
   
             <div id="deposit">
@@ -512,7 +553,7 @@
               <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-tasks"></i> Negociação</a></li>
               <li><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósito</a></li>
               <li><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Saques</a></li>
-              <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> Saldo & Extrato</a></li>
+              <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> Histórico</a></li>
               <li><a href="" data-switch-view="settings"><i data-switch-view="settings" class="icon-cog"></i> Configurações</a></li>
               <li><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>
               <li><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Sugestões &amp; Supporte</a></li>

@@ -356,22 +356,24 @@ bitex.api.BitEx.prototype.signUp = function(username, password, email){
 };
 
 /**
- * Request a list of open orders
+ * Request a list of closed orders
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
+ * @param {Array.<string>=} opt_status. Defaults to ['0','1'] ( open orders )
  */
-bitex.api.BitEx.prototype.requestOpenOrders = function(opt_requestId, opt_page, opt_limit){
+bitex.api.BitEx.prototype.requestOrderList = function(opt_requestId, opt_page, opt_limit, opt_status){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
+  var status = opt_status || ['0', '1'];
 
   var msg = {
     'MsgType': 'U4',
-    'OpenOrdersReqID': requestId,
+    'OrdersReqID': requestId,
     'Page': page,
     'PageSize': limit,
-    'StatusList': ['0', '1']
+    'StatusList': status
   };
   this.ws_.send(JSON.stringify( msg ));
 
@@ -501,7 +503,7 @@ goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.pr
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
 goog.exportProperty(BitEx.prototype, 'resetPassword', bitex.api.BitEx.prototype.resetPassword);
-goog.exportProperty(BitEx.prototype, 'requestOpenOrders', bitex.api.BitEx.prototype.requestOpenOrders);
+goog.exportProperty(BitEx.prototype, 'requestOrderList', bitex.api.BitEx.prototype.requestOrderList);
 goog.exportProperty(BitEx.prototype, 'cancelOrder', bitex.api.BitEx.prototype.cancelOrder);
 goog.exportProperty(BitEx.prototype, 'sendRawMessage', bitex.api.BitEx.prototype.sendRawMessage);
 goog.exportProperty(BitEx.prototype, 'sendBuyLimitedOrder', bitex.api.BitEx.prototype.sendBuyLimitedOrder);
