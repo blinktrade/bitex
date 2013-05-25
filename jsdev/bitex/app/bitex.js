@@ -112,6 +112,22 @@ bitex.app.bitex = function( url ) {
     }
   });
 
+  // when user select 'verification', let's the verification iframe for the user.
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
+    var view_name = e.view;
+    if (view_name !== 'verification' || !bitEx.isLogged() ) {
+      return;
+    }
+
+
+    var form_src = '/account_verification/?user_id=' + model.get('UserID') + "&username="  + model.get('Username');
+
+    var verificationIFrameForm = goog.dom.getElement("JotFormIFrame");
+
+    if (verificationIFrameForm.src !== form_src ) {
+      verificationIFrameForm.src = form_src;
+    }
+  });
 
 
   goog.events.listen( document.body, 'click' , function(e){
@@ -173,9 +189,8 @@ bitex.app.bitex = function( url ) {
     goog.dom.classes.add( document.body, 'bitex-logged'  );
     goog.dom.classes.remove( document.body, 'bitex-not-logged' );
 
+    model.set('UserID', msg['UserID'] );
     model.set('Username', msg['Username']);
-    model.set('FirstName', msg['FirstName']);
-    model.set('LastName', msg['LastName']);
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
@@ -237,9 +252,8 @@ bitex.app.bitex = function( url ) {
 
     var msg = e.data;
 
+    model.set('UserID', '');
     model.set('Username', '');
-    model.set('FirstName', '');
-    model.set('LastName', '');
 
 
     var error_dialog = new bootstrap.Dialog();

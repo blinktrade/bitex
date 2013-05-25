@@ -49,14 +49,17 @@ class BitExHandler(tornado.web.RequestHandler):
 class AccountVerificationHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
-    self.write( loader.load("account_verification.html").generate(ws_url=options.ws_url) )
+
+    user_id = self.get_argument("user_id", default="-1", strip=False)
+    username = self.get_argument("username", default="", strip=False)
+    self.write( loader.load("account_verification.html").generate( user_id=user_id, username=username ) )
 
 class OrderMatcherApplication(tornado.web.Application):
   def __init__(self):
     handlers = [
+      (r'/account_verification/.*', AccountVerificationHandler),
       (r'/trade', OrderMatcherHandler),
       (r'/admin/.*', AdminHandler),
-      (r'/account_verification/', AccountVerificationHandler),
 
       (r"/images/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static/images') }),
       (r"/css/(.*)",  tornado.web.StaticFileHandler, {"path": os.path.join(ROOT_PATH, 'static/css') }),

@@ -538,28 +538,8 @@
 
               <iframe id="JotFormIFrame"
                       onload="window.parent.scrollTo(0,0)" allowtransparency="true"
-                      src="/account_verification/" frameborder="0"
-                      style="width:100%; height:1145px; border:none;" scrolling="no"></iframe>
-              <script type="text/javascript">
-                window.handleIFrameMessage = function(e) {
-                  var args = e.data.split(":");
-                  var iframe = document.getElementById("JotFormIFrame");
-                  if (!iframe)return;switch (args[0]) {
-                    case "scrollIntoView":
-                      iframe.scrollIntoView();
-                      break;
-                    case "setHeight":
-                      iframe.style.height = args[1] + "px";
-                      break;
-                  }
-                };
-
-                if (window.addEventListener) {
-                  window.addEventListener("message", handleIFrameMessage, false);
-                } else if (window.attachEvent) {
-                  window.attachEvent("onmessage", handleIFrameMessage);
-                }
-              </script>
+                      src="" frameborder="0"
+                      style="width:100%; height:1250px; border:none;" scrolling="no"></iframe>
             </div>
 
           </div>

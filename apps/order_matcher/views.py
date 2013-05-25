@@ -189,6 +189,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       # Send the login response
       login_response = {
         'MsgType': 'BF',
+        'UserID': self.user.id,
         'Username': self.user.username,
         'UserStatus': 1
       }
