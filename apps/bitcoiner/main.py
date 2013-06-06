@@ -92,7 +92,7 @@ class BtcServer:
                 if cfmt != prev_cfmt:
                     self.accounts[address]['confirmations'] = cfmt
                     self.save_file()
-                    self.factory.publish( accounts[address])
+                    self.factory.publish( self.accounts[address])
                     print 'account %s has a new confirmation %d previous %d' % (address, cfmt, prev_cfmt)
             else:
                 self.accounts[address] = {'address':address, 'amount':  amt, 'confirmations': cfmt}
