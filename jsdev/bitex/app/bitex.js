@@ -215,6 +215,7 @@ bitex.app.bitex = function( url ) {
 
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
+    bitEx.getBitcoinAddress(0, msg['UserID'])
 
     // set view to Trading
     router.setView('trading');
@@ -222,6 +223,11 @@ bitex.app.bitex = function( url ) {
 
   order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
     bitEx.cancelOrder(e.client_order_id );
+  });
+
+  bitEx.addEventListener(bitex.api.BitEx.EventType.BTC_ADDRESS, function(e){
+    var msg = e.data;
+    model.set('UserWallet', msg['Address']);
   });
 
   bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK,  function(e) {

@@ -19,7 +19,7 @@ from tornado.options import define, options
 define("port", default=8443, help="port" )
 define("db_echo", default=False, help="Prints every database command on the stdout" )
 define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex.sqlite"), help="SQLAlchemy database engine string")
-define("ws_url", default="wss://www.bitex.com.br:8449/trade", help="Websocket trade host")
+define("ws_url", default="wss://www.bitex.com.br:8443/trade", help="Websocket trade host")
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
 define("order_matcher_log", default=os.path.join(ROOT_PATH, "logs/", "order_matcher_replay.log"), help="logging" )
@@ -35,6 +35,8 @@ from order_matcher import config
 from order_matcher.models import   engine, Order, User
 from order_matcher.execution import  OrderMatcher
 from order_matcher.views import OrderMatcherHandler
+
+from bitcoin import Bitcoin, bitcoin_updates_signal
 
 class AdminHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
@@ -75,9 +77,11 @@ class OrderMatcherApplication(tornado.web.Application):
     # Have one global connection.
     self.session = scoped_session(sessionmaker(bind=engine))
 
-    # check BTC deposits every 5 seconds
-    tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=5), self.cron_check_btc_deposits)
+    # Connect BTC daemon
+    self.bitcoin = Bitcoin()
+    bitcoin_updates_signal.connect(  self.on_bitcoin_update )
 
+    self.bitcoin.connect()
     self.replay_log = logging.getLogger("REPLAY")
 
     # log all users on the replay log
@@ -85,21 +89,17 @@ class OrderMatcherApplication(tornado.web.Application):
     for user in users:
       self.replay_log.info('DB_ENTITY,' + str(user))
 
+
     # Load all open orders
     orders = self.session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
       self.replay_log.info('DB_ENTITY,' + str(order))
       OrderMatcher.get( order.symbol  ).match(self.session, order)
 
-
-
-  def cron_check_btc_deposits(self):
-    # TODO: Invoke bitcoind rpc process to check for all deposits
-
-    # run it again 5 seconds later...
-    tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=5), self.cron_check_btc_deposits)
-
-
+  def on_bitcoin_update(self, msg):
+    user = self.session.query(User).filter_by(bitcoin_address = msg['address']).first()
+    if user:
+        user.btc_balance_update(msg['amount'], msg['confirmations'])
 
 def main():
   print 'port', options.port

@@ -104,6 +104,14 @@ class User(Base):
   def account_id(self):
     return self.id
 
+  def btc_balance_update(self, amount, confirmations):
+    if amount != balance_btc:
+        delta = balance_btc - amount
+        if delta > 0:
+            self.update_balance('CREDIT', 'BTC', delta)
+        else:
+            self.update_balance('DEBIT', 'BTC', delta)
+
   def update_balance(self, operation, currency_symbol, value ):
     balance_attribute = 'balance_' + currency_symbol.lower()
 
@@ -128,6 +136,9 @@ class User(Base):
       balance_update_msg['BalanceReqID'] = reqId
 
     balance_signal( self.id, balance_update_msg )
+
+  def new_address(self, btc_address):
+    self.bitcoin_address = btc_address
 
   def set_password(self, raw_password):
     import random

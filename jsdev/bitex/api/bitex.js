@@ -54,6 +54,8 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
+  BTC_ADDRESS: 'btc_address',
+
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
   ORDER_LIST_RESPONSE: 'order_list_response',
@@ -168,6 +170,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       }
       break;
 
+
+    case 'U14': // Gets or create bitcoind address
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BTC_ADDRESS, msg ) );
+      break;
 
     case 'U3': // Balance Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BALANCE_RESPONSE, msg ) );
@@ -471,6 +477,17 @@ bitex.api.BitEx.prototype.testRequest = function(){
   this.ws_.send(JSON.stringify( msg ));
 };
 
+/**
+ * @param {number} market_data_id
+ */
+bitex.api.BitEx.prototype.getBitcoinAddress = function(btc_req_id, user_id){
+  var msg = {
+    'MsgType': 'U9',
+    'NewBTCReqID': btc_req_id,
+    'UserID': user_id
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
 
 /**
  *
@@ -499,6 +516,7 @@ goog.exportProperty(BitEx.prototype, 'isLogged', bitex.api.BitEx.prototype.isLog
 goog.exportProperty(BitEx.prototype, 'isConnected', bitex.api.BitEx.prototype.isConnected);
 goog.exportProperty(BitEx.prototype, 'changePassword', bitex.api.BitEx.prototype.changePassword);
 goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prototype.subscribeMarketData);
+goog.exportProperty(BitEx.prototype, 'getBitcoinAddress', bitex.api.BitEx.prototype.getBitcoinAddress);
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);

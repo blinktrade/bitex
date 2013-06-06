@@ -33,6 +33,7 @@ def send_email(sender, recipient, subject, body):
     The charset of the email will be the first one out of US-ASCII, ISO-8859-1
     and UTF-8 that can represent all the characters occurring in the email.
     """
+    print  'send_email', recipient, subject 
 
     # Header class is smart enough to try US-ASCII, then the charset we
     # provide, then fall back to UTF-8.

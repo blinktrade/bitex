@@ -350,6 +350,20 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.application.session.commit()
       return
 
+    elif msg.type == 'U9':  # gets or create an bitcoin address for UserID
+      user = self.application.session.query(User).filter_by(id= msg.get('UserID') ).first()
+      if user:
+        if user.bitcoin_address != None: 
+          btc_address = user.bitcoin_address
+        else:
+          btc_address = self.application.bitcoin.getnewaddress()
+          user.new_address(btc_address)
+          self.application.session.commit()
+
+        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':btc_address  }  )
+
+      return
+
     else:
       print 'Invalid Message' , msg
       # invalid message - Close the connection ....
@@ -416,6 +430,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
       self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'S1', 'EmailReqID':msg.get('EmailReqID')  }  )
       return  True
+
 
     return  False
 
