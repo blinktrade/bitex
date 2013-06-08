@@ -1,6 +1,6 @@
 import socket
 
-from secret import Secret
+from bitex.secret import Secret
 from jsonrpc import ServiceProxy
 
 from tornado.iostream import IOStream
