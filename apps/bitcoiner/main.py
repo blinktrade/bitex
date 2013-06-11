@@ -2,6 +2,7 @@ import pickle
 import json
 import os
 import sys
+import logging
 
 from jsonrpc import ServiceProxy
 
@@ -13,16 +14,19 @@ sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 
 from bitex.secret import Secret
 
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',filename='bitcoiner.log',level=logging.DEBUG)
+
 class BtcProtocol(basic.LineReceiver):
     def __init__(self, factory):
         self.factory = factory
 
     def connectionMade(self):
+        logging.debug('received connection from %s' % self.transport.socket.getpeername()[0])
         self.factory.clients.add(self)
 
     def connectionLost(self, reason):
+        logging.debug('connection lost %s' % reason.getErrorMessage())
         self.factory.clients.remove(self)
-
 
     def lineReceived(self, line):
         print "received", repr(line)
@@ -44,8 +48,8 @@ class BtcFactory(protocol.Factory):
         return BtcProtocol(self)
 
     def publish(self, line):
-        print "sending", repr(line)
         for c in self.clients:
+            logging.debug('sending update to %s' % c.transport.socket.getpeername()[0])
             c.sendLine(json.dumps(line))
 
 class BtcServer:
@@ -87,17 +91,17 @@ class BtcServer:
                 if amt != prev_amt:
                     self.accounts[address]['amount'] = amt
                     self.factory.publish( self.accounts[address])
-                    print 'account %s has a new amount %f previous %f' % (address, amt, prev_amt)
+                    logging.debug('account %s has a new amount %f previous %f' % (address, amt, prev_amt))
                 prev_cfmt = self.accounts[address]['confirmations']
                 if cfmt != prev_cfmt:
                     self.accounts[address]['confirmations'] = cfmt
                     self.save_file()
                     self.factory.publish( self.accounts[address])
-                    print 'account %s has a new confirmation %d previous %d' % (address, cfmt, prev_cfmt)
+                    logging.debug('account %s has a new confirmation %d previous %d' % (address, cfmt, prev_cfmt))
             else:
                 self.accounts[address] = {'address':address, 'amount':  amt, 'confirmations': cfmt}
                 self.save_file()
-                print 'account %s position %f confirmations %d' % (address, amt, cfmt)
+                logging.debug('account %s position %f confirmations %d' % (address, amt, cfmt))
 
 if __name__ == "__main__":
     BtcServer().start()
