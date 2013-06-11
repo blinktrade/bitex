@@ -114,7 +114,8 @@ class OrderMatcherApplication(tornado.web.Application):
       self.replay_log.info('DB_ENTITY,' + str(order))
       OrderMatcher.get( order.symbol  ).match(self.session, order)
 
-  def on_bitcoin_update(self, msg):
+  def on_bitcoin_update(self, sender, msg):
+    self.replay_log.info('BTC_UPDATE,' + str(msg))
     user = self.session.query(User).filter_by(bitcoin_address = msg['address']).first()
     if user:
         user.btc_balance_update(msg['amount'], msg['confirmations'])

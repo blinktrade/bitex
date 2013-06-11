@@ -56,7 +56,7 @@ class Bitcoin:
     if self.connection != None:
         return self.connection.getnewaddress()
 
-def on_bitcoin_updates_signal( msg ):
+def on_bitcoin_updates_signal( sender, msg ):
   print 'msg:', msg
  
 if __name__ == "__main__":
