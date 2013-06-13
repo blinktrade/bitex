@@ -374,6 +374,24 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.close()
       return False
 
+    if msg.type == 'BTC_DEPOSIT':
+      user = self.application.session.query(User).filter_by(bitcoin_address=msg.get('BtcAddress') ).first()
+      if user:
+        deposit = user.deposit(session       = self.application.session,
+                               currency      = 'BTC',
+                               amount        = msg.get('Amount'),
+                               origin        = 'BITCOIN DEPOSIT' )
+
+        self.application.session.commit()
+
+        result = {
+          'MsgType'   : 'BTC_DEPOSIT_RESPONSE',
+          'DepositId' : deposit.id
+        }
+        self.on_send_json_msg_to_user( sender=None, json_msg=result )
+
+
+      return True
     if msg.type == 'DEPOSIT':
       user = self.application.session.query(User).filter_by(id= msg.get('UserID') ).first()
       if user:

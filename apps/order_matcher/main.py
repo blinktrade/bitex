@@ -54,7 +54,7 @@ from order_matcher.models import   engine, Order, User
 from order_matcher.execution import  OrderMatcher
 from order_matcher.views import OrderMatcherHandler
 
-from bitcoin import Bitcoin, bitcoin_updates_signal
+from bitcoin import Bitcoin
 
 class AdminHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
@@ -97,8 +97,6 @@ class OrderMatcherApplication(tornado.web.Application):
 
     # Connect BTC daemon
     self.bitcoin = Bitcoin()
-    bitcoin_updates_signal.connect(  self.on_bitcoin_update )
-
     self.bitcoin.connect()
     self.replay_log = logging.getLogger("REPLAY")
 
@@ -114,11 +112,6 @@ class OrderMatcherApplication(tornado.web.Application):
       self.replay_log.info('DB_ENTITY,' + str(order))
       OrderMatcher.get( order.symbol  ).match(self.session, order)
 
-  def on_bitcoin_update(self, sender, msg):
-    self.replay_log.info('BTC_UPDATE,' + str(msg))
-    user = self.session.query(User).filter_by(bitcoin_address = msg['address']).first()
-    if user:
-        user.btc_balance_update(msg['amount'], msg['confirmations'])
 
 def main():
   print 'port', options.port

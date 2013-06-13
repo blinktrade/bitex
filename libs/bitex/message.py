@@ -41,7 +41,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9', 'U10', 'U12', 'U13', 'U14', 'S0', 'ADMIN_SELECT', 'DEPOSIT' ):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9', 'U10', 'U12', 'U13', 'U14', 'S0', 'ADMIN_SELECT', 'DEPOSIT', 'BTC_DEPOSIT' ):
       self.valid = False
       return
 
