@@ -15,6 +15,8 @@ class Bitcoin:
     self.connection = None
 
   def connect(self):
+    #self.secret.prompt_encrypt()
+    #return
     if self.secret.prompt_decrypt() != self.secret.S_FAIL_FATAL:
         self.connection = ServiceProxy("http://%s:%s@127.0.0.1:8332" % (self.secret.key, self.secret.secret))
     else:
@@ -23,7 +25,9 @@ class Bitcoin:
 
   def getnewaddress(self):
     if self.connection != None:
-        return self.connection.getnewaddress()
+        add = self.connection.getnewaddress()
+        self.connection.validateaddress(add)
+        return add
 
 if __name__ == "__main__":
     btc = Bitcoin()
