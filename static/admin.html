@@ -64,20 +64,20 @@
     <div class="span3 bs-docs-sidebar bitex-display-if-logged">
       <ul class="nav nav-list bs-docs-sidenav affix">
         <li><a href="" data-switch-view="user_list"><i class="icon-chevron-right"></i> User List</a></li>
-        <li><a href="" data-switch-view="withdraw_requests_btc"><i class="icon-chevron-right"></i> BTC Withdraws</a></li>
-        <li><a href="" data-switch-view="withdraw_requests_brl"><i class="icon-chevron-right"></i> BRL Withdraws</a></li>
+        <li><a href="" data-switch-view="withdraw_requests"><i class="icon-chevron-right"></i> Withdraws</a></li>
+        <li><a href="" data-switch-view="deposit_list"><i class="icon-chevron-right"></i> Deposits</a></li>
         <li><a href="" data-switch-view="order_book_brlbtc"><i class="icon-chevron-right"></i> BRLBTC market</a></li>
       </ul>
     </div>
 
     <div class="span9 bitex-display-if-logged">
-      <div id="withdraw_requests_btc">
-        <div id="withdraw_requests_btc_data_grid"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
+      <div id="withdraw_requests">
+        <div id="withdraw_requests_data_grid"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
           <table class="table table-bordered datagrid datagrid-stretch-header">
             <thead>
             <tr>
               <th colspan="4">
-                <span class="datagrid-header-title">BTC Withdraw requests</span>
+                <span class="datagrid-header-title">Withdraw requests</span>
               </th>
             </tr>
             </thead>
@@ -145,13 +145,14 @@
         </div>
       </div>
 
-      <div id="withdraw_requests_brl">
-        <div id="withdraw_requests_brl_data_grid"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
+
+      <div id="deposit_list">
+        <div id="deposit_list_data_grid"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
           <table class="table table-bordered datagrid datagrid-stretch-header">
             <thead>
             <tr>
               <th colspan="4">
-                <span class="datagrid-header-title">BTC Withdraw requests</span>
+                <span class="datagrid-header-title">Deposit List</span>
               </th>
             </tr>
             </thead>
@@ -163,24 +164,24 @@
           </div>
           <table class="table table-bordered datagrid datagrid-stretch-footer">
             <tfoot>
-            <tr>
-              <th colspan="4">
-                <div class="datagrid-footer-left" style="visibility: visible;">
-                  <div class="grid-controls">
+              <tr>
+                <th colspan="4">
+                  <div class="datagrid-footer-left" style="visibility: visible;">
+                    <div class="grid-controls">
                       <span>
                         <span class="grid-start"></span> -
                         <span class="grid-end"></span>
                       </span>
+                    </div>
                   </div>
-                </div>
-                <div class="datagrid-footer-right" style="visibility: visible;">
-                  <div class="grid-pager">
-                    <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
-                    <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                  <div class="datagrid-footer-right" style="visibility: visible;">
+                    <div class="grid-pager">
+                      <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                      <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                    </div>
                   </div>
-                </div>
-              </th>
-            </tr>
+                </th>
+              </tr>
             </tfoot>
           </table>
         </div>

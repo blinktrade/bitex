@@ -22,7 +22,7 @@ goog.require('bitex.app.UrlRouter');
 
 
 bitex.app.admin = function() {
-  var router = new bitex.app.UrlRouter( 'admin/', 'user_list' );
+  var router = new bitex.app.UrlRouter( 'admin/', 'user_list', 'deposit_list' );
 
 
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
@@ -110,6 +110,45 @@ bitex.app.admin = function() {
     }
   ]});
 
+  var depositDataGrid = new bitex.ui.DataGrid({'columns': [
+    { 'property': 'user_id',
+      'label': 'UserId',
+      'sortable': true
+  //    'formatter': function(s){ console.log(s); return s; }
+    },{
+      'property': 'currency',
+      'label': 'Currency',
+      'sortable': true
+    },{
+      'property': 'created',
+      'label': 'When',
+      'sortable': true
+//      'formatter': function(s){ console.log(s); return s; }
+    },{
+      'property': 'amount',
+      'label': 'Amount',
+      'sortable': true,
+      'formatter': function(value){return (value/1e8).toFixed(8);}
+    },{
+      'property': 'status',
+      'label': 'Status',
+      'sortable': true
+//      'formatter': function(s){ console.log(s); return s; }
+    },{
+      'property': 'id',
+      'label': 'Actions',
+      'sortable': true,
+      'formatter': function(id){
+        var classes = "btn btn-mini btn-primary btn-in-progress";
+        return [
+          goog.dom.createDom('div', 'btn-group',
+          goog.dom.createDom( 'button', { 'class':classes, 'data-deposit-id':id }, 'in-progress'),
+          goog.dom.createDom( 'button', { 'class':classes, 'data-deposit-id':id }, 'done'))
+        ];
+      }
+    }
+  ]});
+
   var userListDataGrid = new bitex.ui.DataGrid({'columns' : [
     {
       'property': 'email',
@@ -190,7 +229,8 @@ bitex.app.admin = function() {
   withdrawBtcDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
                                         goog.partial( onRequestTableData, 'withdraws_btc' ) );
 
-
+  depositDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
+                                        goog.partial( onRequestTableData, 'deposits' ) );
 
   bitEx.addEventListener('raw_message',  function(e) {
     var msg = e.data;
@@ -201,6 +241,9 @@ bitex.app.admin = function() {
           break;
         case 'withdraws_btc':
           withdrawBtcDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+          break;
+        case 'deposits':
+          depositDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
           break;
       }
     }
@@ -230,9 +273,11 @@ bitex.app.admin = function() {
     if (userListDataGrid.wasDecorated()) {
       userListDataGrid.reload();
       withdrawBtcDataGrid.reload();
+      depositDataGrid.reload();
     } else {
       userListDataGrid.decorate(goog.dom.getElement('user_list_data_grid'));
-      withdrawBtcDataGrid.decorate(goog.dom.getElement('withdraw_requests_btc_data_grid'));
+      withdrawBtcDataGrid.decorate(goog.dom.getElement('withdraw_requests_data_grid'));
+      depositDataGrid.decorate(goog.dom.getElement('deposit_list_data_grid'));
 
     }
 

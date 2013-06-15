@@ -189,8 +189,8 @@ ul.parsley-error-list li {
 
 
 /* Active view */
-#withdraw_requests_btc,
-#withdraw_requests_brl,
+#withdraw_requests,
+#deposit_list,
 #order_book_brlbtc,
 #start,
 #signup,
@@ -208,8 +208,7 @@ ul.parsley-error-list li {
   display: none;
 }
 
-.active-view-withdraw_requests_btc #withdraw_requests_btc,
-.active-view-withdraw_requests_brl #withdraw_requests_brl,
+.active-view-withdraw_requests #withdraw_requests,
 .active-view-order_book_brlbtc #order_book_brlbtc,
 .active-view-start #start,
 .active-view-signup #signup,
@@ -218,6 +217,7 @@ ul.parsley-error-list li {
 .active-view-set_new_password #set_new_password,
 .active-view-trading #trading,
 .active-view-tos #tos,
+.active-view-deposit_list #deposit_list,
 .active-view-deposit #deposit,
 .active-view-account_activity #account_activity,
 .active-view-withdraw #withdraw,

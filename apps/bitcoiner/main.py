@@ -39,7 +39,7 @@ class BtcServer:
                     self.ws = BitExThreadedClient('wss://www.bitex.com.br:8443/trade')
                     self.ws.signal_recv.connect(self.on_message)
                     self.ws.connect()
-                    self.ws.login('bzero','xxxxx23')
+                    self.ws.login('bzero','senha123')
                     tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.check_positions)
                     tornado.ioloop.IOLoop.instance().start()
 
@@ -77,7 +77,8 @@ class BtcServer:
             transaction_details =  self.connection.gettransaction(transaction_id)
             for detail in transaction_details['details']:
                 if detail['category'] == 'receive':
-                    self.ws.sendMsg( {'MsgType':'BTC_DEPOSIT', 'BtcAddress': detail['address'], 'Amount': detail['amount'] } )
+                    amount = int(round(float(detail['amount']) * 1e8))
+                    self.ws.sendMsg( {'MsgType':'BTC_DEPOSIT', 'BtcAddress': detail['address'], 'Amount':  amount } )
 
             self.processed_transactions.append(transaction_id)
             self.save_file()
