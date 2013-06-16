@@ -61,7 +61,7 @@
 
   <body class="ws-not-connected bitex-not-logged">
 
-    <div class="navbar navbar navbar-fixed-top">
+    <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -421,7 +421,8 @@
 
                 <h3>Bitcoin</h3>
                 <div>Por favor envie Bitcoin para o seu endereço de depósito: </div>
-                <h4><span class="bitex-model" data-model-key="UserWallet"></span></h4>
+                <img style="float:right; margin-top: -50px" src="https://chart.googleapis.com/chart?chs=100x100&chld=M%7C0&cht=qr&chl=bitcoin:dsaf21423fdsgdfgsdfg"> 
+                <h4><span id='userwallet' class="bitex-model" data-model-key="UserWallet"></span></h4>
                 <p>Precisaremos de 6 confirmações para transações em Bitcoin para refletir o deposito no site. </p>
                 <div class="clearfix"></div>
 
@@ -454,31 +455,36 @@
                   <div class="accordion-group">
                     <div class="accordion-heading">
                       <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#withdraw" href="#bitcoin">
-                        Bitcoin
+                        Retirada em Bitcoin
                       </a>
                     </div>
                     <div id="bitcoin" class="accordion-body collapse" style="height: auto;">
                       <div class="accordion-inner">
 
-                        <p>Vamos enviar os Bitcoins para a sua carteira.</p>
+                        <p>Utilize o formulário abaixo para iniciar a sua retirada.</p>
 
-                        <form accept-charset="UTF-8" action="/account/withdrawing_bitcoin" class="form" method="post">
-                          <div class="clearfix">
-                            <label name="address">Endereço da carteira</label>
-                            <div class="input">
-                              <input name="address">
+                        <div id="id_btc_withdraw" class="well btc-withdraw" >
+
+                          <div class="control-group">
+                            <label class="control-label" name="address">Endereço Bitcoin</label>
+                            <div class="controls">
+                              <input type="text" name="address" class="input-xlarge btc-withdraw-address">
                             </div>
                           </div>
-                          <div class="clearfix">
-                            <label name="amount">Quant.</label>
-                            <div class="input">
-                              <div class="input-prepend"><span class="add-on">฿</span><input name="amount" class="mini"></div>
+
+                          <div class="control-group">
+                            <label class="control-label" name="amount">Quantidate</label>
+                            <div class="controls">
+                              <div class="input-prepend">
+				  <span class="add-on">฿</span>
+			          <input type="text" name="amount" class="btc-withdraw-qty input-xlarge">
+ 			      </div>
                             </div>
                           </div>
                           <div class="input">
-                            <input type="submit" value="Retirada em BTC" class="btn primary">
+                            <input type="submit" value="Retirada em BTC" class="btn primary btc-withdraw-submit">
                           </div>
-                        </form>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -497,7 +503,7 @@
 
                         <p>Transferência Bancaria via DOC-C ou TED o custo de R$ 10,00 é cobrado.</p>
                         <div class="clearfix"></div>
-                        <form accept-charset="UTF-8" action="/account/withdrawing_wire" class="form" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="✓"><input name="authenticity_token" type="hidden" value="fxI/Z1arAS9VlbWP2tZxPr6VgY9fBpiRg1WgoWfji3M="></div>
+                        <form accept-charset="UTF-8" action="" class="form" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="✓"><input name="authenticity_token" type="hidden" value="fxI/Z1arAS9VlbWP2tZxPr6VgY9fBpiRg1WgoWfji3M="></div>
 
                           <div class="clearfix">
                             <label name="amount">Quant.</label>

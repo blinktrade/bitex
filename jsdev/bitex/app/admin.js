@@ -120,11 +120,6 @@ bitex.app.admin = function() {
       'label': 'Currency',
       'sortable': true
     },{
-      'property': 'created',
-      'label': 'When',
-      'sortable': true
-//      'formatter': function(s){ console.log(s); return s; }
-    },{
       'property': 'amount',
       'label': 'Amount',
       'sortable': true,
@@ -132,6 +127,11 @@ bitex.app.admin = function() {
     },{
       'property': 'status',
       'label': 'Status',
+      'sortable': true
+//      'formatter': function(s){ console.log(s); return s; }
+    },{
+      'property': 'created',
+      'label': 'When',
       'sortable': true
 //      'formatter': function(s){ console.log(s); return s; }
     },{

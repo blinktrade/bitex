@@ -8,6 +8,9 @@ goog.require('bitex.ui.OrderBook.Side');
 goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderEntry.EventType');
 
+goog.require('bitex.ui.WithdrawBTC');
+goog.require('bitex.ui.WithdrawBTC.EventType');
+
 goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
 
@@ -32,7 +35,7 @@ goog.require('bootstrap.Dialog');
  * @param {string} url
  */
 bitex.app.bitex = function( url ) {
-  var router = new bitex.app.UrlRouter( '', 'start' );
+  var router = new bitex.app.UrlRouter( '', 'start', 'withdrawing_bitcoin' );
 
   var bitEx = new bitex.api.BitEx();
   var model = new bitex.model.Model(document.body);
@@ -142,6 +145,14 @@ bitex.app.bitex = function( url ) {
     }
   });
 
+
+  var withdraw_btc = new bitex.ui.WithdrawBTC();
+  withdraw_btc.decorate( goog.dom.getElement('id_btc_withdraw') );
+
+  withdraw_btc.addEventListener( bitex.ui.WithdrawBTC.EventType.WITHDRAW_BTC, function(e){
+    console.log('o pai o');
+    console.log(e);
+  });
 
   var order_entry = new bitex.ui.OrderEntry();
   order_entry.decorate( goog.dom.getElement('id_order_entry') );
