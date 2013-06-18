@@ -8,6 +8,7 @@ html, body {
 
 body {
   padding-bottom: 40px;
+  font-size: 12px;
 }
 
 /* The white background content wrapper */
@@ -42,7 +43,7 @@ body {
 
 .footer {
   text-align: center;
-  padding: 30px 0;
+  padding: 10px 0;
   border-top: 1px solid #e5e5e5;
 }
 

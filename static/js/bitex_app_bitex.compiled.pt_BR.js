@@ -3679,7 +3679,7 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
         if($goog$dom$classes$has$$()) {
           try {
             $bitEx$$.open($url$$30$$)
-          }catch($e$$106$$) {
+          }catch($e$$107$$) {
             alert("Erro se conectando ao servidor...");
             return
           }
@@ -3784,7 +3784,8 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $model$$.set("UserWallet", $e$$88$$.data.Address)
   });
   $bitEx$$.addEventListener("withdraw_response", function($e$$89$$) {
-    console.log($e$$89$$.data)
+    console.log($e$$89$$.data);
+    console.log("====>")
   });
   $bitEx$$.addEventListener("pwd_changed_ok", function($e$$90_msg$$19$$) {
     $e$$90_msg$$19$$ = $e$$90_msg$$19$$.data;
@@ -3843,34 +3844,41 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     var $price$$7$$ = ($msg$$25_side$$7$$.MDEntryPx / 1E5).toFixed(5), $qty$$10$$ = ($msg$$25_side$$7$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$25_side$$7$$.Username, $orderId$$3$$ = $msg$$25_side$$7$$.OrderID, $msg$$25_side$$7$$ = $msg$$25_side$$7$$.MDEntryType;
     "0" == $msg$$25_side$$7$$ ? (0 === $e$$97_index$$73$$ && $model$$.set("formatted_best_bid_brl", $price$$7$$), $order_book_bid$$.$insertOrder$($e$$97_index$$73$$, $orderId$$3$$, $price$$7$$, $qty$$10$$, $username$$4$$)) : "1" == $msg$$25_side$$7$$ && (0 === $e$$97_index$$73$$ && $model$$.set("formatted_best_offer_brl", $price$$7$$), $order_book_offer$$.$insertOrder$($e$$97_index$$73$$, $orderId$$3$$, $price$$7$$, $qty$$10$$, $username$$4$$))
   });
-  $bitEx$$.addEventListener("balance_response", function($e$$98_msg$$26$$) {
-    $e$$98_msg$$26$$ = $e$$98_msg$$26$$.data;
-    $model$$.set("balance_brl", $e$$98_msg$$26$$.balance_brl);
-    $model$$.set("balance_btc", $e$$98_msg$$26$$.balance_btc);
-    var $formatted_btc$$ = ($e$$98_msg$$26$$.balance_btc / 1E8).toFixed(8);
-    $model$$.set("formatted_balance_brl", ($e$$98_msg$$26$$.balance_brl / 1E5).toFixed(2));
+  $bitEx$$.addEventListener("trade", function($e$$98_new_px$$) {
+    $e$$98_new_px$$ = ($e$$98_new_px$$.data.MDEntryPx / 1E5).toFixed(5).toString().trim();
+    var $old_px$$ = $goog$dom$getTextContent$$($goog$dom$getElement$$("formatted_quote_brl")), $old_px$$ = $old_px$$.substring(1).trim();
+    $e$$98_new_px$$ = $e$$98_new_px$$.substring(0, $e$$98_new_px$$.length - 3).trim();
+    $e$$98_new_px$$ > $old_px$$ && ($goog$dom$getElement$$("formatted_quote_brl").innerHTML = "&#9650;" + $e$$98_new_px$$);
+    $e$$98_new_px$$ < $old_px$$ && ($goog$dom$getElement$$("formatted_quote_brl").innerHTML = "&#9660;" + $e$$98_new_px$$)
+  });
+  $bitEx$$.addEventListener("balance_response", function($e$$99_msg$$27$$) {
+    $e$$99_msg$$27$$ = $e$$99_msg$$27$$.data;
+    $model$$.set("balance_brl", $e$$99_msg$$27$$.balance_brl);
+    $model$$.set("balance_btc", $e$$99_msg$$27$$.balance_btc);
+    var $formatted_btc$$ = ($e$$99_msg$$27$$.balance_btc / 1E8).toFixed(8);
+    $model$$.set("formatted_balance_brl", ($e$$99_msg$$27$$.balance_brl / 1E5).toFixed(2));
     $model$$.set("formatted_balance_btc", $formatted_btc$$)
   });
-  $bitEx$$.addEventListener("execution_report", function($e$$99$$) {
-    $JSCompiler_StaticMethods_processExecutionReport$$($order_manager$$, $e$$99$$.data)
+  $bitEx$$.addEventListener("execution_report", function($e$$100$$) {
+    $JSCompiler_StaticMethods_processExecutionReport$$($order_manager$$, $e$$100$$.data)
   });
-  $order_manager$$.addEventListener("request_data", function($e$$100$$) {
-    $bitEx$$.$requestOrderList$("open_orders", $e$$100$$.options.Page, $e$$100$$.options.Limit, ["0", "1"])
+  $order_manager$$.addEventListener("request_data", function($e$$101$$) {
+    $bitEx$$.$requestOrderList$("open_orders", $e$$101$$.options.Page, $e$$101$$.options.Limit, ["0", "1"])
   });
-  $bitEx$$.addEventListener("order_list_response", function($e$$101_msg$$27$$) {
-    $e$$101_msg$$27$$ = $e$$101_msg$$27$$.data;
-    "open_orders" === $e$$101_msg$$27$$.OrdersReqID && $JSCompiler_StaticMethods_setResultSet$$($order_manager$$, $e$$101_msg$$27$$.OrdListGrp, $e$$101_msg$$27$$.Columns)
+  $bitEx$$.addEventListener("order_list_response", function($e$$102_msg$$28$$) {
+    $e$$102_msg$$28$$ = $e$$102_msg$$28$$.data;
+    "open_orders" === $e$$102_msg$$28$$.OrdersReqID && $JSCompiler_StaticMethods_setResultSet$$($order_manager$$, $e$$102_msg$$28$$.OrdListGrp, $e$$102_msg$$28$$.Columns)
   });
   var $button_signup$$ = new $goog$ui$Button$$;
   $button_signup$$.$decorate$($goog$dom$getElement$$("id_btn_signup"));
-  $goog$events$listen$$($goog$dom$getElement$$("user_agreed_tos"), "click", function($e$$102$$) {
-    $button_signup$$.$setEnabled$($e$$102$$.target.checked)
+  $goog$events$listen$$($goog$dom$getElement$$("user_agreed_tos"), "click", function($e$$103$$) {
+    $button_signup$$.$setEnabled$($e$$103$$.target.checked)
   });
-  $button_signup$$.addEventListener("action", function($e$$103_password2$$) {
-    $e$$103_password2$$.stopPropagation();
-    $e$$103_password2$$.preventDefault();
+  $button_signup$$.addEventListener("action", function($e$$104_password2$$) {
+    $e$$104_password2$$.stopPropagation();
+    $e$$104_password2$$.preventDefault();
     var $username$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_username")), $email$$2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_email")), $password$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password"));
-    $e$$103_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
+    $e$$104_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
     if($goog$string$isEmpty$$($username$$5$$) || /[^a-zA-Z0-9]/.test($username$$5$$)) {
       alert("Nome de usu\u00e1rio inv\u00e1lido")
     }else {
@@ -3878,13 +3886,13 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
         if($goog$string$isEmpty$$($password$$3$$) || 6 > $password$$3$$.length) {
           alert("Senha deve ter no m\u00ednimo 6 letras")
         }else {
-          if($password$$3$$ !== $e$$103_password2$$) {
+          if($password$$3$$ !== $e$$104_password2$$) {
             alert("Senhas n\u00e3o conferem")
           }else {
             if($goog$dom$classes$has$$()) {
               try {
                 $bitEx$$.open($url$$30$$)
-              }catch($e$$104$$) {
+              }catch($e$$105$$) {
                 alert("Erro se conectando ao servidor...");
                 return
               }
@@ -3901,15 +3909,15 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       }
     }
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_forgot_password"), "click", function($e$$108$$) {
-    $e$$108$$.stopPropagation();
-    $e$$108$$.preventDefault();
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_forgot_password"), "click", function($e$$109$$) {
+    $e$$109$$.stopPropagation();
+    $e$$109$$.preventDefault();
     var $email$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_forgot_password_email"));
     if($email$$3$$.match(/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
       if($goog$dom$classes$has$$()) {
         try {
           $bitEx$$.open($url$$30$$)
-        }catch($e$$109$$) {
+        }catch($e$$110$$) {
           alert("Erro se conectando ao servidor...");
           return
         }
@@ -3924,24 +3932,24 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       alert("Endere\u00e7o de email inv\u00e1lido")
     }
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_set_new_password"), "click", function($e$$111_password2$$1$$) {
-    $e$$111_password2$$1$$.stopPropagation();
-    $e$$111_password2$$1$$.preventDefault();
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_set_new_password"), "click", function($e$$112_password2$$1$$) {
+    $e$$112_password2$$1$$.stopPropagation();
+    $e$$112_password2$$1$$.preventDefault();
     var $token$$10$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_token")), $password$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_password"));
-    $e$$111_password2$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_password2"));
+    $e$$112_password2$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_password2"));
     if($goog$string$isEmpty$$($token$$10$$)) {
       alert("Por favor, informe um c\u00f3digo de confirma\u00e7\u00e3o")
     }else {
       if($goog$string$isEmpty$$($password$$5$$) || 6 > $password$$5$$.length) {
         alert("Senha deve ter no m\u00ednimo 6 letras")
       }else {
-        if($password$$5$$ !== $e$$111_password2$$1$$) {
+        if($password$$5$$ !== $e$$112_password2$$1$$) {
           alert("Senhas n\u00e3o conferem")
         }else {
           if($goog$dom$classes$has$$()) {
             try {
               $bitEx$$.open($url$$30$$)
-            }catch($e$$112$$) {
+            }catch($e$$113$$) {
               alert("Erro se conectando ao servidor...");
               return
             }
@@ -3955,19 +3963,19 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       }
     }
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_landing_signin"), "click", function($e$$114_username$$7$$) {
-    $e$$114_username$$7$$.stopPropagation();
-    $e$$114_username$$7$$.preventDefault();
-    $e$$114_username$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_username"));
+  $goog$events$listen$$($goog$dom$getElement$$("id_landing_signin"), "click", function($e$$115_username$$7$$) {
+    $e$$115_username$$7$$.stopPropagation();
+    $e$$115_username$$7$$.preventDefault();
+    $e$$115_username$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_username"));
     var $password$$6$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_password"));
-    $login$$($e$$114_username$$7$$, $password$$6$$)
+    $login$$($e$$115_username$$7$$, $password$$6$$)
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_login"), "click", function($e$$115_username$$8$$) {
-    $e$$115_username$$8$$.stopPropagation();
-    $e$$115_username$$8$$.preventDefault();
-    $e$$115_username$$8$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_username"));
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_login"), "click", function($e$$116_username$$8$$) {
+    $e$$116_username$$8$$.stopPropagation();
+    $e$$116_username$$8$$.preventDefault();
+    $e$$116_username$$8$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_username"));
     var $password$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_password"));
-    $login$$($e$$115_username$$8$$, $password$$7$$)
+    $login$$($e$$116_username$$8$$, $password$$7$$)
   });
   $bitEx$$.addEventListener("opened", function() {
     $goog$dom$classes$remove$$(document.body, "ws-not-connected");

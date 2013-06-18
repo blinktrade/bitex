@@ -64,7 +64,8 @@ class AdminHandler(tornado.web.RequestHandler):
 class BitExHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
-    self.write( loader.load("bitex.html").generate(ws_url=options.ws_url) )
+    m = OrderMatcher.get('BRLBTC')
+    self.write( loader.load("bitex.html").generate(ws_url=options.ws_url, bid=m.bid, ask=m.ask, quote=m.ask) )
 
 class AccountVerificationHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):

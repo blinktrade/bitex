@@ -45,7 +45,6 @@ bitex.app.bitex = function( url ) {
 
   var account_activity_table = null;
 
-
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
     var view_name = e.view;
     if (!bitEx.isLogged()) {
@@ -350,6 +349,20 @@ bitex.app.bitex = function( url ) {
 
       order_book_offer.insertOrder(index, orderId, price, qty, username );
     }
+  });
+
+  bitEx.addEventListener('trade',  function(e) {
+    var msg = e.data;
+    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+
+    var new_px = price.toString().trim();
+    var old_px = goog.dom.getTextContent(goog.dom.getElement('formatted_quote_brl'));
+
+    old_px = old_px.substring(1).trim();
+    new_px = new_px.substring(0,new_px.length-3).trim();
+
+    if (new_px > old_px) { goog.dom.getElement('formatted_quote_brl').innerHTML = ('&#9650;'+new_px); }
+    if (new_px < old_px) { goog.dom.getElement('formatted_quote_brl').innerHTML = ('&#9660;'+new_px); }
   });
 
   bitEx.addEventListener('balance_response',  function(e) {

@@ -60,6 +60,8 @@ class OrderMatcher(object):
     self.symbol = symbol
     self.buy_side = []
     self.sell_side = []
+    self.bid = 0
+    self.ask = 0
 
   def __str__(self):
     res = ""

@@ -79,7 +79,7 @@
           </ul>
 
           <ul class="nav pull-right">
-            <li><a href="" data-switch-view="trading">BTCBRL <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink"></span></a></li>
+            <li><a href="" data-switch-view="trading">BTCBRL <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink">{{ bid }}</span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink">{{ ask }}</span></a></li>
             <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Entrar</a></li>
             <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Registre-se</a></li>
           </ul>
@@ -303,8 +303,12 @@
               <div id="id_order_entry" class="well order-entry">
                 <input type="hidden" name="symbol" class="order-entry-symbol" value="BRLBTC">
                 <div class="row-fluid">
-  
-                  <div class="span4">
+ 
+<div class="span2">
+<span style="font-size: 24px; font-weight: bold; float: left; margin-top: 28px;" id="formatted_quote_brl" >{{ quote }}</span>
+</div>
+ 
+                  <div class="span3">
                     <div class="control-group">
                       <label class="control-label" for="id_order_qty">Quantidade (BTC) </label>
                       <div class="controls">
@@ -313,7 +317,7 @@
                     </div>
                   </div>
   
-                  <div class="span4">
+                  <div class="span3">
                     <div class="control-group">
                       <label class="control-label" for="id_price">Preço (BRL)</label>
                       <div class="controls">
@@ -332,7 +336,7 @@
               </div>
   
               <div class="well">
-                <div id="id_orders_table"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
+                <div id="id_orders_table"  class="fuelux" style="height: 320px;width:100%;margin-bottom:20px;">
                   <table class="table table-bordered datagrid datagrid-stretch-header">
                     <thead>
                     <tr>
@@ -342,7 +346,7 @@
                     </tr>
                     </thead>
                   </table>
-                  <div class="datagrid-stretch-wrapper" style="height: 285px;">
+                  <div class="datagrid-stretch-wrapper" style="height: 185px;">
                     <table class="table table-bordered datagrid">
                       <tbody></tbody>
                     </table>
@@ -379,7 +383,7 @@
               </div>
 
               <div class="well">
-                <div id="id_trade_history_table"  class="fuelux account-activity" style="height: 550px;width:100%;margin-bottom:20px;">
+                <div id="id_trade_history_table"  class="fuelux account-activity" style="height: 450px;width:100%;margin-bottom:20px;">
                   <table class="table table-bordered datagrid datagrid-stretch-header">
                     <thead>
                     <tr style="display: none;">
@@ -389,7 +393,7 @@
                     </tr>
                     </thead>
                   </table>
-                  <div class="datagrid-stretch-wrapper" style="height: 460px;">
+                  <div class="datagrid-stretch-wrapper" style="height: 360px;">
                     <table class="table table-bordered datagrid">
                       <tbody></tbody>
                     </table>
