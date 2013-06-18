@@ -55,6 +55,7 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
   BTC_ADDRESS: 'btc_address',
+  WITHDRAW_RESPONSE: 'withdraw_response',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -76,9 +77,7 @@ bitex.api.BitEx.EventType = {
 };
 
 /**
- * Open a connection with BitEx server
- * @param {string} url
- */
+ * Open a connection with BitEx server * @param {string} url */
 bitex.api.BitEx.prototype.open = function(url) {
 
   if ("WebSocket" in window) {
@@ -173,6 +172,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U14': // Gets or create bitcoind address
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BTC_ADDRESS, msg ) );
+      break;
+
+    case 'U10': // Withdraw Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
       break;
 
     case 'U3': // Balance Response
@@ -278,6 +281,21 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
   var msg = {
     'MsgType': 'U10',
     'Email': email
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * @param {number} amount 
+ * @param {string} address
+ */
+bitex.api.BitEx.prototype.withDrawBTC = function( amount, address  ) {
+  var reqId = parseInt(Math.random() * 1000000, 10);
+  var msg = {
+    'MsgType': 'U6',
+    'WithdrawReqID': reqId,
+    'Amount': amount,
+    'Wallet': address
   };
   this.ws_.send(JSON.stringify( msg ));
 };

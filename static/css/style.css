@@ -43,7 +43,6 @@ body {
 .footer {
   text-align: center;
   padding: 30px 0;
-  margin-top: 100px;
   border-top: 1px solid #e5e5e5;
 }
 
@@ -197,11 +196,12 @@ ul.parsley-error-list li {
 #signin,
 #forgot_password,
 #set_new_password,
+#offerbook,
 #trading,
 #tos,
 #deposit,
 #account_activity,
-#withdraw,
+#withdraw_section,
 #settings,
 #verification,
 #user_list {
@@ -215,12 +215,13 @@ ul.parsley-error-list li {
 .active-view-signin #signin,
 .active-view-forgot_password #forgot_password,
 .active-view-set_new_password #set_new_password,
+.active-view-offerbook #offerbook,
 .active-view-trading #trading,
 .active-view-tos #tos,
 .active-view-deposit_list #deposit_list,
 .active-view-deposit #deposit,
 .active-view-account_activity #account_activity,
-.active-view-withdraw #withdraw,
+.active-view-withdraw_section #withdraw_section,
 .active-view-settings #settings,
 .active-view-verification #verification,
 .active-view-user_list #user_list {

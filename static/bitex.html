@@ -43,6 +43,9 @@
     <link href="/css/fuelux.css" rel="stylesheet">
     <link href="/css/style.css?v3" rel="stylesheet">
 
+    <link href="/css/sticky.css" rel="stylesheet">
+    <script src="/js/sticky.min.js" type="text/javascript"></script>
+
     <!-- bitex application -->
     <script src="/js/bitex_app_bitex.compiled.pt_BR.js?v4" type="text/javascript"></script>
 
@@ -55,7 +58,6 @@
               ga('create', 'UA-40656427-1', 'bitex.com.br');
               ga('send', 'pageview');
      </script>
-
 
   </head>
 
@@ -70,9 +72,10 @@
             <span class="icon-bar"></span>
           </button>
 
-          <a class="brand" href="" data-switch-view="start">BitEx</a>
+          <a class="brand" href="" data-switch-view="trading">BitEx</a>
           <ul class="nav bitex-display-if-logged">
             <li><a href="" data-switch-view="trading">Negociação</a></li>
+            <li><a href="" data-switch-view="offerbook">Livro de ofertas</a></li>
           </ul>
 
           <ul class="nav pull-right">
@@ -250,6 +253,48 @@
         <div class="page row-fluid bitex-display-if-logged">
           <div  class="span9">
               
+            <div id="offerbook">
+
+              <div class="section-title">
+                <h3>Livro de ofertas</h3>
+              </div>
+
+  
+  
+              <div class="well">
+                <div class="row-fluid">
+                  <div class="span6">
+                    <div class="text-center"><h4>Ofertas de Compra</h4></div>
+                    <table id="order_book_bid"  class="table">
+                      <thead>
+                      <tr>
+                        <th>Comprador</th>
+                        <th>Quantidade(BTC)</th>
+                        <th>Preço(R$)</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="span6">
+                    <div class="text-center"><h4>Ofertas de Venda</h4></div>
+                    <table id="order_book_offer"  class="table">
+                      <thead>
+                      <tr>
+                        <th>Preço(R$)</th>
+                        <th>Quantidade(BTC)</th>
+                        <th>Vendedor</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div id="trading">
               <div class="section-title">
                 <h3>Negociação de BitCoins contra Reais</h3>
@@ -324,40 +369,6 @@
                     </tr>
                     </tfoot>
                   </table>
-                </div>
-              </div>
-  
-  
-              <div class="well">
-                <div class="row-fluid">
-                  <div class="span6">
-                    <div class="text-center"><h4>Ofertas de Compra</h4></div>
-                    <table id="order_book_bid"  class="table">
-                      <thead>
-                      <tr>
-                        <th>Comprador</th>
-                        <th>Quantidade(BTC)</th>
-                        <th>Preço(R$)</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="span6">
-                    <div class="text-center"><h4>Ofertas de Venda</h4></div>
-                    <table id="order_book_offer"  class="table">
-                      <thead>
-                      <tr>
-                        <th>Preço(R$)</th>
-                        <th>Quantidade(BTC)</th>
-                        <th>Vendedor</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
                 </div>
               </div>
             </div>
@@ -438,7 +449,7 @@
               </div>
             </div>
   
-            <div id="withdraw">
+            <div id="withdraw_section">
               <div class="section-title">
                 <h3>Saques</h3>
               </div>
@@ -451,36 +462,39 @@
                   </tbody>
                 </table>
 
-                <div class="accordion">
+                <div class="accordion" id="withdraw">
                   <div class="accordion-group">
                     <div class="accordion-heading">
-                      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#withdraw" href="#bitcoin">
+                      <a class="accordion-toggle" data-toggle="collapse" data-parent="#withdraw" href="#bitcoin">
                         Retirada em Bitcoin
                       </a>
                     </div>
-                    <div id="bitcoin" class="accordion-body collapse" style="height: auto;">
+                    <div id="bitcoin" class="accordion-body in collapse" style="height: auto;">
                       <div class="accordion-inner">
 
                         <p>Utilize o formulário abaixo para iniciar a sua retirada.</p>
 
                         <div id="id_btc_withdraw" class="well btc-withdraw" >
 
-                          <div class="control-group">
-                            <label class="control-label" name="address">Endereço Bitcoin</label>
-                            <div class="controls">
-                              <input type="text" name="address" class="input-xlarge btc-withdraw-address">
-                            </div>
-                          </div>
 
                           <div class="control-group">
-                            <label class="control-label" name="amount">Quantidate</label>
+                            <label class="control-label" name="amount">Quantidade</label>
                             <div class="controls">
                               <div class="input-prepend">
 				  <span class="add-on">฿</span>
-			          <input type="text" name="amount" class="btc-withdraw-qty input-xlarge">
+			          <input type="text" name="amount" class="btc-withdraw-qty input-xlarge" placeholder="Digite a quantidade">
  			      </div>
                             </div>
                           </div>
+
+
+                          <div class="control-group">
+                            <label class="control-label" name="address">Endereço Bitcoin</label>
+                            <div class="controls">
+                              <input type="text" name="address" class="input-xlarge btc-withdraw-address" placeholder="Digite o endereço bitcoin">
+                            </div>
+                          </div>
+
                           <div class="input">
                             <input type="submit" value="Retirada em BTC" class="btn primary btc-withdraw-submit">
                           </div>
@@ -491,50 +505,49 @@
 
                   <div class="accordion-group">
                     <div class="accordion-heading">
-                      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#withdraw" href="#wire_transfer">
+                      <a class="accordion-toggle" data-toggle="collapse" data-parent="#withdraw" href="#wire_transfer">
                         Transferência Bancária
                       </a>
                     </div>
 
-                    <div id="wire_transfer" class="accordion-body collapse" style="height: auto;">
+                    <div id="wire_transfer" class="accordion-body in collapse" style="height: auto;">
                       <div class="accordion-inner">
-
-                        <div class="clearfix"></div>
-
                         <p>Transferência Bancaria via DOC-C ou TED o custo de R$ 10,00 é cobrado.</p>
-                        <div class="clearfix"></div>
-                        <form accept-charset="UTF-8" action="" class="form" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="✓"><input name="authenticity_token" type="hidden" value="fxI/Z1arAS9VlbWP2tZxPr6VgY9fBpiRg1WgoWfji3M="></div>
+                        <div id="id_wire_withdraw" class="well wire-withdraw" >
 
-                          <div class="clearfix">
-                            <label name="amount">Quant.</label>
-                            <div class="input">
-                              <div class="input-prepend"><span class="add-on">R$</span><input name="amount" class="mini"></div>
+                          <div class="control-group">
+                            <label class="control-label" name="amount">Quant.</label>
+                            <div class="controls">
+                              <div class="input-prepend"><span class="add-on">R$</span>
+			      <input type="text" name="amount" ></div>
                             </div>
                           </div>
-                          <div class="clearfix">
-                            <label name="account_name">Nome do titular da conta</label>
-                            <div class="input"><input name="account_name"></div>
+                          <div class="control-group">
+                            <label class="control-label" name="account_name">Nome do titular da conta</label>
+                            <div class="input"><input type="text" name="account_name"></div>
                           </div>
-                          <div class="clearfix">
-                            <label name="account_number">Número da conta</label>
-                            <div class="input"><input name="account_number"></div>
+                          <div class="control-group">
+                            <label class="control-label" name="account_number">Número da conta</label>
+                            <div class="input"><input type="text" name="account_number"></div>
                           </div>
-                          <div class="clearfix">
-                            <label name="bank_name">Nome do banco</label>
-                            <div class="input"><input name="bank_name"></div>
+                          <div class="control-group">
+                            <label class="control-label" name="bank_name">Nome do banco</label>
+                            <div class="input"><input type="text" name="bank_name"></div>
                           </div>
-                          <div class="clearfix">
-                            <label name="bank_address">Número do banco</label>
-                            <div class="input"><input name="bank_number"></div>
+                          <div class="control-group">
+                            <label class="control-label" name="bank_address">Número do banco</label>
+                            <div class="input"><input type="text" name="bank_number"></div>
                           </div>
-                          <div class="clearfix">
-                            <label name="postal_code">CPF/CNPJ do titular da conta</label>
-                            <div class="input"><input name=""></div>
+                          <div class="control-group">
+                            <label class="control-label" name="postal_code">CPF/CNPJ do titular da conta</label>
+                            <div class="input"><input type="text" name=""></div>
                           </div>
-                          <div class="actions">
+                          <div class="input">
                             <input type="submit" value="Solicite a retirada" class="btn primary">
                           </div>
-                        </form>
+
+                        </div>
+
                       </div>
                     </div>
                   </div>
@@ -574,7 +587,7 @@
             <ul class="nav nav-list">
               <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-tasks"></i> Negociação</a></li>
               <li><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósito</a></li>
-              <li><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Saques</a></li>
+              <li><a href="" data-switch-view="withdraw_section"><i data-switch-view="withdraw_section" class="icon-minus"></i> Saques</a></li>
               <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> Histórico</a></li>
               <li><a href="" data-switch-view="settings"><i data-switch-view="settings" class="icon-cog"></i> Configurações</a></li>
               <li><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>

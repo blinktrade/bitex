@@ -90,7 +90,7 @@ bitex.ui.WithdrawBTC.prototype.onAction_ = function(eventType, e) {
     return;
   }
 
-  if (goog.string.isEmpty(qty) ||  parseFloat(qty) <= 0 ) {
+  if (goog.string.isEmpty(qty) ||  parseFloat(qty) <= 0 || isNaN(parseFloat(qty))) {
     alert ('Quantidade inválida');
     return;
   }

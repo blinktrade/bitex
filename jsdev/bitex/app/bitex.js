@@ -150,8 +150,7 @@ bitex.app.bitex = function( url ) {
   withdraw_btc.decorate( goog.dom.getElement('id_btc_withdraw') );
 
   withdraw_btc.addEventListener( bitex.ui.WithdrawBTC.EventType.WITHDRAW_BTC, function(e){
-    console.log('o pai o');
-    console.log(e);
+    bitEx.withDrawBTC(e.qty, e.address);
   });
 
   var order_entry = new bitex.ui.OrderEntry();
@@ -239,6 +238,12 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener(bitex.api.BitEx.EventType.BTC_ADDRESS, function(e){
     var msg = e.data;
     model.set('UserWallet', msg['Address']);
+  });
+
+  bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, function(e){
+    var msg = e.data;
+    console.log(msg);
+    console.log('====>');
   });
 
   bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK,  function(e) {
