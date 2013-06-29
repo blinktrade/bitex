@@ -338,12 +338,14 @@ bitex.app.bitex = function( url ) {
     if (side == '0') {
       if (index === 0) {
         model.set('formatted_best_bid_brl', price);
+        price_changed(price);
       }
 
       order_book_bid.insertOrder(index, orderId, price, qty, username );
     } else if (side == '1') {
       if (index === 0) {
         model.set('formatted_best_offer_brl', price);
+        price_changed(price);
       }
 
 
@@ -351,10 +353,8 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-  bitEx.addEventListener('trade',  function(e) {
-    var msg = e.data;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
 
+  function price_changed(price) {
     var new_px = price.toString().trim();
     var old_px = goog.dom.getTextContent(goog.dom.getElement('formatted_quote_brl'));
 
@@ -363,6 +363,30 @@ bitex.app.bitex = function( url ) {
 
     if (new_px > old_px) { goog.dom.getElement('formatted_quote_brl').innerHTML = ('&#9650;'+new_px); }
     if (new_px < old_px) { goog.dom.getElement('formatted_quote_brl').innerHTML = ('&#9660;'+new_px); }
+
+    var qty = goog.dom.forms.getValue( goog.dom.getElement("id_order_qty") );
+    if ( !isNaN(qty) )  {
+      var suggested_price = (new_px-0.1).toFixed(2);
+      goog.dom.forms.setValue( goog.dom.getElement("id_price"), suggested_price);
+      var total = qty * suggested_price;
+      goog.dom.setTextContent(goog.dom.getElement('formatted_order_total'), total);
+    }
+  }
+
+  goog.events.listen(goog.dom.getElement('id_order_qty'),goog.events.EventType.BLUR,function(e) {
+    var old_px = goog.dom.getTextContent(goog.dom.getElement('formatted_quote_brl'));
+    price_changed(old_px);
+   });
+  
+  goog.events.listen(goog.dom.getElement('id_price'),goog.events.EventType.BLUR,function(e) {
+    var new_px = goog.dom.forms.getValue( goog.dom.getElement("id_price") );
+    price_changed(new_px);
+   });
+
+  bitEx.addEventListener('trade',  function(e) {
+    var msg = e.data;
+    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    price_changed(price);
   });
 
   bitEx.addEventListener('balance_response',  function(e) {
