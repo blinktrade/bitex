@@ -3891,12 +3891,12 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     "0" == $msg$$25_side$$7$$ ? (0 === $e$$97_index$$73$$ && ($model$$.set("formatted_best_bid_brl", $price$$8$$), $price_changed$$($price$$8$$)), $order_book_bid$$.$insertOrder$($e$$97_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$11$$, $username$$4$$)) : "1" == $msg$$25_side$$7$$ && (0 === $e$$97_index$$73$$ && ($model$$.set("formatted_best_offer_brl", $price$$8$$), $price_changed$$($price$$8$$)), $order_book_offer$$.$insertOrder$($e$$97_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$11$$, $username$$4$$))
   });
   $goog$events$listen$$($goog$dom$getElement$$("id_order_qty"), "blur", function() {
-    var $old_px$$1$$ = $goog$dom$getTextContent$$($goog$dom$getElement$$("formatted_quote_brl"));
-    $price_changed$$($old_px$$1$$)
+    var $new_px$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_price")), $qty$$12$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_order_qty"));
+    !isNaN($new_px$$1$$) && !isNaN($qty$$12$$) && $goog$dom$setTextContent$$($goog$dom$getElement$$("formatted_order_total"), $qty$$12$$ * $new_px$$1$$)
   });
   $goog$events$listen$$($goog$dom$getElement$$("id_price"), "blur", function() {
-    var $new_px$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_price"));
-    $price_changed$$($new_px$$1$$)
+    var $new_px$$2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_price")), $qty$$13$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_order_qty"));
+    !isNaN($new_px$$2$$) && !isNaN($qty$$13$$) && $goog$dom$setTextContent$$($goog$dom$getElement$$("formatted_order_total"), $qty$$13$$ * $new_px$$2$$)
   });
   $bitEx$$.addEventListener("trade", function($e$$100$$) {
     $price_changed$$(($e$$100$$.data.MDEntryPx / 1E5).toFixed(5))

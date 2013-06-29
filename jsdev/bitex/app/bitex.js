@@ -374,13 +374,21 @@ bitex.app.bitex = function( url ) {
   }
 
   goog.events.listen(goog.dom.getElement('id_order_qty'),goog.events.EventType.BLUR,function(e) {
-    var old_px = goog.dom.getTextContent(goog.dom.getElement('formatted_quote_brl'));
-    price_changed(old_px);
+    var new_px = goog.dom.forms.getValue( goog.dom.getElement("id_price") );
+    var qty = goog.dom.forms.getValue( goog.dom.getElement("id_order_qty") );
+    if (!isNaN(new_px) && !isNaN(qty) ) {
+      var total = qty * new_px;
+      goog.dom.setTextContent(goog.dom.getElement('formatted_order_total'), total);
+    }
    });
   
   goog.events.listen(goog.dom.getElement('id_price'),goog.events.EventType.BLUR,function(e) {
     var new_px = goog.dom.forms.getValue( goog.dom.getElement("id_price") );
-    price_changed(new_px);
+    var qty = goog.dom.forms.getValue( goog.dom.getElement("id_order_qty") );
+    if (!isNaN(new_px) && !isNaN(qty) ) {
+      var total = qty * new_px;
+      goog.dom.setTextContent(goog.dom.getElement('formatted_order_total'), total);
+    }
    });
 
   bitEx.addEventListener('trade',  function(e) {
