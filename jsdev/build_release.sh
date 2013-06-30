@@ -23,6 +23,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --compiler_flags="--externs=./externs/jquery-1.9.js" \
   --compiler_flags="--externs=./externs/twitter-bootstrap.js" \
   --compiler_flags="--externs=./externs/parsley.js" \
+  --compiler_flags="--externs=./externs/sticky.js" \
   --compiler_flags="--externs=./externs/facebook_javascript_sdk.js" \
   --compiler_flags="--translations_project='bitex'" \
    > ../static/js/bitex.compiled.pt_BR.js
@@ -44,6 +45,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --compiler_flags="--externs=./externs/jquery-1.9.js" \
   --compiler_flags="--externs=./externs/twitter-bootstrap.js" \
   --compiler_flags="--externs=./externs/parsley.js" \
+  --compiler_flags="--externs=./externs/sticky.js" \
   --compiler_flags="--externs=./externs/facebook_javascript_sdk.js" \
   --compiler_flags="--translations_project='bitex'" \
    > ../static/js/bitex_app_admin.compiled.pt_BR.js
@@ -65,6 +67,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --compiler_flags="--externs=./externs/jquery-1.9.js" \
   --compiler_flags="--externs=./externs/twitter-bootstrap.js" \
   --compiler_flags="--externs=./externs/parsley.js" \
+  --compiler_flags="--externs=./externs/sticky.js" \
   --compiler_flags="--externs=./externs/facebook_javascript_sdk.js" \
   --compiler_flags="--translations_project='bitex'" \
   --compiler_flags="--debug=TRUE" \

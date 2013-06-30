@@ -76,8 +76,9 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'label': 'Ações',
       'sortable': false,
       'formatter': function(id){
-        var classes = "btn btn-mini btn-danger";
-        return goog.dom.createDom( 'button', { 'class':classes, 'data-client-order-id':id }, 'Cancelar');
+        var classes = "icon-remove";
+        var i =goog.dom.createDom( 'i', { 'class':classes, 'data-client-order-id':id });
+        return goog.dom.createDom( 'a', { 'class':"text-error", "href":"#" }, i);
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
     }
@@ -275,7 +276,7 @@ bitex.ui.OrderManager.prototype.insertOrder = function(clientOrderId,
     dom.createDom('td', goog.getCssName(this.getCssClass(), 'cum-qty' ), ''+ cumQty  ),
     dom.createDom('td', goog.getCssName(this.getCssClass(), 'avg-px' ),  ''+avgPx  ),
     dom.createDom('td', goog.getCssName(this.getCssClass(), 'actions' ),
-      dom.createDom('button' , ['btn', 'btn-mini','btn-danger'], 'Cancelar'))
+      dom.createDom( 'a', { 'class':"text-error", "href":"" }, dom.createDom( 'i', { 'class':"icon-remove" })) )
   );
 
   dom.appendChild(this.tbody_, tr );

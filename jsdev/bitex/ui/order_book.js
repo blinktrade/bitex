@@ -196,13 +196,9 @@ bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, user
 
   var userNameEl;
   if (username === this.username_) {
-    var td_column_properties = {
-      'data-order-id':  id,
-      'class': 'btn btn-mini btn-danger btn-cancel-order'
-    };
-
     userNameEl = dom.createDom('td', undefined,
-                   dom.createDom( 'button', td_column_properties , 'Cancelar'));
+                   dom.createDom( 'a', { 'class':'text-error', 'href':'' }, 
+                     dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  Cancelar')));
   } else {
     userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);
   }

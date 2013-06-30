@@ -234,6 +234,15 @@ bitex.app.bitex = function( url ) {
     bitEx.cancelOrder(e.client_order_id );
   });
 
+  bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
+    var msg = e.data;
+    switch( msg['ExecType'] ) {
+      case '4':  //Offer Cancelled 
+        $.sticky('Oferta numero: ' + msg['OrderID'] +  ' foi cancelada');
+        break;
+    }
+  });
+
   bitEx.addEventListener(bitex.api.BitEx.EventType.BTC_ADDRESS, function(e){
     var msg = e.data;
     model.set('UserWallet', msg['Address']);
