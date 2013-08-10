@@ -70,7 +70,7 @@ def send_email(sender, recipient, subject, body):
     # Send the message via SMTP to localhost:25
     smtp = SMTP("127.0.0.1")
     smtp.ehlo()
-    smtp.sendmail(sender, recipient, msg.as_string())
+    smtp.sendmail('suporte@bitex.com.br', recipient, msg.as_string())
     smtp.quit()
 
 
@@ -118,3 +118,7 @@ def main():
 
 if __name__ == '__main__':
   main()
+  #sender = u'BitEx Suporte <suporte@bitex.com.br>'
+  #send_email (sender, 'clebsonbr@yahoo.com', 'Checking server i6', '\r\nyour offer was execued\r\ncheers,\r\nBitex Admin' )
+  #send_email (sender, 'clebaum@hotmail.com', 'Checking server 5x', 'yo, your offer was execued\r\ncheers,\r\nBitex Admin' )
+

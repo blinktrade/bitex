@@ -3830,6 +3830,9 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   $bitEx$$.addEventListener("execution_report", function($e$$88_msg$$17$$) {
     $e$$88_msg$$17$$ = $e$$88_msg$$17$$.data;
     switch($e$$88_msg$$17$$.ExecType) {
+      case "1":
+        $.sticky("Oferta numero: " + $e$$88_msg$$17$$.OrderID + " foi parcialmente executada");
+        break;
       case "4":
         $.sticky("Oferta numero: " + $e$$88_msg$$17$$.OrderID + " foi cancelada")
     }

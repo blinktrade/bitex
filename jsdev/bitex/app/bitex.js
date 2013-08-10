@@ -237,6 +237,9 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
     var msg = e.data;
     switch( msg['ExecType'] ) {
+      case '1':  //Partial Execution
+        $.sticky('Oferta numero: ' + msg['OrderID'] +  ' foi parcialmente executada');
+        break;
       case '4':  //Offer Cancelled 
         $.sticky('Oferta numero: ' + msg['OrderID'] +  ' foi cancelada');
         break;

@@ -253,3 +253,30 @@ ul.parsley-error-list li {
 }
 
 
+#social-shares-wrap {
+	position: fixed;
+	margin-right:10px;
+	z-index: 2;
+}
+.social-shares {
+    float: right;
+    /* max-width: 310px; Removed to fix resize bugs */
+    /* height: 25px; Removed to fix resize bugs */
+    background: white;
+    padding: 10px 10px 10px 10px;
+    border: 1px solid #CCC;
+    border-top: 0;
+    width: 265px;
+    box-shadow: 0 0px 5px #CCC;
+    border-radius: 0 0 5px 5px;
+}
+.social-shares .tw-wrap,
+.social-shares .fb-wrap,
+.social-shares .gp-wrap {
+	float: left;
+    width:80px;
+}
+.social-shares .gp-wrap {
+	margin-left: 16px;
+}
+
