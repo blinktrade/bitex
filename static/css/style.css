@@ -3,6 +3,7 @@
 }
 
 html, body {
+  color: black;
   background-color: #eee;
 }
 
@@ -13,7 +14,7 @@ body {
 
 /* The white background content wrapper */
 .page {
-  background-color: #fff;
+  /* background-color: #fff; */
   padding: 20px;
   margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
   -webkit-border-radius: 0 0 6px 6px;
@@ -44,7 +45,6 @@ body {
 .footer {
   text-align: center;
   padding: 10px 0;
-  border-top: 1px solid #e5e5e5;
 }
 
 .footer p {
@@ -99,14 +99,6 @@ body {
   position: relative;
   text-align: center;
 }
-
-.signup {
-  background-color: #F6F6F6;
-  border-bottom: 1px solid #E3E3E3;
-  margin: -20px -20px 0 -20px;
-  padding: 20px;
-}
-
 
 #id_btn_buy,
 #id_btn_sell {
@@ -205,6 +197,7 @@ ul.parsley-error-list li {
 #withdraw_section,
 #settings,
 #verification,
+#social-shares-wrap,
 #user_list {
   display: none;
 }
@@ -212,6 +205,7 @@ ul.parsley-error-list li {
 .active-view-withdraw_requests #withdraw_requests,
 .active-view-order_book_brlbtc #order_book_brlbtc,
 .active-view-start #start,
+.active-view-start #social-shares-wrap,
 .active-view-signup #signup,
 .active-view-signin #signin,
 .active-view-forgot_password #forgot_password,
@@ -278,5 +272,13 @@ ul.parsley-error-list li {
 }
 .social-shares .gp-wrap {
 	margin-left: 16px;
+}
+
+@media screen and (min-width: 0px) and (max-width: 640px) {
+  #login { display: none; }
+}
+
+@media screen and (min-width: 640px) and (max-width: 1024px) {
+  #login { display: block; } 
 }
 

@@ -149,8 +149,8 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         u = User( username    = msg.get('Username'),
                   email       = msg.get('Email'),
                   password    = msg.get('Password'),
-                  balance_btc = 1e8,   # only for testing purposes
-                  balance_brl = 250e5)
+                  balance_btc = 0,
+                  balance_brl = 0)
 
         self.application.session.add(u)
         self.application.session.commit()
