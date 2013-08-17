@@ -3,6 +3,7 @@
 import os
 import hashlib
 
+import hmac, base64, struct, hashlib, time
 
 import datetime
 from bitex.utils import smart_str
@@ -26,6 +27,20 @@ user_message_signal             = Signal()
 btc_hot_wallet_transfer_signal  = Signal()
 ltc_hot_wallet_transfer_signal  = Signal()
 brl_bank_transfer_signal        = Signal()
+
+def generate_two_factor_secret():
+  return base64.b32encode(os.urandom(10))
+
+def get_hotp_token(secret, intervals_no):
+  key = base64.b32decode(secret, True)
+  msg = struct.pack(">Q", intervals_no)
+  h = hmac.new(key, msg, hashlib.sha1).digest()
+  o = ord(h[19]) & 15
+  h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+  return h
+
+def get_totp_token(secret):
+  return get_hotp_token(secret, intervals_no=int(time.time())//30)
 
 
 def get_hexdigest(algorithm, salt, raw_password):
@@ -79,6 +94,9 @@ class User(Base):
 
   created         = Column(DateTime, default=datetime.datetime.now, nullable=False)
   last_login      = Column(DateTime, default=datetime.datetime.now, nullable=False)
+
+  two_factor_enabled  = Column(Boolean, nullable=False, default=False)
+  two_factor_secret   = Column(String(50), nullable=True, index=False)
 
 
   def __repr__(self):
@@ -166,13 +184,27 @@ class User(Base):
     return None
 
   @staticmethod
-  def authenticate(session, user, password):
+  def authenticate(session, user, password, second_factor=None):
     user = User.get_user( session, user, user)
     if user and user.check_password(password):
+
+      if user.two_factor_enabled:
+        if int(second_factor) != get_totp_token(user.two_factor_secret):
+          return None
+
       # update the last login
       user.last_login = datetime.datetime.now()
       return user
     return None
+
+  def enable_two_factor(self, enable):
+    if enable:
+      self.two_factor_enabled = True
+      self.two_factor_secret = generate_two_factor_secret()
+      return self.two_factor_secret
+    else:
+      self.two_factor_enabled = False
+      return None
 
   def request_reset_password(self, session):
     UserPasswordReset.create( session, self.id )

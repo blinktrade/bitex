@@ -146,11 +146,11 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         # TODO: Create a wallet address
 
         # create the user on Database
-        u = User( username    = msg.get('Username'),
-                  email       = msg.get('Email'),
-                  password    = msg.get('Password'),
-                  balance_btc = 0,
-                  balance_brl = 0)
+        u = User( username            = msg.get('Username'),
+                  email               = msg.get('Email'),
+                  password            = msg.get('Password'),
+                  balance_btc         = 0,
+                  balance_brl         = 0)
 
         self.application.session.add(u)
         self.application.session.commit()
@@ -166,7 +166,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.application.replay_log.info('IN,' + raw_message )
 
       # Authenticate the user
-      self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'))
+      self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'), msg.get('SecondFactor') )
       if not self.user:
 
         login_response = {
@@ -363,6 +363,18 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':btc_address  }  )
 
       return
+
+    elif msg.type == 'U16':  #Enable Disable Two Factor Authentication
+      enable = msg.get('Enable')
+      two_factor_secret = self.user.enable_two_factor(enable)
+
+      if two_factor_secret:
+        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U17', 'TwoFactorSecret': two_factor_secret }  )
+      else:
+        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U17', 'TwoFactorSecret': '' } )
+
+      self.application.session.add(self.user)
+      self.application.session.commit()
 
     else:
       print 'Invalid Message' , msg

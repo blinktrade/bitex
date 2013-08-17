@@ -106,6 +106,8 @@
               <input class="focus" id="id_landing_username" placeholder="Nome de usuário / email" size="30" type="text">
               <label for="id_landing_password">Senha:</label>
               <input id="id_landing_password" placeholder="Senha" size="30" type="password">
+              <label for="id_landing_second_factor">GAuth:</label>
+              <input id="id_landing_second_factor" placeholder="Google Authenticator" size="10" >
               <button id="id_landing_signin" class="btn btn-success">Entrar</button>
             </form>
           </div>
@@ -189,7 +191,11 @@
             </div>
             <div class="clearfix">
               <label for="id_password">Senha</label>
-              <div class="input"><input id="id_password" name="password" type="password"></div>
+              <div class="input"><input id="id_password"  placeholder="Senha" name="password" type="password"></div>
+            </div>
+            <div class="clearfix">
+              <label for="id_second_factor">GAuth:</label>
+              <div class="input"><input id="id_second_factor" placeholder="Google Authenticator" size="10" ></div>
             </div>
             <p><a href="#" data-switch-view="forgot_password">Esqueceu a sua senha?</a></p>
             <div class="actions">
@@ -436,7 +442,20 @@
               </div>
 
             </div>
-  
+
+            <div id="enable_two_factor">
+              <div class="section-title">
+                <h3>Autenticação em dois passos</h3>
+              </div>
+
+              <div class="content">
+                <button id="id_btn_enable_two_factor" class="btn btn-primary">Habilitar</button>
+                <button id="id_btn_disable_two_factor" class="btn btn-danger">Desabilitar</button>
+                <h4><span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span></h4>
+              </div>
+
+            </div>
+
             <div id="deposit">
               <div class="section-title">
                 <h3>Depósitos</h3>
@@ -609,6 +628,8 @@
               <li><a href="" data-switch-view="settings"><i data-switch-view="settings" class="icon-cog"></i> Configurações</a></li>A
 -->
               <li><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>
+              <li><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-check"></i> Autenticação em 2 passos</a></li>
+
               <li><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Sugestões &amp; Supporte</a></li>
               <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
             </ul>

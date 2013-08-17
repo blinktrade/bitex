@@ -41,7 +41,7 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9', 'U10', 'U12', 'U13', 'U14', 'S0', 'ADMIN_SELECT', 'DEPOSIT', 'BTC_DEPOSIT' ):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9', 'U10', 'U12', 'U13', 'U14', 'U16', 'S0', 'ADMIN_SELECT', 'DEPOSIT', 'BTC_DEPOSIT' ):
       self.valid = False
       return
 
@@ -111,6 +111,8 @@ class JsonMessage(BaseMessage):
       self.valid = self.valid and  'Token' in self.message
       self.valid = self.valid and  'NewPassword' in self.message
 
+    elif self.type == 'U16':  #Enable Disable Two Factor Authentication
+      self.valid = self.valid and  'Enable' in self.message
 
     elif self.type == 'D':  #New Order Single
       self.valid = self.valid and  'ClOrdID' in self.message

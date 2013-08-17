@@ -192,6 +192,11 @@ bitex.app.bitex = function( url ) {
     bitEx.cancelOrder(undefined, e.order_id);
   };
 
+  bitEx.addEventListener('two_factor_secret', function(e){
+    var msg = e.data;
+    model.set('TwoFactorSecret', msg['TwoFactorSecret']);
+  });
+
   bitEx.addEventListener('login_ok',  function(e) {
     var msg = e.data;
 
@@ -205,7 +210,6 @@ bitex.app.bitex = function( url ) {
       order_book_bid.dispose() ;
       order_book_offer.dispose();
     }
-
 
     order_book_bid = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.BUY);
     order_book_offer = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.SELL);
@@ -224,7 +228,7 @@ bitex.app.bitex = function( url ) {
 
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
-    bitEx.getBitcoinAddress(0, msg['UserID'])
+    bitEx.getBitcoinAddress(0, msg['UserID']);
 
     // set view to Trading
     router.setView('trading');
@@ -500,7 +504,10 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-  var login = function(username, password) {
+  var login = function(username, password, second_factor ) {
+    username      = goog.string.trim(username);
+    second_factor = goog.string.trim(second_factor);
+
     if (goog.string.isEmpty(username) ) {
       alert('Nome de usuário inválido');
       return;
@@ -519,13 +526,25 @@ bitex.app.bitex = function( url ) {
       }
 
       goog.events.listenOnce( bitEx, 'opened', function(e){
-        bitEx.login(username, password);
+        if (goog.string.isEmpty(second_factor) ) {
+          bitEx.login(username, password);
+        } else {
+          bitEx.login(username, password, second_factor);
+        }
       });
 
     } else {
       bitEx.close();
     }
   };
+
+  goog.events.listen( goog.dom.getElement('id_btn_enable_two_factor'), 'click', function(e){
+    bitEx.enableTwoFactor(true);
+  });
+
+  goog.events.listen( goog.dom.getElement('id_btn_disable_two_factor'), 'click', function(e){
+    bitEx.enableTwoFactor(false);
+  });
 
   goog.events.listen( goog.dom.getElement('id_btn_forgot_password'), 'click', function(e){
     e.stopPropagation();
@@ -601,7 +620,8 @@ bitex.app.bitex = function( url ) {
     e.preventDefault();
     var username = goog.dom.forms.getValue( goog.dom.getElement("id_landing_username") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_landing_password") );
-    login(username, password);
+    var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_landing_second_factor") );
+    login(username, password,second_factor);
   });
 
   goog.events.listen( goog.dom.getElement('id_btn_login'), 'click', function(e){
@@ -609,7 +629,8 @@ bitex.app.bitex = function( url ) {
     e.preventDefault();
     var username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
-    login(username, password);
+    var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_second_factor") );
+    login(username, password, second_factor);
   });
 
 

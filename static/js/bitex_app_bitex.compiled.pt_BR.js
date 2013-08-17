@@ -134,6 +134,9 @@ function $goog$inherits$$($childCtor$$, $parentCtor$$) {
 function $goog$string$isEmpty$$($str$$17$$) {
   return/^[\s\xa0]*$/.test($str$$17$$)
 }
+function $goog$string$trim$$($str$$28$$) {
+  return $str$$28$$.replace(/^[\s\xa0]+|[\s\xa0]+$/g, "")
+}
 function $goog$string$htmlEscape$$($str$$34$$) {
   if(!$goog$string$allRe_$$.test($str$$34$$)) {
     return $str$$34$$
@@ -208,7 +211,7 @@ function $goog$userAgent$isVersion$$($version$$8$$) {
   var $JSCompiler_temp$$45_order$$inline_63$$;
   if(!($JSCompiler_temp$$45_order$$inline_63$$ = $goog$userAgent$isVersionCache_$$[$version$$8$$])) {
     $JSCompiler_temp$$45_order$$inline_63$$ = 0;
-    for(var $v1Subs$$inline_64$$ = String($goog$userAgent$VERSION$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $v2Subs$$inline_65$$ = String($version$$8$$).replace(/^[\s\xa0]+|[\s\xa0]+$/g, "").split("."), $subCount$$inline_66$$ = Math.max($v1Subs$$inline_64$$.length, $v2Subs$$inline_65$$.length), $subIdx$$inline_67$$ = 0;0 == $JSCompiler_temp$$45_order$$inline_63$$ && $subIdx$$inline_67$$ < $subCount$$inline_66$$;$subIdx$$inline_67$$++) {
+    for(var $v1Subs$$inline_64$$ = $goog$string$trim$$(String($goog$userAgent$VERSION$$)).split("."), $v2Subs$$inline_65$$ = $goog$string$trim$$(String($version$$8$$)).split("."), $subCount$$inline_66$$ = Math.max($v1Subs$$inline_64$$.length, $v2Subs$$inline_65$$.length), $subIdx$$inline_67$$ = 0;0 == $JSCompiler_temp$$45_order$$inline_63$$ && $subIdx$$inline_67$$ < $subCount$$inline_66$$;$subIdx$$inline_67$$++) {
       var $v1Sub$$inline_68$$ = $v1Subs$$inline_64$$[$subIdx$$inline_67$$] || "", $v2Sub$$inline_69$$ = $v2Subs$$inline_65$$[$subIdx$$inline_67$$] || "", $v1CompParser$$inline_70$$ = RegExp("(\\d*)(\\D*)", "g"), $v2CompParser$$inline_71$$ = RegExp("(\\d*)(\\D*)", "g");
       do {
         var $v1Comp$$inline_72$$ = $v1CompParser$$inline_70$$.exec($v1Sub$$inline_68$$) || ["", "", ""], $v2Comp$$inline_73$$ = $v2CompParser$$inline_71$$.exec($v2Sub$$inline_69$$) || ["", "", ""];
@@ -3364,6 +3367,9 @@ $JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias
     case "U5":
       this.dispatchEvent(new $bitex$api$BitExEvent$$("order_list_response", $e$$74_msg$$));
       break;
+    case "U17":
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("two_factor_secret", $e$$74_msg$$));
+      break;
     case "W":
       if(1 != $e$$74_msg$$.MarketDepth) {
         this.dispatchEvent(new $bitex$api$BitExEvent$$("ob_clear"));
@@ -3423,8 +3429,13 @@ $JSCompiler_prototypeAlias$$.close = function $$JSCompiler_prototypeAlias$$$clos
   this.$ws_$.close();
   this.$ws_$ = $JSCompiler_alias_NULL$$
 };
-$JSCompiler_prototypeAlias$$.login = function $$JSCompiler_prototypeAlias$$$login$($username$$2$$, $password$$) {
-  this.$ws_$.send(JSON.stringify({MsgType:"BE", UserReqID:"1", Username:$username$$2$$, Password:$password$$, UserReqTyp:"1"}))
+$JSCompiler_prototypeAlias$$.login = function $$JSCompiler_prototypeAlias$$$login$($msg$$1_username$$2$$, $password$$, $opt_second_factor$$) {
+  $msg$$1_username$$2$$ = {MsgType:"BE", UserReqID:"1", Username:$msg$$1_username$$2$$, Password:$password$$, UserReqTyp:"1"};
+  $opt_second_factor$$ != $JSCompiler_alias_NULL$$ && ($msg$$1_username$$2$$.SecondFactor = $opt_second_factor$$);
+  this.$ws_$.send(JSON.stringify($msg$$1_username$$2$$))
+};
+$JSCompiler_prototypeAlias$$.$enableTwoFactor$ = function $$JSCompiler_prototypeAlias$$$$enableTwoFactor$$($enable$$17$$) {
+  this.$ws_$.send(JSON.stringify({MsgType:"U16", Enable:$enable$$17$$}))
 };
 $JSCompiler_prototypeAlias$$.$forgotPassword$ = function $$JSCompiler_prototypeAlias$$$$forgotPassword$$($email$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"U10", Email:$email$$}))
@@ -3459,12 +3470,12 @@ function $JSCompiler_StaticMethods_sendOrder_$$($JSCompiler_StaticMethods_sendOr
   return $clientOrderId_opt_clientOrderId$$
 }
 $JSCompiler_prototypeAlias$$.$cancelOrder$ = function $$JSCompiler_prototypeAlias$$$$cancelOrder$$($opt_clientOrderId$$1$$, $opt_OrderId$$) {
-  var $msg$$11$$ = {MsgType:"F"};
-  $opt_clientOrderId$$1$$ ? $msg$$11$$.OrigClOrdID = $opt_clientOrderId$$1$$ : $opt_OrderId$$ && ($msg$$11$$.OrderID = $opt_OrderId$$);
-  this.$ws_$.send(JSON.stringify($msg$$11$$))
-};
-$JSCompiler_prototypeAlias$$.$sendRawMessage$ = function $$JSCompiler_prototypeAlias$$$$sendRawMessage$$($msg$$12$$) {
+  var $msg$$12$$ = {MsgType:"F"};
+  $opt_clientOrderId$$1$$ ? $msg$$12$$.OrigClOrdID = $opt_clientOrderId$$1$$ : $opt_OrderId$$ && ($msg$$12$$.OrderID = $opt_OrderId$$);
   this.$ws_$.send(JSON.stringify($msg$$12$$))
+};
+$JSCompiler_prototypeAlias$$.$sendRawMessage$ = function $$JSCompiler_prototypeAlias$$$$sendRawMessage$$($msg$$13$$) {
+  this.$ws_$.send(JSON.stringify($msg$$13$$))
 };
 $JSCompiler_prototypeAlias$$.$sendBuyLimitedOrder$ = function $$JSCompiler_prototypeAlias$$$$sendBuyLimitedOrder$$($symbol$$4$$, $qty$$7$$, $price$$4$$, $opt_clientOrderId$$2$$) {
   return $JSCompiler_StaticMethods_sendOrder_$$(this, $symbol$$4$$, $qty$$7$$, $price$$4$$, "1", $opt_clientOrderId$$2$$)
@@ -3495,6 +3506,7 @@ $goog$exportProperty$$("getBitcoinAddress", $bitex$api$BitEx$$.prototype.$getBit
 $goog$exportProperty$$("unSubscribeMarketData", $bitex$api$BitEx$$.prototype.$unSubscribeMarketData$);
 $goog$exportProperty$$("signUp", $bitex$api$BitEx$$.prototype.$signUp$);
 $goog$exportProperty$$("forgotPassword", $bitex$api$BitEx$$.prototype.$forgotPassword$);
+$goog$exportProperty$$("enableTwoFactor", $bitex$api$BitEx$$.prototype.$enableTwoFactor$);
 $goog$exportProperty$$("resetPassword", $bitex$api$BitEx$$.prototype.$resetPassword$);
 $goog$exportProperty$$("requestOrderList", $bitex$api$BitEx$$.prototype.$requestOrderList$);
 $goog$exportProperty$$("cancelOrder", $bitex$api$BitEx$$.prototype.$cancelOrder$);
@@ -3670,7 +3682,9 @@ function $goog$dom$forms$getValue$$($el$$38$$) {
 ;
 // Input 75
 $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
-  function $login$$($username$$6$$, $password$$4$$) {
+  function $login$$($username$$6$$, $password$$4$$, $second_factor$$) {
+    $username$$6$$ = $goog$string$trim$$($username$$6$$);
+    $second_factor$$ = $goog$string$trim$$($second_factor$$);
     if($goog$string$isEmpty$$($username$$6$$)) {
       alert("Nome de usu\u00e1rio inv\u00e1lido")
     }else {
@@ -3680,12 +3694,12 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
         if($goog$dom$classes$has$$()) {
           try {
             $bitEx$$.open($url$$30$$)
-          }catch($e$$110$$) {
+          }catch($e$$111$$) {
             alert("Erro se conectando ao servidor...");
             return
           }
           $goog$events$listenOnce$$($bitEx$$, "opened", function() {
-            $bitEx$$.login($username$$6$$, $password$$4$$)
+            $goog$string$isEmpty$$($second_factor$$) ? $bitEx$$.login($username$$6$$, $password$$4$$) : $bitEx$$.login($username$$6$$, $password$$4$$, $second_factor$$)
           })
         }else {
           $bitEx$$.close()
@@ -3774,9 +3788,9 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   $router$$.addEventListener("set_view", function($e$$77_el$$46$$) {
     "account_activity" === $e$$77_el$$46$$.view && $bitEx$$.$logged_$ && $account_activity_table$$ == $JSCompiler_alias_NULL$$ && ($e$$77_el$$46$$ = $goog$dom$getElement$$("id_trade_history_table"), $account_activity_table$$ = new $bitex$ui$AccountActivity$$, $account_activity_table$$.addEventListener("request_data", function($e$$78$$) {
       $bitEx$$.$requestOrderList$("closed_orders", $e$$78$$.options.Page, $e$$78$$.options.Limit, ["1", "2"])
-    }), $account_activity_table$$.$decorate$($e$$77_el$$46$$), $bitEx$$.addEventListener("order_list_response", function($e$$79_msg$$15$$) {
-      $e$$79_msg$$15$$ = $e$$79_msg$$15$$.data;
-      "closed_orders" === $e$$79_msg$$15$$.OrdersReqID && $account_activity_table$$ != $JSCompiler_alias_NULL$$ && $JSCompiler_StaticMethods_setResultSet$$($account_activity_table$$, $e$$79_msg$$15$$.OrdListGrp, $e$$79_msg$$15$$.Columns)
+    }), $account_activity_table$$.$decorate$($e$$77_el$$46$$), $bitEx$$.addEventListener("order_list_response", function($e$$79_msg$$16$$) {
+      $e$$79_msg$$16$$ = $e$$79_msg$$16$$.data;
+      "closed_orders" === $e$$79_msg$$16$$.OrdersReqID && $account_activity_table$$ != $JSCompiler_alias_NULL$$ && $JSCompiler_StaticMethods_setResultSet$$($account_activity_table$$, $e$$79_msg$$16$$.OrdListGrp, $e$$79_msg$$16$$.Columns)
     }))
   });
   $router$$.addEventListener("set_view", function($e$$80_form_src$$) {
@@ -3806,12 +3820,15 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $e$$84_pendingOrderMessage$$1$$ = {OrderID:"-", ClOrdID:"" + $bitEx$$.$sendSellLimitedOrder$($e$$84_pendingOrderMessage$$1$$.$symbol$, $e$$84_pendingOrderMessage$$1$$.$qty$, $e$$84_pendingOrderMessage$$1$$.$price$), OrdStatus:"-", Symbol:$e$$84_pendingOrderMessage$$1$$.$symbol$, Side:"2", OrderQty:1E8 * $e$$84_pendingOrderMessage$$1$$.$qty$, Price:1E5 * $e$$84_pendingOrderMessage$$1$$.$price$};
     $JSCompiler_StaticMethods_processExecutionReport$$($order_manager$$, $e$$84_pendingOrderMessage$$1$$)
   });
-  $bitEx$$.addEventListener("login_ok", function($e$$86_msg$$16$$) {
-    $e$$86_msg$$16$$ = $e$$86_msg$$16$$.data;
+  $bitEx$$.addEventListener("two_factor_secret", function($e$$86$$) {
+    $model$$.set("TwoFactorSecret", $e$$86$$.data.TwoFactorSecret)
+  });
+  $bitEx$$.addEventListener("login_ok", function($e$$87_msg$$18$$) {
+    $e$$87_msg$$18$$ = $e$$87_msg$$18$$.data;
     $goog$dom$classes$add$$(document.body, "bitex-logged");
     $goog$dom$classes$remove$$(document.body, "bitex-not-logged");
-    $model$$.set("UserID", $e$$86_msg$$16$$.UserID);
-    $model$$.set("Username", $e$$86_msg$$16$$.Username);
+    $model$$.set("UserID", $e$$87_msg$$18$$.UserID);
+    $model$$.set("Username", $e$$87_msg$$18$$.Username);
     $order_book_bid$$ != $JSCompiler_alias_NULL$$ && ($order_book_bid$$.$dispose$(), $order_book_offer$$.$dispose$());
     $order_book_bid$$ = new $bitex$ui$OrderBook$$($model$$.get("Username"), "0");
     $order_book_offer$$ = new $bitex$ui$OrderBook$$($model$$.get("Username"), "1");
@@ -3821,55 +3838,55 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $order_book_offer$$.addEventListener("cancel", $onCancelOrder_$$);
     $order_manager$$.$wasDecorated_$ ? $order_manager$$.reload() : $order_manager$$.$decorate$($goog$dom$getElement$$("id_orders_table"));
     $bitEx$$.$subscribeMarketData$(0, ["BRLBTC"], ["0", "1", "2"]);
-    $bitEx$$.$getBitcoinAddress$(0, $e$$86_msg$$16$$.UserID);
+    $bitEx$$.$getBitcoinAddress$(0, $e$$87_msg$$18$$.UserID);
     $JSCompiler_StaticMethods_setView$$($router$$, "trading")
   });
-  $order_manager$$.addEventListener("cancel", function($e$$87$$) {
-    $bitEx$$.$cancelOrder$($e$$87$$.$client_order_id$)
+  $order_manager$$.addEventListener("cancel", function($e$$88$$) {
+    $bitEx$$.$cancelOrder$($e$$88$$.$client_order_id$)
   });
-  $bitEx$$.addEventListener("execution_report", function($e$$88_msg$$17$$) {
-    $e$$88_msg$$17$$ = $e$$88_msg$$17$$.data;
-    switch($e$$88_msg$$17$$.ExecType) {
+  $bitEx$$.addEventListener("execution_report", function($e$$89_msg$$19$$) {
+    $e$$89_msg$$19$$ = $e$$89_msg$$19$$.data;
+    switch($e$$89_msg$$19$$.ExecType) {
       case "1":
-        $.sticky("Oferta numero: " + $e$$88_msg$$17$$.OrderID + " foi parcialmente executada");
+        $.sticky("Oferta numero: " + $e$$89_msg$$19$$.OrderID + " foi parcialmente executada");
         break;
       case "4":
-        $.sticky("Oferta numero: " + $e$$88_msg$$17$$.OrderID + " foi cancelada")
+        $.sticky("Oferta numero: " + $e$$89_msg$$19$$.OrderID + " foi cancelada")
     }
   });
-  $bitEx$$.addEventListener("btc_address", function($e$$89$$) {
-    $model$$.set("UserWallet", $e$$89$$.data.Address)
+  $bitEx$$.addEventListener("btc_address", function($e$$90$$) {
+    $model$$.set("UserWallet", $e$$90$$.data.Address)
   });
-  $bitEx$$.addEventListener("withdraw_response", function($e$$90$$) {
-    console.log($e$$90$$.data);
+  $bitEx$$.addEventListener("withdraw_response", function($e$$91$$) {
+    console.log($e$$91$$.data);
     console.log("====>")
   });
-  $bitEx$$.addEventListener("pwd_changed_ok", function($e$$91_msg$$20$$) {
-    $e$$91_msg$$20$$ = $e$$91_msg$$20$$.data;
+  $bitEx$$.addEventListener("pwd_changed_ok", function($e$$92_msg$$22$$) {
+    $e$$92_msg$$22$$ = $e$$92_msg$$22$$.data;
     var $dlg$$ = new $bootstrap$Dialog$$;
     $JSCompiler_StaticMethods_setTitle$$($dlg$$, "Sucesso");
-    $dlg$$.$setContent$($e$$91_msg$$20$$.UserStatusText);
+    $dlg$$.$setContent$($e$$92_msg$$22$$.UserStatusText);
     $JSCompiler_StaticMethods_setButtonSet$$($dlg$$);
     $dlg$$.$setVisible$($JSCompiler_alias_TRUE$$);
     $JSCompiler_StaticMethods_setView$$($router$$, "signin")
   });
-  $bitEx$$.addEventListener("pwd_changed_error", function($e$$92_msg$$21$$) {
-    $e$$92_msg$$21$$ = $e$$92_msg$$21$$.data;
+  $bitEx$$.addEventListener("pwd_changed_error", function($e$$93_msg$$23$$) {
+    $e$$93_msg$$23$$ = $e$$93_msg$$23$$.data;
     var $dlg$$1$$ = new $bootstrap$Dialog$$;
     $JSCompiler_StaticMethods_setTitle$$($dlg$$1$$, "Erro");
-    $dlg$$1$$.$setContent$($e$$92_msg$$21$$.UserStatusText);
+    $dlg$$1$$.$setContent$($e$$93_msg$$23$$.UserStatusText);
     $JSCompiler_StaticMethods_setButtonSet$$($dlg$$1$$);
     $dlg$$1$$.$setVisible$($JSCompiler_alias_TRUE$$)
   });
-  $bitEx$$.addEventListener("login_error", function($e$$93_msg$$22$$) {
+  $bitEx$$.addEventListener("login_error", function($e$$94_msg$$24$$) {
     $goog$dom$classes$add$$(document.body, "bitex-not-logged");
     $goog$dom$classes$remove$$(document.body, "bitex-logged");
-    $e$$93_msg$$22$$ = $e$$93_msg$$22$$.data;
+    $e$$94_msg$$24$$ = $e$$94_msg$$24$$.data;
     $model$$.set("UserID", "");
     $model$$.set("Username", "");
     var $error_dialog$$ = new $bootstrap$Dialog$$;
     $JSCompiler_StaticMethods_setTitle$$($error_dialog$$, "Erro");
-    $error_dialog$$.$setContent$($e$$93_msg$$22$$.UserStatusText);
+    $error_dialog$$.$setContent$($e$$94_msg$$24$$.UserStatusText);
     $JSCompiler_StaticMethods_setButtonSet$$($error_dialog$$);
     $error_dialog$$.$setVisible$($JSCompiler_alias_TRUE$$)
   });
@@ -3877,29 +3894,29 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $order_book_bid$$.clear();
     $order_book_offer$$.clear()
   });
-  $bitEx$$.addEventListener("ob_delete_orders_thru", function($e$$95_index$$70$$) {
-    var $msg$$23_side$$4$$ = $e$$95_index$$70$$.data;
-    $e$$95_index$$70$$ = $msg$$23_side$$4$$.MDEntryPositionNo;
-    $msg$$23_side$$4$$ = $msg$$23_side$$4$$.MDEntryType;
-    "0" == $msg$$23_side$$4$$ ? $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_bid$$, $e$$95_index$$70$$) : "1" == $msg$$23_side$$4$$ && $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_offer$$, $e$$95_index$$70$$)
+  $bitEx$$.addEventListener("ob_delete_orders_thru", function($e$$96_index$$70$$) {
+    var $msg$$25_side$$4$$ = $e$$96_index$$70$$.data;
+    $e$$96_index$$70$$ = $msg$$25_side$$4$$.MDEntryPositionNo;
+    $msg$$25_side$$4$$ = $msg$$25_side$$4$$.MDEntryType;
+    "0" == $msg$$25_side$$4$$ ? $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_bid$$, $e$$96_index$$70$$) : "1" == $msg$$25_side$$4$$ && $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_offer$$, $e$$96_index$$70$$)
   });
-  $bitEx$$.addEventListener("ob_delete_order", function($e$$96_index$$71$$) {
-    var $msg$$24_side$$5$$ = $e$$96_index$$71$$.data;
-    $e$$96_index$$71$$ = $msg$$24_side$$5$$.MDEntryPositionNo - 1;
-    $msg$$24_side$$5$$ = $msg$$24_side$$5$$.MDEntryType;
-    "0" == $msg$$24_side$$5$$ ? $JSCompiler_StaticMethods_deleteOrder$$($order_book_bid$$, $e$$96_index$$71$$) : "1" == $msg$$24_side$$5$$ && $JSCompiler_StaticMethods_deleteOrder$$($order_book_offer$$, $e$$96_index$$71$$)
+  $bitEx$$.addEventListener("ob_delete_order", function($e$$97_index$$71$$) {
+    var $msg$$26_side$$5$$ = $e$$97_index$$71$$.data;
+    $e$$97_index$$71$$ = $msg$$26_side$$5$$.MDEntryPositionNo - 1;
+    $msg$$26_side$$5$$ = $msg$$26_side$$5$$.MDEntryType;
+    "0" == $msg$$26_side$$5$$ ? $JSCompiler_StaticMethods_deleteOrder$$($order_book_bid$$, $e$$97_index$$71$$) : "1" == $msg$$26_side$$5$$ && $JSCompiler_StaticMethods_deleteOrder$$($order_book_offer$$, $e$$97_index$$71$$)
   });
-  $bitEx$$.addEventListener("ob_update_order", function($e$$97_index$$72$$) {
-    var $msg$$25_side$$6$$ = $e$$97_index$$72$$.data;
-    $e$$97_index$$72$$ = $msg$$25_side$$6$$.MDEntryPositionNo - 1;
-    var $qty$$10$$ = ($msg$$25_side$$6$$.MDEntrySize / 1E8).toFixed(8), $msg$$25_side$$6$$ = $msg$$25_side$$6$$.MDEntryType;
-    "0" == $msg$$25_side$$6$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$97_index$$72$$, $qty$$10$$) : "1" == $msg$$25_side$$6$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$97_index$$72$$, $qty$$10$$)
+  $bitEx$$.addEventListener("ob_update_order", function($e$$98_index$$72$$) {
+    var $msg$$27_side$$6$$ = $e$$98_index$$72$$.data;
+    $e$$98_index$$72$$ = $msg$$27_side$$6$$.MDEntryPositionNo - 1;
+    var $qty$$10$$ = ($msg$$27_side$$6$$.MDEntrySize / 1E8).toFixed(8), $msg$$27_side$$6$$ = $msg$$27_side$$6$$.MDEntryType;
+    "0" == $msg$$27_side$$6$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$98_index$$72$$, $qty$$10$$) : "1" == $msg$$27_side$$6$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$98_index$$72$$, $qty$$10$$)
   });
-  $bitEx$$.addEventListener("ob_new_order", function($e$$98_index$$73$$) {
-    var $msg$$26_side$$7$$ = $e$$98_index$$73$$.data;
-    $e$$98_index$$73$$ = $msg$$26_side$$7$$.MDEntryPositionNo - 1;
-    var $price$$8$$ = ($msg$$26_side$$7$$.MDEntryPx / 1E5).toFixed(5), $qty$$11$$ = ($msg$$26_side$$7$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$26_side$$7$$.Username, $orderId$$3$$ = $msg$$26_side$$7$$.OrderID, $msg$$26_side$$7$$ = $msg$$26_side$$7$$.MDEntryType;
-    "0" == $msg$$26_side$$7$$ ? (0 === $e$$98_index$$73$$ && ($model$$.set("formatted_best_bid_brl", $price$$8$$), $price_changed$$($price$$8$$)), $order_book_bid$$.$insertOrder$($e$$98_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$11$$, $username$$4$$)) : "1" == $msg$$26_side$$7$$ && (0 === $e$$98_index$$73$$ && ($model$$.set("formatted_best_offer_brl", $price$$8$$), $price_changed$$($price$$8$$)), $order_book_offer$$.$insertOrder$($e$$98_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$11$$, $username$$4$$))
+  $bitEx$$.addEventListener("ob_new_order", function($e$$99_index$$73$$) {
+    var $msg$$28_side$$7$$ = $e$$99_index$$73$$.data;
+    $e$$99_index$$73$$ = $msg$$28_side$$7$$.MDEntryPositionNo - 1;
+    var $price$$8$$ = ($msg$$28_side$$7$$.MDEntryPx / 1E5).toFixed(5), $qty$$11$$ = ($msg$$28_side$$7$$.MDEntrySize / 1E8).toFixed(8), $username$$4$$ = $msg$$28_side$$7$$.Username, $orderId$$3$$ = $msg$$28_side$$7$$.OrderID, $msg$$28_side$$7$$ = $msg$$28_side$$7$$.MDEntryType;
+    "0" == $msg$$28_side$$7$$ ? (0 === $e$$99_index$$73$$ && ($model$$.set("formatted_best_bid_brl", $price$$8$$), $price_changed$$($price$$8$$)), $order_book_bid$$.$insertOrder$($e$$99_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$11$$, $username$$4$$)) : "1" == $msg$$28_side$$7$$ && (0 === $e$$99_index$$73$$ && ($model$$.set("formatted_best_offer_brl", $price$$8$$), $price_changed$$($price$$8$$)), $order_book_offer$$.$insertOrder$($e$$99_index$$73$$, $orderId$$3$$, $price$$8$$, $qty$$11$$, $username$$4$$))
   });
   $goog$events$listen$$($goog$dom$getElement$$("id_order_qty"), "blur", function() {
     var $new_px$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_price")), $qty$$12$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_order_qty"));
@@ -3909,37 +3926,37 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     var $new_px$$2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_price")), $qty$$13$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_order_qty"));
     !isNaN($new_px$$2$$) && !isNaN($qty$$13$$) && $goog$dom$setTextContent$$($goog$dom$getElement$$("formatted_order_total"), $qty$$13$$ * $new_px$$2$$)
   });
-  $bitEx$$.addEventListener("trade", function($e$$101$$) {
-    $price_changed$$(($e$$101$$.data.MDEntryPx / 1E5).toFixed(5))
+  $bitEx$$.addEventListener("trade", function($e$$102$$) {
+    $price_changed$$(($e$$102$$.data.MDEntryPx / 1E5).toFixed(5))
   });
-  $bitEx$$.addEventListener("balance_response", function($e$$102_msg$$28$$) {
-    $e$$102_msg$$28$$ = $e$$102_msg$$28$$.data;
-    $model$$.set("balance_brl", $e$$102_msg$$28$$.balance_brl);
-    $model$$.set("balance_btc", $e$$102_msg$$28$$.balance_btc);
-    var $formatted_btc$$ = ($e$$102_msg$$28$$.balance_btc / 1E8).toFixed(8);
-    $model$$.set("formatted_balance_brl", ($e$$102_msg$$28$$.balance_brl / 1E5).toFixed(2));
+  $bitEx$$.addEventListener("balance_response", function($e$$103_msg$$30$$) {
+    $e$$103_msg$$30$$ = $e$$103_msg$$30$$.data;
+    $model$$.set("balance_brl", $e$$103_msg$$30$$.balance_brl);
+    $model$$.set("balance_btc", $e$$103_msg$$30$$.balance_btc);
+    var $formatted_btc$$ = ($e$$103_msg$$30$$.balance_btc / 1E8).toFixed(8);
+    $model$$.set("formatted_balance_brl", ($e$$103_msg$$30$$.balance_brl / 1E5).toFixed(2));
     $model$$.set("formatted_balance_btc", $formatted_btc$$)
   });
-  $bitEx$$.addEventListener("execution_report", function($e$$103$$) {
-    $JSCompiler_StaticMethods_processExecutionReport$$($order_manager$$, $e$$103$$.data)
+  $bitEx$$.addEventListener("execution_report", function($e$$104$$) {
+    $JSCompiler_StaticMethods_processExecutionReport$$($order_manager$$, $e$$104$$.data)
   });
-  $order_manager$$.addEventListener("request_data", function($e$$104$$) {
-    $bitEx$$.$requestOrderList$("open_orders", $e$$104$$.options.Page, $e$$104$$.options.Limit, ["0", "1"])
+  $order_manager$$.addEventListener("request_data", function($e$$105$$) {
+    $bitEx$$.$requestOrderList$("open_orders", $e$$105$$.options.Page, $e$$105$$.options.Limit, ["0", "1"])
   });
-  $bitEx$$.addEventListener("order_list_response", function($e$$105_msg$$29$$) {
-    $e$$105_msg$$29$$ = $e$$105_msg$$29$$.data;
-    "open_orders" === $e$$105_msg$$29$$.OrdersReqID && $JSCompiler_StaticMethods_setResultSet$$($order_manager$$, $e$$105_msg$$29$$.OrdListGrp, $e$$105_msg$$29$$.Columns)
+  $bitEx$$.addEventListener("order_list_response", function($e$$106_msg$$31$$) {
+    $e$$106_msg$$31$$ = $e$$106_msg$$31$$.data;
+    "open_orders" === $e$$106_msg$$31$$.OrdersReqID && $JSCompiler_StaticMethods_setResultSet$$($order_manager$$, $e$$106_msg$$31$$.OrdListGrp, $e$$106_msg$$31$$.Columns)
   });
   var $button_signup$$ = new $goog$ui$Button$$;
   $button_signup$$.$decorate$($goog$dom$getElement$$("id_btn_signup"));
-  $goog$events$listen$$($goog$dom$getElement$$("user_agreed_tos"), "click", function($e$$106$$) {
-    $button_signup$$.$setEnabled$($e$$106$$.target.checked)
+  $goog$events$listen$$($goog$dom$getElement$$("user_agreed_tos"), "click", function($e$$107$$) {
+    $button_signup$$.$setEnabled$($e$$107$$.target.checked)
   });
-  $button_signup$$.addEventListener("action", function($e$$107_password2$$) {
-    $e$$107_password2$$.stopPropagation();
-    $e$$107_password2$$.preventDefault();
+  $button_signup$$.addEventListener("action", function($e$$108_password2$$) {
+    $e$$108_password2$$.stopPropagation();
+    $e$$108_password2$$.preventDefault();
     var $username$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_username")), $email$$2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_email")), $password$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password"));
-    $e$$107_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
+    $e$$108_password2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_password2"));
     if($goog$string$isEmpty$$($username$$5$$) || /[^a-zA-Z0-9]/.test($username$$5$$)) {
       alert("Nome de usu\u00e1rio inv\u00e1lido")
     }else {
@@ -3947,13 +3964,13 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
         if($goog$string$isEmpty$$($password$$3$$) || 6 > $password$$3$$.length) {
           alert("Senha deve ter no m\u00ednimo 6 letras")
         }else {
-          if($password$$3$$ !== $e$$107_password2$$) {
+          if($password$$3$$ !== $e$$108_password2$$) {
             alert("Senhas n\u00e3o conferem")
           }else {
             if($goog$dom$classes$has$$()) {
               try {
                 $bitEx$$.open($url$$30$$)
-              }catch($e$$108$$) {
+              }catch($e$$109$$) {
                 alert("Erro se conectando ao servidor...");
                 return
               }
@@ -3970,15 +3987,21 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       }
     }
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_forgot_password"), "click", function($e$$112$$) {
-    $e$$112$$.stopPropagation();
-    $e$$112$$.preventDefault();
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_enable_two_factor"), "click", function() {
+    $bitEx$$.$enableTwoFactor$($JSCompiler_alias_TRUE$$)
+  });
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_disable_two_factor"), "click", function() {
+    $bitEx$$.$enableTwoFactor$($JSCompiler_alias_FALSE$$)
+  });
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_forgot_password"), "click", function($e$$115$$) {
+    $e$$115$$.stopPropagation();
+    $e$$115$$.preventDefault();
     var $email$$3$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_forgot_password_email"));
     if($email$$3$$.match(/^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
       if($goog$dom$classes$has$$()) {
         try {
           $bitEx$$.open($url$$30$$)
-        }catch($e$$113$$) {
+        }catch($e$$116$$) {
           alert("Erro se conectando ao servidor...");
           return
         }
@@ -3993,24 +4016,24 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       alert("Endere\u00e7o de email inv\u00e1lido")
     }
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_set_new_password"), "click", function($e$$115_password2$$1$$) {
-    $e$$115_password2$$1$$.stopPropagation();
-    $e$$115_password2$$1$$.preventDefault();
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_set_new_password"), "click", function($e$$118_password2$$1$$) {
+    $e$$118_password2$$1$$.stopPropagation();
+    $e$$118_password2$$1$$.preventDefault();
     var $token$$10$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_token")), $password$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_password"));
-    $e$$115_password2$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_password2"));
+    $e$$118_password2$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_set_new_password_password2"));
     if($goog$string$isEmpty$$($token$$10$$)) {
       alert("Por favor, informe um c\u00f3digo de confirma\u00e7\u00e3o")
     }else {
       if($goog$string$isEmpty$$($password$$5$$) || 6 > $password$$5$$.length) {
         alert("Senha deve ter no m\u00ednimo 6 letras")
       }else {
-        if($password$$5$$ !== $e$$115_password2$$1$$) {
+        if($password$$5$$ !== $e$$118_password2$$1$$) {
           alert("Senhas n\u00e3o conferem")
         }else {
           if($goog$dom$classes$has$$()) {
             try {
               $bitEx$$.open($url$$30$$)
-            }catch($e$$116$$) {
+            }catch($e$$119$$) {
               alert("Erro se conectando ao servidor...");
               return
             }
@@ -4024,19 +4047,19 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       }
     }
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_landing_signin"), "click", function($e$$118_username$$7$$) {
-    $e$$118_username$$7$$.stopPropagation();
-    $e$$118_username$$7$$.preventDefault();
-    $e$$118_username$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_username"));
-    var $password$$6$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_password"));
-    $login$$($e$$118_username$$7$$, $password$$6$$)
+  $goog$events$listen$$($goog$dom$getElement$$("id_landing_signin"), "click", function($e$$121_username$$7$$) {
+    $e$$121_username$$7$$.stopPropagation();
+    $e$$121_username$$7$$.preventDefault();
+    $e$$121_username$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_username"));
+    var $password$$6$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_password")), $second_factor$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_second_factor"));
+    $login$$($e$$121_username$$7$$, $password$$6$$, $second_factor$$1$$)
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_login"), "click", function($e$$119_username$$8$$) {
-    $e$$119_username$$8$$.stopPropagation();
-    $e$$119_username$$8$$.preventDefault();
-    $e$$119_username$$8$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_username"));
-    var $password$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_password"));
-    $login$$($e$$119_username$$8$$, $password$$7$$)
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_login"), "click", function($e$$122_username$$8$$) {
+    $e$$122_username$$8$$.stopPropagation();
+    $e$$122_username$$8$$.preventDefault();
+    $e$$122_username$$8$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_username"));
+    var $password$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_password")), $second_factor$$2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_factor"));
+    $login$$($e$$122_username$$8$$, $password$$7$$, $second_factor$$2$$)
   });
   $bitEx$$.addEventListener("opened", function() {
     $goog$dom$classes$remove$$(document.body, "ws-not-connected");
