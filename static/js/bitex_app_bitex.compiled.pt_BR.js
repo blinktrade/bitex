@@ -3360,6 +3360,9 @@ $JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias
     case "U14":
       this.dispatchEvent(new $bitex$api$BitExEvent$$("btc_address", $e$$74_msg$$));
       break;
+    case "U19":
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("generate_boleto_response", $e$$74_msg$$));
+      break;
     case "U10":
       this.dispatchEvent(new $bitex$api$BitExEvent$$("withdraw_response", $e$$74_msg$$));
       break;
@@ -4060,19 +4063,27 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
       $goog$string$isEmpty$$($e$$121_value$$95$$) || /[^0-9]/.test($e$$121_value$$95$$) || 0 >= parseInt($e$$121_value$$95$$, 10) ? alert("Por favor, preencha o valor do boleto a ser gerado") : $bitEx$$.$ws_$.send(JSON.stringify({MsgType:"U18", BoletoId:$boleto_id_element$$136$$, Value:$e$$121_value$$95$$}))
     })
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_landing_signin"), "click", function($e$$122_username$$7$$) {
-    $e$$122_username$$7$$.stopPropagation();
-    $e$$122_username$$7$$.preventDefault();
-    $e$$122_username$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_username"));
-    var $password$$6$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_password")), $second_factor$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_second_factor"));
-    $login$$($e$$122_username$$7$$, $password$$6$$, $second_factor$$1$$)
+  $bitEx$$.addEventListener("generate_boleto_response", function($e$$122_msg$$33$$) {
+    $e$$122_msg$$33$$ = $e$$122_msg$$33$$.data;
+    var $dlg$$2$$ = new $bootstrap$Dialog$$;
+    $JSCompiler_StaticMethods_setTitle$$($dlg$$2$$, "Boleto");
+    $dlg$$2$$.$setContent$('<a  target="_blank" href="/print_boleto?boleto_id=' + $e$$122_msg$$33$$.BoletoId + '" class="btn btn-primary">Imprimir boleto</a> ou fazer <a href="/print_boleto?download=1&boleto_id=' + $e$$122_msg$$33$$.BoletoId + '">download do boleto</a> em seu computador');
+    $JSCompiler_StaticMethods_setButtonSet$$($dlg$$2$$);
+    $dlg$$2$$.$setVisible$($JSCompiler_alias_TRUE$$)
   });
-  $goog$events$listen$$($goog$dom$getElement$$("id_btn_login"), "click", function($e$$123_username$$8$$) {
-    $e$$123_username$$8$$.stopPropagation();
-    $e$$123_username$$8$$.preventDefault();
-    $e$$123_username$$8$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_username"));
+  $goog$events$listen$$($goog$dom$getElement$$("id_landing_signin"), "click", function($e$$123_username$$7$$) {
+    $e$$123_username$$7$$.stopPropagation();
+    $e$$123_username$$7$$.preventDefault();
+    $e$$123_username$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_username"));
+    var $password$$6$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_password")), $second_factor$$1$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_landing_second_factor"));
+    $login$$($e$$123_username$$7$$, $password$$6$$, $second_factor$$1$$)
+  });
+  $goog$events$listen$$($goog$dom$getElement$$("id_btn_login"), "click", function($e$$124_username$$8$$) {
+    $e$$124_username$$8$$.stopPropagation();
+    $e$$124_username$$8$$.preventDefault();
+    $e$$124_username$$8$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_username"));
     var $password$$7$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_password")), $second_factor$$2$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_factor"));
-    $login$$($e$$123_username$$8$$, $password$$7$$, $second_factor$$2$$)
+    $login$$($e$$124_username$$8$$, $password$$7$$, $second_factor$$2$$)
   });
   $bitEx$$.addEventListener("opened", function() {
     $goog$dom$classes$remove$$(document.body, "ws-not-connected");
@@ -4086,11 +4097,11 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
   $bitEx$$.addEventListener("error", function() {
     $goog$dom$classes$add$$(document.body, "ws-not-connected", "bitex-not-logged");
     $goog$dom$classes$remove$$(document.body, "ws-connected", "bitex-logged");
-    var $dlg$$2$$ = new $bootstrap$Dialog$$;
-    $JSCompiler_StaticMethods_setTitle$$($dlg$$2$$, "Erro");
-    $dlg$$2$$.$setContent$("Ocorreu um erro ao se conectar com a BitEx. Por favor, verifique se voc\u00ea possui um Browser de \u00faltima gera\u00e7\u00e3o.");
-    $JSCompiler_StaticMethods_setButtonSet$$($dlg$$2$$);
-    $dlg$$2$$.$setVisible$($JSCompiler_alias_TRUE$$);
+    var $dlg$$3$$ = new $bootstrap$Dialog$$;
+    $JSCompiler_StaticMethods_setTitle$$($dlg$$3$$, "Erro");
+    $dlg$$3$$.$setContent$("Ocorreu um erro ao se conectar com a BitEx. Por favor, verifique se voc\u00ea possui um Browser de \u00faltima gera\u00e7\u00e3o.");
+    $JSCompiler_StaticMethods_setButtonSet$$($dlg$$3$$);
+    $dlg$$3$$.$setVisible$($JSCompiler_alias_TRUE$$);
     $JSCompiler_StaticMethods_setView$$($router$$, "start")
   })
 });

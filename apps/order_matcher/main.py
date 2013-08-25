@@ -93,6 +93,7 @@ class BoletoHandler(tornado.web.RequestHandler):
 
 
     boleto_id = self.get_argument("boleto_id", default="-1", strip=False)
+    download = int(self.get_argument("download", default="0", strip=False))
     if boleto_id:
       boleto_id = int(boleto_id)
 
@@ -100,8 +101,10 @@ class BoletoHandler(tornado.web.RequestHandler):
     boleto = self.application.session.query(Boleto).filter_by(id=boleto_id).first()
     if boleto:
       boleto.print_pdf_pagina(boleto_pdf)
-      self.set_header("Mime-Type", "application/pdf")
-      self.set_header("Content-Disposition", "attachment; filename=boleto_%s.pdf"% boleto.id )
+      self.set_header("Content-Type", "application/pdf")
+
+      if download == 1:
+        self.set_header("Content-Disposition", "attachment; filename=boleto_%s.pdf"% boleto.id )
 
       boleto_pdf.save()
       pdf_file = buffer.getvalue()

@@ -51,6 +51,8 @@ bitex.api.BitEx.EventType = {
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
 
+  GENERATE_BOLETO_RESPONSE : 'generate_boleto_response',
+
   TWO_FACTOR_SECRET: 'two_factor_secret',
 
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
@@ -174,6 +176,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U14': // Gets or create bitcoind address
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BTC_ADDRESS, msg ) );
+      break;
+
+    case 'U19': // Generate boleto response
+     this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, msg ) );
       break;
 
     case 'U10': // Withdraw Response

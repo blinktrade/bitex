@@ -634,7 +634,18 @@ bitex.app.bitex = function( url ) {
     });
   });
 
+  bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, function(e) {
+    var msg = e.data;
 
+    var dlg = new bootstrap.Dialog();
+    dlg.setTitle('Boleto');
+    dlg.setContent('<a  target="_blank" href="/print_boleto?boleto_id=' +  msg['BoletoId']
+             + '" class="btn btn-primary">Imprimir boleto</a> ou fazer <a href="/print_boleto?download=1&boleto_id='
+             +  msg['BoletoId'] + '">download do boleto</a> em seu computador');
+
+    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setVisible(true);
+  });
 
   goog.events.listen( goog.dom.getElement('id_landing_signin'), 'click', function(e){
     e.stopPropagation();
