@@ -101,11 +101,14 @@ bitex.ui.OrderBook.prototype.enterDocument = function() {
  * @param {goog.events.Event} e
  */
 bitex.ui.OrderBook.prototype.onClick_  = function(e){
-  var buttonEl = e.target;
-  if (buttonEl.tagName == goog.dom.TagName.BUTTON ) {
-    var orderId = buttonEl.getAttribute('data-order-id');
+  var cxlEl = e.target;
+  if (cxlEl.tagName == goog.dom.TagName.A || cxlEl.tagName == goog.dom.TagName.I ) {
+    var orderId = cxlEl.getAttribute('data-order-id');
     if ( goog.isDefAndNotNull(orderId)  ) {
       this.dispatchEvent( new bitex.ui.OrderBookEvent (bitex.ui.OrderBook.EventType.CANCEL, orderId) );
+
+      e.preventDefault();
+      e.stopPropagation();
     }
   }
 };
@@ -197,7 +200,7 @@ bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, user
   var userNameEl;
   if (username === this.username_) {
     userNameEl = dom.createDom('td', undefined,
-                   dom.createDom( 'a', { 'class':'text-error', 'href':'' }, 
+                   dom.createDom( 'a', { 'class':'btn-cancel-order text-error', 'href':'', 'data-order-id':id },
                      dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  Cancelar')));
   } else {
     userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);

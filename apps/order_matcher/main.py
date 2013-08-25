@@ -28,6 +28,7 @@ sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
 
 from datetime import timedelta
 
+from StringIO import StringIO
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
@@ -50,7 +51,7 @@ tornado.options.parse_command_line()
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from order_matcher import config
-from order_matcher.models import   engine, Order, User
+from order_matcher.models import   engine, Order, User, BoletoOptions, Boleto
 from order_matcher.execution import  OrderMatcher
 from order_matcher.views import OrderMatcherHandler
 
@@ -64,8 +65,15 @@ class AdminHandler(tornado.web.RequestHandler):
 class BitExHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
+
+    boleto_options = self.application.session.query(BoletoOptions)
+
     m = OrderMatcher.get('BRLBTC')
-    self.write( loader.load("bitex.html").generate(ws_url=options.ws_url, bid=m.bid, ask=m.ask, quote=m.ask) )
+    self.write( loader.load("bitex.html").generate(ws_url=options.ws_url,
+                                                   bid=m.bid,
+                                                   ask=m.ask,
+                                                   quote=m.ask,
+                                                   boleto_options=boleto_options) )
 
 class AccountVerificationHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
@@ -75,9 +83,38 @@ class AccountVerificationHandler(tornado.web.RequestHandler):
     username = self.get_argument("username", default="", strip=False)
     self.write( loader.load("account_verification.html").generate( user_id=user_id, username=username ) )
 
+class BoletoHandler(tornado.web.RequestHandler):
+  def get(self, *args, **kwargs):
+    from pyboleto.pdf import BoletoPDF
+    from models import Boleto
+
+    buffer = StringIO()
+    boleto_pdf = BoletoPDF(buffer)
+
+
+    boleto_id = self.get_argument("boleto_id", default="-1", strip=False)
+    if boleto_id:
+      boleto_id = int(boleto_id)
+
+
+    boleto = self.application.session.query(Boleto).filter_by(id=boleto_id).first()
+    if boleto:
+      boleto.print_pdf_pagina(boleto_pdf)
+      self.set_header("Mime-Type", "application/pdf")
+      self.set_header("Content-Disposition", "attachment; filename=boleto_%s.pdf"% boleto.id )
+
+      boleto_pdf.save()
+      pdf_file = buffer.getvalue()
+
+
+      self.write( pdf_file )
+    else:
+      self.write('Erro imprimindo Boleto')
+
 class OrderMatcherApplication(tornado.web.Application):
   def __init__(self):
     handlers = [
+      (r'/print_boleto(.*)', BoletoHandler),
       (r'/account_verification/.*', AccountVerificationHandler),
       (r'/trade', OrderMatcherHandler),
       (r'/admin/.*', AdminHandler),
@@ -106,6 +143,9 @@ class OrderMatcherApplication(tornado.web.Application):
     for user in users:
       self.replay_log.info('DB_ENTITY,' + str(user))
 
+    boleto_options = self.session.query(BoletoOptions)
+    for boleto in boleto_options:
+      self.replay_log.info('DB_ENTITY,' + str(boleto))
 
     # Load all open orders
     orders = self.session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)

@@ -7,7 +7,7 @@ from market_data_signals import *
 from tornado import  websocket
 import json
 
-from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal
+from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions
 
 from order_matcher.execution import OrderMatcher, execution_report_signal
 
@@ -356,9 +356,10 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         if user.bitcoin_address != None: 
           btc_address = user.bitcoin_address
         else:
-          btc_address = self.application.bitcoin.getnewaddress()
-          user.new_address(btc_address)
-          self.application.session.commit()
+          #btc_address = self.application.bitcoin.getnewaddress()
+          #user.new_address(btc_address)
+          #self.application.session.commit()
+          btc_address = ""
 
         self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':btc_address  }  )
 
@@ -375,6 +376,21 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
       self.application.session.add(self.user)
       self.application.session.commit()
+
+    elif msg.type == 'U18': #Generate Boleto
+      boleto_option_id = msg.get('BoletoId')
+      value = msg.get('Value')
+
+      boleto_option = self.application.session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
+      if not boleto_option:
+        print 'boleto_option not found'
+        return
+
+      boleto = boleto_option.generate_boleto(  self.application.session, self.user, value )
+      self.application.session.commit()
+
+      print boleto.id
+      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U19', 'BoletoId': boleto.id } )
 
     else:
       print 'Invalid Message' , msg

@@ -12,9 +12,11 @@ body {
   font-size: 12px;
 }
 
+
+
 /* The white background content wrapper */
 .page {
-  /* background-color: #fff; */
+  background-color: #fff;
   padding: 20px;
   margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
   -webkit-border-radius: 0 0 6px 6px;
@@ -284,3 +286,6 @@ ul.parsley-error-list li {
   #login { display: block; } 
 }
 
+.btn-cancel-order {
+  text-decoration: none !important;
+}

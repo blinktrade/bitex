@@ -614,6 +614,27 @@ bitex.app.bitex = function( url ) {
 
   });
 
+  var boleto_buttons = goog.dom.getElementsByClass('btn-boleto');
+  goog.array.forEach( boleto_buttons, function( boleto_button ) {
+    goog.events.listen( boleto_button, 'click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var element = e.target;
+
+      var value = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_value") );
+      var boleto_id = element.getAttribute('data-boleto-id');
+
+      if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
+        alert('Por favor, preencha o valor do boleto a ser gerado');
+        return;
+      }
+
+      bitEx.generateBoleto(boleto_id,value );
+
+    });
+  });
+
+
 
   goog.events.listen( goog.dom.getElement('id_landing_signin'), 'click', function(e){
     e.stopPropagation();

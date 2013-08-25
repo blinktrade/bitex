@@ -13,7 +13,7 @@ from bitex.errors import OrderNotFound
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import or_, exists
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -189,7 +189,7 @@ class User(Base):
     if user and user.check_password(password):
 
       if user.two_factor_enabled:
-        if int(second_factor) != get_totp_token(user.two_factor_secret):
+        if second_factor is None or int(second_factor) != get_totp_token(user.two_factor_secret):
           return None
 
       # update the last login
@@ -668,6 +668,130 @@ class Trade(Base):
   def get_last_100_trades(session, symbol):
     trades = session.query(Trade).filter_by(symbol=symbol).order_by(Trade.created.desc() ).limit(100)
     return trades
+
+class Boleto(Base):
+  __tablename__       = 'boleto'
+
+  id                  = Column(Integer,   primary_key=True)
+
+  # Informações Gerais
+  codigo_banco        = Column(String(3),  nullable=False)
+
+  carteira            = Column(String(5),  nullable=False)
+  aceite              = Column(String(1),  nullable=False, default='N')
+  valor_documento     = Column(Numeric(9,2), nullable=False)
+  valor               = Column(Numeric(9,2), nullable=True)
+  data_vencimento     = Column(Date,   nullable=False, index=True)
+  data_documento      = Column(Date,   nullable=False, index=True, default=datetime.date.today)
+  data_processamento  = Column(Date,   nullable=True, index=True)
+  numero_documento    = Column(String(11), nullable=False)
+
+  # Informações do Cedente
+  agencia_cedente     = Column(String(4),  nullable=False)
+  conta_cedente       = Column(String(7),  nullable=False)
+  cedente             = Column(String(255),nullable=False)
+  cedente_documento   = Column(String(50), nullable=False)
+  cedente_cidade      = Column(String(255),nullable=False)
+  cedente_uf          = Column(String(2),  nullable=False)
+  cedente_endereco    = Column(String(255),nullable=False)
+  cedente_bairro      = Column(String(255),nullable=False)
+  cedente_cep         = Column(String(9),  nullable=False)
+
+
+  # Informações do Sacado
+  sacado_nome        = Column(String(255),nullable=False)
+  sacado_documento   = Column(String(255),nullable=True)
+  sacado_cidade      = Column(String(255),nullable=True)
+  sacado_uf          = Column(String(2),  nullable=True)
+  sacado_endereco    = Column(String(255),nullable=True)
+  sacado_bairro      = Column(String(255),nullable=True)
+  sacado_cep         = Column(String(9),  nullable=True)
+
+  # Informações Opcionais
+  quantidade         = Column(String(10), nullable=True)
+  especie_documento  = Column(String(255),nullable=True)
+  especie            = Column(String(2),  nullable=False, default='R$')
+  moeda              = Column(String(2),  nullable=False, default='9')
+  demonstrativo      = Column(Text,  nullable=True)
+  local_pagamento    = Column(String(255),nullable=True, default=u"Pagável em qualquer banco, lotérica ou agência " \
+                                                                 u"dos correios até a data de vencimento")
+  instrucoes         = Column(Text,nullable=False, default=u"Não receber após 30 dias.")
+
+  def __unicode__(self):
+    return self.numero_documento
+
+
+  def print_pdf_pagina(self, pdf_file):
+    from pyboleto import bank
+
+    ClasseBanco = bank.get_class_for_codigo(self.codigo_banco)
+
+    boleto_dados = ClasseBanco()
+
+    for field in self.__table__.columns:
+      val = getattr(self, field.name)
+      if val:
+        setattr(boleto_dados, field.name, val)
+
+    setattr(boleto_dados, 'nosso_numero', getattr(self, 'numero_documento'))
+
+    pdf_file.drawBoleto(boleto_dados)
+
+
+class BoletoOptions(Base):
+  __tablename__         = 'boleto_options'
+
+  id                    = Column(Integer,    primary_key=True)
+
+  description           = Column(String(255),nullable=False)
+
+  codigo_banco          = Column(String(3),  nullable=False)
+  carteira              = Column(String(5),  nullable=False)
+
+  last_numero_documento = Column(Integer,    nullable=False)
+
+  agencia_cedente       = Column(String(4),  nullable=False)
+  conta_cedente         = Column(String(7),  nullable=False)
+  cedente               = Column(String(255),nullable=False)
+  cedente_documento     = Column(String(50), nullable=False)
+  cedente_cidade        = Column(String(255),nullable=False)
+  cedente_uf            = Column(String(2),  nullable=False)
+  cedente_endereco      = Column(String(255),nullable=False)
+  cedente_bairro        = Column(String(255),nullable=False)
+  cedente_cep           = Column(String(9),  nullable=False)
+
+  def generate_boleto(self,session, user, value):
+    self.last_numero_documento +=  1
+
+    boleto = Boleto()
+    boleto.codigo_banco       = self.codigo_banco
+    boleto.carteira           = self.carteira
+    boleto.numero_documento   = str(self.last_numero_documento)
+    boleto.valor_documento    = value
+    boleto.valor              = value
+    boleto.data_vencimento    = datetime.date.today() + datetime.timedelta(days=5)
+    boleto.data_documento     = datetime.date.today()
+
+    boleto.agencia_cedente    = self.agencia_cedente
+    boleto.conta_cedente      = self.conta_cedente
+    boleto.cedente            = self.cedente
+    boleto.cedente_documento  = self.cedente_documento
+    boleto.cedente_cidade     = self.cedente_cidade
+    boleto.cedente_uf         = self.cedente_uf
+    boleto.cedente_endereco   = self.cedente_endereco
+    boleto.cedente_bairro     = self.cedente_bairro
+    boleto.cedente_cep        = self.cedente_cep
+
+    boleto.sacado_nome        = user.username
+    boleto.sacado_documento   = user.id
+    boleto.sacado_endereco    = user.email
+
+    session.add(self)
+    session.add(boleto)
+    session.flush()
+
+    return boleto
+
 
 
 Base.metadata.create_all(engine)

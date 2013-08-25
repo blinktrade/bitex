@@ -427,6 +427,20 @@ bitex.api.BitEx.prototype.requestOrderList = function(opt_requestId, opt_page, o
 };
 
 /**
+ * Generate a boleto for the client
+ * @param {string} boletoId
+ * @param {number} value
+ */
+bitex.api.BitEx.prototype.generateBoleto = function( boletoId, value ) {
+  var msg = {
+    'MsgType': 'U18',
+    'BoletoId': boletoId,
+    'Value': value
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
  *
  * @param {string} symbol
  * @param {number} qty
