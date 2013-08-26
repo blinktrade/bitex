@@ -7,7 +7,7 @@ from market_data_signals import *
 from tornado import  websocket
 import json
 
-from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions, NeedSecondFactorException
+from models import  User, BitcoinAddress, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions, NeedSecondFactorException
 
 from order_matcher.execution import OrderMatcher, execution_report_signal
 
@@ -143,8 +143,6 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
         # signup the user
 
-        # TODO: Create a wallet address
-
         # create the user on Database
         u = User( username            = msg.get('Username'),
                   email               = msg.get('Email'),
@@ -198,9 +196,11 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         'UserID': self.user.id,
         'Username': self.user.username,
         'TwoFactorEnabled': self.user.two_factor_enabled,
+        'BtcAddress': self.user.bitcoin_address,
         'UserStatus': 1
       }
       self.write_message( json.dumps(login_response) )
+      self.application.session.add(self.user)
       self.application.session.commit()
 
 
@@ -360,15 +360,14 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     elif msg.type == 'U9':  # gets or create an bitcoin address for UserID
       user = self.application.session.query(User).filter_by(id= msg.get('UserID') ).first()
       if user:
-        if user.bitcoin_address != None: 
-          btc_address = user.bitcoin_address
-        else:
+        if user.bitcoin_address is None:
+          pass
           #btc_address = self.application.bitcoin.getnewaddress()
           #user.new_address(btc_address)
+          #self.application.session.add(user)
           #self.application.session.commit()
-          btc_address = ""
 
-        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':btc_address  }  )
+        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':user.bitcoin_address  }  )
 
       return
 
@@ -408,6 +407,21 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     if not self.user.is_system:
       self.close()
       return False
+
+    if msg.type == 'BITCOIN_NEW_ADDRESS':
+      bitcoin_address = self.application.session.query(BitcoinAddress).filter_by(bitcoin_address=msg.get('BtcAddress') ).first()
+      if bitcoin_address:
+        return True
+
+      bitcoin_address = BitcoinAddress( bitcoin_address=msg.get('BtcAddress') )
+      self.application.session.add(bitcoin_address)
+      self.application.session.commit()
+
+      result = {
+        'MsgType'   : 'BITCOIN_NEW_ADDRESS_RESPONSE',
+        'BtcAddress' : msg.get('BtcAddress')
+      }
+      self.on_send_json_msg_to_user( sender=None, json_msg=result )
 
     if msg.type == 'BTC_DEPOSIT':
       user = self.application.session.query(User).filter_by(bitcoin_address=msg.get('BtcAddress') ).first()

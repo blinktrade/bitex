@@ -42,7 +42,8 @@ class JsonMessage(BaseMessage):
 
     #validate Type
     if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9',
-                         'U10', 'U12', 'U13', 'U14', 'U16', 'U18', 'S0', 'ADMIN_SELECT', 'DEPOSIT', 'BTC_DEPOSIT' ):
+                         'U10', 'U12', 'U13', 'U14', 'U16', 'U18',
+                         'S0', 'ADMIN_SELECT', 'DEPOSIT', 'BTC_DEPOSIT', 'BITCOIN_NEW_ADDRESS' ):
       self.valid = False
       return
 
@@ -187,6 +188,12 @@ class JsonMessage(BaseMessage):
 
       if not self.valid:
         return
+
+    elif self.type == 'BITCOIN_NEW_ADDRESS':
+      self.valid = self.valid and  'BtcAddress' in self.message
+      if not self.valid:
+        return
+
 
   def has(self, attr):
     return attr in self.message

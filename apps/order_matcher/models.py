@@ -60,6 +60,7 @@ def get_hexdigest(algorithm, salt, raw_password):
 class NeedSecondFactorException(Exception):
   pass
 
+
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
@@ -201,6 +202,14 @@ class User(Base):
 
       # update the last login
       user.last_login = datetime.datetime.now()
+
+      if not user.bitcoin_address:
+        avaliable_btc_address = session.query(BitcoinAddress).filter_by(user_id=None).first()
+        avaliable_btc_address.user_id = user.id
+        session.add(avaliable_btc_address)
+
+        user.bitcoin_address = avaliable_btc_address.bitcoin_address
+
       return user
     return None
 
@@ -335,6 +344,12 @@ class User(Base):
       brl_bank_transfer_signal( self.id, brl_bank_transfer_msg )
 
     self.publish_balance_update()
+
+
+class BitcoinAddress(Base):
+  __tablename__   = 'bitcoin_address'
+  bitcoin_address = Column(String(50), nullable=True, primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'), nullable=True, index=True )
 
 
 class Deposit(Base):

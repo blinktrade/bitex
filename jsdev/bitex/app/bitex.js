@@ -203,6 +203,7 @@ bitex.app.bitex = function( url ) {
     model.set('UserID', msg['UserID'] );
     model.set('Username', msg['Username']);
     model.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
+    model.set('BtcAddress', msg['BtcAddress']);
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
@@ -226,7 +227,6 @@ bitex.app.bitex = function( url ) {
 
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
-    bitEx.getBitcoinAddress(0, msg['UserID']);
 
     // set view to Trading
     router.setView('trading');
@@ -246,11 +246,6 @@ bitex.app.bitex = function( url ) {
         $.sticky('Oferta numero: ' + msg['OrderID'] +  ' foi cancelada');
         break;
     }
-  });
-
-  bitEx.addEventListener(bitex.api.BitEx.EventType.BTC_ADDRESS, function(e){
-    var msg = e.data;
-    model.set('UserWallet', msg['Address']);
   });
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, function(e){
@@ -584,6 +579,14 @@ bitex.app.bitex = function( url ) {
       var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' + msg['TwoFactorSecret'];
       secret_qr_el.setAttribute('src', qr_code);
     }
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'BtcAddress', function(e) {
+    var btc_address = /* @type {string}  */  e.data;
+    var qr_code = 'https://chart.googleapis.com/chart?chs=100x100&chld=M%7C0&cht=qr&chl=' + btc_address;
+
+    btc_adrress_el = goog.dom.getElement('id_bitcoin_address_img');
+    btc_adrress_el.setAttribute('src', qr_code);
   });
 
   model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
