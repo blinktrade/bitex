@@ -28,6 +28,7 @@ goog.require('goog.string');
 
 goog.require('bitex.app.UrlRouter');
 goog.require('bitex.model.Model');
+goog.require('bitex.model.Model.EventType');
 
 goog.require('bootstrap.Dialog');
 
@@ -192,10 +193,6 @@ bitex.app.bitex = function( url ) {
     bitEx.cancelOrder(undefined, e.order_id);
   };
 
-  bitEx.addEventListener('two_factor_secret', function(e){
-    var msg = e.data;
-    model.set('TwoFactorSecret', msg['TwoFactorSecret']);
-  });
 
   bitEx.addEventListener('login_ok',  function(e) {
     var msg = e.data;
@@ -205,6 +202,7 @@ bitex.app.bitex = function( url ) {
 
     model.set('UserID', msg['UserID'] );
     model.set('Username', msg['Username']);
+    model.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
@@ -282,7 +280,7 @@ bitex.app.bitex = function( url ) {
 
   });
 
-
+  var secondFactorDialog;
   bitEx.addEventListener('login_error',  function(e) {
     goog.dom.classes.add( document.body, 'bitex-not-logged'  );
     goog.dom.classes.remove( document.body, 'bitex-logged' );
@@ -292,12 +290,43 @@ bitex.app.bitex = function( url ) {
     model.set('UserID', '');
     model.set('Username', '');
 
+    if (msg['NeedSecondFactor']) {
+      if (goog.isDefAndNotNull(secondFactorDialog)) {
+        secondFactorDialog.dispose();
+      }
 
-    var error_dialog = new bootstrap.Dialog();
-    error_dialog.setTitle('Erro');
-    error_dialog.setContent(msg['UserStatusText']);
-    error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
-    error_dialog.setVisible(true);
+      secondFactorDialog = new bootstrap.Dialog();
+      secondFactorDialog.setTitle('Autenticação em 2 passos');
+      secondFactorDialog.setContent('Código de autenticação do Google Authenticator: <input id="id_second_factor" placeholder="ex. 555555" size="10">');
+      secondFactorDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+      secondFactorDialog.setVisible(true);
+
+      goog.events.listenOnce(secondFactorDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+        if (e.key == 'ok') {
+
+          var username = goog.dom.forms.getValue( goog.dom.getElement("id_landing_username") );
+          var password = goog.dom.forms.getValue( goog.dom.getElement("id_landing_password") );
+          var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_second_factor") );
+
+          if ( goog.string.isEmpty(username) ) {
+            username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
+            password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
+          }
+          login(username, password,second_factor);
+        }
+        secondFactorDialog.dispose();
+      });
+
+
+    } else {
+      var error_dialog = new bootstrap.Dialog();
+      error_dialog.setTitle('Erro');
+      error_dialog.setContent(msg['UserStatusText']);
+      error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+      error_dialog.setVisible(true);
+    }
+
+
   });
 
   bitEx.addEventListener('ob_clear', function(e){
@@ -504,9 +533,10 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-  var login = function(username, password, second_factor ) {
+
+  var login = function(username, password, opt_second_factor ) {
     username      = goog.string.trim(username);
-    second_factor = goog.string.trim(second_factor);
+    var second_factor = goog.string.trim(opt_second_factor || '');
 
     if (goog.string.isEmpty(username) ) {
       alert('Nome de usuário inválido');
@@ -538,8 +568,52 @@ bitex.app.bitex = function( url ) {
     }
   };
 
+
+  bitEx.addEventListener('two_factor_secret', function(e){
+    var msg = e.data;
+    model.set('TwoFactorSecret', msg['TwoFactorSecret']);
+    model.set('TwoFactorEnabled', msg['TwoFactorEnabled'] );
+
+    var secret_qr_el = goog.dom.getElement('id_secret_qr');
+    var divEl = goog.dom.getElement('id_enable_two_factor_div');
+    if (goog.string.isEmpty(msg['TwoFactorSecret'])) {
+      goog.style.showElement( divEl , false);
+    } else {
+      goog.style.showElement( divEl , true);
+
+      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' + msg['TwoFactorSecret'];
+      secret_qr_el.setAttribute('src', qr_code);
+    }
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
+    var secret = /* @type {string} */ e.data;
+    var has_secret = goog.string.isEmpty(secret);
+
+    var divEl = goog.dom.getElement('id_enable_two_factor_div');
+    goog.style.showElement( divEl , has_secret);
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorEnabled', function(e){
+    var enabled = /* @type {boolean} */ e.data;
+
+    var secret = model.get('TwoFactorSecret');
+    var has_secret = goog.string.isEmpty(secret);
+
+    var divEl = goog.dom.getElement('id_enable_two_factor_div');
+    var btnEnableEl = goog.dom.getElement('id_btn_enable_two_factor');
+    var btnDisableEl = goog.dom.getElement('id_btn_disable_two_factor');
+
+    goog.style.showElement( btnEnableEl , !enabled);
+    goog.style.showElement( btnDisableEl , enabled);
+    goog.style.showElement( divEl , has_secret);
+  });
+
+
   goog.events.listen( goog.dom.getElement('id_btn_enable_two_factor'), 'click', function(e){
-    bitEx.enableTwoFactor(true);
+    var secret = model.get('TwoFactorSecret');
+    var code = goog.dom.forms.getValue( goog.dom.getElement('id_second_step_verification'));
+    bitEx.enableTwoFactor(true, secret, code);
   });
 
   goog.events.listen( goog.dom.getElement('id_btn_disable_two_factor'), 'click', function(e){
@@ -652,8 +726,7 @@ bitex.app.bitex = function( url ) {
     e.preventDefault();
     var username = goog.dom.forms.getValue( goog.dom.getElement("id_landing_username") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_landing_password") );
-    var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_landing_second_factor") );
-    login(username, password,second_factor);
+    login(username, password);
   });
 
   goog.events.listen( goog.dom.getElement('id_btn_login'), 'click', function(e){
@@ -661,8 +734,7 @@ bitex.app.bitex = function( url ) {
     e.preventDefault();
     var username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
-    var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_second_factor") );
-    login(username, password, second_factor);
+    login(username, password);
   });
 
 

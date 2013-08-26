@@ -1,7 +1,10 @@
 goog.provide('bitex.model.Model');
+goog.provide('bitex.model.Model.EventType');
+goog.provide('bitex.model.ModelEvent');
 
 
 goog.require('goog.structs.Map');
+goog.require('goog.events.EventTarget');
 goog.require('goog.array');
 goog.require('goog.dom');
 
@@ -18,11 +21,11 @@ goog.require('goog.dom.classes');
  * @extends {goog.events.EventTarget}
  */
 bitex.model.Model = function(element, opt_map, var_args){
-  goog.base(this,opt_map, var_args);
-
   this.element_ = element;
+
+  this.map_ = new goog.structs.Map(opt_map, var_args);
 };
-goog.inherits(bitex.model.Model, goog.structs.Map);
+goog.inherits(bitex.model.Model, goog.events.EventTarget);
 
 
 /**
@@ -32,12 +35,43 @@ bitex.model.Model.prototype.element_;
 
 
 /**
+ * @type {goog.structs.Map}
+ * @private
+ */
+bitex.model.Model.prototype.map_;
+
+
+/**
+ * Common events fired by Applications
+ * @enum {string}
+ */
+bitex.model.Model.EventType = {
+  /** dispatched after set */
+  SET: 'model_set'
+};
+
+
+
+/**
+ * Returns the value for the given key.  If the key is not found and the default
+ * value is not given this will return {@code undefined}.
+ * @param {*} key The key to get the value for.
+ * @param {*=} opt_val The value to return if no item is found for the given
+ *     key, defaults to undefined.
+ * @return {*} The value for the given key.
+ */
+bitex.model.Model.prototype.get = function(key, opt_val) {
+  return this.map_.get(key, opt_val);
+};
+
+/**
  * Adds a key-value pair to the map.
  * @param {*} key The key.
  * @param {*} value The value to add.
  */
 bitex.model.Model.prototype.set = function(key, value) {
-  bitex.model.Model.superClass_.set.call(this, key, value);
+  this.map_.set(key, value);
+
 
   var elements = goog.dom.getElementsByClass('bitex-model', this.element_);
 
@@ -66,5 +100,37 @@ bitex.model.Model.prototype.set = function(key, value) {
       }
     }
   });
+
+  this.dispatchEvent( new bitex.model.ModelEvent(
+      bitex.model.Model.EventType.SET + key,
+      key,
+      value));
+
+  this.dispatchEvent( new bitex.model.ModelEvent(
+      bitex.model.Model.EventType.SET,
+      key,
+      value));
+
 };
+
+
+
+/**
+ *
+ * @param {string} type
+ * @param {string} key
+ * @param {Object|string|number|boolean} data
+ * @constructor
+ * @extends {goog.events.Event}
+ */
+bitex.model.ModelEvent = function( type, key, data){
+  goog.events.Event.call(this, type);
+
+  /** @type {string} */
+  this.key = key;
+
+  /** @type {Object|string|number|boolean} */
+  this.data = data;
+};
+goog.inherits(bitex.model.ModelEvent, goog.events.Event);
 

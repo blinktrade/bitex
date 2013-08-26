@@ -292,12 +292,22 @@ bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor
 
 /**
  * @param {boolean} enable
+ * @param {string=} opt_secret
+ * @param {string=} opt_code
  */
-bitex.api.BitEx.prototype.enableTwoFactor = function(enable){
+bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_code){
   var msg = {
     'MsgType': 'U16',
     'Enable': enable
   };
+  if (goog.isDefAndNotNull(opt_secret) && !goog.string.isEmpty(opt_secret) ) {
+    msg['Secret'] = opt_secret;
+  }
+
+  if (goog.isDefAndNotNull(opt_code) && !goog.string.isEmpty(opt_code) ) {
+    msg['Code'] = opt_code;
+  }
+
   this.ws_.send(JSON.stringify( msg ));
 };
 

@@ -7,7 +7,7 @@ from market_data_signals import *
 from tornado import  websocket
 import json
 
-from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions
+from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions, NeedSecondFactorException
 
 from order_matcher.execution import OrderMatcher, execution_report_signal
 
@@ -166,14 +166,20 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.application.replay_log.info('IN,' + raw_message )
 
       # Authenticate the user
-      self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'), msg.get('SecondFactor') )
-      if not self.user:
+      need_second_factor = False
+      self.user = None
+      try:
+        self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'), msg.get('SecondFactor') )
+      except NeedSecondFactorException:
+        need_second_factor = True
 
+      if not self.user:
         login_response = {
           'MsgType': 'BF',
           'Username': '',
           'UserStatus': 3,
-          'UserStatusText': u'Nome de usuário ou senha inválidos'
+          'NeedSecondFactor': need_second_factor,
+          'UserStatusText': u'Nome de usuário ou senha inválidos' if not need_second_factor else u'Segundo fator de autenticação inválido'
         }
         self.write_message( json.dumps(login_response) )
         self.application.session.rollback()
@@ -191,6 +197,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         'MsgType': 'BF',
         'UserID': self.user.id,
         'Username': self.user.username,
+        'TwoFactorEnabled': self.user.two_factor_enabled,
         'UserStatus': 1
       }
       self.write_message( json.dumps(login_response) )
@@ -367,12 +374,12 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
     elif msg.type == 'U16':  #Enable Disable Two Factor Authentication
       enable = msg.get('Enable')
-      two_factor_secret = self.user.enable_two_factor(enable)
-
-      if two_factor_secret:
-        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U17', 'TwoFactorSecret': two_factor_secret }  )
-      else:
-        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U17', 'TwoFactorSecret': '' } )
+      secret = msg.get('Secret')
+      code = msg.get('Code')
+      two_factor_secret = self.user.enable_two_factor(enable, secret, code)
+      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U17',
+                                                             'TwoFactorEnabled': self.user.two_factor_enabled,
+                                                             'TwoFactorSecret': two_factor_secret } )
 
       self.application.session.add(self.user)
       self.application.session.commit()

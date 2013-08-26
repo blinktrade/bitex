@@ -57,6 +57,9 @@ def get_hexdigest(algorithm, salt, raw_password):
   raise Exception("Got unknown password algorithm type in password.")
 
 
+class NeedSecondFactorException(Exception):
+  pass
+
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
@@ -186,25 +189,34 @@ class User(Base):
   @staticmethod
   def authenticate(session, user, password, second_factor=None):
     user = User.get_user( session, user, user)
+
+    if user.two_factor_enabled and second_factor is None:
+      raise NeedSecondFactorException
+
     if user and user.check_password(password):
 
       if user.two_factor_enabled:
         if second_factor is None or int(second_factor) != get_totp_token(user.two_factor_secret):
-          return None
+          raise NeedSecondFactorException
 
       # update the last login
       user.last_login = datetime.datetime.now()
       return user
     return None
 
-  def enable_two_factor(self, enable):
+  def enable_two_factor(self, enable, secret, second_factor):
     if enable:
-      self.two_factor_enabled = True
-      self.two_factor_secret = generate_two_factor_secret()
-      return self.two_factor_secret
+      if secret and second_factor is not None and second_factor.isdigit() and  int(second_factor) == get_totp_token(secret):
+        self.two_factor_enabled = True
+        self.two_factor_secret = secret
+        return self.two_factor_secret
+      elif secret:
+        return  secret
+      else:
+        return generate_two_factor_secret()
     else:
       self.two_factor_enabled = False
-      return None
+      return ""
 
   def request_reset_password(self, session):
     UserPasswordReset.create( session, self.id )
