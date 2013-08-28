@@ -191,7 +191,7 @@ class User(Base):
   def authenticate(session, user, password, second_factor=None):
     user = User.get_user( session, user, user)
 
-    if user.two_factor_enabled and second_factor is None:
+    if user and  user.two_factor_enabled and second_factor is None:
       raise NeedSecondFactorException
 
     if user and user.check_password(password):
@@ -351,6 +351,9 @@ class BitcoinAddress(Base):
   bitcoin_address = Column(String(50), nullable=True, primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'), nullable=True, index=True )
 
+  def __repr__(self):
+    return "<BitcoinAddress(bitcoin_address='%s', user_id=%d)>"%(self.bitcoin_address, self.user_id)
+
 
 class Deposit(Base):
   __tablename__   = 'deposits'
@@ -363,6 +366,11 @@ class Deposit(Base):
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
   origin          = Column(String(255),   nullable=False)
+
+  def __repr__(self):
+    return "<Deposit(id=%d, user_id=%d, account_id=%d, currency='%s', amount='%d', status=%d, created='%s', origin='%s')>" % (
+      self.id, self.user_id, self.account_id, self.currency, self.amount, self.status, self.created, self.origin )
+
 
 class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
@@ -469,6 +477,11 @@ class WithdrawBTC(Base):
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
+  def __repr__(self):
+    return "<WithdrawBTC(id=%d, user_id=%d, username='%s', amount='%d', wallet='%s', status='%s', created='%s')>" % (
+      self.id, self.user_id, self.username, self.amount, self.wallet, self.status, self.created)
+
+
 class WithdrawBRL(Base):
   __tablename__   = 'withdraws_brl'
   id              = Column(Integer,       primary_key=True)
@@ -482,8 +495,15 @@ class WithdrawBRL(Base):
   account_branch  = Column(String,        nullable=False)  # Agencia
   cpf_cnpj        = Column(String,        nullable=False)
   status          = Column(Integer,       nullable=False, default=0)
-  created        = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
+  def __repr__(self):
+    return "<WithdrawBRL(id=%d, user_id=%d, username='%s', amount='%d'," \
+           "bank_number=%d,bank_name='%s',account_name='%s',account_number='%s',account_branch='%s',cpf_cnpj='%s', " \
+           "status='%s', created='%s')>" % (
+      self.id, self.user_id, self.username, self.amount,
+      self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
+      self.status, self.created)
 
 
 
@@ -688,8 +708,10 @@ class Trade(Base):
   trade_type        = Column(Integer,       nullable=False, default=0)  # regular trade
 
   def __repr__(self):
-    return "<Trade('%d', buy_order:%d, sell_order:%d, side:%s, size:%d, price:%d )>"\
-    % (self.id, self.buy_order_id , self.sell_order_id, self.side, self.size, self.price)
+    return "<Trade(id='%s', order_id:%d, counter_order_id:%d, buyer_username='%s',seller_username='%s',  " \
+           "side:'%s', symbol='%s', size:%d, price:%d, created='%s', trade_type=%d )>"\
+    % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
+       self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
   @staticmethod
   def get_last_100_trades(session, symbol):

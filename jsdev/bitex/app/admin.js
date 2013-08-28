@@ -19,6 +19,7 @@ goog.require('goog.string');
 
 goog.require('bitex.app.UrlRouter');
 
+goog.require('bootstrap.Dialog');
 
 
 bitex.app.admin = function() {
@@ -29,7 +30,7 @@ bitex.app.admin = function() {
     var view_name = e.view;
 
     // remove any active view classes from document body
-    var classes = goog.dom.classes.get(document.body );
+    var classes = goog.dom.classes.get(document.body);
     var classes_to_remove = [];
     goog.array.forEach( classes, function( cls ) {
       if (goog.string.startsWith(cls, 'active-view-' ) ){
@@ -346,12 +347,46 @@ bitex.app.admin = function() {
   });
 
 
+  var secondFactorDialog;
   bitEx.addEventListener('login_error',  function(e) {
     var msg = e.data;
 
     goog.dom.classes.add( document.body, 'bitex-not-logged'  );
     goog.dom.classes.remove( document.body, 'bitex-logged' );
-    alert(msg['UserStatusText']);
+
+    if (msg['NeedSecondFactor']) {
+      if (goog.isDefAndNotNull(secondFactorDialog)) {
+        secondFactorDialog.dispose();
+      }
+
+      secondFactorDialog = new bootstrap.Dialog();
+      secondFactorDialog.setTitle('Autenticação em 2 passos');
+      secondFactorDialog.setContent('Código de autenticação do Google Authenticator: <input id="id_second_factor" placeholder="ex. 555555" size="10">');
+      secondFactorDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+      secondFactorDialog.setVisible(true);
+
+      goog.events.listenOnce(secondFactorDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+        if (e.key == 'ok') {
+
+          var username = goog.dom.forms.getValue( goog.dom.getElement("id_landing_username") );
+          var password = goog.dom.forms.getValue( goog.dom.getElement("id_landing_password") );
+          var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_second_factor") );
+
+          if ( goog.string.isEmpty(username) ) {
+            username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
+            password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
+          }
+          login(username, password,second_factor);
+        }
+        secondFactorDialog.dispose();
+      });
+    } else {
+      var error_dialog = new bootstrap.Dialog();
+      error_dialog.setTitle('Erro');
+      error_dialog.setContent(msg['UserStatusText']);
+      error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+      error_dialog.setVisible(true);
+    }
   });
 
 
@@ -398,10 +433,33 @@ bitex.app.admin = function() {
 
 
 
+
+  var login = function(username, password, opt_second_factor ) {
+    username      = goog.string.trim(username);
+    var second_factor = goog.string.trim(opt_second_factor || '');
+
+    if (goog.string.isEmpty(username) ) {
+      alert('Nome de usuário inválido');
+      return;
+    }
+    if ( goog.string.isEmpty(password)  || password.length < 6) {
+      alert('Senha deve ter no mínimo 6 letras');
+      return;
+    }
+
+    if (goog.string.isEmpty(second_factor) ) {
+      bitEx.login(username, password);
+    } else {
+      bitEx.login(username, password, second_factor);
+    }
+  };
+
+
+
   button_login.addEventListener( goog.ui.Component.EventType.ACTION, function(e){
     var username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
-    var password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
-    bitEx.login(username, password);
+    var password = goog.dom.forms.getValue( goog.dom.getElement("id_password"));
+    login(username, password);
   });
 
   button_ws_connect.addEventListener(goog.ui.Component.EventType.ACTION, function(e){

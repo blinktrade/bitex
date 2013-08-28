@@ -706,7 +706,7 @@ bitex.app.bitex = function( url ) {
         return;
       }
 
-      bitEx.generateBoleto(boleto_id,value );
+      bitEx.generateBoleto(boleto_id,value);
 
     });
   });

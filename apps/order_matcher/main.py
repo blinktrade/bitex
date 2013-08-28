@@ -55,8 +55,6 @@ from order_matcher.models import   engine, Order, User, BoletoOptions, Boleto
 from order_matcher.execution import  OrderMatcher
 from order_matcher.views import OrderMatcherHandler
 
-from bitcoin import Bitcoin
-
 class AdminHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
     loader = tornado.template.Loader(os.path.join(ROOT_PATH, 'static'))
@@ -137,8 +135,6 @@ class OrderMatcherApplication(tornado.web.Application):
     self.session = scoped_session(sessionmaker(bind=engine))
 
     # Connect BTC daemon
-    self.bitcoin = Bitcoin()
-    self.bitcoin.connect()
     self.replay_log = logging.getLogger("REPLAY")
 
     # log all users on the replay log
