@@ -3,6 +3,7 @@
 import os
 import hashlib
 
+import logging
 import hmac, base64, struct, hashlib, time
 
 import datetime
@@ -205,10 +206,13 @@ class User(Base):
 
       if not user.bitcoin_address:
         avaliable_btc_address = session.query(BitcoinAddress).filter_by(user_id=None).first()
-        avaliable_btc_address.user_id = user.id
-        session.add(avaliable_btc_address)
+        if not avaliable_btc_address:
+          logging.error('There is no available bitcoin address in the BitcoinAddress table. Please run bitcoiner with --new_address option')
+        else:
+          avaliable_btc_address.user_id = user.id
+          session.add(avaliable_btc_address)
 
-        user.bitcoin_address = avaliable_btc_address.bitcoin_address
+          user.bitcoin_address = avaliable_btc_address.bitcoin_address
 
       return user
     return None
