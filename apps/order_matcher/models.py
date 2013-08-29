@@ -3,6 +3,7 @@
 import os
 import hashlib
 
+import hmac, base64, struct, hashlib, time
 
 import datetime
 from bitex.utils import smart_str
@@ -12,7 +13,7 @@ from bitex.errors import OrderNotFound
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import or_, exists
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -27,6 +28,20 @@ btc_hot_wallet_transfer_signal  = Signal()
 ltc_hot_wallet_transfer_signal  = Signal()
 brl_bank_transfer_signal        = Signal()
 
+def generate_two_factor_secret():
+  return base64.b32encode(os.urandom(10))
+
+def get_hotp_token(secret, intervals_no):
+  key = base64.b32decode(secret, True)
+  msg = struct.pack(">Q", intervals_no)
+  h = hmac.new(key, msg, hashlib.sha1).digest()
+  o = ord(h[19]) & 15
+  h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+  return h
+
+def get_totp_token(secret):
+  return get_hotp_token(secret, intervals_no=int(time.time())//30)
+
 
 def get_hexdigest(algorithm, salt, raw_password):
   """
@@ -40,6 +55,10 @@ def get_hexdigest(algorithm, salt, raw_password):
     import bcrypt
     return bcrypt.hashpw(raw_password, salt)
   raise Exception("Got unknown password algorithm type in password.")
+
+
+class NeedSecondFactorException(Exception):
+  pass
 
 
 class User(Base):
@@ -79,6 +98,9 @@ class User(Base):
 
   created         = Column(DateTime, default=datetime.datetime.now, nullable=False)
   last_login      = Column(DateTime, default=datetime.datetime.now, nullable=False)
+
+  two_factor_enabled  = Column(Boolean, nullable=False, default=False)
+  two_factor_secret   = Column(String(50), nullable=True, index=False)
 
 
   def __repr__(self):
@@ -166,13 +188,44 @@ class User(Base):
     return None
 
   @staticmethod
-  def authenticate(session, user, password):
+  def authenticate(session, user, password, second_factor=None):
     user = User.get_user( session, user, user)
+
+    if user and  user.two_factor_enabled and second_factor is None:
+      raise NeedSecondFactorException
+
     if user and user.check_password(password):
+
+      if user.two_factor_enabled:
+        if second_factor is None or int(second_factor) != get_totp_token(user.two_factor_secret):
+          raise NeedSecondFactorException
+
       # update the last login
       user.last_login = datetime.datetime.now()
+
+      if not user.bitcoin_address:
+        avaliable_btc_address = session.query(BitcoinAddress).filter_by(user_id=None).first()
+        avaliable_btc_address.user_id = user.id
+        session.add(avaliable_btc_address)
+
+        user.bitcoin_address = avaliable_btc_address.bitcoin_address
+
       return user
     return None
+
+  def enable_two_factor(self, enable, secret, second_factor):
+    if enable:
+      if secret and second_factor is not None and second_factor.isdigit() and  int(second_factor) == get_totp_token(secret):
+        self.two_factor_enabled = True
+        self.two_factor_secret = secret
+        return self.two_factor_secret
+      elif secret:
+        return  secret
+      else:
+        return generate_two_factor_secret()
+    else:
+      self.two_factor_enabled = False
+      return ""
 
   def request_reset_password(self, session):
     UserPasswordReset.create( session, self.id )
@@ -293,6 +346,15 @@ class User(Base):
     self.publish_balance_update()
 
 
+class BitcoinAddress(Base):
+  __tablename__   = 'bitcoin_address'
+  bitcoin_address = Column(String(50), nullable=True, primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'), nullable=True, index=True )
+
+  def __repr__(self):
+    return "<BitcoinAddress(bitcoin_address='%s', user_id=%d)>"%(self.bitcoin_address, self.user_id)
+
+
 class Deposit(Base):
   __tablename__   = 'deposits'
   id              = Column(Integer,       primary_key=True)
@@ -304,6 +366,11 @@ class Deposit(Base):
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
   origin          = Column(String(255),   nullable=False)
+
+  def __repr__(self):
+    return "<Deposit(id=%d, user_id=%d, account_id=%d, currency='%s', amount='%d', status=%d, created='%s', origin='%s')>" % (
+      self.id, self.user_id, self.account_id, self.currency, self.amount, self.status, self.created, self.origin )
+
 
 class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
@@ -410,6 +477,11 @@ class WithdrawBTC(Base):
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
+  def __repr__(self):
+    return "<WithdrawBTC(id=%d, user_id=%d, username='%s', amount='%d', wallet='%s', status='%s', created='%s')>" % (
+      self.id, self.user_id, self.username, self.amount, self.wallet, self.status, self.created)
+
+
 class WithdrawBRL(Base):
   __tablename__   = 'withdraws_brl'
   id              = Column(Integer,       primary_key=True)
@@ -423,8 +495,15 @@ class WithdrawBRL(Base):
   account_branch  = Column(String,        nullable=False)  # Agencia
   cpf_cnpj        = Column(String,        nullable=False)
   status          = Column(Integer,       nullable=False, default=0)
-  created        = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
+  def __repr__(self):
+    return "<WithdrawBRL(id=%d, user_id=%d, username='%s', amount='%d'," \
+           "bank_number=%d,bank_name='%s',account_name='%s',account_number='%s',account_branch='%s',cpf_cnpj='%s', " \
+           "status='%s', created='%s')>" % (
+      self.id, self.user_id, self.username, self.amount,
+      self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
+      self.status, self.created)
 
 
 
@@ -629,13 +708,147 @@ class Trade(Base):
   trade_type        = Column(Integer,       nullable=False, default=0)  # regular trade
 
   def __repr__(self):
-    return "<Trade('%d', buy_order:%d, sell_order:%d, side:%s, size:%d, price:%d )>"\
-    % (self.id, self.buy_order_id , self.sell_order_id, self.side, self.size, self.price)
+    return "<Trade(id='%s', order_id:%d, counter_order_id:%d, buyer_username='%s',seller_username='%s',  " \
+           "side:'%s', symbol='%s', size:%d, price:%d, created='%s', trade_type=%d )>"\
+    % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
+       self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
   @staticmethod
   def get_last_100_trades(session, symbol):
     trades = session.query(Trade).filter_by(symbol=symbol).order_by(Trade.created.desc() ).limit(100)
     return trades
+
+class Boleto(Base):
+  __tablename__       = 'boleto'
+
+  id                  = Column(Integer,   primary_key=True)
+
+  # Informações Gerais
+  codigo_banco        = Column(String(3),  nullable=False)
+
+  carteira            = Column(String(5),  nullable=False)
+  aceite              = Column(String(1),  nullable=False, default='N')
+  valor_documento     = Column(Numeric(9,2), nullable=False)
+  valor               = Column(Numeric(9,2), nullable=True)
+  data_vencimento     = Column(Date,   nullable=False, index=True)
+  data_documento      = Column(Date,   nullable=False, index=True, default=datetime.date.today)
+  data_processamento  = Column(Date,   nullable=True, index=True)
+  numero_documento    = Column(String(11), nullable=False)
+
+  # Informações do Cedente
+  agencia_cedente     = Column(String(4),  nullable=False)
+  conta_cedente       = Column(String(7),  nullable=False)
+  cedente             = Column(String(255),nullable=False)
+  cedente_documento   = Column(String(50), nullable=False)
+  cedente_cidade      = Column(String(255),nullable=False)
+  cedente_uf          = Column(String(2),  nullable=False)
+  cedente_endereco    = Column(String(255),nullable=False)
+  cedente_bairro      = Column(String(255),nullable=False)
+  cedente_cep         = Column(String(9),  nullable=False)
+
+
+  # Informações do Sacado
+  sacado_nome        = Column(String(255),nullable=False)
+  sacado_documento   = Column(String(255),nullable=True)
+  sacado_cidade      = Column(String(255),nullable=True)
+  sacado_uf          = Column(String(2),  nullable=True)
+  sacado_endereco    = Column(String(255),nullable=True)
+  sacado_bairro      = Column(String(255),nullable=True)
+  sacado_cep         = Column(String(9),  nullable=True)
+
+  # Informações Opcionais
+  quantidade         = Column(String(10), nullable=True)
+  especie_documento  = Column(String(255),nullable=True)
+  especie            = Column(String(2),  nullable=False, default='R$')
+  moeda              = Column(String(2),  nullable=False, default='9')
+  demonstrativo      = Column(Text,  nullable=True)
+  local_pagamento    = Column(String(255),nullable=True, default=u"Pagável em qualquer banco, lotérica ou agência " \
+                                                                 u"dos correios até a data de vencimento")
+  instrucoes         = Column(Text,nullable=False, default=u"Não receber após 30 dias.")
+
+  def __unicode__(self):
+    return self.numero_documento
+
+
+  def print_pdf_pagina(self, pdf_file):
+    from pyboleto import bank
+
+    ClasseBanco = bank.get_class_for_codigo(self.codigo_banco)
+
+    boleto_dados = ClasseBanco()
+
+    for field in self.__table__.columns:
+      val = getattr(self, field.name)
+      if val:
+        setattr(boleto_dados, field.name, val)
+
+    setattr(boleto_dados, 'nosso_numero', getattr(self, 'numero_documento'))
+
+    pdf_file.drawBoleto(boleto_dados)
+
+
+class BoletoOptions(Base):
+  __tablename__         = 'boleto_options'
+
+  id                    = Column(Integer,    primary_key=True)
+
+  description           = Column(String(255),nullable=False)
+
+  codigo_banco          = Column(String(3),  nullable=False)
+  carteira              = Column(String(5),  nullable=False)
+
+  last_numero_documento = Column(Integer,    nullable=False)
+
+  agencia_cedente       = Column(String(4),  nullable=False)
+  conta_cedente         = Column(String(7),  nullable=False)
+  cedente               = Column(String(255),nullable=False)
+  cedente_documento     = Column(String(50), nullable=False)
+  cedente_cidade        = Column(String(255),nullable=False)
+  cedente_uf            = Column(String(2),  nullable=False)
+  cedente_endereco      = Column(String(255),nullable=False)
+  cedente_bairro        = Column(String(255),nullable=False)
+  cedente_cep           = Column(String(9),  nullable=False)
+
+  def __repr__(self):
+    return "<BoletoOptions(id=%d, description:'%s', codigo_banco:'%s', carteira='%s',last_numero_documento=%d,  "\
+           "agencia_cedente:'%s', conta_cedente='%s', cedente:'%s', cedente_documento:'%s', cedente_cidade='%s', " \
+           "cedente_uf='%s', cedente_endereco='%s', cedente_bairro='%s',cedente_cep='%s' )>"\
+    % (self.id, self.description, self.codigo_banco, self.carteira, self.last_numero_documento,
+       self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
+      self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep)
+
+  def generate_boleto(self,session, user, value):
+    self.last_numero_documento +=  1
+
+    boleto = Boleto()
+    boleto.codigo_banco       = self.codigo_banco
+    boleto.carteira           = self.carteira
+    boleto.numero_documento   = str(self.last_numero_documento)
+    boleto.valor_documento    = value
+    boleto.valor              = value
+    boleto.data_vencimento    = datetime.date.today() + datetime.timedelta(days=5)
+    boleto.data_documento     = datetime.date.today()
+
+    boleto.agencia_cedente    = self.agencia_cedente
+    boleto.conta_cedente      = self.conta_cedente
+    boleto.cedente            = self.cedente
+    boleto.cedente_documento  = self.cedente_documento
+    boleto.cedente_cidade     = self.cedente_cidade
+    boleto.cedente_uf         = self.cedente_uf
+    boleto.cedente_endereco   = self.cedente_endereco
+    boleto.cedente_bairro     = self.cedente_bairro
+    boleto.cedente_cep        = self.cedente_cep
+
+    boleto.sacado_nome        = user.username
+    boleto.sacado_documento   = user.id
+    boleto.sacado_endereco    = user.email
+
+    session.add(self)
+    session.add(boleto)
+    session.flush()
+
+    return boleto
+
 
 
 Base.metadata.create_all(engine)

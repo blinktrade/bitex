@@ -207,24 +207,53 @@ class OrderMatcher(object):
         rpt_order         = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, rpt_order )  )
 
-        msg = u"Olá %s\r\n\r\nHouve nova atividade em sua conta Bitex.\r\n\r\nDetalhes:\r\n\r\nOrdem Executada em: %s\r\nQuantidade: %f\r\nPreço: %f\r\nTotal R$: %f" % (order.user.email, datetime.datetime.now().isoformat(), order.order_qty, order.price, order.order_qty*order.price)
+        def generate_email_subject_and_body( order, trade ):
+          formatted_btc = u'฿  {:,.8f}'.format(order.order_qty / 1.e8)
+          formatted_btc = formatted_btc.replace(',', '#')
+          formatted_btc = formatted_btc.replace('.', ',')
+          formatted_btc = formatted_btc.replace('#', '.')
+
+          formatted_brl = u'R$ {:,.2f}'.format(order.order_price / 1.e5)
+          formatted_brl = formatted_brl.replace(',', '#')
+          formatted_brl = formatted_brl.replace('.', ',')
+          formatted_brl = formatted_brl.replace('#', '.')
+
+          formatted_total_price = u'R$ {:,.2f}'.format( order.order_qty/1.e8 * order.order_price / 1.e5)
+          formatted_total_price = formatted_total_price.replace(',', '#')
+          formatted_total_price = formatted_total_price.replace('.', ',')
+          formatted_total_price = formatted_total_price.replace('#', '.')
+
+          email_subject =  u"Sua oferta número #%s de %s à %s foi executada!" % (order.id, formatted_btc, formatted_brl)
+          email_body = u"""Olá %s
+
+Houve nova atividade em sua conta Bitex.
+
+Detalhes:
+
+Número da Ordem: %d
+Número da execução: %s
+Ordem Executada em: %s (UTC)
+Quantidade: %s
+Preço: %s
+Total %s"""% ( order.user.username,  order.id, trade.id, trade.created, formatted_btc, formatted_brl, formatted_total_price  )
+          return  email_subject, email_body
 
         UserEmail.create( session = session,
                           user_id = order.user_id,
-                          body = msg,
-                          subject = u"Sua oferta #%d de %f@%f foi executada!" % (order.id, order.order_qty, order.price) )
+                          subject = generate_email_subject_and_body(order, trade)[0],
+                          body    = generate_email_subject_and_body(order, trade)[1] )
 
         rpt_counter_order = ExecutionReport( counter_order, execution_side )
         execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )
 
-        msg = u"Olá %s\r\n\r\nHouve nova atividade em sua conta Bitex.\r\n\r\nDetalhes:\r\n\r\nOrdem Executada em: %s\r\nQuantidade: %f\r\nPreço: %f\r\nTotal R$: %f" % (counter_order.user.email, datetime.datetime.now().isoformat(), counter_order.order_qty, counter_order.price, counter_order.order_qty*counter_order.price)
-
         UserEmail.create( session = session,
                           user_id = counter_order.user_id,
-                          body = msg,
-                          subject = u"Sua oferta #%d de %f@%f foi executada!" % (counter_order.id, counter_order.order_qty, counter_order.price) )
+                          subject = generate_email_subject_and_body(counter_order, trade)[0],
+                          body    = generate_email_subject_and_body(counter_order, trade)[1] )
 
         execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )
+
+
 
       #
       # let's do the partial cancels

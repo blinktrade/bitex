@@ -51,10 +51,13 @@ bitex.api.BitEx.EventType = {
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
 
+  GENERATE_BOLETO_RESPONSE : 'generate_boleto_response',
+
+  TWO_FACTOR_SECRET: 'two_factor_secret',
+
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
-  BTC_ADDRESS: 'btc_address',
   WITHDRAW_RESPONSE: 'withdraw_response',
 
   /* Trading */
@@ -169,9 +172,8 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       }
       break;
 
-
-    case 'U14': // Gets or create bitcoind address
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BTC_ADDRESS, msg ) );
+    case 'U19': // Generate boleto response
+     this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, msg ) );
       break;
 
     case 'U10': // Withdraw Response
@@ -184,6 +186,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U5': // Order List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'U17': // Enable Two Factor Secret Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TWO_FACTOR_SECRET, msg ) );
       break;
 
     case 'W':
@@ -262,8 +268,9 @@ bitex.api.BitEx.prototype.close = function(){
 /**
  * @param {string} username
  * @param {string} password
+ * @param {string=} opt_second_factor
  */
-bitex.api.BitEx.prototype.login = function(username, password){
+bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor ){
   var msg = {
     'MsgType': 'BE',
     'UserReqID': '1',
@@ -271,8 +278,33 @@ bitex.api.BitEx.prototype.login = function(username, password){
     'Password': password,
     'UserReqTyp': '1'
   };
+  if (goog.isDefAndNotNull(opt_second_factor)) {
+    msg['SecondFactor'] = opt_second_factor;
+  }
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * @param {boolean} enable
+ * @param {string=} opt_secret
+ * @param {string=} opt_code
+ */
+bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_code){
+  var msg = {
+    'MsgType': 'U16',
+    'Enable': enable
+  };
+  if (goog.isDefAndNotNull(opt_secret) && !goog.string.isEmpty(opt_secret) ) {
+    msg['Secret'] = opt_secret;
+  }
+
+  if (goog.isDefAndNotNull(opt_code) && !goog.string.isEmpty(opt_code) ) {
+    msg['Code'] = opt_code;
+  }
+
+  this.ws_.send(JSON.stringify( msg ));
+};
+
 
 /**
  * @param {string} email
@@ -405,6 +437,20 @@ bitex.api.BitEx.prototype.requestOrderList = function(opt_requestId, opt_page, o
 };
 
 /**
+ * Generate a boleto for the client
+ * @param {string} boletoId
+ * @param {number} value
+ */
+bitex.api.BitEx.prototype.generateBoleto = function( boletoId, value ) {
+  var msg = {
+    'MsgType': 'U18',
+    'BoletoId': boletoId,
+    'Value': value
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
  *
  * @param {string} symbol
  * @param {number} qty
@@ -496,18 +542,6 @@ bitex.api.BitEx.prototype.testRequest = function(){
 };
 
 /**
- * @param {number} market_data_id
- */
-bitex.api.BitEx.prototype.getBitcoinAddress = function(btc_req_id, user_id){
-  var msg = {
-    'MsgType': 'U9',
-    'NewBTCReqID': btc_req_id,
-    'UserID': user_id
-  };
-  this.ws_.send(JSON.stringify( msg ));
-};
-
-/**
  *
  * @param {string} type
  * @param {Object=} opt_data
@@ -534,10 +568,10 @@ goog.exportProperty(BitEx.prototype, 'isLogged', bitex.api.BitEx.prototype.isLog
 goog.exportProperty(BitEx.prototype, 'isConnected', bitex.api.BitEx.prototype.isConnected);
 goog.exportProperty(BitEx.prototype, 'changePassword', bitex.api.BitEx.prototype.changePassword);
 goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prototype.subscribeMarketData);
-goog.exportProperty(BitEx.prototype, 'getBitcoinAddress', bitex.api.BitEx.prototype.getBitcoinAddress);
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
+goog.exportProperty(BitEx.prototype, 'enableTwoFactor', bitex.api.BitEx.prototype.enableTwoFactor);
 goog.exportProperty(BitEx.prototype, 'resetPassword', bitex.api.BitEx.prototype.resetPassword);
 goog.exportProperty(BitEx.prototype, 'requestOrderList', bitex.api.BitEx.prototype.requestOrderList);
 goog.exportProperty(BitEx.prototype, 'cancelOrder', bitex.api.BitEx.prototype.cancelOrder);

@@ -7,7 +7,7 @@ from market_data_signals import *
 from tornado import  websocket
 import json
 
-from models import  User, Order, UserPasswordReset, balance_signal, user_message_signal
+from models import  User, BitcoinAddress, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions, NeedSecondFactorException
 
 from order_matcher.execution import OrderMatcher, execution_report_signal
 
@@ -143,14 +143,12 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
 
         # signup the user
 
-        # TODO: Create a wallet address
-
         # create the user on Database
-        u = User( username    = msg.get('Username'),
-                  email       = msg.get('Email'),
-                  password    = msg.get('Password'),
-                  balance_btc = 1e8,   # only for testing purposes
-                  balance_brl = 250e5)
+        u = User( username            = msg.get('Username'),
+                  email               = msg.get('Email'),
+                  password            = msg.get('Password'),
+                  balance_btc         = 0,
+                  balance_brl         = 0)
 
         self.application.session.add(u)
         self.application.session.commit()
@@ -166,14 +164,20 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.application.replay_log.info('IN,' + raw_message )
 
       # Authenticate the user
-      self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'))
-      if not self.user:
+      need_second_factor = False
+      self.user = None
+      try:
+        self.user = User.authenticate(self.application.session, msg.get('Username'),msg.get('Password'), msg.get('SecondFactor') )
+      except NeedSecondFactorException:
+        need_second_factor = True
 
+      if not self.user:
         login_response = {
           'MsgType': 'BF',
           'Username': '',
           'UserStatus': 3,
-          'UserStatusText': u'Nome de usuário ou senha inválidos'
+          'NeedSecondFactor': need_second_factor,
+          'UserStatusText': u'Nome de usuário ou senha inválidos' if not need_second_factor else u'Segundo fator de autenticação inválido'
         }
         self.write_message( json.dumps(login_response) )
         self.application.session.rollback()
@@ -191,9 +195,12 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
         'MsgType': 'BF',
         'UserID': self.user.id,
         'Username': self.user.username,
+        'TwoFactorEnabled': self.user.two_factor_enabled,
+        'BtcAddress': self.user.bitcoin_address,
         'UserStatus': 1
       }
       self.write_message( json.dumps(login_response) )
+      self.application.session.add(self.user)
       self.application.session.commit()
 
 
@@ -353,16 +360,43 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     elif msg.type == 'U9':  # gets or create an bitcoin address for UserID
       user = self.application.session.query(User).filter_by(id= msg.get('UserID') ).first()
       if user:
-        if user.bitcoin_address != None: 
-          btc_address = user.bitcoin_address
-        else:
-          btc_address = self.application.bitcoin.getnewaddress()
-          user.new_address(btc_address)
-          self.application.session.commit()
+        if user.bitcoin_address is None:
+          pass
+          #btc_address = self.application.bitcoin.getnewaddress()
+          #user.new_address(btc_address)
+          #self.application.session.add(user)
+          #self.application.session.commit()
 
-        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':btc_address  }  )
+        self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U14', 'NewBTCReqID':msg.get('NewBTCReqID'), 'Address':user.bitcoin_address  }  )
 
       return
+
+    elif msg.type == 'U16':  #Enable Disable Two Factor Authentication
+      enable = msg.get('Enable')
+      secret = msg.get('Secret')
+      code = msg.get('Code')
+      two_factor_secret = self.user.enable_two_factor(enable, secret, code)
+      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U17',
+                                                             'TwoFactorEnabled': self.user.two_factor_enabled,
+                                                             'TwoFactorSecret': two_factor_secret } )
+
+      self.application.session.add(self.user)
+      self.application.session.commit()
+
+    elif msg.type == 'U18': #Generate Boleto
+      boleto_option_id = msg.get('BoletoId')
+      value = msg.get('Value')
+
+      boleto_option = self.application.session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
+      if not boleto_option:
+        print 'boleto_option not found'
+        return
+
+      boleto = boleto_option.generate_boleto(  self.application.session, self.user, value )
+      self.application.session.commit()
+
+      print boleto.id
+      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'U19', 'BoletoId': boleto.id } )
 
     else:
       print 'Invalid Message' , msg
@@ -373,6 +407,23 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
     if not self.user.is_system:
       self.close()
       return False
+
+    if msg.type == 'BITCOIN_NEW_ADDRESS':
+      bitcoin_address = self.application.session.query(BitcoinAddress).filter_by(bitcoin_address=msg.get('BtcAddress') ).first()
+      if bitcoin_address:
+        return True
+
+      bitcoin_address = BitcoinAddress( bitcoin_address=msg.get('BtcAddress') )
+      self.application.session.add(bitcoin_address)
+      self.application.session.commit()
+
+      result = {
+        'MsgType'   : 'BITCOIN_NEW_ADDRESS_RESPONSE',
+        'BtcAddress' : msg.get('BtcAddress')
+      }
+      self.on_send_json_msg_to_user( sender=None, json_msg=result )
+
+      return True
 
     if msg.type == 'BTC_DEPOSIT':
       user = self.application.session.query(User).filter_by(bitcoin_address=msg.get('BtcAddress') ).first()

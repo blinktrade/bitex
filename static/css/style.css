@@ -3,6 +3,7 @@
 }
 
 html, body {
+  color: black;
   background-color: #eee;
 }
 
@@ -10,6 +11,8 @@ body {
   padding-bottom: 40px;
   font-size: 12px;
 }
+
+
 
 /* The white background content wrapper */
 .page {
@@ -44,7 +47,6 @@ body {
 .footer {
   text-align: center;
   padding: 10px 0;
-  border-top: 1px solid #e5e5e5;
 }
 
 .footer p {
@@ -191,7 +193,7 @@ ul.parsley-error-list li {
 /* Active view */
 #withdraw_requests,
 #deposit_list,
-#order_book_brlbtc,
+#order_book_btcbrl,
 #start,
 #signup,
 #signin,
@@ -206,12 +208,13 @@ ul.parsley-error-list li {
 #settings,
 #verification,
 #social-shares-wrap,
+#enable_two_factor,
 #user_list {
   display: none;
 }
 
 .active-view-withdraw_requests #withdraw_requests,
-.active-view-order_book_brlbtc #order_book_brlbtc,
+.active-view-order_book_btcbrl #order_book_btcbrl,
 .active-view-start #start,
 .active-view-start #social-shares-wrap,
 .active-view-signup #signup,
@@ -227,6 +230,7 @@ ul.parsley-error-list li {
 .active-view-withdraw_section #withdraw_section,
 .active-view-settings #settings,
 .active-view-verification #verification,
+.active-view-enable_two_factor #enable_two_factor,
 .active-view-user_list #user_list {
   display: block;
 }
@@ -282,3 +286,14 @@ ul.parsley-error-list li {
 	margin-left: 16px;
 }
 
+@media screen and (min-width: 0px) and (max-width: 640px) {
+  #login { display: none; }
+}
+
+@media screen and (min-width: 640px) and (max-width: 1024px) {
+  #login { display: block; } 
+}
+
+.btn-cancel-order {
+  text-decoration: none !important;
+}

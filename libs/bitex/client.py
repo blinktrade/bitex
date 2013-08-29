@@ -154,7 +154,7 @@ if __name__ == '__main__':
     ws = BitExThreadedClient('wss://localhost:8443/trade')
     def on_login(sender, msg):
       ws.testRequest()
-      ws.requestMarketData( 'md', ['BRLBTC'], ['0','1', '2'] )
+      ws.requestMarketData( 'md', ['BTCBRL'], ['0','1', '2'] )
 
 
     def on_message(sender, msg):

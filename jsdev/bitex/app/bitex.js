@@ -28,6 +28,7 @@ goog.require('goog.string');
 
 goog.require('bitex.app.UrlRouter');
 goog.require('bitex.model.Model');
+goog.require('bitex.model.Model.EventType');
 
 goog.require('bootstrap.Dialog');
 
@@ -192,6 +193,7 @@ bitex.app.bitex = function( url ) {
     bitEx.cancelOrder(undefined, e.order_id);
   };
 
+
   bitEx.addEventListener('login_ok',  function(e) {
     var msg = e.data;
 
@@ -200,12 +202,13 @@ bitex.app.bitex = function( url ) {
 
     model.set('UserID', msg['UserID'] );
     model.set('Username', msg['Username']);
+    model.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
+    model.set('BtcAddress', msg['BtcAddress']);
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
       order_book_offer.dispose();
     }
-
 
     order_book_bid = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.BUY);
     order_book_offer = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.SELL);
@@ -223,8 +226,7 @@ bitex.app.bitex = function( url ) {
 
 
     // Subscribe to MarketData
-    bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
-    bitEx.getBitcoinAddress(0, msg['UserID'])
+    bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
     // set view to Trading
     router.setView('trading');
@@ -237,15 +239,13 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
     var msg = e.data;
     switch( msg['ExecType'] ) {
+      case '1':  //Partial Execution
+        $.sticky('Oferta numero: ' + msg['OrderID'] +  ' foi parcialmente executada');
+        break;
       case '4':  //Offer Cancelled 
         $.sticky('Oferta numero: ' + msg['OrderID'] +  ' foi cancelada');
         break;
     }
-  });
-
-  bitEx.addEventListener(bitex.api.BitEx.EventType.BTC_ADDRESS, function(e){
-    var msg = e.data;
-    model.set('UserWallet', msg['Address']);
   });
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, function(e){
@@ -275,7 +275,7 @@ bitex.app.bitex = function( url ) {
 
   });
 
-
+  var secondFactorDialog;
   bitEx.addEventListener('login_error',  function(e) {
     goog.dom.classes.add( document.body, 'bitex-not-logged'  );
     goog.dom.classes.remove( document.body, 'bitex-logged' );
@@ -285,12 +285,43 @@ bitex.app.bitex = function( url ) {
     model.set('UserID', '');
     model.set('Username', '');
 
+    if (msg['NeedSecondFactor']) {
+      if (goog.isDefAndNotNull(secondFactorDialog)) {
+        secondFactorDialog.dispose();
+      }
 
-    var error_dialog = new bootstrap.Dialog();
-    error_dialog.setTitle('Erro');
-    error_dialog.setContent(msg['UserStatusText']);
-    error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
-    error_dialog.setVisible(true);
+      secondFactorDialog = new bootstrap.Dialog();
+      secondFactorDialog.setTitle('Autenticação em 2 passos');
+      secondFactorDialog.setContent('Código de autenticação do Google Authenticator: <input id="id_second_factor" placeholder="ex. 555555" size="10">');
+      secondFactorDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+      secondFactorDialog.setVisible(true);
+
+      goog.events.listenOnce(secondFactorDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+        if (e.key == 'ok') {
+
+          var username = goog.dom.forms.getValue( goog.dom.getElement("id_landing_username") );
+          var password = goog.dom.forms.getValue( goog.dom.getElement("id_landing_password") );
+          var second_factor = goog.dom.forms.getValue( goog.dom.getElement("id_second_factor") );
+
+          if ( goog.string.isEmpty(username) ) {
+            username = goog.dom.forms.getValue( goog.dom.getElement("id_username") );
+            password = goog.dom.forms.getValue( goog.dom.getElement("id_password") );
+          }
+          login(username, password,second_factor);
+        }
+        secondFactorDialog.dispose();
+      });
+
+
+    } else {
+      var error_dialog = new bootstrap.Dialog();
+      error_dialog.setTitle('Erro');
+      error_dialog.setContent(msg['UserStatusText']);
+      error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+      error_dialog.setVisible(true);
+    }
+
+
   });
 
   bitEx.addEventListener('ob_clear', function(e){
@@ -497,7 +528,11 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-  var login = function(username, password) {
+
+  var login = function(username, password, opt_second_factor ) {
+    username      = goog.string.trim(username);
+    var second_factor = goog.string.trim(opt_second_factor || '');
+
     if (goog.string.isEmpty(username) ) {
       alert('Nome de usuário inválido');
       return;
@@ -516,13 +551,77 @@ bitex.app.bitex = function( url ) {
       }
 
       goog.events.listenOnce( bitEx, 'opened', function(e){
-        bitEx.login(username, password);
+        if (goog.string.isEmpty(second_factor) ) {
+          bitEx.login(username, password);
+        } else {
+          bitEx.login(username, password, second_factor);
+        }
       });
 
     } else {
       bitEx.close();
     }
   };
+
+
+  bitEx.addEventListener('two_factor_secret', function(e){
+    var msg = e.data;
+    model.set('TwoFactorSecret', msg['TwoFactorSecret']);
+    model.set('TwoFactorEnabled', msg['TwoFactorEnabled'] );
+
+    var secret_qr_el = goog.dom.getElement('id_secret_qr');
+    var divEl = goog.dom.getElement('id_enable_two_factor_div');
+    if (goog.string.isEmpty(msg['TwoFactorSecret'])) {
+      goog.style.showElement( divEl , false);
+    } else {
+      goog.style.showElement( divEl , true);
+
+      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' + msg['TwoFactorSecret'];
+      secret_qr_el.setAttribute('src', qr_code);
+    }
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'BtcAddress', function(e) {
+    var btc_address = /* @type {string}  */  e.data;
+    var qr_code = 'https://chart.googleapis.com/chart?chs=100x100&chld=M%7C0&cht=qr&chl=' + btc_address;
+
+    btc_adrress_el = goog.dom.getElement('id_bitcoin_address_img');
+    btc_adrress_el.setAttribute('src', qr_code);
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
+    var secret = /* @type {string} */ e.data;
+    var has_secret = goog.string.isEmpty(secret);
+
+    var divEl = goog.dom.getElement('id_enable_two_factor_div');
+    goog.style.showElement( divEl , has_secret);
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorEnabled', function(e){
+    var enabled = /* @type {boolean} */ e.data;
+
+    var secret = model.get('TwoFactorSecret');
+    var has_secret = goog.string.isEmpty(secret);
+
+    var divEl = goog.dom.getElement('id_enable_two_factor_div');
+    var btnEnableEl = goog.dom.getElement('id_btn_enable_two_factor');
+    var btnDisableEl = goog.dom.getElement('id_btn_disable_two_factor');
+
+    goog.style.showElement( btnEnableEl , !enabled);
+    goog.style.showElement( btnDisableEl , enabled);
+    goog.style.showElement( divEl , has_secret);
+  });
+
+
+  goog.events.listen( goog.dom.getElement('id_btn_enable_two_factor'), 'click', function(e){
+    var secret = model.get('TwoFactorSecret');
+    var code = goog.dom.forms.getValue( goog.dom.getElement('id_second_step_verification'));
+    bitEx.enableTwoFactor(true, secret, code);
+  });
+
+  goog.events.listen( goog.dom.getElement('id_btn_disable_two_factor'), 'click', function(e){
+    bitEx.enableTwoFactor(false);
+  });
 
   goog.events.listen( goog.dom.getElement('id_btn_forgot_password'), 'click', function(e){
     e.stopPropagation();
@@ -592,6 +691,38 @@ bitex.app.bitex = function( url ) {
 
   });
 
+  var boleto_buttons = goog.dom.getElementsByClass('btn-boleto');
+  goog.array.forEach( boleto_buttons, function( boleto_button ) {
+    goog.events.listen( boleto_button, 'click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var element = e.target;
+
+      var value = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_value") );
+      var boleto_id = element.getAttribute('data-boleto-id');
+
+      if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
+        alert('Por favor, preencha o valor do boleto a ser gerado');
+        return;
+      }
+
+      bitEx.generateBoleto(boleto_id,value);
+
+    });
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, function(e) {
+    var msg = e.data;
+
+    var dlg = new bootstrap.Dialog();
+    dlg.setTitle('Boleto');
+    dlg.setContent('<a  target="_blank" href="/print_boleto?boleto_id=' +  msg['BoletoId']
+             + '" class="btn btn-primary">Imprimir boleto</a> ou fazer <a href="/print_boleto?download=1&boleto_id='
+             +  msg['BoletoId'] + '">download do boleto</a> em seu computador');
+
+    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setVisible(true);
+  });
 
   goog.events.listen( goog.dom.getElement('id_landing_signin'), 'click', function(e){
     e.stopPropagation();

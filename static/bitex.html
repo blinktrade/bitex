@@ -41,8 +41,7 @@
 
     <link href="/css/Dialog.css" rel="stylesheet">
     <link href="/css/fuelux.css" rel="stylesheet">
-    <link href="/css/style.css?v3" rel="stylesheet">
-
+    <link href="/css/style.css?v4" rel="stylesheet">
     <link href="/css/sticky.css" rel="stylesheet">
     <script src="/js/sticky.min.js" type="text/javascript"></script>
 
@@ -61,27 +60,21 @@
               ga('create', 'UA-40656427-1', 'bitex.com.br');
               ga('send', 'pageview');
      </script>
-
   </head>
 
-  <body class="ws-not-connected bitex-not-logged">
-
+  <body class="ws-not-connected bitex-not-logged" data-twttr-rendered="true">
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-inverse-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
 
           <a class="brand" href="" data-switch-view="trading">BitEx</a>
-          <ul class="nav bitex-display-if-logged">
-            <li><a href="" data-switch-view="trading">Negociação</a></li>
-            <li><a href="" data-switch-view="offerbook">Livro de ofertas</a></li>
-          </ul>
 
-          <ul class="nav pull-right">
+          <ul class="nav navbar-nav pull-right">
             <li><a href="" data-switch-view="trading">BTCBRL <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink">{{ bid }}</span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink">{{ ask }}</span></a></li>
             <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Entrar</a></li>
             <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Registre-se</a></li>
@@ -93,549 +86,607 @@
 
     <div class="clearfix" style="padding: 30px;"></div>
 
-    <div id="social-shares-wrap" class="hidden-phone">
-        <div class="container">
-            <div class="social-shares">
-                <div class="fb-wrap">
-                    <div class="fb-like" data-href="https://www.bitex.com.br/start"  data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="arial"></div>
-                </div>
-                <div class="gp-wrap">
-                    <g:plusone size="medium"></g:plusone>
-                </div>
-                <div class="tw-wrap">
-                  <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://www.bitex.com.br/start" data-text="Brazilian Bitcoin Exchange!">Tweet</a>
-                  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
 
-        <div id="start" class="page  row-fluid">
+      <div id="start" class="page  row-fluid">
 
-          <header class="jumbotron">
-            <h1>BitEx - Bolsa Brasileira de Moedas Criptografadas</h1>
-            <p class="lead">A maneira mais fácil de comprar e vender BitCoins.</p>
-          </header>
+        <header class="jumbotron">
+          <h1>BitEx - Bolsa Brasileira de Moedas Criptografadas</h1>
+          <p class="lead">A maneira mais fácil de comprar e vender BitCoins.</p>
+        </header>
 
-          <div class="row bitex-hide-if-logged" style="text-align: center;">
-            <form action="" class="form-inline">
-              <label for="id_landing_username">Email:</label>
-              <input class="focus span2" id="id_landing_username" placeholder="Nome de usuário / email" size="30" type="text">
-              <label for="id_landing_password">Senha:</label>
-              <input class="span2" id="id_landing_password" placeholder="Senha" size="30" type="password">
-              <button id="id_landing_signin" class="btn btn-success">Entrar</button>
-            </form>
-          </div>
-
-          <div class="row screenshot">
-            <img alt="BitEx " class="span8 offset2" src="/images/screenshot.png">
-          </div>
-
-          <div class="row signup bitex-hide-if-logged">
-            <div class="text-center">
-              <h3 style="margin-top: 5px">O Registro é feito menos de um minuto.<br> É possivel negociar com apenas R$ 1 ou ฿ 1.</h3>
-            </div>
-            <div class="text-center"><button data-switch-view="signup" class="btn btn-large btn-primary">Registre agora</button></div>
-          </div>
-        </div>
-
-        <div id="signup" class="page  row-fluid">
-          <div class="page-header">
-            <h1>Registre-se</h1>
-          </div>
-          <p>Já tem uma conta? <a href="#" data-switch-view="signin" >Entrar</a>.</p>
-
-          <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
-
-            <div class="control-group">
-              <label class="control-label">Nome do Usuário</label>
-              <div class="controls">
-                <input id="id_signup_username" name="Username" size="30" type="text" placeholder="ex.: joaozinho">
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label">Endereço de e-mail</label>
-              <div class="controls">
-                <input id="id_signup_email" name="Email" size="30" type="text" placeholder="ex.: joao@email.com">
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label">Senha</label>
-              <div class="controls">
-                <input id="id_signup_password" name="Password" size="30" type="password">
-                <p class="help-block">Pelo menos 8 caracteres</p>
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label">Confirmação de senha</label>
-              <div class="controls">
-                <input id="id_signup_password2" name="Password2" size="30" type="password">
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label class="control-label">Termos e Serviços</label>
-              <div class="controls">
-
-                <label class="checkbox">
-                  <input id="user_agreed_tos" name="" type="checkbox" checked>
-                  Concordo com os <a href="#" data-switch-view="tos">termos de uso da BitEx</a>.
-                </label>
-              </div>
-            </div>
-          </form>
-
-          <button id="id_btn_signup" class="btn btn-primary">Registre-se</button>
-        </div>
-
-        <div id="signin" class="page  row-fluid">
-          <div class="page-header">
-            <h1>Entrar</h1>
-          </div>
-          <p>Não possui uma conta? <a href="#" data-switch-view="signup">Registre-se</a></p>
-
-          <form accept-charset="UTF-8" action="" method="post">
-            <div class="clearfix">
-              <label for="id_username">Nome de usuário ou e-mail</label>
-              <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
-            </div>
-            <div class="clearfix">
-              <label for="id_password">Senha</label>
-              <div class="input"><input id="id_password" name="password" type="password"></div>
-            </div>
-            <p><a href="#" data-switch-view="forgot_password">Esqueceu a sua senha?</a></p>
-            <div class="actions">
-              <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Entrar">
-            </div>
+        <div class="row bitex-hide-if-logged" style="text-align: center;">
+          <form action="" class="form-inline">
+            <label for="id_landing_username">Email:</label>
+            <input class="focus" id="id_landing_username" placeholder="Nome de usuário / email" size="30" type="text">
+            <label for="id_landing_password">Senha:</label>
+            <input id="id_landing_password" placeholder="Senha" size="30" type="password">
+            <button id="id_landing_signin" class="btn btn-success">Entrar</button>
           </form>
         </div>
 
+        <!--
+        <div class="row screenshot">
+          <img alt="BitEx " class="span8 offset2" src="/images/screenshot.png">
+        </div>
+        -->
 
-        <div id="forgot_password" class="page row-fluid">
-          <div class="page-header">
-            <h1>Recuperação de senha</h1>
+
+        <div class="row signup bitex-hide-if-logged">
+          <div class="text-center">
+            <h3 style="margin-top: 5px">O Registro é feito menos de um minuto.<br> É possivel negociar com apenas R$ 1 ou ฿ 1.</h3>
           </div>
-
-          <form accept-charset="UTF-8" action="" method="post">
-            <div class="clearfix">
-              <label for="id_forgot_password_email">e-mail</label>
-              <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
-            </div>
-            <div class="actions">
-              <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recuperar senha">
-            </div>
-          </form>
+          <div class="text-center"><button data-switch-view="signup" class="btn btn-large btn-primary">Registre agora</button></div>
         </div>
 
+        <div class="row signup bitex-hide-if-logged">
+          <div class="text-center">Ambiente de testes ainda continua disponível <strong><a href="https://test.bitex.com.br">Aqui</a></strong></div>
+        </div>
+      </div>
 
-        <div id="set_new_password" class="page  row-fluid">
-          <div class="page-header">
-            <h1>Redefinir sua senha</h1>
+
+      <div id="signup" class="page  row-fluid">
+        <div class="page-header">
+          <h1>Registre-se</h1>
+        </div>
+        <p>Já tem uma conta? <a href="#" data-switch-view="signin" >Entrar</a>.</p>
+
+        <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
+
+          <div class="control-group">
+            <label class="control-label">Nome do Usuário</label>
+            <div class="controls">
+              <input id="id_signup_username" name="Username" size="30" type="text" placeholder="ex.: joaozinho">
+            </div>
           </div>
-          <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
 
-            <div class="control-group">
-              <label class="control-label">Código de segurança</label>
-              <div class="controls">
-                <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
-                <p class="help-block">Copie e cole o código de segurança que acabamos de enviar para o seu endereço de email.</p>
-              </div>
-
+          <div class="control-group">
+            <label class="control-label">Endereço de e-mail</label>
+            <div class="controls">
+              <input id="id_signup_email" name="Email" size="30" type="text" placeholder="ex.: joao@email.com">
             </div>
+          </div>
 
-            <div class="control-group">
-              <label class="control-label">Senha</label>
-              <div class="controls">
-                <input id="id_set_new_password_password" name="Password" size="30" type="password">
-                <p class="help-block">Pelo menos 8 caracteres</p>
-              </div>
+          <div class="control-group">
+            <label class="control-label">Senha</label>
+            <div class="controls">
+              <input id="id_signup_password" name="Password" size="30" type="password">
+              <p class="help-block">Pelo menos 8 caracteres</p>
             </div>
+          </div>
 
-            <div class="control-group">
-              <label class="control-label">Confirmação de senha</label>
-              <div class="controls">
-                <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
-              </div>
+          <div class="control-group">
+            <label class="control-label">Confirmação de senha</label>
+            <div class="controls">
+              <input id="id_signup_password2" name="Password2" size="30" type="password">
             </div>
+          </div>
 
+          <div class="control-group">
+            <label class="control-label">Termos e Serviços</label>
+            <div class="controls">
 
-            <div class="actions">
-              <input id="id_btn_set_new_password"  class="btn btn-primary" name="commit" type="submit" value="Redefinir senha">
+              <label class="checkbox">
+                <input id="user_agreed_tos" name="" type="checkbox" checked>
+                Concordo com os <a href="#" data-switch-view="tos">termos de uso da BitEx</a>.
+              </label>
             </div>
-          </form>
+          </div>
+        </form>
+
+        <button id="id_btn_signup" class="btn btn-primary">Registre-se</button>
+      </div>
+
+      <div id="signin" class="page  row-fluid">
+        <div class="page-header">
+          <h1>Entrar</h1>
+        </div>
+        <p>Não possui uma conta? <a href="#" data-switch-view="signup">Registre-se</a></p>
+
+        <form accept-charset="UTF-8" action="" method="post">
+          <div class="clearfix">
+            <label for="id_username">Nome de usuário ou e-mail</label>
+            <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
+          </div>
+          <div class="clearfix">
+            <label for="id_password">Senha</label>
+            <div class="input"><input id="id_password"  placeholder="Senha" name="password" type="password"></div>
+          </div>
+          <p><a href="#" data-switch-view="forgot_password">Esqueceu a sua senha?</a></p>
+          <div class="actions">
+            <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Entrar">
+          </div>
+        </form>
+      </div>
+
+
+      <div id="forgot_password" class="page row">
+        <div class="page-header">
+          <h1>Recuperação de senha</h1>
         </div>
 
-        <div class="page row-fluid bitex-display-if-logged">
-          <div  class="span9">
-              
-            <div id="offerbook">
+        <form accept-charset="UTF-8" action="" method="post">
+          <div class="clearfix">
+            <label for="id_forgot_password_email">e-mail</label>
+            <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
+          </div>
+          <div class="actions">
+            <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recuperar senha">
+          </div>
+        </form>
+      </div>
 
-              <div class="section-title">
-                <h3>Livro de ofertas</h3>
-              </div>
 
-  
-  
-              <div class="well">
-                <div class="row-fluid">
-                  <div class="span6">
-                    <div class="text-center"><h4>Ofertas de Compra</h4></div>
-                    <table id="order_book_bid"  class="table">
-                      <thead>
-                      <tr>
-                        <th>Comprador</th>
-                        <th>Quantidade(BTC)</th>
-                        <th>Preço(R$)</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="span6">
-                    <div class="text-center"><h4>Ofertas de Venda</h4></div>
-                    <table id="order_book_offer"  class="table">
-                      <thead>
-                      <tr>
-                        <th>Preço(R$)</th>
-                        <th>Quantidade(BTC)</th>
-                        <th>Vendedor</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+      <div id="set_new_password" class="page  row">
+        <div class="page-header">
+          <h1>Redefinir sua senha</h1>
+        </div>
+        <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
+
+          <div class="control-group">
+            <label class="control-label">Código de segurança</label>
+            <div class="controls">
+              <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
+              <p class="help-block">Copie e cole o código de segurança que acabamos de enviar para o seu endereço de email.</p>
             </div>
 
-            <div id="trading">
-              <div class="section-title">
-                <h3>Negociação de BitCoins contra Reais</h3>
-              </div>
-  
-              <div id="id_order_entry" class="well order-entry">
-                <input type="hidden" name="symbol" class="order-entry-symbol" value="BRLBTC">
-                <div class="row-fluid">
- 
-                  <div class="span2">
-                    <span style="font-size: 24px; font-weight: bold; float: left; margin-top: 28px;" id="formatted_quote_brl" >{{ quote }}</span>
-                  </div>
- 
-                  <div class="span3">
-                    <div class="control-group">
-                      <label class="control-label" for="id_order_qty">Quantidade (BTC) </label>
-                      <div class="controls">
-                        <input type="text" class="input-block-level order-entry-qty" name="amount" id="id_order_qty" value="1">
-                      </div>
-                    </div>
-                  </div>
-  
-                  <div class="span3">
-                    <div class="control-group">
-                      <label class="control-label" for="id_price">Preço (BRL)</label>
-                      <div class="controls">
-                        <input type="text" class="input-block-level order-entry-price" name="price" id="id_price" value="">
-                      </div>
-                    </div>
-                  </div>
-  
-                  <div class="span2">
-                    <button id="id_btn_buy" class="btn btn-success btn-execution order-entry-buy">COMPRAR</button>
-                  </div>
-                  <div class="span2">
-                    <button id="id_btn_sell" class="btn btn-danger btn-execution order-entry-sell">VENDER</button>
-                  </div>
-		  <div style="float: right; margin-top: 10px; height: 15px;"> <p style="float: left;">Total desta oferta: </p><span style="margin-left: 10px;font-weight: bold;" id="formatted_order_total">R$ 0.00</span></div>
-                </div>
-              </div>
-  
-              <div class="well">
-                <div id="id_orders_table"  class="fuelux" style="height: 320px;width:100%;margin-bottom:20px;">
-                  <table class="table table-bordered datagrid datagrid-stretch-header">
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Senha</label>
+            <div class="controls">
+              <input id="id_set_new_password_password" name="Password" size="30" type="password">
+              <p class="help-block">Pelo menos 8 caracteres</p>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Confirmação de senha</label>
+            <div class="controls">
+              <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
+            </div>
+          </div>
+
+
+          <div class="actions">
+            <input id="id_btn_set_new_password"  class="btn btn-primary" name="commit" type="submit" value="Redefinir senha">
+          </div>
+        </form>
+      </div>
+
+      <div class="page row-fluid bitex-display-if-logged">
+
+        <div  class="span9">
+
+          <div id="offerbook">
+            <div class="section-title">
+              <h3>Livro de ofertas</h3>
+            </div>
+
+            <div class="well">
+              <div class="row-fluid">
+                <div class="span6">
+                  <div class="text-center"><h4>Ofertas de Compra</h4></div>
+                  <table id="order_book_bid"  class="table">
                     <thead>
                     <tr>
-                      <th colspan="4">
-                        <span class="datagrid-header-title"><strong>Ordens em aberto</strong></span>
-                      </th>
+                      <th>Comprador</th>
+                      <th>Quantidade(BTC)</th>
+                      <th>Preço(R$)</th>
                     </tr>
                     </thead>
-                  </table>
-                  <div class="datagrid-stretch-wrapper" style="height: 185px;">
-                    <table class="table table-bordered datagrid">
-                      <tbody></tbody>
-                    </table>
-                  </div>
-                  <table class="table table-bordered datagrid datagrid-stretch-footer">
-                    <tfoot>
-                    <tr>
-                      <th colspan="4">
-                        <div class="datagrid-footer-left" style="visibility: visible;">
-                          <div class="grid-controls">
-                            <span>
-                              <span class="grid-start"></span> -
-                              <span class="grid-end"></span>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="datagrid-footer-right" style="visibility: visible;">
-                          <div class="grid-pager">
-                            <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
-                            <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
-                          </div>
-                        </div>
-                      </th>
-                    </tr>
-                    </tfoot>
+                    <tbody>
+                    </tbody>
                   </table>
                 </div>
-              </div>
-            </div>
-  
-            <div id="account_activity">
-              <div class="section-title">
-                <h3>Histórico de compra e vendas</h3>
-              </div>
-
-              <div class="well">
-                <div id="id_trade_history_table"  class="fuelux account-activity" style="height: 450px;width:100%;margin-bottom:20px;">
-                  <table class="table table-bordered datagrid datagrid-stretch-header">
+                <div class="span6">
+                  <div class="text-center"><h4>Ofertas de Venda</h4></div>
+                  <table id="order_book_offer"  class="table">
                     <thead>
-                    <tr style="display: none;">
-                      <th colspan="4">
-                        <span class="datagrid-header-title">Histórico de compras e vendas</span>
-                      </th>
+                    <tr>
+                      <th>Preço(R$)</th>
+                      <th>Quantidade(BTC)</th>
+                      <th>Vendedor</th>
                     </tr>
                     </thead>
-                  </table>
-                  <div class="datagrid-stretch-wrapper" style="height: 360px;">
-                    <table class="table table-bordered datagrid">
-                      <tbody></tbody>
-                    </table>
-                  </div>
-                  <table class="table table-bordered datagrid datagrid-stretch-footer">
-                    <tfoot>
-                    <tr>
-                      <th colspan="4">
-                        <div class="datagrid-footer-left" style="visibility: visible;">
-                          <div class="grid-controls">
-                            <span>
-                              <span class="grid-start"></span> -
-                              <span class="grid-end"></span>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="datagrid-footer-right" style="visibility: visible;">
-                          <div class="grid-pager">
-                            <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
-                            <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
-                          </div>
-                        </div>
-                      </th>
-                    </tr>
-                    </tfoot>
+                    <tbody>
+                    </tbody>
                   </table>
                 </div>
               </div>
-
             </div>
-  
-            <div id="deposit">
-              <div class="section-title">
-                <h3>Depósitos</h3>
+          </div>
+
+          <div id="trading">
+            <div class="section-title">
+              <h3>Compra e Venda de Bitcoins</h3>
+            </div>
+
+            <div id="id_order_entry" class="well order-entry">
+              <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+              <div class="row-fluid">
+
+                <div class="span2">
+                  <span style="font-size: 24px; font-weight: bold; float: left; margin-top: 19px;" id="formatted_quote_brl" >{{ quote }}</span>
+                </div>
+
+                <div class="span2">
+                  <div class="control-group">
+                    <label class="control-label" for="id_order_qty">Quantidade (BTC) </label>
+                    <div class="controls">
+                      <input type="text" class="input-block-level order-entry-qty" name="amount" id="id_order_qty" value="1">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="span2">
+                  <div class="control-group">
+                    <label class="control-label" for="id_price">Preço (BRL)</label>
+                    <div class="controls">
+                      <input type="text" class="input-block-level order-entry-price" name="price" id="id_price" value="">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="span2">
+                  <div class="control-group">
+                    <label class="control-label" for="formatted_order_total">Total</label>
+                    <div class="controls">
+                      <span style="margin-left: 10px;font-weight: bold;" id="formatted_order_total">R$ 0.00</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="span2">
+                  <button id="id_btn_buy" class="btn btn-success btn-execution order-entry-buy">COMPRAR</button>
+                </div>
+                <div class="span2">
+                  <button id="id_btn_sell" class="btn btn-danger btn-execution order-entry-sell">VENDER</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="well">
+              <div id="id_orders_table"  class="fuelux" style="height: 420px;width:100%;margin-bottom:20px;">
+                <table class="table table-bordered datagrid datagrid-stretch-header">
+                  <thead>
+                  <tr>
+                    <th colspan="4">
+                      <span class="datagrid-header-title"><strong>Ordens em aberto</strong></span>
+                    </th>
+                  </tr>
+                  </thead>
+                </table>
+                <div class="datagrid-stretch-wrapper" style="height: 185px;">
+                  <table class="table table-bordered datagrid">
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <table class="table table-bordered datagrid datagrid-stretch-footer">
+                  <tfoot>
+                  <tr>
+                    <th colspan="4">
+                      <div class="datagrid-footer-left" style="visibility: visible;">
+                        <div class="grid-controls">
+                          <span>
+                            <span class="grid-start"></span> -
+                            <span class="grid-end"></span>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="datagrid-footer-right" style="visibility: visible;">
+                        <div class="grid-pager">
+                          <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                          <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="account_activity">
+            <div class="section-title">
+              <h3>Histórico de compra e vendas</h3>
+            </div>
+
+            <div class="well">
+              <div id="id_trade_history_table"  class="fuelux account-activity" style="height: 450px;width:100%;margin-bottom:20px;">
+                <table class="table table-bordered datagrid datagrid-stretch-header">
+                  <thead>
+                  <tr style="display: none;">
+                    <th colspan="4">
+                      <span class="datagrid-header-title">Histórico de compras e vendas</span>
+                    </th>
+                  </tr>
+                  </thead>
+                </table>
+                <div class="datagrid-stretch-wrapper" style="height: 360px;">
+                  <table class="table table-bordered datagrid">
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <table class="table table-bordered datagrid datagrid-stretch-footer">
+                  <tfoot>
+                  <tr>
+                    <th colspan="4">
+                      <div class="datagrid-footer-left" style="visibility: visible;">
+                        <div class="grid-controls">
+                          <span>
+                            <span class="grid-start"></span> -
+                            <span class="grid-end"></span>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="datagrid-footer-right" style="visibility: visible;">
+                        <div class="grid-pager">
+                          <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                          <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="enable_two_factor">
+            <div class="section-title">
+              <h3>Autenticação em dois passos</h3>
+            </div>
+
+            <div class="content">
+
+              <div class="well span6">
+                <form id="id_enable_two_factor_div" class="form-horizontal ">
+
+                  <div class="control-group">
+                    <label class="control-label">Key</label>
+                    <div class="controls">
+                      <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
+                    </div>
+                  </div>
+
+                  <div class="control-group">
+                    <div class="controls">
+                      <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
+                    </div>
+                  </div>
+
+                  <div class="control-group">
+                    <label class="control-label">Código de autenticação</label>
+                    <div class="controls">
+                      <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
+                    </div>
+                  </div>
+
+                </form>
+
+                <button id="id_btn_enable_two_factor" class="btn btn-primary">Habilitar</button>
+                <button id="id_btn_disable_two_factor" class="btn btn-danger">Desabilitar</button>
+
               </div>
 
-              <div class="content">
-                <!-- Main content -->
-                <p>Veja abaixo como depositar em sua conta</p>
+            </div>
 
-                <h3>Bitcoin</h3>
+          </div>
+
+          <div id="deposit">
+            <div class="section-title">
+              <h3>Depósitos</h3>
+            </div>
+
+            <div class="content">
+              <!-- Main content -->
+              <p>Veja abaixo como depositar em sua conta</p>
+
+              <h3>Bitcoin</h3>
+              <div class="well">
                 <div>Por favor envie Bitcoin para o seu endereço de depósito: </div>
-                <img style="float:right; margin-top: -50px" src="https://chart.googleapis.com/chart?chs=100x100&chld=M%7C0&cht=qr&chl=bitcoin:dsaf21423fdsgdfgsdfg"> 
-                <h4><span id='userwallet' class="bitex-model" data-model-key="UserWallet"></span></h4>
+
+                <img id="id_bitcoin_address_img" style="float:right; margin-top: -30px" src="">
+
+                <h4><span class="bitex-model" data-model-key="BtcAddress"></span></h4>
                 <p>Precisaremos de 6 confirmações para transações em Bitcoin para refletir o deposito no site. </p>
-                <div class="clearfix"></div>
 
-                <h4>Outras opções de pagamento:</h4>
-                <ul>
-                  <li>Depósito com Boleto Bancário</li>
-                  <li>Transferência Bancária</li>
-                </ul>
+              </div>
+              <div class="clearfix"></div>
 
+              <h3>Boleto Bancário</h3>
+              <div class="well">
+                <div class="row-fluid">
+                  <div class="input-prepend input-append">
+                    <span class="add-on">R$</span><input id="id_boleto_value" class="span4" id="appendedPrependedInput" size="16" type="text"><span class="add-on">,00</span>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  {% for boleto_option in boleto_options %}
+                    <button class="btn btn-primary btn-boleto" data-boleto-id="{{  boleto_option.id }}">{{ escape(boleto_option.description) }}</button>
+                  {% end %}
+                </div>
+                <p>Confirmação após 1 dia se o Boleto for pago no mesmo Banco, caso contrário será de 3 dias úteis.</p>
+              </div>
+
+              
+              <h3>Transferência Bancária via DOC ou TED</h3>
+              <div class="well">
                 <p>
-                  Assim que os dados forem confirmados você recebe os créditos na sua conta, qualquer duvida entre em contato
+                  Favor entrar em contato pelo email <a href="mailto:suporte@bitex.com.br">suporte@bitex.com.br</a>
+                </p>
+                <p>
+                  obs: Disponível apenas para contas <a href="" data-switch-view="verification">verificadas</a>
                 </p>
               </div>
             </div>
-  
-            <div id="withdraw_section">
-              <div class="section-title">
-                <h3>Saques</h3>
-              </div>
+          </div>
 
-              <div class="content">
-                <p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>
-                <table class="table table-striped" style="width: 300px">
-                  <tbody><tr><td><strong>BRL Saldo disponível</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
-                  <tr><td><strong>BTC Saldo disponível</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
-                  </tbody>
-                </table>
+          <div id="withdraw_section">
+            <div class="section-title">
+              <h3>Saques</h3>
+            </div>
 
-                <div class="accordion" id="withdraw">
-                  <div class="accordion-group">
-                    <div class="accordion-heading">
-                      <a class="accordion-toggle" data-toggle="collapse" data-parent="#withdraw" href="#bitcoin">
-                        Retirada em Bitcoin
-                      </a>
-                    </div>
-                    <div id="bitcoin" class="accordion-body in collapse" style="height: auto;">
-                      <div class="accordion-inner">
+            <div class="content">
+              <p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>
+              <table class="table table-striped" style="width: 300px">
+                <tbody><tr><td><strong>BRL Saldo disponível</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+                <tr><td><strong>BTC Saldo disponível</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+                </tbody>
+              </table>
 
-                        <p>Utilize o formulário abaixo para iniciar a sua retirada.</p>
+              <div class="accordion" id="withdraw">
+                <div class="accordion-group">
+                  <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#withdraw" href="#bitcoin">
+                      Retirada em Bitcoin
+                    </a>
+                  </div>
+                  <div id="bitcoin" class="accordion-body collapse" style="height: auto;">
+                    <div class="accordion-inner">
 
-                        <div id="id_btc_withdraw" class="well btc-withdraw" >
+                      <p>Utilize o formulário abaixo para iniciar a sua retirada.</p>
+
+                      <div id="id_btc_withdraw" class="well btc-withdraw" >
 
 
-                          <div class="control-group">
-                            <label class="control-label" name="amount">Quantidade</label>
-                            <div class="controls">
-                              <div class="input-prepend">
-				  <span class="add-on">฿</span>
-			          <input type="text" name="amount" class="btc-withdraw-qty input-xlarge" placeholder="Digite a quantidade">
- 			      </div>
-                            </div>
+                        <div class="control-group">
+                          <label class="control-label" name="amount">Quantidade</label>
+                          <div class="controls">
+                            <div class="input-prepend"><span class="add-on">฿</span><input type="text" name="amount" class="btc-withdraw-qty input-xlarge" placeholder="Digite a quantidade"></div>
                           </div>
+                        </div>
 
 
-                          <div class="control-group">
-                            <label class="control-label" name="address">Endereço Bitcoin</label>
-                            <div class="controls">
-                              <input type="text" name="address" class="input-xlarge btc-withdraw-address" placeholder="Digite o endereço bitcoin">
-                            </div>
+                        <div class="control-group">
+                          <label class="control-label" name="address">Endereço Bitcoin</label>
+                          <div class="controls">
+                            <input type="text" name="address" class="input-xlarge btc-withdraw-address" placeholder="Digite o endereço bitcoin">
                           </div>
+                        </div>
 
-                          <div class="input">
-                            <input type="submit" value="Retirada em BTC" class="btn primary btc-withdraw-submit">
-                          </div>
+                        <div class="input">
+                          <input type="submit" value="Retirada em BTC" class="btn btn-primary btc-withdraw-submit">
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div class="accordion-group">
-                    <div class="accordion-heading">
-                      <a class="accordion-toggle" data-toggle="collapse" data-parent="#withdraw" href="#wire_transfer">
-                        Transferência Bancária
-                      </a>
-                    </div>
+                <div class="accordion-group">
+                  <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#withdraw" href="#wire_transfer">
+                      Transferência Bancária
+                    </a>
+                  </div>
 
-                    <div id="wire_transfer" class="accordion-body in collapse" style="height: auto;">
-                      <div class="accordion-inner">
-                        <p>Transferência Bancaria via DOC-C ou TED o custo de R$ 10,00 é cobrado.</p>
-                        <div id="id_wire_withdraw" class="well wire-withdraw" >
+                  <div id="wire_transfer" class="accordion-body collapse" style="height: auto;">
+                    <div class="accordion-inner">
+                      <p>Transferência Bancaria via DOC-C ou TED o custo de R$ 10,00 é cobrado.</p>
+                      <div id="id_wire_withdraw" class="well wire-withdraw" >
 
-                          <div class="control-group">
-                            <label class="control-label" name="amount">Quant.</label>
-                            <div class="controls">
-                              <div class="input-prepend"><span class="add-on">R$</span>
-			      <input type="text" name="amount" ></div>
-                            </div>
+                        <div class="control-group">
+                          <label class="control-label" name="amount">Quant.</label>
+                          <div class="controls">
+                            <div class="input-prepend"><span class="add-on">R$</span><input type="text" name="amount" ></div>
                           </div>
-                          <div class="control-group">
-                            <label class="control-label" name="account_name">Nome do titular da conta</label>
-                            <div class="input"><input type="text" name="account_name"></div>
-                          </div>
-                          <div class="control-group">
-                            <label class="control-label" name="account_number">Número da conta</label>
-                            <div class="input"><input type="text" name="account_number"></div>
-                          </div>
-                          <div class="control-group">
-                            <label class="control-label" name="bank_name">Nome do banco</label>
-                            <div class="input"><input type="text" name="bank_name"></div>
-                          </div>
-                          <div class="control-group">
-                            <label class="control-label" name="bank_address">Número do banco</label>
-                            <div class="input"><input type="text" name="bank_number"></div>
-                          </div>
-                          <div class="control-group">
-                            <label class="control-label" name="postal_code">CPF/CNPJ do titular da conta</label>
-                            <div class="input"><input type="text" name=""></div>
-                          </div>
-                          <div class="input">
-                            <input type="submit" value="Solicite a retirada" class="btn primary">
-                          </div>
-
+                        </div>
+                        <div class="control-group">
+                          <label class="control-label" name="account_name">Nome do titular da conta</label>
+                          <div class="input"><input type="text" name="account_name"></div>
+                        </div>
+                        <div class="control-group">
+                          <label class="control-label" name="account_number">Número da conta</label>
+                          <div class="input"><input type="text" name="account_number"></div>
+                        </div>
+                        <div class="control-group">
+                          <label class="control-label" name="bank_name">Nome do banco</label>
+                          <div class="input"><input type="text" name="bank_name"></div>
+                        </div>
+                        <div class="control-group">
+                          <label class="control-label" name="bank_address">Número do banco</label>
+                          <div class="input"><input type="text" name="bank_number"></div>
+                        </div>
+                        <div class="control-group">
+                          <label class="control-label" name="postal_code">CPF/CNPJ do titular da conta</label>
+                          <div class="input"><input type="text" name=""></div>
+                        </div>
+                        <div class="input">
+                          <input type="submit" value="Solicite a retirada" class="btn primary">
                         </div>
 
                       </div>
+
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-  
-            <div id="settings">
-              <div class="section-title">
-                <h3>Configurações</h3>
-              </div>
-            </div>
-
-            <div id="verification">
-              <div class="section-title">
-                <h3>Verificação</h3>
-              </div>
-
-              <iframe id="JotFormIFrame"
-                      onload="window.parent.scrollTo(0,0)" allowtransparency="true"
-                      src="" frameborder="0"
-                      style="width:100%; height:1250px; border:none;" scrolling="no"></iframe>
-            </div>
-
           </div>
 
-          <div class="span3 sidebar">
-            <h3>Olá <span class="bitex-model" data-model-key="Username"></span>!</h3>
-            <div id="account_overview"><h6>Sua Conta</h6>
-              <table class="data">
-                <tbody>
-                  <tr><td><strong>R$</strong></td><td ><span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
-                  <tr><td><strong>฿</strong></td><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
-                </tbody></table>
+          <div id="settings">
+            <div class="section-title">
+              <h3>Configurações</h3>
             </div>
-            <h6>Ações</h6>
-            <ul class="nav nav-list">
-              <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-tasks"></i> Negociação</a></li>
-              <li><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósito</a></li>
-              <li><a href="" data-switch-view="withdraw_section"><i data-switch-view="withdraw_section" class="icon-minus"></i> Saques</a></li>
-              <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> Histórico</a></li>
-              <li><a href="" data-switch-view="settings"><i data-switch-view="settings" class="icon-cog"></i> Configurações</a></li>
-              <li><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>
-              <li><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Sugestões &amp; Supporte</a></li>
-              <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
-            </ul>
           </div>
+
+          <div id="verification">
+            <div class="section-title">
+              <h3>Verificação</h3>
+            </div>
+
+            <iframe id="JotFormIFrame"
+                    onload="window.parent.scrollTo(0,0)" allowtransparency="true"
+                    src="" frameborder="0"
+                    style="width:100%; height:1250px; border:none;" scrolling="no"></iframe>
+          </div>
+
         </div>
 
-
-
-
-        <div id="tos" class="page">
-
-          <div class="page-header">
-            <h1>BitEx Termos de uso</h1>
+        <div class="span3 sidebar">
+          <h3>Olá <span class="bitex-model" data-model-key="Username"></span>!</h3>
+          <div id="account_overview"><h6>Sua Conta</h6>
+            <table class="data">
+              <tbody>
+                <tr><td><strong>R$</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+                <tr><td><strong>฿</strong></td><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+              </tbody>
+            </table>
           </div>
-          <!-- Main content -->
-          <div class="well">
-            [Estamos regularizando a empresa e preparando os termos de uso e serviço. Aguarde.]
-          </div>
+          <h6>Ações</h6>
+          <ul class="nav nav-list">
+            <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-tasks"></i> Compra e Venda de Bitcoins</a></li>
+            <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Livro de ofertas</a></li>
+            <li><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósito</a></li>
+            <li><a href="" data-switch-view="withdraw_section"><i data-switch-view="withdraw_section" class="icon-minus"></i> Saques</a></li>
+            <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> Histórico</a></li>
+<!--
+            <li><a href="" data-switch-view="settings"><i data-switch-view="settings" class="icon-cog"></i> Configurações</a></li>A
+-->
+            <li><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>
+            <li><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Autenticação em 2 passos</a></li>
+
+            <li><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Sugestões &amp; Supporte</a></li>
+            <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
+          </ul>
         </div>
+      </div>
 
+
+      <div id="tos" class="page">
+
+        <div class="page-header">
+          <h1>BitEx Termos de uso</h1>
+        </div>
+        <!-- Main content -->
+        <div class="well">
+          [Estamos regularizando a empresa e preparando os termos de uso e serviço. Aguarde.]
+        </div>
+      </div>
 
     </div>
 
