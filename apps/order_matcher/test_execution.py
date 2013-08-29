@@ -41,33 +41,33 @@ class TestForbiddenExecutions(unittest.TestCase):
     self.session.commit()
 
 
-    self.om = OrderMatcher('BRLBTC')
+    self.om = OrderMatcher('BTCBRL')
 
     # BUY
     self.o1 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                     client_order_id  = '101', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '101', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 100e5,      order_qty = 1e8)
 
     self.o2 = Order( user_id = self.user_b.id,account_id = self.user_b.account_id, user = self.user_b,
-                     client_order_id  = '102', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '102', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 99e5,      order_qty = 2e8)
 
     self.o3 = Order( user_id = self.user_c.id,account_id = self.user_c.account_id, user = self.user_c,
-                     client_order_id  = '103', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '103', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 98e5,      order_qty = 5e8)
 
 
     # SELL
     self.o4 = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
-                     client_order_id  = '104', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '104', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 101e5,      order_qty = 5e8)
 
     self.o5 = Order( user_id = self.user_e.id,account_id = self.user_e.account_id, user = self.user_e,
-                     client_order_id  = '105', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '105', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 102e5,      order_qty = 2e8)
 
     self.o6 = Order( user_id = self.user_f.id,account_id = self.user_f.account_id, user = self.user_f,
-                     client_order_id  = '106', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '106', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 103e5,      order_qty = 1e8)
 
 
@@ -97,7 +97,7 @@ class TestForbiddenExecutions(unittest.TestCase):
   def test_self_execute(self):
     """Send a buy order that would execute an sell order from the same client. The counter order should be cancelled"""
     o = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
-                     client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 101e5,    order_qty = 6e8)
     self.session.add( o )
     self.session.commit()
@@ -133,7 +133,7 @@ class TestForbiddenExecutions(unittest.TestCase):
   def test_cancel_counter_order_and_execute_next(self):
     """Send a buy order that would execute an sell order from the same client. The sending order should be cancelled"""
     o = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
-               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                side             = '1',   price   = 102e5,    order_qty = 6e8)
     self.session.add( o )
     self.session.commit()
@@ -205,7 +205,7 @@ class TestForbiddenExecutions(unittest.TestCase):
     # o will be partially filled.
 
     o = Order( user_id = self.user_e.id,account_id = self.user_e.account_id, user = self.user_e,
-               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                side             = '1',   price   = 102e5,    order_qty = 6e8)
     self.session.add( o )
     self.session.commit()
@@ -298,33 +298,33 @@ class TestExecutions(unittest.TestCase):
     self.session.commit()
 
 
-    self.om = OrderMatcher('BRLBTC')
+    self.om = OrderMatcher('BTCBRL')
 
     # BUY
     self.o1 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                     client_order_id  = '101', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '101', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 100e5,      order_qty = 1e8)
 
     self.o2 = Order( user_id = self.user_b.id,account_id = self.user_b.account_id, user = self.user_b,
-                     client_order_id  = '102', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '102', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 99e5,      order_qty = 2e8)
 
     self.o3 = Order( user_id = self.user_c.id,account_id = self.user_c.account_id, user = self.user_c,
-                     client_order_id  = '103', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '103', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 98e5,      order_qty = 5e8)
 
 
     # SELL
     self.o4 = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
-                     client_order_id  = '104', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '104', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 101e5,      order_qty = 5e8)
 
     self.o5 = Order( user_id = self.user_e.id,account_id = self.user_e.account_id, user = self.user_e,
-                     client_order_id  = '105', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '105', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 102e5,      order_qty = 2e8)
 
     self.o6 = Order( user_id = self.user_f.id,account_id = self.user_f.account_id, user = self.user_f,
-                     client_order_id  = '106', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '106', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 103e5,      order_qty = 1e8)
 
 
@@ -355,7 +355,7 @@ class TestExecutions(unittest.TestCase):
   def test_full_fill_two_orders_and_partially_fill_sending_order(self):
     """create a buy order order that will be partially filled and will fully fill o4 and o5"""
     o = Order( user_id = self.user_g.id,account_id = self.user_g.account_id, user = self.user_g,
-               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                side             = '1',   price   = 102e5,    order_qty = 10e8)
 
     self.session.add( o )
@@ -416,7 +416,7 @@ class TestExecutions(unittest.TestCase):
   def test_full_fill_one_orders_and_partially_fill_one_order(self):
     """create a buy order order that will  be fully filled and will full fill o4 and partially fill o5"""
     o = Order( user_id = self.user_g.id,account_id = self.user_g.account_id, user = self.user_g,
-               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                side             = '1',   price   = 102e5,    order_qty = 6e8)
     self.session.add( o )
     self.session.commit()
@@ -480,7 +480,7 @@ class TestExecutions(unittest.TestCase):
   def test_full_fill_one_order_and_partially_fill_the_sending_order(self):
     """create a buy order order that will  be fully filled and will full fill o4"""
     o = Order( user_id = self.user_g.id,account_id = self.user_g.account_id, user = self.user_g,
-               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                side             = '1',   price   = 101e5,      order_qty = 10e8)
 
 
@@ -524,7 +524,7 @@ class TestExecutions(unittest.TestCase):
   def test_partial_fill_one_order_and_fully_fill_the_sending_order(self):
     """create a buy order order that will  be fully filled and will partially fill o4"""
     o = Order( user_id = self.user_g.id,account_id = self.user_g.account_id, user = self.user_g,
-               client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+               client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                side             = '1',   price   = 101e5,    order_qty = 1e8)
     self.session.add( o )
     self.session.commit()
@@ -591,33 +591,33 @@ class TestOrderMatcher(unittest.TestCase):
     self.session.commit()
 
 
-    self.om = OrderMatcher('BRLBTC')
+    self.om = OrderMatcher('BTCBRL')
 
     # BUY
     self.o1 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                     client_order_id  = '101', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '101', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 100e5,      order_qty = 1e8)
 
     self.o2 = Order( user_id = self.user_b.id,account_id = self.user_b.account_id, user = self.user_b,
-                     client_order_id  = '102', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '102', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 99e5,      order_qty = 2e8)
 
     self.o3 = Order( user_id = self.user_c.id,account_id = self.user_c.account_id, user = self.user_c,
-                     client_order_id  = '103', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '103', symbol  = 'BTCBRL', type      = '2',
                      side             = '1',   price   = 98e5,      order_qty = 5e8)
 
 
     # SELL
     self.o4 = Order( user_id = self.user_d.id,account_id = self.user_d.account_id, user = self.user_d,
-                     client_order_id  = '104', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '104', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 101e5,      order_qty = 5e8)
 
     self.o5 = Order( user_id = self.user_e.id,account_id = self.user_e.account_id, user = self.user_e,
-                     client_order_id  = '105', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '105', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 102e5,      order_qty = 2e8)
 
     self.o6 = Order( user_id = self.user_f.id,account_id = self.user_f.account_id, user = self.user_f,
-                     client_order_id  = '106', symbol  = 'BRLBTC', type      = '2',
+                     client_order_id  = '106', symbol  = 'BTCBRL', type      = '2',
                      side             = '2',   price   = 103e5,      order_qty = 1e8)
 
 
@@ -668,7 +668,7 @@ class TestOrderMatcher(unittest.TestCase):
 
     # user_h [o7] will place an sell order of 2 BTC  @ $100
     o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '2',   price   = 101e5,    order_qty = 3e8)
     self.session.add( o7 )
     self.session.commit()
@@ -676,7 +676,7 @@ class TestOrderMatcher(unittest.TestCase):
     self.om.match(self.session, o7 )
 
     o8 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                client_order_id  = '108', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '108', symbol  = 'BTCBRL', type      = '2',
                 side             = '1',   price   = 102e5,    order_qty = 7e8)
     self.session.add( o8 )
     self.session.commit()
@@ -729,13 +729,13 @@ class TestOrderMatcher(unittest.TestCase):
 
     # user_h  sends 3 buy orders of 1 BTC @ 200BRL
     oh1 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                client_order_id  = '1081', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '1081', symbol  = 'BTCBRL', type      = '2',
                 side             = '1',   price   = 200e5,    order_qty = 1e8)
     oh2 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                 client_order_id  = '1082', symbol  = 'BRLBTC', type      = '2',
+                 client_order_id  = '1082', symbol  = 'BTCBRL', type      = '2',
                  side             = '1',   price   = 200e5,    order_qty = 1e8)
     oh3 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                 client_order_id  = '1083', symbol  = 'BRLBTC', type      = '2',
+                 client_order_id  = '1083', symbol  = 'BTCBRL', type      = '2',
                  side             = '1',   price   = 200e5,    order_qty = 1e8)
 
     self.session.add( oh1 )
@@ -764,7 +764,7 @@ class TestOrderMatcher(unittest.TestCase):
 
     # user_i will sell 10 BTC  @ 200 BRL
     oi1 = Order( user_id = self.user_i.id,account_id = self.user_i.account_id, user = self.user_i,
-                 client_order_id  = '1091', symbol  = 'BRLBTC', type      = '2',
+                 client_order_id  = '1091', symbol  = 'BTCBRL', type      = '2',
                  side             = '2',   price   = 200e5,    order_qty = 10e8)
     self.session.add( oi1 )
     self.session.commit()
@@ -808,7 +808,7 @@ class TestOrderMatcher(unittest.TestCase):
     # user_h [o7] Selling 6 BTC  @ R$ 98  to user_a [self.o4]
     # but user_h has only 4 BTC to sell
     o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '2',   price   = 98e5,     order_qty = 6e8)
     self.session.add( o7 )
     self.session.commit()
@@ -871,7 +871,7 @@ class TestOrderMatcher(unittest.TestCase):
     # user_h [o7] Selling 6 BTC  @ R$ 98  to user_a [self.o4]
     # but user_h has only 4 BTC to sell
     o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '2',   price   = 98e5,     order_qty = 6e8)
     self.session.add( o7 )
     self.session.commit()
@@ -932,7 +932,7 @@ class TestOrderMatcher(unittest.TestCase):
     # o7 would match o4, o5 and o6 if user_h had money, but since he doesn't o7 should be fully cancelled
     # and o4,5,6 should remain intact
     o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '1',   price   = 105e5,      order_qty = 10e8)
     self.session.add( o7 )
     self.session.commit()
@@ -985,7 +985,7 @@ class TestOrderMatcher(unittest.TestCase):
     # user_h [o7] buying 3 BTC  @ $101 from user_d [self.o4], total value is  $303
     # but user_h has only $250 BRL, and no BTC at all
     o7 = Order( user_id = self.user_h.id,account_id = self.user_h.account_id, user = self.user_h,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '1',   price   = 101e5,      order_qty = 3e8)
     self.session.add( o7 )
     self.session.commit()
@@ -1044,7 +1044,7 @@ class TestOrderMatcher(unittest.TestCase):
 
     # user_a [o7] buying 3 BTC  @ $101 from user_d [self.o4]
     o7 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '1',   price   = 101e5,      order_qty = 3e8)
     self.session.add( o7 )
     self.session.commit()
@@ -1074,10 +1074,10 @@ class TestOrderMatcher(unittest.TestCase):
 
   def testSameClientWithBestOfferAndAsk(self):
     o1 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '1',   price   = 100e5,      order_qty = 1e8)
     o2 = Order( user_id = self.user_a.id,account_id = self.user_a.account_id, user = self.user_a,
-                client_order_id  = '107', symbol  = 'BRLBTC', type      = '2',
+                client_order_id  = '107', symbol  = 'BTCBRL', type      = '2',
                 side             = '2',   price   = 101e5,      order_qty = 1e8)
 
     self.session.add( o1 )

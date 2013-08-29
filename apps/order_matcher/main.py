@@ -66,7 +66,7 @@ class BitExHandler(tornado.web.RequestHandler):
 
     boleto_options = self.application.session.query(BoletoOptions)
 
-    m = OrderMatcher.get('BRLBTC')
+    m = OrderMatcher.get('BTCBRL')
     self.write( loader.load("bitex.html").generate(ws_url=options.ws_url,
                                                    bid=m.bid,
                                                    ask=m.ask,

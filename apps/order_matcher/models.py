@@ -809,6 +809,14 @@ class BoletoOptions(Base):
   cedente_bairro        = Column(String(255),nullable=False)
   cedente_cep           = Column(String(9),  nullable=False)
 
+  def __repr__(self):
+    return "<BoletoOptions(id=%d, description:'%s', codigo_banco:'%s', carteira='%s',last_numero_documento=%d,  "\
+           "agencia_cedente:'%s', conta_cedente='%s', cedente:'%s', cedente_documento:'%s', cedente_cidade='%s', " \
+           "cedente_uf='%s', cedente_endereco='%s', cedente_bairro='%s',cedente_cep='%s' )>"\
+    % (self.id, self.description, self.codigo_banco, self.carteira, self.last_numero_documento,
+       self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
+      self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep)
+
   def generate_boleto(self,session, user, value):
     self.last_numero_documento +=  1
 

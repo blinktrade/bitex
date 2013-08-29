@@ -269,7 +269,7 @@ bitex.app.admin = function() {
     order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
 
 
-    bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
+    bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
     if (userListDataGrid.wasDecorated()) {
       userListDataGrid.reload();

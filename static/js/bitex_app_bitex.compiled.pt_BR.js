@@ -3861,7 +3861,7 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$30$$) {
     $order_book_bid$$.addEventListener("cancel", $onCancelOrder_$$);
     $order_book_offer$$.addEventListener("cancel", $onCancelOrder_$$);
     $order_manager$$.$wasDecorated_$ ? $order_manager$$.reload() : $order_manager$$.$decorate$($goog$dom$getElement$$("id_orders_table"));
-    $bitEx$$.$subscribeMarketData$(0, ["BRLBTC"], ["0", "1", "2"]);
+    $bitEx$$.$subscribeMarketData$(0, ["BTCBRL"], ["0", "1", "2"]);
     $JSCompiler_StaticMethods_setView$$($router$$, "trading")
   });
   $order_manager$$.addEventListener("cancel", function($e$$87$$) {

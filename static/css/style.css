@@ -193,7 +193,7 @@ ul.parsley-error-list li {
 /* Active view */
 #withdraw_requests,
 #deposit_list,
-#order_book_brlbtc,
+#order_book_btcbrl,
 #start,
 #signup,
 #signin,
@@ -214,7 +214,7 @@ ul.parsley-error-list li {
 }
 
 .active-view-withdraw_requests #withdraw_requests,
-.active-view-order_book_brlbtc #order_book_brlbtc,
+.active-view-order_book_btcbrl #order_book_btcbrl,
 .active-view-start #start,
 .active-view-start #social-shares-wrap,
 .active-view-signup #signup,

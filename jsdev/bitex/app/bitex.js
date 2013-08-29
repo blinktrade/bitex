@@ -226,7 +226,7 @@ bitex.app.bitex = function( url ) {
 
 
     // Subscribe to MarketData
-    bitEx.subscribeMarketData( 0, ['BRLBTC'], ['0','1','2'] );
+    bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
     // set view to Trading
     router.setView('trading');
