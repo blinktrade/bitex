@@ -151,7 +151,7 @@ class BitExThreadedClient(WebSocketClient):
 
 if __name__ == '__main__':
   try:
-    ws = BitExThreadedClient('wss://localhost:8443/trade')
+    ws = BitExThreadedClient('wss://localhost:8449/trade')
     def on_login(sender, msg):
       ws.testRequest()
       ws.requestMarketData( 'md', ['BTCBRL'], ['0','1', '2'] )
