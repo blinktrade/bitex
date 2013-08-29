@@ -34,10 +34,10 @@ import tornado.httpserver
 import tornado.template
 from tornado.options import define, options
 
-define("port", default=8443, help="port" )
+define("port", default=8449, help="port" )
 define("db_echo", default=False, help="Prints every database command on the stdout" )
 define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex.sqlite"), help="SQLAlchemy database engine string")
-define("ws_url", default="wss://www.bitex.com.br:8443/trade", help="Websocket trade host")
+define("ws_url", default="wss://test.bitex.com.br:8449/trade", help="Websocket trade host")
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
 define("order_matcher_log", default=os.path.join(ROOT_PATH, "logs/", "order_matcher_replay.log"), help="logging" )

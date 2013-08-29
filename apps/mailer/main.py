@@ -77,7 +77,7 @@ def send_email(sender, recipient, subject, body):
 def main():
   while  True:
     try:
-      ws = BitExThreadedClient('wss://www.bitex.com.br:8443/trade')
+      ws = BitExThreadedClient('wss://test.bitex.com.br:8449/trade')
       def on_login(sender, msg):
         ws.sendMsg( {'MsgType':'S0', 'EmailReqID':'0' } )
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __author__ = 'rodrigo'
 
 import bisect
@@ -205,15 +207,21 @@ class OrderMatcher(object):
         rpt_order         = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, rpt_order )  )
 
+        msg = u"Olá %s\r\n\r\nHouve nova atividade em sua conta Bitex.\r\n\r\nDetalhes:\r\n\r\nOrdem Executada em: %s\r\nQuantidade: %f\r\nPreço: %f\r\nTotal R$: %f" % (order.user.email, datetime.datetime.now().isoformat(), order.order_qty, order.price, order.order_qty*order.price)
+
         UserEmail.create( session = session,
                           user_id = order.user_id,
+                          body = msg,
                           subject = u"Sua oferta #%d de %f@%f foi executada!" % (order.id, order.order_qty, order.price) )
 
         rpt_counter_order = ExecutionReport( counter_order, execution_side )
         execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )
 
+        msg = u"Olá %s\r\n\r\nHouve nova atividade em sua conta Bitex.\r\n\r\nDetalhes:\r\n\r\nOrdem Executada em: %s\r\nQuantidade: %f\r\nPreço: %f\r\nTotal R$: %f" % (counter_order.user.email, datetime.datetime.now().isoformat(), counter_order.order_qty, counter_order.price, counter_order.order_qty*counter_order.price)
+
         UserEmail.create( session = session,
                           user_id = counter_order.user_id,
+                          body = msg,
                           subject = u"Sua oferta #%d de %f@%f foi executada!" % (counter_order.id, counter_order.order_qty, counter_order.price) )
 
         execution_reports.append( ( counter_order.user_id, rpt_counter_order )  )

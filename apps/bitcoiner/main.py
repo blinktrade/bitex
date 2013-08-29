@@ -36,7 +36,7 @@ class BtcServer:
             self.connection = ServiceProxy("http://%s:%s@127.0.0.1:8332" % (self.secret.key, self.secret.secret))
             while  True:
                 try:
-                    self.ws = BitExThreadedClient('wss://www.bitex.com.br:8443/trade')
+                    self.ws = BitExThreadedClient('wss://test.bitex.com.br:8449/trade')
                     self.ws.signal_recv.connect(self.on_message)
                     self.ws.connect()
                     self.ws.login('bzero','senha123')
