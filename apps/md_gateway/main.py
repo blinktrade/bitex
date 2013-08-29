@@ -33,7 +33,7 @@ class MdGatewayApplication(tornado.web.Application):
       cookie_secret=config.cookie_secret
     )
 
-    self.order_matcher_client = OrderMatcherClient( 'wss://localhost:8443/trade', 'rodrigo', 'abc123', ['BTCBRL'] )
+    self.order_matcher_client = OrderMatcherClient( 'wss://localhost:8449/trade', 'rodrigo', 'abc123', ['BTCBRL'] )
     self.order_matcher_client.start()
 
     tornado.web.Application.__init__(self, handlers, **settings)
