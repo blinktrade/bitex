@@ -6,6 +6,7 @@ goog.require('goog.ui.Component');
 
 goog.require('goog.array');
 goog.require('goog.style');
+goog.require('goog.string');
 
 /**
  * @param {<Object>} options
@@ -22,6 +23,9 @@ bitex.ui.DataGrid = function (options, opt_domHelper) {
   this.row_class_fn_ = options['rowClassFn'] || goog.nullFunction;
   this.current_page_ = options['currentPage'] || 0;
   this.limit_ = options['limit'] || 100;
+
+  this.sort_column_ = "";
+  this.sort_direction_ = "up";
 
   this.loading_data_ = goog.dom.createDom('div', ['progress', 'progress-striped', 'active' ],
                                           goog.dom.createDom('div', 'bar' ));
@@ -86,6 +90,18 @@ bitex.ui.DataGrid.prototype.current_page_;
  * @private
  */
 bitex.ui.DataGrid.prototype.limit_;
+
+/**
+ * @type {string}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.sort_column_;
+
+/**
+ * @type {string}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.sort_direction_;
 
 /**
  * @type {!Element}
@@ -179,8 +195,6 @@ bitex.ui.DataGrid.prototype.decorateInternal = function(element) {
   this.element_end_counter_ = goog.dom.getElementByClass( 'grid-end', element );
   this.element_prev_button_ = goog.dom.getElementByClass( 'grid-prevpage', element );
   this.element_next_button_ = goog.dom.getElementByClass( 'grid-nextpage', element );
-
-  
 };
 
 
@@ -206,6 +220,49 @@ bitex.ui.DataGrid.prototype.handleNextPage_ = function(e){
   this.render_();
 };
 
+bitex.ui.DataGrid.prototype.handleColumnClick_ = function(e){
+  var element =  e.target;
+
+  if ( goog.dom.classes.has(element, 'sortable') ) {
+    this.sort_column_ = element.getAttribute('data-property');
+
+    if (goog.dom.classes.has(element,'sorted')) {
+      var sort_indicator_element = goog.dom.getElementByClass('datagrid-sort', element);
+      var classToRemove;
+      var classToAdd;
+      if (goog.dom.classes.has(sort_indicator_element, 'icon-chevron-up') ) {
+        classToRemove = 'icon-chevron-up';
+        classToAdd = 'icon-chevron-down';
+        this.sort_direction_ = 'ASC';
+      } else {
+        classToRemove = 'icon-chevron-down';
+        classToAdd = 'icon-chevron-up';
+        this.sort_direction_ = 'DESC';
+      }
+
+      goog.dom.classes.addRemove(sort_indicator_element, classToRemove, classToAdd  );
+
+    } else {
+      var other_sorted_column_elements = goog.dom.getElementsByClass('sorted', this.tr_columns_el_ );
+      goog.array.forEach( other_sorted_column_elements, function(other_sorted_column_element){
+        goog.dom.classes.remove(other_sorted_column_element, 'sorted');
+        var other_sort_indicator_element = goog.dom.getElementByClass('datagrid-sort', other_sorted_column_element);
+        if (goog.isDefAndNotNull(other_sort_indicator_element)) {
+          goog.dom.removeNode(other_sort_indicator_element);
+        }
+      }, this );
+
+      //<i class="icon-chevron-up datagrid-sort"></i>
+      sort_indicator_element = goog.dom.createDom('i', ['icon-chevron-up', 'datagrid-sort'] );
+      goog.dom.appendChild(element, sort_indicator_element);
+      this.sort_direction_ = 'DESC';
+      goog.dom.classes.add(element, 'sorted');
+    }
+
+    this.render_();
+  }
+};
+
 /**
  * @private
  */
@@ -229,6 +286,11 @@ bitex.ui.DataGrid.prototype.render_ = function() {
 
   options['Columns'] = cols;
 
+  if ( ! goog.string.isEmptySafe(this.sort_column_) ) {
+    options['Sort'] = this.sort_column_;
+    options['SortOrder'] = this.sort_direction_;
+  }
+
   // request data
   this.dispatchEvent( new bitex.ui.DataGridEvent(bitex.ui.DataGrid.EventType.REQUEST_DATA, options ) );
 
@@ -248,6 +310,9 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
   handler.listen(this.element_next_button_, goog.events.EventType.CLICK, this.handleNextPage_);
 
   //TODO: Listen for click on all sortable columns
+  handler.listen(this.tr_columns_el_, goog.events.EventType.CLICK, this.handleColumnClick_);
+
+
 
   this.render_();
 };
@@ -454,7 +519,10 @@ goog.inherits(bitex.ui.DataGridEvent, goog.events.Event);
       <tr>
         <th data-property="toponymName" class="sortable" style="width: 230px;">Name</th>
         <th data-property="countrycode" class="sortable" style="width: 172px;">Country</th>
-        <th data-property="population" class="sortable" style="width: 230px;">Population</th>
+        <th data-property="population" class="sortable" style="width: 230px;">
+          Population
+          <i class="icon-chevron-down datagrid-sort"></i>
+        </th>
         <th data-property="fcodeName" class="sortable">Type</th>
       </tr>
     </thead>

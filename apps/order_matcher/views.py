@@ -476,10 +476,12 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       return  False
 
     if msg.type == 'ADMIN_SELECT':
-      page      = msg.get('Page', 0)
-      page_size = msg.get('PageSize', 100)
-      columns   = msg.get('Columns', [])
-      table     = msg.get('Table', '')
+      page        = msg.get('Page', 0)
+      page_size   = msg.get('PageSize', 100)
+      columns     = msg.get('Columns', [])
+      table       = msg.get('Table', '')
+      sort_column = msg.get('Sort', '')
+      sort_order  = msg.get('SortOrder', 'ASC')
 
       offset    = page * page_size
 
@@ -490,8 +492,14 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       raw_sql = 'SELECT '
       raw_sql += ','.join(columns)
       raw_sql += ' FROM ' + table
+
+      if sort_column:
+        raw_sql += ' ORDER BY ' + sort_column + ' ' + sort_order
+
       raw_sql += ' LIMIT ' + str(page_size)
       raw_sql += ' OFFSET ' + str(offset)
+
+
 
       result_set = self.application.session.execute(raw_sql)
       result = {
