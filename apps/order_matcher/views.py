@@ -475,7 +475,25 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.close()
       return  False
 
-    if msg.type == 'ADMIN_SELECT':
+    if msg.type == 'BOLETO_PAYMENT':
+      boleto_id   = msg.get('BoletoID')
+      currency    = msg.get('Currency')
+      amount      = msg.get('Amount')
+
+      # TODO: Process the boleto payment
+      boleto = self.application.session.query(Boleto).filter_by(id= boleto_id ).first()
+
+
+
+      result = {
+        'MsgType' : 'BOLETO_PAYMENT_RESPONSE',
+        'BoletoID': boleto_id
+      }
+      self.on_send_json_msg_to_user( sender=None, json_msg=result )
+
+      return  True
+
+    elif msg.type == 'ADMIN_SELECT':
       page        = msg.get('Page', 0)
       page_size   = msg.get('PageSize', 100)
       columns     = msg.get('Columns', [])

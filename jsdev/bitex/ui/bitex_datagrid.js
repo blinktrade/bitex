@@ -317,6 +317,11 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
   this.render_();
 };
 
+
+
+/**
+ * reloads the datagrid
+ */
 bitex.ui.DataGrid.prototype.reload = function() {
   this.render_();
 };

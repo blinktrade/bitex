@@ -202,7 +202,11 @@ bitex.app.admin = function() {
       'property': 'valor_documento',
       'label': 'R$',
       'sortable': true,
-      'formatter': function(value){return value.toFixed(2);}
+      'formatter': function(value){
+        return goog.dom.createDom('span',
+                                  { 'class':'boleto-valor-documento', 'data-boleto-value' :value },
+                                  value.toFixed(2) );
+      }
     },{
       'property': 'data_documento',
       'label': 'Data de emissão',
@@ -274,21 +278,26 @@ bitex.app.admin = function() {
 
   bitEx.addEventListener('raw_message',  function(e) {
     var msg = e.data;
-    if (msg['MsgType'] == 'ADMIN_SELECT_RESPONSE') {
-      switch( msg['Table'] ) {
-        case 'boleto':
-          boletoListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
-          break;
-        case 'users':
-          userListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
-          break;
-        case 'withdraws_btc':
-          withdrawBtcDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
-          break;
-        case 'deposits':
-          depositDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
-          break;
-      }
+    switch(msg['MsgType']) {
+      case 'ADMIN_SELECT_RESPONSE':
+        switch( msg['Table'] ) {
+          case 'boleto':
+            boletoListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+            break;
+          case 'users':
+            userListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+            break;
+          case 'withdraws_btc':
+            withdrawBtcDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+            break;
+          case 'deposits':
+            depositDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+            break;
+        }
+        break;
+      case 'BOLETO_PAYMENT_RESPONSE':
+        boletoListDataGrid.reload();
+        break;
     }
   });
 
@@ -326,6 +335,52 @@ bitex.app.admin = function() {
       depositDataGrid.decorate(goog.dom.getElement('deposit_list_data_grid'));
 
     }
+
+
+    goog.events.listen( boletoListDataGrid.getElement(), 'click' , function(e){
+      if (goog.dom.classes.has(e.target, 'btn-boleto')) {
+        var boleto_id = e.target.getAttribute('data-boleto-id');
+
+        var boleto_value = 0;
+        var row_element = goog.dom.getParentElement(goog.dom.getParentElement(e.target));
+
+        var boleto_value_span_element = goog.dom.getElementByClass('boleto-valor-documento', row_element);
+        if (goog.isDefAndNotNull(boleto_value_span_element)) {
+          boleto_value = boleto_value_span_element.getAttribute('data-boleto-value');
+        }
+
+
+
+        var boletoPaymentDialog = new bootstrap.Dialog();
+        boletoPaymentDialog.setTitle('Pagamento do boleto');
+        boletoPaymentDialog.setContent('Valo pago: <input id="id_boleto_payment" placeholder="" size="10" value="' + boleto_value + '">');
+        boletoPaymentDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+        boletoPaymentDialog.setVisible(true);
+
+        goog.events.listenOnce(boletoPaymentDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+          if (e.key == 'ok') {
+            var boleto_payment = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_payment") );
+            if (goog.string.isEmptySafe(boleto_payment)) {
+              e.stopPropagation();
+              e.preventDefault();
+              return;
+            }
+
+            boleto_payment = parseInt(boleto_payment, 10);
+            var depositMsg = {
+              'MsgType': 'BOLETO_PAYMENT',
+              'BoletoID': boleto_id,
+              'Currency': 'BRL',
+              'Amount': boleto_payment
+            };
+            bitEx.sendRawMessage(depositMsg);
+
+          }
+          boletoPaymentDialog.dispose();
+        });
+
+      }
+    });
 
 
     goog.events.listen( userListDataGrid.getElement(), 'click' , function(e){
