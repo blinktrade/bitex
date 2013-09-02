@@ -182,6 +182,43 @@ bitex.app.admin = function() {
     }]});
 
 
+  var boletoListDataGrid = new bitex.ui.DataGrid({'columns' : [
+    {
+      'property': 'numero_documento',
+      'label': 'Número do documento',
+      'sortable': true,
+      'formatter': function(s){ return s; }
+    },{
+      'property': 'sacado_nome',
+      'label': 'Username',
+      'sortable': true,
+      'formatter': function(s){ return s; }
+    },{
+      'property': 'sacado_endereco',
+      'label': 'Email',
+      'sortable': true,
+      'formatter': function(s){ return s; }
+    },{
+      'property': 'valor_documento',
+      'label': 'R$',
+      'sortable': true,
+      'formatter': function(value){return value.toFixed(2);}
+    },{
+      'property': 'data_documento',
+      'label': 'Data de emissão',
+      'sortable': true,
+      'formatter': function(s){ return s; }
+    },{
+      'property': 'id',
+      'label': 'Actions',
+      'sortable': true,
+      'formatter': function(boleto_id){
+        var classes = "btn btn-mini btn-primary btn-boleto";
+        return goog.dom.createDom( 'button', { 'class':classes, 'data-boleto-id':boleto_id }, 'Marcar como pago' );
+      }
+    }]});
+
+
   bitEx.addEventListener('opened', function(e) {
     button_ws_connect.setCaption('Desconectar');
     button_ws_connect.setEnabled(true);
@@ -223,6 +260,8 @@ bitex.app.admin = function() {
     bitEx.sendRawMessage( options );
   };
 
+  boletoListDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
+                                     goog.partial( onRequestTableData, 'boleto' ) );
 
   userListDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
                                      goog.partial( onRequestTableData, 'users' ) );
@@ -237,6 +276,9 @@ bitex.app.admin = function() {
     var msg = e.data;
     if (msg['MsgType'] == 'ADMIN_SELECT_RESPONSE') {
       switch( msg['Table'] ) {
+        case 'boleto':
+          boletoListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+          break;
         case 'users':
           userListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
           break;
@@ -272,10 +314,13 @@ bitex.app.admin = function() {
     bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
     if (userListDataGrid.wasDecorated()) {
+      boletoListDataGrid.reload();
       userListDataGrid.reload();
       withdrawBtcDataGrid.reload();
       depositDataGrid.reload();
     } else {
+
+      boletoListDataGrid.decorate(goog.dom.getElement('boleto_list_data_grid'));
       userListDataGrid.decorate(goog.dom.getElement('user_list_data_grid'));
       withdrawBtcDataGrid.decorate(goog.dom.getElement('withdraw_requests_data_grid'));
       depositDataGrid.decorate(goog.dom.getElement('deposit_list_data_grid'));

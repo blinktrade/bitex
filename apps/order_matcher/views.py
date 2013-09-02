@@ -440,9 +440,8 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           'DepositId' : deposit.id
         }
         self.on_send_json_msg_to_user( sender=None, json_msg=result )
-
-
       return True
+
     if msg.type == 'DEPOSIT':
       user = self.application.session.query(User).filter_by(id= msg.get('UserID') ).first()
       if user:
@@ -458,11 +457,25 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
           'DepositId' : deposit.id
         }
         self.on_send_json_msg_to_user( sender=None, json_msg=result )
-
-
       return True
 
-    elif msg.type == 'ADMIN_SELECT':
+
+    elif msg.type == 'S0':  # Subscribe to emails
+      # subscribe to all emails broadcast to all users :
+      user_message_signal.connect( self.on_send_json_msg_to_user )
+
+      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'S1', 'EmailReqID':msg.get('EmailReqID')  }  )
+      return  True
+
+
+    return  False
+
+  def _handle_staff_messages(self, msg):
+    if not self.user.is_staff:
+      self.close()
+      return  False
+
+    if msg.type == 'ADMIN_SELECT':
       page      = msg.get('Page', 0)
       page_size = msg.get('PageSize', 100)
       columns   = msg.get('Columns', [])
@@ -493,20 +506,7 @@ class OrderMatcherHandler(websocket.WebSocketHandler):
       self.on_send_json_msg_to_user( sender=None, json_msg=result )
       return True
 
-    elif msg.type == 'S0':  # Subscribe to emails
-      # subscribe to all emails broadcast to all users :
-      user_message_signal.connect( self.on_send_json_msg_to_user )
 
-      self.on_send_json_msg_to_user( sender=None, json_msg= {'MsgType':'S1', 'EmailReqID':msg.get('EmailReqID')  }  )
-      return  True
-
-
-    return  False
-
-  def _handle_staff_messages(self, msg):
-    if not self.user.is_staff:
-      self.close()
-      return  False
     return  False
 
 

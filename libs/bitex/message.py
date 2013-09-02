@@ -24,6 +24,7 @@ class JsonMessage(BaseMessage):
     self.valid = False
 
     # parse the message
+
     self.message = json.loads(str(message))
 
     # make sure a malicious users didn't send us more than 4096 bytes

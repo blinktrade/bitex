@@ -385,9 +385,6 @@ bitex.ui.DataGrid.prototype.adjustSizes_ = function( first_row) {
     var sizing_col_count = goog.dom.getChildren(sizing_row).length;
 
     while( goog.isDefAndNotNull(sizing_col)  ) {
-//      if (--sizing_col_count <= 0 ) {
-//        break;
-//      }
       var el_size =  goog.style.getSize( sizing_col) ;
 
       goog.style.setWidth( work_col_1, el_size.width );
