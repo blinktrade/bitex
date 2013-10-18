@@ -4,7 +4,7 @@ import json
 
 class BaseMessage(object):
   MAX_MESSAGE_LENGTH = 4096
-  def __init__(self, message):
+  def __init__(self, raw_message):
     pass
 
   def has(self, attr):
@@ -19,17 +19,16 @@ class BaseMessage(object):
 
 class JsonMessage(BaseMessage):
   MAX_MESSAGE_LENGTH = 4096
-  def __init__(self, message):
-    super(JsonMessage, self).__init__(message)
+  def __init__(self, raw_message):
+    super(JsonMessage, self).__init__(raw_message)
     self.valid = False
 
-    # parse the message
-
-    self.message = json.loads(str(message))
-
     # make sure a malicious users didn't send us more than 4096 bytes
-    if len(message) > self.MAX_MESSAGE_LENGTH:
+    if len(raw_message) > self.MAX_MESSAGE_LENGTH:
       return
+
+    # parse the message
+    self.message = json.loads(str(raw_message))
 
     if 'MsgType' not in self.message:
       return
