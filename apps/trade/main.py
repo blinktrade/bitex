@@ -10,8 +10,8 @@ from tornado.options import define, options
 import tornado
 import zmq
 
-import datetime
 from bitex.message import JsonMessage
+
 
 define("trade_in", default="tcp://127.0.0.1:5555", help="port")
 define("trade_log", default=os.path.join(ROOT_PATH, "logs/", "trade.log"), help="logging" )
@@ -25,157 +25,10 @@ tornado.options.parse_command_line()
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from models import engine, Order, User, BoletoOptions, Boleto
-
-def login_required(func):
-  def decorator(session_manager,*args, **kwargs):
-    if not session_manager.is_logged:
-      return session_manager.close_session( session_manager.current_session_id )
-    return func(session_manager, *args, **kwargs)
-  return decorator
-
-class SessionManager(object):
-  def __init__(self, db_session, timeout_limit = 300 ):
-    self.db_session = db_session
-    self.sessions = {}
-    self.timeout_limit = timeout_limit
-    self.is_logged = False
-    self.current_session_id = None
-
-  def open_session(self, session_id):
-    if session_id in self.sessions:
-      return 'CLS,' + session_id
-
-    self.sessions[session_id] = [0, datetime.datetime.now()]
-    return 'OPN,' + session_id
-
-  def close_session(self, session_id):
-    if session_id not in self.sessions:
-      return 'CLS,' + session_id
-    del self.sessions[session_id]
-    return 'CLS,' + session_id
-
-  def process_message(self, raw_message):
-    op_code                 = raw_message[:3]
-    session_id              = raw_message[4:20]
-    json_raw_message        = raw_message[21:]
-    self.current_session_id = session_id
-
-    if op_code == 'OPN':
-      return self.open_session(session_id)
-
-    elif op_code == 'CLS':
-      return self.close_session(session_id)
-
-    # wrong opt_code
-    if op_code != 'REQ':
-      return self.close_session(session_id)
-
-    # wrong session id
-    if session_id not in self.sessions:
-      return self.close_session(session_id)
-
-    # Check if the session is expired
-    session_time = self.sessions[session_id][1]
-    if datetime.timedelta(seconds=self.timeout_limit) + session_time < datetime.datetime.now():
-      return self.close_session(session_id)
-
-    self.sessions[session_id][0] += 1  # increment the number of received messages
-    self.sessions[session_id][1] = datetime.datetime.now() # update session time, so we can timeout old sessions.
-
-    msg = JsonMessage(json_raw_message)
-    if not msg.is_valid():
-      return  self.close_session(session_id)
-
-    if  msg.type == '1': # TestRequest
-      return self.processTestRequest(msg)
-
-    elif msg.type == 'BE': # login
-      return self.processLogin(msg)
-
-    elif msg.type == 'D':  # New Order Single
-      return self.processNewOrderSingle(msg)
-
-    elif  msg.type == 'F' : # Cancel Order Request
-      return self.processCancelOrderRequest(msg)
-
-    elif msg.type == 'U0': # signup
-      return self.processSignup(msg)
-
-    elif msg.type == 'U2': # Request for Balances
-      return self.processRequestForBalances(msg)
-
-    elif msg.type == 'U4': # Request for Open Orders
-      return self.processRequestForOpenOrders(msg)
-
-    elif msg.type == 'U6': # BTC Withdraw Request
-      return self.processBTCWithdrawRequest(msg)
-
-    elif msg.type == 'U8': # BRL Withdraw Request
-      return self.processBRLWithdrawRequest(msg)
-
-    elif msg.type == 'U10': # Request password request
-      return self.processRequestPasswordRequest(msg)
-
-    elif msg.type == 'U12': # Password request
-      return self.processPasswordRequest(msg)
-
-    elif msg.type == 'U16':  #Enable Disable Two Factor Authentication
-      return self.processEnableDisableTwoFactorAuth(msg)
-
-    elif msg.type == 'U18': #Generate Boleto
-      return self.processGenerateBoleto(msg)
+from session_manager import SessionManager
+from trade.exceptions import *
 
 
-    return self.close_session(session_id)
-
-
-  def processTestRequest(self, msg):
-    return 'REP,{"MsgType":"0", "TestReqID":"%s"}'%int(msg.get("TestReqID"))
-
-  def processLogin(self, msg):
-    pass
-
-  @login_required
-  def processNewOrderSingle(self, msg):
-    pass
-
-  @login_required
-  def processCancelOrderRequest(self, msg):
-    pass
-
-  @login_required
-  def processSignup(self, msg):
-    pass
-
-  @login_required
-  def processRequestForBalances(self, msg):
-    pass
-
-  @login_required
-  def processRequestForOpenOrders(self, msg):
-    pass
-
-  @login_required
-  def processBTCWithdrawRequest(self, msg):
-    pass
-
-  @login_required
-  def processBRLWithdrawRequest(self, msg):
-    pass
-
-  def processRequestPasswordRequest(self, msg):
-    pass
-
-  def processPasswordRequest(self, msg):
-    pass
-
-  @login_required
-  def processEnableDisableTwoFactorAuth(self, msg):
-    pass
-
-  @login_required
-  def processGenerateBoleto(self, msg):
-    pass
 
 def main():
   print 'trade_in', options.trade_in
@@ -226,15 +79,40 @@ def main():
 
   while True:
     raw_message = socket.recv()
-    replay_logger.info('IN,' + raw_message)
+
+    op_code                 = raw_message[:3]
+    session_id              = raw_message[4:20]
+    json_raw_message        = raw_message[21:].strip()
 
     try:
-      response_message = str(session_manager.process_message(raw_message))
+      msg = None
+      if json_raw_message:
+        msg = JsonMessage(json_raw_message)
+        if not msg.is_valid():
+          replay_logger.info('IN,' + raw_message)
+          raise InvalidMessageError()
+        else:
+          # never write passwords in the log file
+          if msg.has('Password'):
+            raw_message = raw_message.replace(msg.get('Password'), '*')
+          if msg.has('NewPassword'):
+            raw_message = raw_message.replace(msg.get('NewPassword'), '*')
+
+      replay_logger.info('IN,' + raw_message )
+
+      response_message = session_manager.process_message( op_code, session_id, msg )
+
+    except TradeRuntimeError, e:
+      session_manager.close_session(session_id)
+      response_message = 'ERR,{"MsgType":"ERROR", "Description":"' + e.error_description + '", "Detail": ""}'
+
     except Exception,e:
-      response_message = 'ERR, {"MsgType":"ERROR", "Technical": "'  + str(e) + '"}'
+      session_manager.close_session(session_id)
+      response_message = 'ERR,{"MsgType":"ERROR", "Description":"Unknow error", "Detail": "'  + str(e) + '"}'
 
       # echo the message
-    socket.send(response_message)
+    replay_logger.info('OUT,' + response_message )
+    socket.send_unicode(response_message)
 
 
 if __name__ == "__main__":

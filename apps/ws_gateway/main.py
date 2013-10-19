@@ -123,7 +123,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
     raw_message = response_message[4:]
 
     if opt_code != 'REP':
-      if opt_code == 'ERR':
+      if raw_message:
         ws_client.write_message(raw_message)
       self.close_client_connection(ws_client)
       return
