@@ -1,14 +1,20 @@
 
-from trade.exceptions import *
-from trade.views import *
+from errors import *
+from views import *
 
 class Session(object):
-  def __init__(self, session_id, db_session):
-    self.session_id = session_id
-    self.db_session = db_session
-    self.is_logged = False
-    self.user = None
+  def __init__(self, session_id):
+    self.session_id   = session_id
+
+    self.is_logged  = False
+    self.user       = None
     self.should_end = False
+
+  def set_user(self, user):
+    if self.user:
+      raise UserAlreadyLogged
+    self.user = user
+    self.is_logged = True
 
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest

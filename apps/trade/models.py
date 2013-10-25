@@ -8,7 +8,6 @@ import hmac, base64, struct, hashlib, time
 
 import datetime
 from bitex.utils import smart_str
-from bitex.signals import Signal
 from bitex.errors import OrderNotFound
 
 from sqlalchemy import ForeignKey
@@ -23,11 +22,7 @@ from tornado.options import  options
 engine = create_engine( options.db_engine, echo=options.db_echo)
 Base = declarative_base()
 
-balance_signal                  = Signal()
-user_message_signal             = Signal()
-btc_hot_wallet_transfer_signal  = Signal()
-ltc_hot_wallet_transfer_signal  = Signal()
-brl_bank_transfer_signal        = Signal()
+from trade_application import application
 
 def generate_two_factor_secret():
   return base64.b32encode(os.urandom(10))
@@ -147,7 +142,7 @@ class User(Base):
         setattr(self , balance_attribute, current_balance - value )
 
 
-  def publish_balance_update(self, reqId = None):
+  def get_balance(self, reqId = None):
     balance_update_msg = {
       'MsgType': 'U3',
       'balance_brl': self.balance_brl,
@@ -157,8 +152,11 @@ class User(Base):
       }
     if reqId:
       balance_update_msg['BalanceReqID'] = reqId
+    return balance_update_msg
 
-    balance_signal( self.id, balance_update_msg )
+  def publish_balance_update(self, reqId = None):
+    balance_update_msg = self.get_balance(reqId)
+    application.publish( self.id, balance_update_msg )
 
   def new_address(self, btc_address):
     self.bitcoin_address = btc_address
@@ -300,7 +298,7 @@ class User(Base):
         'when'        : withdraw_btc.created
       }
 
-      btc_hot_wallet_transfer_signal( self.id, btc_hot_wallet_transfer_msg )
+      application.publish( self.id, btc_hot_wallet_transfer_msg )
 
     self.publish_balance_update()
 
@@ -345,7 +343,7 @@ class User(Base):
         'when'        : withdraw_brl.created
       }
 
-      brl_bank_transfer_signal( self.id, brl_bank_transfer_msg )
+      application.publish( self.id, brl_bank_transfer_msg )
 
     self.publish_balance_update()
 
@@ -465,7 +463,7 @@ class UserEmail(Base):
     if body:
       msg['Body'] = body
 
-    user_message_signal( user_id, msg )
+    application.publish( user_id, msg )
 
     return  user_email
 

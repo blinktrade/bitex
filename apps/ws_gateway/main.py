@@ -37,15 +37,17 @@ from tornado.options import define, options
 from tornado import  websocket
 
 import zmq
+from bitex.message import JsonMessage
+
 from zmq.eventloop.zmqstream import  ZMQStream
 
 
 define("port", default=8443, help="port" )
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
-define("ws_gateway_log", default=os.path.join(ROOT_PATH, "logs/", "ws_gateway_log.log"), help="logging" )
 
-define("zmq_trade", default="tcp://127.0.0.1:5555", help="trade zmq queue" )
+define("trade_in",  default="tcp://127.0.0.1:5555", help="trade zmq queue" )
+define("trade_pub", default="tcp://127.0.0.1:5556", help="trade zmq publish queue" )
 
 
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"))
@@ -54,22 +56,90 @@ tornado.options.parse_command_line()
 class WebSocketHandler(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
     super(WebSocketHandler, self).__init__(application, request, **kwargs)
-
     self.connection_id = base64.b32encode(os.urandom(10))
 
-    self.application.replay_log.info('CREATED,' + self.connection_id)
+    self.trade_in_socket = self.application.trade_in_socket
+
+    self.trade_pub_socket = self.application.zmq_context.socket(zmq.SUB)
+    self.trade_pub_socket.connect(options.trade_pub)
+    self.trade_pub_socket_stream = ZMQStream(self.trade_pub_socket)
+    self.trade_pub_socket_stream.on_recv(self.on_trade_publish)
+
+    
+    self.is_logged = False
+    self.user_id = None
+
+
+  def on_trade_publish(self, raw_message):
+    print "on_trade_publish", self.connection_id, raw_message
+    raw_message = unicode(raw_message)
+    self.write_message(raw_message)
+
 
   def open(self):
-    self.application.replay_log.info('CONNECTED,' + self.connection_id)
-    self.application.on_client_open( self.connection_id, self)
+
+    self.application.register_connection(self)
+    
+    self.trade_in_socket.send( "OPN," + self.connection_id)
+    response_message = self.trade_in_socket.recv()
+    opt_code    = response_message[:3]
+    raw_message = response_message[4:]
+
+    if opt_code != 'OPN':
+      if opt_code == 'ERR':
+        self.write_message(raw_message)
+        
+      self.application.unregister_connection(self)
+      self.close()
+      return
+    self.write_message(raw_message)
+
 
   def on_message(self, raw_message):
-    self.application.replay_log.info('IN,' + self.connection_id + ',' + raw_message)
-    self.application.on_client_message(self, raw_message)
+    req_msg = JsonMessage(raw_message)
+    if not req_msg.is_valid():
+      self.write_message('{"MsgType":"ERROR", "Description":"Invalid message", "Detail": ""}' )
+      self.close()
+      return
+
+    if req_msg.type == 'V':  # market data subscribe
+      self.on_market_data_request(req_msg)
+      return
+
+    self.trade_in_socket.send_unicode( "REQ," +  self.connection_id + ',' + raw_message  )
+    response_message = self.trade_in_socket.recv()
+    raw_resp_message_header = response_message[:3]
+    raw_resp_message        = response_message[4:].strip()
+
+    if raw_resp_message_header != 'REP':
+      if raw_resp_message:
+        self.write_message(raw_resp_message)
+
+      del self.application.connections[self.connection_id]
+      self.close()
+      return
+
+    if raw_resp_message:
+      rep_msg = JsonMessage(raw_resp_message)
+      if rep_msg.type == "BF":
+        self.on_login_response(rep_msg)
+      self.write_message(raw_resp_message)
 
   def on_close(self):
-    self.application.replay_log.info('DISCONNECTED,' + self.connection_id)
-    self.application.on_client_close( self)
+    self.trade_pub_socket_stream.close()
+    if self.application.unregister_connection(self):
+      self.trade_in_socket.send( "CLS," + self.connection_id  )
+      response_message = self.trade_in_socket.recv()
+
+  def on_login_response(self, msg):
+    if msg.get("UserStatus") == 1:
+      self.user_id = msg.get("UserID")
+      self.is_logged = True
+      self.trade_pub_socket.setsockopt(zmq.SUBSCRIBE, str(self.user_id))
+
+  def on_market_data_request(self, msg):
+
+    pass
 
 class WebSocketGatewayApplication(tornado.web.Application):
   def __init__(self, opt):
@@ -81,79 +151,31 @@ class WebSocketGatewayApplication(tornado.web.Application):
     )
     tornado.web.Application.__init__(self, handlers, **settings)
 
-    self.replay_log = logging.getLogger("REPLAY")
-
     self.zmq_context = zmq.Context()
 
-    self.trade_socket = self.zmq_context.socket(zmq.REQ)
-    self.trade_socket.connect(opt.zmq_trade)
+    self.trade_in_socket = self.zmq_context.socket(zmq.REQ)
+    self.trade_in_socket.connect(opt.trade_in)
 
     self.connections = {}
 
-  def close_client_connection(self, ws_client):
-    del self.connections[ws_client.connection_id]
-    ws_client.close()
+  def register_connection(self, ws_client):
+    if ws_client.connection_id in self.connections:
+      return False
+    self.connections[ws_client.connection_id] = ws_client
+    return True
 
-  def on_client_open(self, connection_id, ws_client):
-    self.connections[connection_id] = ws_client
-    self.trade_socket.send( "OPN," + connection_id  )
-
-    response_message = self.trade_socket.recv()
-    opt_code    = response_message[:3]
-    raw_message = response_message[4:]
-
-    if opt_code != 'OPN':
-      if opt_code == 'ERR':
-        ws_client.write_message(raw_message)
-      self.close_client_connection(ws_client)
-      return
-
-    ws_client.write_message(raw_message)
-
-  def on_client_close(self, ws_client):
+  def unregister_connection(self, ws_client):
     if ws_client.connection_id in self.connections:
       del self.connections[ws_client.connection_id]
-      self.trade_socket.send( "CLS," + ws_client.connection_id  )
-      response_message = self.trade_socket.recv()
-
-  def on_client_message(self, ws_client, raw_message):
-    self.trade_socket.send_unicode( "REQ," +  ws_client.connection_id + ',' + raw_message  )
-    response_message = self.trade_socket.recv()
-    opt_code    = response_message[:3]
-    raw_message = response_message[4:]
-
-    if opt_code != 'REP':
-      if raw_message:
-        ws_client.write_message(raw_message)
-      self.close_client_connection(ws_client)
-      return
-
-    ws_client.write_message(raw_message)
-
+      return  True
+    return False
 
 def main():
   print 'port', options.port
   print 'certfile', options.certfile
   print 'keyfile', options.keyfile
-  print 'zmq_trade', options.zmq_trade
-  print 'order_matcher_log', options.ws_gateway_log
-
-  input_log_file_handler = logging.handlers.TimedRotatingFileHandler( options.ws_gateway_log, when='MIDNIGHT')
-  formatter = logging.Formatter('%(asctime)s - %(message)s')
-  input_log_file_handler.setFormatter(formatter)
-
-  replay_logger = logging.getLogger("REPLAY")
-  replay_logger.setLevel(logging.INFO)
-  replay_logger.addHandler(input_log_file_handler)
-
-  replay_logger.info('START')
-  replay_logger.info('PARAM,BEGIN')
-  replay_logger.info('PARAM,port,' + str(options.port))
-  replay_logger.info('PARAM,certfile,' + str(options.certfile))
-  replay_logger.info('PARAM,keyfile,' + str(options.keyfile))
-  replay_logger.info('PARAM,zmq_trade,' + str(options.zmq_trade))
-  replay_logger.info('PARAM,ws_gateway_log,' + str(options.ws_gateway_log))
-  replay_logger.info('PARAM,END')
+  print 'trade_in', options.trade_in
+  print 'trade_pub', options.trade_pub
 
   from zmq.eventloop import ioloop
   ioloop.install()
@@ -167,9 +189,6 @@ def main():
 
   server = tornado.httpserver.HTTPServer(application,ssl_options=ssl_options)
   server.listen(options.port)
-
-
-
 
   tornado.ioloop.IOLoop.instance().start()
 

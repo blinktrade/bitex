@@ -8,6 +8,9 @@ class TradeRuntimeError(RuntimeError):
 class DuplicateSession(TradeRuntimeError):
   error_description = "Duplicated session"
 
+class UserAlreadyLogged(TradeRuntimeError):
+  error_description = "User is already logged in"
+
 class InvalidOptCodeError(TradeRuntimeError):
   error_description = "Invalid message opt_code"
 

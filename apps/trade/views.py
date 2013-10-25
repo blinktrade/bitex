@@ -4,14 +4,16 @@ import datetime
 from bitex.message import JsonMessage
 from bitex.json_encoder import  JsonEncoder
 
+
 import json
 
-from models import  User, BitcoinAddress, Order, UserPasswordReset, balance_signal, user_message_signal, Boleto, BoletoOptions, NeedSecondFactorException
+from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, NeedSecondFactorException
 
-#from order_matcher.execution import OrderMatcher, execution_report_signal
+from execution import OrderMatcher
 
-from trade.decorators import login_required
+from decorators import login_required
 
+from trade_application import application
 
 def processTestRequest(session, msg):
   return '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID")
@@ -21,10 +23,12 @@ def processLogin(session, msg):
   # Authenticate the user
   need_second_factor = False
   try:
-    session.user = User.authenticate(session.db_session,
-                                     msg.get('Username'),
-                                     msg.get('Password'),
-                                     msg.get('SecondFactor'))
+    user = User.authenticate(application.db_session,
+                             msg.get('Username'),
+                             msg.get('Password'),
+                             msg.get('SecondFactor'))
+
+    session.set_user(user)
   except NeedSecondFactorException:
     need_second_factor = True
 
@@ -37,21 +41,15 @@ def processLogin(session, msg):
       'NeedSecondFactor': need_second_factor,
       'UserStatusText':   u'Nome de usuário ou senha inválidos' if not need_second_factor else u'Segundo fator de autenticação inválido'
     }
-    session.db_session.rollback()
+    application.db_session.rollback()
     session.should_end = True
     return json.dumps(login_response)
 
 
-  session.db_session.add(session.user)
-  session.db_session.commit()
+  application.db_session.add(session.user)
+  application.db_session.commit()
 
-  # subscribe to all execution reports for this user account.
-  #execution_report_signal.connect(  self.on_execution_report, self.user.id )
-
-  # subscribe to balance updates for this user account
-  #balance_signal.connect( self.on_send_json_msg_to_user, self.user.id  )
-
-  #session.user.publish_balance_update()
+  session.user.publish_balance_update()
 
   # Send the login response
   login_response = {
@@ -68,23 +66,137 @@ def processLogin(session, msg):
 
 @login_required
 def processNewOrderSingle(session, msg):
-  pass
+  # process the new order.
+  order = Order( user_id          = session.user.id,
+                 account_id       = session.user.account_id,
+                 user             = session.user,
+                 username         = session.user.username,
+                 client_order_id  = msg.get('ClOrdID'),
+                 symbol           = msg.get('Symbol'),
+                 side             = msg.get('Side'),
+                 type             = msg.get('OrdType'),
+                 price            = msg.get('Price'),
+                 order_qty        = msg.get('OrderQty'))
+
+
+  application.db_session.add( order)
+  application.db_session.flush() # just to assign an ID for the order.
+
+  order_ack = OrderMatcher.get(msg.get('Symbol')).match(application.db_session, order)
+  application.db_session.commit()
+
+  return order_ack
+
 
 @login_required
 def processCancelOrderRequest(session, msg):
-  pass
+  order_list = []
+  if  msg.has('OrigClOrdID'):
+    order = application.db_session.query(Order).\
+                                    filter(Order.status.in_(("0", "1"))).\
+                                    filter_by( user_id = session.user.id ).\
+                                    filter_by( client_order_id =  msg.get('OrigClOrdID')  ).first()
+    if order:
+      order_list.append(order)
+  elif msg.has('OrderID'):
+    order = application.db_session.query(Order).\
+                                    filter(Order.status.in_(("0", "1"))).\
+                                    filter_by( user_id = session.user.id ).\
+                                    filter_by( id =  msg.get('OrderID')  ).first()
+    if order:
+      order_list.append(order)
+  else:
+    orders = application.db_session.query(Order).\
+                                    filter(Order.status.in_(("0", "1"))).\
+                                    filter_by( user_id = session.user.id )
+    for order in orders:
+      order_list.append(order)
 
-@login_required
+  for order in order_list:
+    OrderMatcher.get( order.symbol ).cancel(application.db_session, order)
+  application.db_session.commit()
+
+  return ""
+
 def processSignup(session, msg):
-  pass
+  if User.get_user( application.db_session, msg.get('Username'), msg.get('Email')):
+    login_response = {
+      'MsgType': 'BF',
+      'Username': '',
+      'UserStatus': 3,
+      'UserStatusText': u'Nome de usuário ou Email já estão registrados!'
+    }
+    application.db_session.rollback()
+    return login_response
+
+  # signup the user
+  # create the user on Database
+  u = User( username            = msg.get('Username'),
+            email               = msg.get('Email'),
+            password            = msg.get('Password'),
+            balance_btc         = 0,
+            balance_ltc         = 0,
+            balance_usd         = 0,
+            balance_brl         = 0)
+
+  application.db_session.add(u)
+  application.db_session.commit()
+
+  return processLogin(session, msg)
 
 @login_required
 def processRequestForBalances(session, msg):
-  pass
+  return session.user.get_balance(msg.get('BalanceReqID'))
 
 @login_required
 def processRequestForOpenOrders(session, msg):
-  pass
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  status_list = msg.get('StatusList', ['0', '1'] )
+  offset      = page * page_size
+
+  orders = application.db_session.query(Order).\
+                                  filter(Order.status.in_( status_list )).\
+                                  filter_by( user_id = session.user.id ).\
+                                  order_by(Order.created.desc()).\
+                                  limit( page_size ).offset( offset )
+
+  order_list = []
+  columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
+              'Symbol', 'Side', 'OrdType', 'OrderQty', 'Price', 'OrderDate', 'Volume' ]
+
+  for order in orders:
+    order_total_value = order.average_price * order.cum_qty
+    if order_total_value:
+      order_total_value /=  1.e8
+
+    order_list.append( [
+      order.client_order_id,
+      order.id,
+      order.cum_qty,
+      order.status,
+      order.leaves_qty,
+      order.cxl_qty,
+      order.average_price,
+      order.symbol,
+      order.side,
+      order.type,
+      order.order_qty,
+      order.price,
+      order.created,
+      order_total_value
+    ])
+
+  open_orders_response_msg = {
+    'MsgType':     'U5',
+    'OrdersReqID': msg.get('OrdersReqID'),
+    'Page':        page,
+    'PageSize':    page_size,
+    'Columns':     columns,
+    'OrdListGrp' : order_list
+  }
+  return  open_orders_response_msg
+
 
 @login_required
 def processBTCWithdrawRequest(session, msg):
@@ -95,15 +207,52 @@ def processBRLWithdrawRequest(session, msg):
   pass
 
 def processRequestPasswordRequest(session, msg):
-  pass
+  user  = User.get_user( application.db_session, email = msg.get('Email') )
+  user.request_reset_password( application.db_session )
+  application.db_session.commit()
 
 def processPasswordRequest(session, msg):
-  pass
+  if UserPasswordReset.change_user_password( application.db_session, msg.get('Token'), msg.get('NewPassword') ):
+    response = {
+      'MsgType': 'U13',
+      'UserStatus': 1,
+      'UserStatusText': u'Senha alterada com sucesso!'
+    }
+
+    application.db_session.commit()
+    return response
+  else:
+    response = {
+      'MsgType': 'U13',
+      'UserStatus': 3,
+      'UserStatusText': u'Código de segurança inválido!'
+    }
+    return response
 
 @login_required
 def processEnableDisableTwoFactorAuth(session, msg):
-  pass
+  enable = msg.get('Enable')
+  secret = msg.get('Secret')
+  code   = msg.get('Code')
+  two_factor_secret = session.user.enable_two_factor(enable, secret, code)
+
+  application.db_session.add(self.user)
+  application.db_session.commit()
+
+  return {'MsgType'         : 'U17',
+          'TwoFactorEnabled': session.user.two_factor_enabled,
+          'TwoFactorSecret' : two_factor_secret }
 
 @login_required
 def processGenerateBoleto(session, msg):
-  pass
+  boleto_option_id = msg.get('BoletoId')
+  value            = msg.get('Value')
+
+  boleto_option = application.db_session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
+  if not boleto_option:
+    return {'MsgType':'U19', 'BoletoId': 0 }
+
+  boleto = boleto_option.generate_boleto(  application.db_session, session.user, value )
+  application.db_session.commit()
+
+  return {'MsgType':'U19', 'BoletoId': boleto.id }

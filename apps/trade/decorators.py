@@ -1,4 +1,4 @@
-from trade.exceptions import *
+from errors import *
 
 def login_required(func):
   def decorator(session,*args, **kwargs):
