@@ -36,6 +36,8 @@ from tornado.options import define, options
 
 from tornado import  websocket
 
+from json import loads
+
 import zmq
 from bitex.message import JsonMessage
 
@@ -70,10 +72,9 @@ class WebSocketHandler(websocket.WebSocketHandler):
     self.user_id = None
 
 
-  def on_trade_publish(self, raw_message):
-    print "on_trade_publish", self.connection_id, raw_message
-    raw_message = unicode(raw_message)
-    self.write_message(raw_message)
+  def on_trade_publish(self, message):
+    print "on_trade_publish", self.connection_id, message
+    self.write_message(str(message[1]))
 
 
   def open(self):
@@ -92,10 +93,12 @@ class WebSocketHandler(websocket.WebSocketHandler):
       self.application.unregister_connection(self)
       self.close()
       return
-    self.write_message(raw_message)
+    #self.write_message(raw_message)
 
 
   def on_message(self, raw_message):
+    print 'on_message', raw_message
+
     req_msg = JsonMessage(raw_message)
     if not req_msg.is_valid():
       self.write_message('{"MsgType":"ERROR", "Description":"Invalid message", "Detail": ""}' )
@@ -121,7 +124,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
     if raw_resp_message:
       rep_msg = JsonMessage(raw_resp_message)
-      if rep_msg.type == "BF":
+      if rep_msg.is_valid() and rep_msg.type == "BF":
         self.on_login_response(rep_msg)
       self.write_message(raw_resp_message)
 

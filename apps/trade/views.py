@@ -43,7 +43,7 @@ def processLogin(session, msg):
     }
     application.db_session.rollback()
     session.should_end = True
-    return json.dumps(login_response)
+    return json.dumps(login_response, cls=JsonEncoder)
 
 
   application.db_session.add(session.user)
@@ -60,7 +60,7 @@ def processLogin(session, msg):
     'BtcAddress':       session.user.bitcoin_address,
     'UserStatus':       1
   }
-  return json.dumps(login_response)
+  return json.dumps(login_response, cls=JsonEncoder)
 
 
 
@@ -82,10 +82,10 @@ def processNewOrderSingle(session, msg):
   application.db_session.add( order)
   application.db_session.flush() # just to assign an ID for the order.
 
-  order_ack = OrderMatcher.get(msg.get('Symbol')).match(application.db_session, order)
+  OrderMatcher.get(msg.get('Symbol')).match(application.db_session, order)
   application.db_session.commit()
 
-  return order_ack
+  return ""
 
 
 @login_required
@@ -146,7 +146,8 @@ def processSignup(session, msg):
 
 @login_required
 def processRequestForBalances(session, msg):
-  return session.user.get_balance(msg.get('BalanceReqID'))
+  response = session.user.get_balance(msg.get('BalanceReqID'))
+  return json.dumps(response, cls=JsonEncoder)
 
 @login_required
 def processRequestForOpenOrders(session, msg):
@@ -195,7 +196,7 @@ def processRequestForOpenOrders(session, msg):
     'Columns':     columns,
     'OrdListGrp' : order_list
   }
-  return  open_orders_response_msg
+  return json.dumps(open_orders_response_msg, cls=JsonEncoder)
 
 
 @login_required
@@ -220,14 +221,14 @@ def processPasswordRequest(session, msg):
     }
 
     application.db_session.commit()
-    return response
+    return json.dumps(response, cls=JsonEncoder)
   else:
     response = {
       'MsgType': 'U13',
       'UserStatus': 3,
       'UserStatusText': u'Código de segurança inválido!'
     }
-    return response
+    return json.dumps(response, cls=JsonEncoder)
 
 @login_required
 def processEnableDisableTwoFactorAuth(session, msg):
@@ -236,12 +237,13 @@ def processEnableDisableTwoFactorAuth(session, msg):
   code   = msg.get('Code')
   two_factor_secret = session.user.enable_two_factor(enable, secret, code)
 
-  application.db_session.add(self.user)
+  application.db_session.add(session.user)
   application.db_session.commit()
 
-  return {'MsgType'         : 'U17',
-          'TwoFactorEnabled': session.user.two_factor_enabled,
-          'TwoFactorSecret' : two_factor_secret }
+  response = {'MsgType'         : 'U17',
+              'TwoFactorEnabled': session.user.two_factor_enabled,
+              'TwoFactorSecret' : two_factor_secret }
+  return json.dumps(response, cls=JsonEncoder)
 
 @login_required
 def processGenerateBoleto(session, msg):
@@ -250,9 +252,11 @@ def processGenerateBoleto(session, msg):
 
   boleto_option = application.db_session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
   if not boleto_option:
-    return {'MsgType':'U19', 'BoletoId': 0 }
+    response = {'MsgType':'U19', 'BoletoId': 0 }
+    return json.dumps(response, cls=JsonEncoder)
 
   boleto = boleto_option.generate_boleto(  application.db_session, session.user, value )
   application.db_session.commit()
 
-  return {'MsgType':'U19', 'BoletoId': boleto.id }
+  response = {'MsgType':'U19', 'BoletoId': boleto.id }
+  return json.dumps(response, cls=JsonEncoder)

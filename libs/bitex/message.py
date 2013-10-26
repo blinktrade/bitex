@@ -42,6 +42,7 @@ class JsonMessage(BaseMessage):
 
     #validate Type
     if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9',
+                         'BF', 'U1', 'U3', 'U5', 'U7',
                          'U10', 'U12', 'U13', 'U14', 'U16', 'U18',
                          'S0',  'DEPOSIT', 'BTC_DEPOSIT', 'BITCOIN_NEW_ADDRESS',
                          'ADMIN_SELECT', 'BOLETO_PAYMENT'):

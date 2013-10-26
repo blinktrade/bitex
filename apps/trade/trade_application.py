@@ -4,6 +4,8 @@ import zmq
 from tornado.options import  options
 
 from sqlalchemy.orm import scoped_session, sessionmaker
+import json
+from bitex.json_encoder import JsonEncoder
 
 from errors import *
 
@@ -124,7 +126,7 @@ class TradeApplication(object):
       # publish all publications
       for key, message in self.publish_queue:
         self.log('OUT', 'TRADE_PUB', str([key, message]) )
-        self.publisher_socket.send_multipart( [str(key), str(message)] )
+        self.publisher_socket.send_multipart( [str(key),  json.dumps(message, cls=JsonEncoder)] )
       self.publish_queue = []
 
 application = TradeApplication.instance()
