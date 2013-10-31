@@ -77,14 +77,20 @@ class TradeApplication(object):
     orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
       self.log('DB_ENTITY','ORDER',order)
-      #OrderMatcher.get( order.symbol  ).match(self.session, order)
+
 
   def publish(self, key, data):
     self.publish_queue.append([ key, data ])
 
   def run(self):
     from bitex.message import JsonMessage
+    from market_data_publisher import MarketDataPublisher
+    from execution import OrderMatcher
+    from models import Order
 
+    orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
+    for order in orders:
+      OrderMatcher.get( order.symbol  ).match(self.db_session, order)
 
     while True:
       raw_message = self.input_socket.recv()
@@ -109,11 +115,28 @@ class TradeApplication(object):
 
         self.log('IN', 'TRADE_IN_REQ' ,raw_message )
 
-        response_message = self.session_manager.process_message( msg_header, session_id, msg )
+        if msg:
+          if msg.type == 'V': # Market Data Request
+            market_depth = msg.get('MarketDepth')
+            instruments = msg.get('Instruments')
+            entries = msg.get('MDEntryTypes')
+
+            if len(instruments) > 1:
+              raise  InvalidMessageError()
+
+            instrument = instruments[0]
+
+            om = OrderMatcher.get(instrument)
+            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries )
+            response_message = 'REP,' + json.dumps( response_message , cls=JsonEncoder)
+          else:
+            response_message = self.session_manager.process_message( msg_header, session_id, msg )
+        else:
+          response_message = self.session_manager.process_message( msg_header, session_id, msg )
 
       except TradeRuntimeError, e:
         self.session_manager.close_session(session_id)
-        response_message = 'ERR,{"MsgType":"ERROR", "Description":"' + e.error_description + '", "Detail": ""}'
+        response_message = 'ERR,{"MsgType":"ERROR", "Description":"' + e.error_description.replace("'", "") + '", "Detail": ""}'
 
       except Exception,e:
         self.session_manager.close_session(session_id)

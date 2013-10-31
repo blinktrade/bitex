@@ -75,7 +75,7 @@
           <a class="brand" href="" data-switch-view="trading">BitEx</a>
 
           <ul class="nav navbar-nav pull-right">
-            <li><a href="" data-switch-view="trading">BTCBRL <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink">{{ bid }}</span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink">{{ ask }}</span></a></li>
+            <li><a href="" data-switch-view="trading">BTCBRL <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink"></span></a></li>
             <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Entrar</a></li>
             <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Registre-se</a></li>
           </ul>
@@ -307,7 +307,7 @@
               <div class="row-fluid">
 
                 <div class="span2">
-                  <span style="font-size: 24px; font-weight: bold; float: left; margin-top: 19px;" id="formatted_quote_brl" >{{ quote }}</span>
+                  <span style="font-size: 24px; font-weight: bold; float: left; margin-top: 19px;" id="formatted_quote_brl"></span>
                 </div>
 
                 <div class="span2">
@@ -506,9 +506,11 @@
                   </div>
                 </div>
                 <div class="row-fluid">
+                  <!--
                   {% for boleto_option in boleto_options %}
                     <button class="btn btn-primary btn-boleto" data-boleto-id="{{  boleto_option.id }}">{{ escape(boleto_option.description) }}</button>
                   {% end %}
+                  -->
                 </div>
                 <p>Confirmação após 1 dia se o Boleto for pago no mesmo Banco, caso contrário será de 3 dias úteis.</p>
               </div>

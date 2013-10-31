@@ -68,7 +68,7 @@ class JsonMessage(BaseMessage):
       self.valid = self.valid and  'MDReqID' in self.message
       self.valid = self.valid and  'SubscriptionRequestType' in self.message
       self.valid = self.valid and  'MarketDepth' in self.message
-      self.valid = self.valid and  ( self.message['SubscriptionRequestType'] == '1' and 'MDUpdateType' in self.message )
+      self.valid = self.valid and  ( 'SubscriptionRequestType'  in self.message and 'MDUpdateType' in self.message )
       if not self.valid:
         return
 

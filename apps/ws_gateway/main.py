@@ -20,7 +20,6 @@
 
 import os
 import sys
-import  logging
 
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
@@ -36,13 +35,16 @@ from tornado.options import define, options
 
 from tornado import  websocket
 
+import json
 from json import loads
+from bitex.json_encoder import  JsonEncoder
 
 import zmq
 from bitex.message import JsonMessage
 
 from zmq.eventloop.zmqstream import  ZMQStream
 
+from market_data_helper import  MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh
 
 define("port", default=8443, help="port" )
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
@@ -51,9 +53,11 @@ define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_private
 define("trade_in",  default="tcp://127.0.0.1:5555", help="trade zmq queue" )
 define("trade_pub", default="tcp://127.0.0.1:5556", help="trade zmq publish queue" )
 
-
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"))
 tornado.options.parse_command_line()
+
+class OrderManager(object):
+  pass
 
 class WebSocketHandler(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
@@ -68,9 +72,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
     self.trade_pub_socket_stream.on_recv(self.on_trade_publish)
 
     
-    self.is_logged = False
-    self.user_id = None
+    self.is_logged  = False
+    self.user_id    = None
 
+    self.md_subscriptions = {}
 
   def on_trade_publish(self, message):
     print "on_trade_publish", self.connection_id, message
@@ -78,7 +83,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
 
   def open(self):
-
     self.application.register_connection(self)
     
     self.trade_in_socket.send( "OPN," + self.connection_id)
@@ -141,8 +145,37 @@ class WebSocketHandler(websocket.WebSocketHandler):
       self.trade_pub_socket.setsockopt(zmq.SUBSCRIBE, str(self.user_id))
 
   def on_market_data_request(self, msg):
+    # Generate a FullRefresh
+    req_id = msg.get('MDReqID')
 
-    pass
+    if int(msg.get('SubscriptionRequestType')) == 2: # Disable previous Snapshot + Update Request
+      if req_id in self.md_subscriptions:
+        del self.md_subscriptions[req_id]
+      return
+
+    market_depth = msg.get('MarketDepth')
+    instruments = msg.get('Instruments')
+    entries = msg.get('MDEntryTypes')
+
+    if int(msg.get('SubscriptionRequestType')) == 1: # Snapshot + Updates
+      if req_id not in self.md_subscriptions:
+        self.md_subscriptions[req_id] = []
+
+    for instrument in  instruments:
+      md = generate_md_full_refresh( instrument, market_depth, entries )
+      self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
+
+      if int(msg.get('SubscriptionRequestType')) == 1: # Snapshot + Updates
+        self.md_subscriptions[req_id].append( MarketDataPublisher(req_id,
+                                                                   market_depth,
+                                                                   entries,
+                                                                   instrument,
+                                                                   self.on_send_json_msg_to_user ) )
+
+  def on_send_json_msg_to_user(self, sender, json_msg):
+    s = json.dumps(json_msg, cls=JsonEncoder )
+    print 'on_send_json_msg_to_user', s
+    self.write_message(s)
 
 class WebSocketGatewayApplication(tornado.web.Application):
   def __init__(self, opt):
@@ -159,7 +192,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
     self.trade_in_socket = self.zmq_context.socket(zmq.REQ)
     self.trade_in_socket.connect(opt.trade_in)
 
+    self.md_subscriber =  MarketDataSubscriber.get( "BTCBRL")
+    self.md_subscriber.subscribe( self.zmq_context, options.trade_pub, self.trade_in_socket )
+
     self.connections = {}
+
 
   def register_connection(self, ws_client):
     if ws_client.connection_id in self.connections:

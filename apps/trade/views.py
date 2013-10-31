@@ -16,8 +16,10 @@ from decorators import login_required
 from trade_application import application
 
 def processTestRequest(session, msg):
-  return '{"MsgType":"0", "TestReqID":"%s"}'%msg.get("TestReqID")
-
+  return json.dumps( {
+    "MsgType":"0",
+    "TestReqID": msg.get("TestReqID")
+  }, cls=JsonEncoder)
 
 def processLogin(session, msg):
   # Authenticate the user
