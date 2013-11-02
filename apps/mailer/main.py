@@ -2,123 +2,112 @@
 
 import os
 import sys
-import  logging
+import logging
 
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
 
-from datetime import timedelta
+DEFAULT_TEMPLATE_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "templates/"))
 
 import  time
-from bitex.client import BitExThreadedClient
+from util import send_email
 
-from smtplib import SMTP
-from email.MIMEText import MIMEText
-from email.Header import Header
-from email.Utils import parseaddr, formataddr
+from tornado import template
+from tornado.options import define, options
+import tornado
 
 
-def send_email(sender, recipient, subject, body):
-    """Send an email.
+define("trade_pub", default="tcp://127.0.0.1:5556", help="zmq publisher queue")
+define("template_dir", default=DEFAULT_TEMPLATE_PATH, help="email template path")
+define("mailer_log", default=os.path.join(ROOT_PATH, "logs/", "mailer.log"), help="logging" )
 
-    All arguments should be Unicode strings (plain ASCII works as well).
 
-    Only the real name part of sender and recipient addresses may contain
-    non-ASCII characters.
+tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "mailer.conf"))
+tornado.options.parse_command_line()
 
-    The email will be properly MIME encoded and delivered though SMTP to
-    localhost port 25.  This is easy to change if you want something different.
-
-    The charset of the email will be the first one out of US-ASCII, ISO-8859-1
-    and UTF-8 that can represent all the characters occurring in the email.
-    """
-    print  'send_email', recipient, subject 
-
-    # Header class is smart enough to try US-ASCII, then the charset we
-    # provide, then fall back to UTF-8.
-    header_charset = 'ISO-8859-1'
-
-    # We must choose the body charset manually
-    for body_charset in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
-        try:
-            body.encode(body_charset)
-        except UnicodeError:
-            pass
-        else:
-            break
-
-    # Split real name (which is optional) and email address parts
-    sender_name, sender_addr = parseaddr(sender)
-    recipient_name, recipient_addr = parseaddr(recipient)
-
-    # We must always pass Unicode strings to Header, otherwise it will
-    # use RFC 2047 encoding even on plain ASCII strings.
-    sender_name = str(Header(unicode(sender_name), header_charset))
-    recipient_name = str(Header(unicode(recipient_name), header_charset))
-
-    # Make sure email addresses do not contain non-ASCII characters
-    sender_addr = sender_addr.encode('ascii')
-    recipient_addr = recipient_addr.encode('ascii')
-
-    # Create the message ('plain' stands for Content-Type: text/plain)
-    msg = MIMEText(body.encode(body_charset), 'plain', body_charset)
-    msg['From'] = formataddr((sender_name, sender_addr))
-    msg['To'] = formataddr((recipient_name, recipient_addr))
-    msg['Subject'] = Header(unicode(subject), header_charset)
-
-    # Send the message via SMTP to localhost:25
-    smtp = SMTP("127.0.0.1")
-    smtp.ehlo()
-    smtp.sendmail('suporte@bitex.com.br', recipient, msg.as_string())
-    smtp.quit()
+import json
+import zmq
 
 
 def main():
+  input_log_file_handler = logging.handlers.TimedRotatingFileHandler( options.mailer_log, when='MIDNIGHT')
+  formatter = logging.Formatter('%(asctime)s - %(message)s')
+  input_log_file_handler.setFormatter(formatter)
+
+  mail_logger = logging.getLogger("REPLAY")
+  mail_logger.setLevel(logging.INFO)
+  mail_logger.addHandler(input_log_file_handler)
+  mail_logger.info('START')
+
+  def log(command, key, value=None):
+    log_msg = command + ',' + key
+    if value:
+      log_msg += ',' + str(value)
+    mail_logger.info(  log_msg )
+
+
+  log('PARAM','BEGIN')
+  log('PARAM','trade_pub'              ,options.trade_pub)
+  log('PARAM','template_dir'           ,options.template_dir)
+  log('PARAM','mailer_log'             ,options.mailer_log)
+  log('PARAM','END')
+  
+
+  template_loader = template.Loader(options.template_dir)
+
+  context = zmq.Context()
+  socket = context.socket(zmq.SUB)
+  socket.connect(options.trade_pub)
+  socket.setsockopt(zmq.SUBSCRIBE, "EMAIL" )
+
   while  True:
     try:
-      ws = BitExThreadedClient('wss://test.bitex.com.br:8449/trade')
-      def on_login(sender, msg):
-        ws.sendMsg( {'MsgType':'S0', 'EmailReqID':'0' } )
+      raw_email_message = socket.recv()
 
+      msg = json.loads(raw_email_message)
 
-      def on_message(sender, msg):
-        if msg['MsgType'] == 'C':
-          try:
-            sender = u'BitEx Suporte <suporte@bitex.com.br>'
-            send_email (sender, msg['To'], msg['Subject'], msg['Body'] )
-          except Exception as ex:
-            print "Error: unable to send email to " + str(msg['To']) + ' - ' + str(ex) 
-            
-        else:
-          print 'received ' , msg
-          print ''
+      log('IN', 'TRADE_IN_PUB',  raw_email_message)
 
+      try:
+        sender = u'BitEx Suporte <suporte@bitex.com.br>'
+        body = ""
+        msg_to = msg['To']
+        subject = msg['Subject']
+        content_type = 'plain'
 
-      ws.signal_logged.connect(on_login)
-      ws.signal_recv.connect(on_message)
+        if 'Template' in msg and msg['Template']:
+          template_name = msg['Template']
+          if template_name[-4:] == 'html':
+            content_type = 'html'
 
-      ws.connect()
+          t_loader = template_loader.load( template_name )
 
-      # TODO: get the user and password from a configuration file
-      ws.login('mailer','abc123$%')
+          params = {}
+          if 'Params' in msg and msg['Params']:
+            params = json.loads(msg['Params'])
 
-      ws.run_forever()
+          body = t_loader.generate( **params).decode('utf-8')
+        elif 'Body' in msg and msg['Body']:
+          body = msg['Body']
+
+        send_email (sender, msg_to, subject, body, content_type )
+
+        log('INFO', 'SUCCESS', msg['EmailId'])
+
+      except Exception as ex:
+        log('ERROR', 'EXCEPTION',  str(ex)  )
+        time.sleep(1)
 
     except KeyboardInterrupt:
-      print 'Exiting'
-      ws.close()
+      mail_logger.info('END')
       break
 
-    except Exception, e:
-      print 'Error ', e
-      print 'reconnecting in 1 sec'
+    except Exception as ex:
       time.sleep(1)
+
 
 
 if __name__ == '__main__':
   main()
-  #sender = u'BitEx Suporte <suporte@bitex.com.br>'
-  #send_email (sender, 'clebsonbr@yahoo.com', 'Checking server i6', '\r\nyour offer was execued\r\ncheers,\r\nBitex Admin' )
-  #send_email (sender, 'clebaum@hotmail.com', 'Checking server 5x', 'yo, your offer was execued\r\ncheers,\r\nBitex Admin' )
 

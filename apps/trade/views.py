@@ -211,8 +211,9 @@ def processBRLWithdrawRequest(session, msg):
 
 def processRequestPasswordRequest(session, msg):
   user  = User.get_user( application.db_session, email = msg.get('Email') )
-  user.request_reset_password( application.db_session )
-  application.db_session.commit()
+  if user:
+    user.request_reset_password( application.db_session )
+    application.db_session.commit()
 
 def processPasswordRequest(session, msg):
   if UserPasswordReset.change_user_password( application.db_session, msg.get('Token'), msg.get('NewPassword') ):

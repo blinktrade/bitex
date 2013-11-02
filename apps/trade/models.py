@@ -425,14 +425,11 @@ class UserPasswordReset(Base):
     session.add(req)
     session.flush()
 
-
-    subject = u"Redefina a sua senha."
-    body = u"Entre com o seguinte código de segurança para resetar a sua senha: %s" % token
-
     UserEmail.create( session = session,
                       user_id = user_id,
-                      subject = subject,
-                      body = body )
+                      subject = u"Redefina a sua senha.",
+                      template= "password_reset_ptBR.txt",
+                      params= '{"token":"' + token + '"}')
 
 
 class UserEmail(Base):
@@ -442,10 +439,12 @@ class UserEmail(Base):
   user            = relationship("User",  backref=backref('user_email', order_by=id))
   subject         = Column(String,        nullable=False)
   body            = Column(String,        nullable=True)
+  template        = Column(String,        nullable=True)
+  params          = Column(String,        nullable=True)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
   @staticmethod
-  def create( session, user_id, subject, body = None ):
+  def create( session, user_id, subject, template=None, params=None, body = None ):
     user_email = UserEmail( user_id = user_id,
                             subject = subject,
                             body    = body)
@@ -454,16 +453,27 @@ class UserEmail(Base):
 
     msg = {
       'MsgType' : 'C',
+      'EmailId': user_email.id,
       'OrigTime': user_email.created,
       'To': user_email.user.email,
       'Subject' : subject,
-      'Body': ''
+      'Body': '',
+      'Template':'',
+      'Params':'{}'
     }
 
     if body:
       msg['Body'] = body
 
+    if template:
+      msg['Template'] = template
+
+    if params:
+      msg['Params'] = params
+
     application.publish( user_id, msg )
+
+    application.publish( 'EMAIL' , msg )
 
     return  user_email
 

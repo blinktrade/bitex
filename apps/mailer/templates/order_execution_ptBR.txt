@@ -1,0 +1,12 @@
+Olá {{name}}
+
+Houve nova atividade em sua conta Bitex.
+
+Detalhes:
+
+Número da Ordem: {{order_id}}
+Número da execução: {{trade_id}}
+Ordem Executada em: {{executed_when}} (UTC)
+Quantidade: {{qty}}
+Preço: {{price}}
+Total: {{total}}

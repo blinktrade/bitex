@@ -221,6 +221,9 @@ class OrderMatcher(object):
         execution_reports.append( ( order.user_id, rpt_order.toJson() )  )
 
         def generate_email_subject_and_body( order, trade ):
+          from json import  dumps
+          from bitex.json_encoder import  JsonEncoder
+
           formatted_btc = u'฿  {:,.8f}'.format(order.order_qty / 1.e8)
           formatted_btc = formatted_btc.replace(',', '#')
           formatted_btc = formatted_btc.replace('.', ',')
@@ -237,33 +240,34 @@ class OrderMatcher(object):
           formatted_total_price = formatted_total_price.replace('#', '.')
 
           email_subject =  u"Sua oferta número #%s de %s à %s foi executada!" % (order.id, formatted_btc, formatted_brl)
-          email_body = u"""Olá %s
+          email_template = "order_execution_ptBR.txt"
+          email_params = {
+            'name': order.user.username,
+            'order_id': order.id,
+            'trade_id': trade.id,
+            'executed_when': trade.created,
+            'qty': formatted_btc,
+            'price': formatted_brl,
+            'total': formatted_total_price
+          }
+          return  email_subject, email_template, dumps(email_params, cls=JsonEncoder)
 
-Houve nova atividade em sua conta Bitex.
-
-Detalhes:
-
-Número da Ordem: %d
-Número da execução: %s
-Ordem Executada em: %s (UTC)
-Quantidade: %s
-Preço: %s
-Total %s"""% ( order.user.username,  order.id, trade.id, trade.created, formatted_btc, formatted_brl, formatted_total_price  )
-          return  email_subject, email_body
-
+        email_data = generate_email_subject_and_body(order, trade)
         UserEmail.create( session = session,
                           user_id = order.user_id,
-                          subject = generate_email_subject_and_body(order, trade)[0],
-                          body    = generate_email_subject_and_body(order, trade)[1] )
-
+                          subject = email_data[0],
+                          template= email_data[1],
+                          params  = email_data[2])
         rpt_counter_order = ExecutionReport( counter_order, execution_side )
         execution_reports.append( ( counter_order.user_id, rpt_counter_order.toJson() )  )
 
+
+        email_data = generate_email_subject_and_body(counter_order, trade)
         UserEmail.create( session = session,
                           user_id = counter_order.user_id,
-                          subject = generate_email_subject_and_body(counter_order, trade)[0],
-                          body    = generate_email_subject_and_body(counter_order, trade)[1] )
-
+                          subject = email_data[0],
+                          template= email_data[1],
+                          params  = email_data[2])
         execution_reports.append( ( counter_order.user_id, rpt_counter_order.toJson() )  )
 
 
