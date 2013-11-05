@@ -47,13 +47,16 @@ class BoletoHandler(tornado.web.RequestHandler):
     from   json import loads
     boleto = loads(raw_resp_message)
 
-    if boleto['data_documento']:
+    if boleto['MsgType'] != 'U23':
+      raise tornado.httpclient.HTTPError( 404 )
+
+    if 'data_documento' in boleto and  boleto['data_documento']:
       boleto['data_documento'] = datetime.datetime.strptime( boleto['data_documento'] , "%Y-%m-%d").date()
 
-    if boleto['data_vencimento']:
+    if 'data_vencimento' in boleto and boleto['data_vencimento']:
       boleto['data_vencimento'] = datetime.datetime.strptime( boleto['data_vencimento'] , "%Y-%m-%d").date()
 
-    if boleto['data_processamento']:
+    if 'data_processamento' in boleto and boleto['data_processamento']:
       boleto['data_processamento'] = datetime.datetime.strptime( boleto['data_processamento'] , "%Y-%m-%d").date()
 
     if boleto:

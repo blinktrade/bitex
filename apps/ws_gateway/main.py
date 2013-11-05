@@ -56,7 +56,7 @@ define("trade_pub", default="tcp://127.0.0.1:5756", help="trade zmq publish queu
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"))
 tornado.options.parse_command_line()
 
-
+from account_verification import AccountVerificationHandler
 from boleto_hander import BoletoHandler
 
 class OrderManager(object):
@@ -185,6 +185,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
     handlers = [
       (r'/', WebSocketHandler),
       (r'/print_boleto(.*)', BoletoHandler),
+      (r'/account_verification/.*', AccountVerificationHandler),
     ]
     settings = dict(
       cookie_secret='cookie_secret'
