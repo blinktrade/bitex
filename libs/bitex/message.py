@@ -43,7 +43,7 @@ class JsonMessage(BaseMessage):
     #validate Type
     if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9',
                          'BF', 'U1', 'U3', 'U5', 'U7',
-                         'U10', 'U12', 'U13', 'U14', 'U16', 'U18',
+                         'U10', 'U12', 'U13', 'U14', 'U16', 'U18', 'U20', 'U22',
                          'S0',  'DEPOSIT', 'BTC_DEPOSIT', 'BITCOIN_NEW_ADDRESS',
                          'ADMIN_SELECT', 'BOLETO_PAYMENT'):
       self.valid = False
@@ -125,6 +125,17 @@ class JsonMessage(BaseMessage):
       if not self.valid:
         return
 
+    elif self.type == 'U20': # Request Boleto Options
+      self.valid = self.valid and  'BoletoOptionReqId' in self.message
+
+      if not self.valid:
+        return
+
+    elif self.type == 'U22': # Request Boleto
+      self.valid = self.valid and  'BoletoId' in self.message
+
+      if not self.valid:
+        return
 
     elif self.type == 'D':  #New Order Single
       self.valid = self.valid and  'ClOrdID' in self.message

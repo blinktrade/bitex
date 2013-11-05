@@ -18,7 +18,7 @@ from tornado.options import define, options
 import tornado
 
 
-define("trade_pub", default="tcp://127.0.0.1:5556", help="zmq publisher queue")
+define("trade_pub", default="tcp://127.0.0.1:5756", help="zmq publisher queue")
 define("template_dir", default=DEFAULT_TEMPLATE_PATH, help="email template path")
 define("mailer_log", default=os.path.join(ROOT_PATH, "logs/", "mailer.log"), help="logging" )
 

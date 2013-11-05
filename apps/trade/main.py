@@ -8,8 +8,8 @@ sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
 from tornado.options import define
 import tornado
 
-define("trade_in", default="tcp://127.0.0.1:5555", help="zmq input queue")
-define("trade_pub", default="tcp://127.0.0.1:5556", help="zmq publisher queue")
+define("trade_in", default="tcp://127.0.0.1:5755", help="zmq input queue")
+define("trade_pub", default="tcp://127.0.0.1:5756", help="zmq publisher queue")
 define("trade_log", default=os.path.join(ROOT_PATH, "logs/", "trade.log"), help="logging" )
 define("session_timeout_limit", default=300, help="Session timeout")
 define("db_echo", default=False, help="Prints every database command on the stdout" )

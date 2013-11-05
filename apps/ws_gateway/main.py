@@ -50,11 +50,14 @@ define("port", default=8443, help="port" )
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
 
-define("trade_in",  default="tcp://127.0.0.1:5555", help="trade zmq queue" )
-define("trade_pub", default="tcp://127.0.0.1:5556", help="trade zmq publish queue" )
+define("trade_in",  default="tcp://127.0.0.1:5755", help="trade zmq queue" )
+define("trade_pub", default="tcp://127.0.0.1:5756", help="trade zmq publish queue" )
 
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"))
 tornado.options.parse_command_line()
+
+
+from boleto_hander import BoletoHandler
 
 class OrderManager(object):
   pass
@@ -162,7 +165,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.md_subscriptions[req_id] = []
 
     for instrument in  instruments:
-      md = generate_md_full_refresh( instrument, market_depth, entries )
+      md = generate_md_full_refresh( instrument, self.application.application_connection_id, market_depth, entries )
       self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
 
       if int(msg.get('SubscriptionRequestType')) == 1: # Snapshot + Updates
@@ -180,19 +183,25 @@ class WebSocketHandler(websocket.WebSocketHandler):
 class WebSocketGatewayApplication(tornado.web.Application):
   def __init__(self, opt):
     handlers = [
-      (r'/', WebSocketHandler)
+      (r'/', WebSocketHandler),
+      (r'/print_boleto(.*)', BoletoHandler),
     ]
     settings = dict(
       cookie_secret='cookie_secret'
     )
     tornado.web.Application.__init__(self, handlers, **settings)
 
+
     self.zmq_context = zmq.Context()
 
     self.trade_in_socket = self.zmq_context.socket(zmq.REQ)
     self.trade_in_socket.connect(opt.trade_in)
 
-    self.md_subscriber =  MarketDataSubscriber.get( "BTCBRL")
+    self.application_connection_id = base64.b32encode(os.urandom(10))
+    self.trade_in_socket.send( "OPN," + self.application_connection_id)
+    dummy_response = self.trade_in_socket.recv()
+
+    self.md_subscriber =  MarketDataSubscriber.get( "BTCBRL", self.application_connection_id)
     self.md_subscriber.subscribe( self.zmq_context, options.trade_pub, self.trade_in_socket )
 
     self.connections = {}
@@ -210,12 +219,24 @@ class WebSocketGatewayApplication(tornado.web.Application):
       return  True
     return False
 
+  def clean_up(self):
+    self.trade_in_socket.send( "CLS," + self.application_connection_id)
+    dummy_response = self.trade_in_socket.recv()
+    self.application_connection_id = None
+
+    for client_connection_id in self.connections:
+      self.trade_in_socket.send( "CLS," + client_connection_id )
+      dummy_response = self.trade_in_socket.recv()
+    self.connections = []
+
+
 def main():
   print 'port', options.port
   print 'certfile', options.certfile
   print 'keyfile', options.keyfile
   print 'trade_in', options.trade_in
   print 'trade_pub', options.trade_pub
+
 
   from zmq.eventloop import ioloop
   ioloop.install()
@@ -230,8 +251,11 @@ def main():
   server = tornado.httpserver.HTTPServer(application,ssl_options=ssl_options)
   server.listen(options.port)
 
-  tornado.ioloop.IOLoop.instance().start()
-
+  try:
+    tornado.ioloop.IOLoop.instance().start()
+  except KeyboardInterrupt:
+    application.clean_up()
+    print 'END'
 
 if __name__ == "__main__":
   main()

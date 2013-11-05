@@ -51,6 +51,7 @@ bitex.api.BitEx.EventType = {
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
 
+  BOLETO_OPTIONS_RESPONSE:'boleto_options_response',
   GENERATE_BOLETO_RESPONSE : 'generate_boleto_response',
 
   TWO_FACTOR_SECRET: 'two_factor_secret',
@@ -190,6 +191,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U17': // Enable Two Factor Secret Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TWO_FACTOR_SECRET, msg ) );
+      break;
+
+    case 'U21': // Request Boleto Options Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BOLETO_OPTIONS_RESPONSE, msg ) );
       break;
 
     case 'W':
@@ -449,6 +454,20 @@ bitex.api.BitEx.prototype.generateBoleto = function( boletoId, value ) {
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * Request Boleto Options
+ * @param {number=} opt_requestId. Defaults to random generated number
+ */
+bitex.api.BitEx.prototype.requestBoletoOptions = function( opt_requestId ) {
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var msg = {
+    'MsgType': 'U20',
+    'BoletoOptionReqId': requestId
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
 
 /**
  *

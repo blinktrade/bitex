@@ -16,13 +16,14 @@ signal_publish_md_order_depth_incremental = Signal()
 
 
 class MarketDataSubscriber(object):
-  def __init__(self,  symbol):
+  def __init__(self,  symbol, application_connection_id):
     self.symbol = symbol
     self.buy_side = []
     self.sell_side = []
     self.bid = 0
     self.ask = 0
     self.trade_list = []
+    self.subscription_connection_id = application_connection_id
 
   def subscribe(self, zmq_context,trade_pub_connection_string, trade_in_socket ):
     self.md_pub_socket = zmq_context.socket(zmq.SUB)
@@ -35,7 +36,6 @@ class MarketDataSubscriber(object):
     self.md_pub_socket_stream = ZMQStream(self.md_pub_socket)
     self.md_pub_socket_stream.on_recv(self.on_md_publish)
 
-    self.subscription_connection_id = base64.b32encode(os.urandom(10))
     md_subscription_msg = {
       'MsgType': 'V',
       'MDReqID': '0',  # not important.
@@ -50,10 +50,10 @@ class MarketDataSubscriber(object):
     return trade_in_socket.recv()
 
   @staticmethod
-  def get(symbol):
+  def get(symbol, session_id):
     global market_data_subscriber_dict
     if symbol not in market_data_subscriber_dict:
-      market_data_subscriber_dict[symbol] = MarketDataSubscriber(symbol)
+      market_data_subscriber_dict[symbol] = MarketDataSubscriber(symbol, session_id)
     return  market_data_subscriber_dict[symbol]
 
   def on_md_publish(self, publish_msg):
@@ -248,9 +248,9 @@ class MarketDataPublisher(object):
     self.entry_list_order_depth = []
 
 
-def generate_md_full_refresh( symbol, market_depth, entries  ):
+def generate_md_full_refresh( symbol, session_id, market_depth, entries  ):
   entry_list = []
-  om = MarketDataSubscriber.get(symbol)
+  om = MarketDataSubscriber.get(symbol, session_id)
 
   for entry_type in entries:
     if entry_type == '0' or entry_type == '1':

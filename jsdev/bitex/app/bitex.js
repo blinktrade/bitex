@@ -20,6 +20,7 @@ goog.require('bitex.ui.AccountActivity');
 goog.require('goog.events');
 goog.require('goog.dom.forms');
 goog.require('goog.dom.classes');
+goog.require('goog.dom.TagName');
 
 goog.require('goog.ui.Button');
 
@@ -227,6 +228,9 @@ bitex.app.bitex = function( url ) {
 
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
+
+    // Request Boleto Options
+    bitEx.requestBoletoOptions();
 
     // set view to Trading
     router.setView('trading');
@@ -691,24 +695,50 @@ bitex.app.bitex = function( url ) {
 
   });
 
-  var boleto_buttons = goog.dom.getElementsByClass('btn-boleto');
+  var boleto_buttons = goog.dom.getElementsByClass('boleto-options-group');
   goog.array.forEach( boleto_buttons, function( boleto_button ) {
     goog.events.listen( boleto_button, 'click', function(e) {
       e.stopPropagation();
       e.preventDefault();
+
       var element = e.target;
 
       var value = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_value") );
       var boleto_id = element.getAttribute('data-boleto-id');
 
-      if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
-        alert('Por favor, preencha o valor do boleto a ser gerado');
-        return;
-      }
+      if (goog.isDefAndNotNull(boleto_id)) {
+        if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
+          alert('Por favor, preencha o valor do boleto a ser gerado');
+          return;
+        }
 
-      bitEx.generateBoleto(boleto_id,value);
+        bitEx.generateBoleto(boleto_id,value);
+      }
+    });
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.BOLETO_OPTIONS_RESPONSE, function(e) {
+    var msg = e.data;
+
+    //boleto-options-group
+    var boleto_options_group_elements = goog.dom.getElementsByClass('boleto-options-group');
+    goog.array.forEach( boleto_options_group_elements, function( boleto_options_group_element ) {
+      goog.dom.removeChildren(boleto_options_group_element);
+      goog.array.forEach( msg['BoletoOptionGrp'], function(boleto_option) {
+        var boleto_id = boleto_option['BoletoId'];
+        var description = boleto_option['Description'];
+
+        var boleto_btn_attributes = {
+          "data-boleto-id": boleto_id,
+          "class" : "btn btn-primary btn-boleto"
+        };
+        var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, boleto_btn_attributes, description  );
+
+        goog.dom.appendChild(boleto_options_group_element, buttonElement);
+      });
 
     });
+
   });
 
   bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, function(e) {

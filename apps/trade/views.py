@@ -248,6 +248,72 @@ def processEnableDisableTwoFactorAuth(session, msg):
               'TwoFactorSecret' : two_factor_secret }
   return json.dumps(response, cls=JsonEncoder)
 
+
+@login_required
+def processRequestBoletoOptions(session, msg):
+  boleto_options = application.db_session.query(BoletoOptions)
+
+  boleto_options_group = []
+
+  for boleto_option in boleto_options:
+    boleto_options_group.append( {
+      'BoletoId': boleto_option.id,
+      'Description': boleto_option.description
+    } )
+
+  response = {
+    'MsgType':'U21',
+    'BoletoOptionReqId': msg.get('BoletoOptionReqId'),
+    'BoletoOptionGrp': boleto_options_group
+  }
+
+  return json.dumps(response, cls=JsonEncoder)
+
+def processRequestBoleto(session, msg):
+  boleto_id = msg.get('BoletoId')
+
+  boleto = application.db_session.query(Boleto).filter_by(id=boleto_id).first()
+  if not boleto:
+    return
+
+  response = {
+    'MsgType'           :'U23',
+    'codigo_banco'      : boleto.codigo_banco        ,
+    'carteira'          : boleto.carteira            ,
+    'aceite'            : boleto.aceite              ,
+    'valor_documento'   : boleto.valor_documento     ,
+    'valor'             : boleto.valor               ,
+    'data_vencimento'   : boleto.data_vencimento     ,
+    'data_documento'    : boleto.data_documento      ,
+    'data_processamento': boleto.data_processamento  ,
+    'numero_documento'  : boleto.numero_documento    ,
+    'agencia_cedente'   : boleto.agencia_cedente     ,
+    'conta_cedente'     : boleto.conta_cedente       ,
+    'cedente'           : boleto.cedente             ,
+    'cedente_documento' : boleto.cedente_documento   ,
+    'cedente_cidade '   : boleto.cedente_cidade      ,
+    'cedente_uf'        : boleto.cedente_uf          ,
+    'cedente_endereco'  : boleto.cedente_endereco    ,
+    'cedente_bairro'    : boleto.cedente_bairro      ,
+    'cedente_cep'       : boleto.cedente_cep         ,
+    'sacado_nome'       : boleto.sacado_nome         ,
+    'sacado_documento'  : boleto.sacado_documento    ,
+    'sacado_cidade'     : boleto.sacado_cidade       ,
+    'sacado_uf'         : boleto.sacado_uf           ,
+    'sacado_endereco'   : boleto.sacado_endereco     ,
+    'sacado_bairro'     : boleto.sacado_bairro       ,
+    'sacado_cep'        : boleto.sacado_cep          ,
+    'quantidade'        : boleto.quantidade          ,
+    'especie_documento' : boleto.especie_documento   ,
+    'especie'           : boleto.especie             ,
+    'moeda'             : boleto.moeda               ,
+    'demonstrativo'     : boleto.demonstrativo       ,
+    'local_pagamento'   : boleto.local_pagamento     ,
+    'instrucoes'        : boleto.instrucoes
+  }
+  return json.dumps(response, cls=JsonEncoder)
+
+
 @login_required
 def processGenerateBoleto(session, msg):
   boleto_option_id = msg.get('BoletoId')

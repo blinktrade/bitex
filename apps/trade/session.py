@@ -56,5 +56,10 @@ class Session(object):
     elif msg.type == 'U18': #Generate Boleto
       return processGenerateBoleto(self, msg)
 
+    elif msg.type == 'U20': # Request Boleto Options
+      return processRequestBoletoOptions(self, msg)
+
+    elif msg.type == 'U22': # Request Boleto
+      return processRequestBoleto(self, msg)
 
     raise InvalidMessageError()
