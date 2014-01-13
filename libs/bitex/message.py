@@ -41,11 +41,11 @@ class JsonMessage(BaseMessage):
 
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'D', 'F', 'U0', 'U2', 'U4', 'U6', 'U8', 'U9',
-                         'BF', 'U1', 'U3', 'U5', 'U7',
-                         'U10', 'U12', 'U13', 'U14', 'U16', 'U18', 'U20', 'U22',
-                         'S0',  'DEPOSIT', 'BTC_DEPOSIT', 'BITCOIN_NEW_ADDRESS',
-                         'ADMIN_SELECT', 'BOLETO_PAYMENT'):
+    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'BF', 'D', 'F',
+                         'U0', 'U2', 'U4', 'U6', 'U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'U20', 'U22',
+                         'U1', 'U3', 'U5', 'U7', 'U9', 'U11', 'U13', 'U15', 'U17', 'U19', 'U21', 'U23',
+                         'S0', 'S1', 'S2', 'S3',
+                         'A0', 'A1'):
       self.valid = False
       return
 
@@ -196,13 +196,8 @@ class JsonMessage(BaseMessage):
 
         #TODO: Validate all fields of Request For BTC Withdraw  Message
 
-    elif self.type == 'S0': # Subscribe to emails
-      self.valid = self.valid and  'EmailReqID' in self.message
 
-      if not self.valid:
-        return
-
-    elif self.type == 'BITCOIN_NEW_ADDRESS':
+    elif self.type == 'S0': # Bitcoin New Adress
       self.valid = self.valid and  'BtcAddress' in self.message
       if not self.valid:
         return
