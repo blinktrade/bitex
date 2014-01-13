@@ -1,51 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>The page you were looking for doesn't exist (404)</title>
+  <title>A página que você está procurando não existe (404)</title>
+  <meta charset="utf-8">
+
+  <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+  <link href="./css/style.css?v4" rel="stylesheet">
   <style type="text/css">
-
-*{
-	margin:0;
-	padding:0;
-}
-
-body{
-	background: #1d1d1d;
-	color:#eee;
-	font-family:Corbel,Arial,Helvetica,sans-serif;
-	font-size:13px;
-}
-
-	hgroup{
-			/* Using the HTML4 hgroup element */
-
-			display:block;
-			margin:0 auto;
-			width:850px;
-			font-family:'Century Gothic',Calibri,'Myriad Pro',Arial,Helvetica,sans-serif;
-			text-align:center;
-	}
-
-h1{
-	color:#76D7FB;
-	font-size:60px;
-	text-shadow:3px 3px 0 #3D606D;
-	white-space:nowrap;
-}
-
-h2{
-	color:#9FE3FC;
-	font-size:18px;
-	font-weight:normal;
-	padding:25px 0;
-}
+    .center {
+      text-align: center; 
+      margin-left: auto; 
+      margin-right: auto; 
+      margin-bottom: auto; 
+      margin-top: auto;
+    }
   </style>
 </head>
-<body>
-  <!-- This file lives in public/404.html -->
-	<hgroup>
-	    <h1>Página não encontrada</h1>
-	    <h2>Nós não conseguimos encontrar o que você estava procurando.</h2>
-	</hgroup>
-</body>
+
+  <body>
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="brand" href="/start" >BitEx</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="clearfix" style="padding: 30px;"></div>
+
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <div class="hero-unit center">
+            <h1>A página não existe! <small><font face="Tahoma" color="red">Erro 404</font></small></h1>
+            <br />
+            <p>A página que você procura não existe em nosso servidor. Isso pode ser um erro de digitação, ou um erro em nosso servidor. Aperte o botão <b>Voltar</b> do seu browser para voltar a página anterior</p>
+            <p><b>Ou vá para a nossa página inicial:</b></p>
+            <a href="/start" class="btn btn-large btn-primary"><i class="icon-home icon-white"></i> Bitex</a>
+          </div>
+          <br />
+          <p></p>
+        </div>
+      </div>
+    </div>
+  </body>
+
 </html>
