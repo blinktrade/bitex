@@ -144,17 +144,10 @@ def main():
   print config.bitcoind_port
   print config.bitcoind_key
   print ""
+  print config.trade_in_connection_string
+  print config.trade_user
+  print config.trade_pwd
 
-  print config.om_host
-  print config.om_port
-  print config.om_user
-
-  bitcoiner = Bitcoiner( config )
-
-  if args.number_of_new_address  > 0:
-    bitcoiner.create_N_address(args.number_of_new_address )
-  else:
-    bitcoiner.run()
 
 if __name__ == '__main__':
   main()
