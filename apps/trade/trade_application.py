@@ -83,7 +83,7 @@ class TradeApplication(object):
     self.publish_queue.append([ key, data ])
 
   def run(self):
-    from bitex.message import JsonMessage
+    from bitex.message import JsonMessage, InvalidMessageException
     from market_data_publisher import MarketDataPublisher
     from execution import OrderMatcher
     from models import Order
@@ -102,21 +102,22 @@ class TradeApplication(object):
       try:
         msg = None
         if json_raw_message:
-          msg = JsonMessage(json_raw_message)
-          if not msg.is_valid():
+          try:
+            msg = JsonMessage(json_raw_message)
+          except InvalidMessageException, e:
             self.log('IN', 'TRADE_IN_REQ',  raw_message)
             raise InvalidMessageError()
-          else:
-            # never write passwords in the log file
-            if msg.has('Password'):
-              raw_message = raw_message.replace(msg.get('Password'), '*')
-            if msg.has('NewPassword'):
-              raw_message = raw_message.replace(msg.get('NewPassword'), '*')
+
+          # never write passwords in the log file
+          if msg.has('Password'):
+            raw_message = raw_message.replace(msg.get('Password'), '*')
+          if msg.has('NewPassword'):
+            raw_message = raw_message.replace(msg.get('NewPassword'), '*')
 
         self.log('IN', 'TRADE_IN_REQ' ,raw_message )
 
         if msg:
-          if msg.type == 'V': # Market Data Request
+          if msg.isMarketDataRequest(): # Market Data Request
             market_depth = msg.get('MarketDepth')
             instruments = msg.get('Instruments')
             entries = msg.get('MDEntryTypes')

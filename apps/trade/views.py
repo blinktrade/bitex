@@ -11,7 +11,7 @@ from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, Bole
 
 from execution import OrderMatcher
 
-from decorators import login_required
+from decorators import *
 
 from trade_application import application
 
@@ -64,8 +64,6 @@ def processLogin(session, msg):
   }
   return json.dumps(login_response, cls=JsonEncoder)
 
-
-
 @login_required
 def processNewOrderSingle(session, msg):
   # process the new order.
@@ -88,7 +86,6 @@ def processNewOrderSingle(session, msg):
   application.db_session.commit()
 
   return ""
-
 
 @login_required
 def processCancelOrderRequest(session, msg):
@@ -200,15 +197,6 @@ def processRequestForOpenOrders(session, msg):
   }
   return json.dumps(open_orders_response_msg, cls=JsonEncoder)
 
-
-@login_required
-def processBTCWithdrawRequest(session, msg):
-  pass
-
-@login_required
-def processBRLWithdrawRequest(session, msg):
-  pass
-
 def processRequestPasswordRequest(session, msg):
   user  = User.get_user( application.db_session, email = msg.get('Email') )
   if user:
@@ -247,7 +235,6 @@ def processEnableDisableTwoFactorAuth(session, msg):
               'TwoFactorEnabled': session.user.two_factor_enabled,
               'TwoFactorSecret' : two_factor_secret }
   return json.dumps(response, cls=JsonEncoder)
-
 
 @login_required
 def processRequestBoletoOptions(session, msg):
@@ -313,7 +300,6 @@ def processRequestBoleto(session, msg):
   }
   return json.dumps(response, cls=JsonEncoder)
 
-
 @login_required
 def processGenerateBoleto(session, msg):
   boleto_option_id = msg.get('BoletoId')
@@ -329,3 +315,77 @@ def processGenerateBoleto(session, msg):
 
   response = {'MsgType':'U19', 'BoletoId': boleto.id }
   return json.dumps(response, cls=JsonEncoder)
+
+@login_required
+def processBTCWithdrawRequest(session, msg):
+  pass
+
+@login_required
+def processBRLWithdrawRequest(session, msg):
+  pass
+
+@login_required
+@staff_user_required
+def processRequestDatabaseQuery(session, msg):
+  page_size   = msg.get('PageSize', 100)
+  columns     = msg.get('Columns', [])
+  table       = msg.get('Table', '')
+  sort_column = msg.get('Sort', '')
+  sort_order  = msg.get('SortOrder', 'ASC')
+  offset    = page * page_size
+
+  # TODO: Check all parameters to avoid an sql injection :(
+
+  # This is definitively not secure, but this code will only run with inside a system account.
+  raw_sql = 'SELECT '
+  raw_sql += ','.join(columns)
+  raw_sql += ' FROM ' + table
+
+  if sort_column:
+    raw_sql += ' ORDER BY ' + sort_column + ' ' + sort_order
+
+  raw_sql += ' LIMIT ' + str(page_size)
+  raw_sql += ' OFFSET ' + str(offset)
+
+
+  result_set = application.db_session.execute(raw_sql)
+  result = {
+    'MsgType' : 'A1',
+    'Page': page,
+    'PageSize': page_size,
+    'Table': table,
+    'Columns': columns,
+    'ResultSet': [ [ l for l in res ] for res in  result_set ]
+  }
+  return json.dumps(result, cls=JsonEncoder)
+
+
+@login_required
+@system_user_required
+def processBitcoinNewAddress(session, msg):
+  bitcoin_address = application.db_session.query(BitcoinAddress).filter_by(bitcoin_address=msg.get('BtcAddress')).first()
+  if bitcoin_address:
+    return ""
+
+  bitcoin_address = BitcoinAddress( bitcoin_address=msg.get('BtcAddress') )
+  self.application.session.add(bitcoin_address)
+  self.application.session.commit()
+
+  result = {
+    'MsgType'   : 'S1',
+    'BtcAddress' : msg.get('BtcAddress')
+  }
+
+  return json.dumps(result, cls=JsonEncoder)
+
+@login_required
+@system_user_required
+def processGetNumberOfFreeBitcoinNewAddress(session, msg):
+  number_of_free_bitcoins = application.db_session.query(BitcoinAddress).filter_by(user_id=None).count()
+
+  result = {
+    'MsgType'   : 'S3',
+    'NOfBtcAddress' : number_of_free_bitcoins
+  }
+
+  return json.dumps(result, cls=JsonEncoder)

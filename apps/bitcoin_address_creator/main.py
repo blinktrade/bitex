@@ -91,7 +91,7 @@ class Bitcoiner:
       except EOFError:
         print 'error reading'
     except IOError:
-        pass
+      pass
 
   def save_file(self):
     output = open('data.pkl', 'wb')
@@ -114,12 +114,79 @@ class Bitcoiner:
 
     tornado.ioloop.IOLoop.instance().add_timeout(timedelta(seconds=1), self.check_positions)
 
+from bitex.json_encoder import  JsonEncoder
+from json import dumps, loads
+import base64
+
+import zmq
+
+class BitexApi(object):
+  def __init__(self, request_socket):
+    self.request_socket = request_socket
+    self.connection_id = None
+
+  def open_session(self):
+    if self.connection_id is not None:
+      raise RuntimeError()
+
+    self.connection_id = base64.b32encode(os.urandom(10))
+    self.request_socket.send( "OPN," + self.connection_id)
+    dummy_response = self.request_socket.recv()
+
+  def close_session(self):
+    if self.connection_id is None:
+      raise RuntimeError()
+    self.request_socket.send( "CLS," + self.connection_id)
+    dummy_response = self.request_socket.recv()
+
+  def request(self, msg):
+    self.request_socket.send_unicode( 'REQ,' + self.connection_id + ',' +  dumps( msg, cls=JsonEncoder ) )
+    response_message = self.request_socket.recv()
+    raw_resp_message_header = response_message[:3]
+    raw_resp_message        = response_message[4:].strip()
+
+    if raw_resp_message_header != 'REP':
+      if raw_resp_message:
+        return loads(raw_resp_message)
+      return {}
+
+    if raw_resp_message:
+      return loads(raw_resp_message)
+
+    return {}
+
+  def login(self, username, password):
+    if self.connection_id is None:
+      raise RuntimeError()
+
+    # send Login Message
+    loginMsg = {
+      'UserReqID': 'initial',
+      'MsgType' : 'BE',
+      'Username': username,
+      'Password': password,
+      'UserReqTyp': '1'
+    }
+    return self.request(loginMsg)
+
+
+  def testRequest(self):
+    return self.request({'MsgType': '1', 'TestReqID':'1'})
+
+
+class BitexAdminApi(BitexApi):
+  def getNumberOfBitcoinAdresses(self):
+    res = self.request({'MsgType': 'S2'})
+    return res['NOfBtcAddress']
+
+
+
 def main():
   import argparse
   parser = argparse.ArgumentParser(description='bitcoiner parameters')
 
   parser.add_argument("--file", dest="config_filename", default=os.path.join(ROOT_PATH, "config/", "bitcoin.conf"),
-                    help="configuration file", metavar="f")
+                      help="configuration file", metavar="f")
 
   parser.add_argument("--new_address", dest="number_of_new_address", type=int, default=0, help="Number of address to create" )
 
@@ -148,6 +215,42 @@ def main():
   print config.trade_user
   print config.trade_pwd
 
+
+  zmq_context = zmq.Context()
+  trade_in_socket = zmq_context.socket(zmq.REQ)
+  trade_in_socket.connect( config.trade_in_connection_string )
+
+  trade_admin_api = BitexAdminApi(trade_in_socket)
+  trade_admin_api.open_session()
+  trade_admin_api.login(config.trade_user, config.trade_pwd )
+
+
+  #bitcoind_connection = self.connect_bitcoind()
+  while  True:
+    try:
+      # check if trade is running out of bitcoin addresses
+      print trade_admin_api.getNumberOfBitcoinAdresses()
+
+
+      # go to bitcoind and create 20 addresses
+
+
+      # register those 20 bitcoin addresses in trade
+
+
+      # sleep another 20 seconds
+      time.sleep(20)
+    except KeyboardInterrupt:
+      print 'Exiting'
+      break
+
+    except Exception, e:
+      print 'Error ', e
+      print 'reconnecting in 1 sec'
+      time.sleep(1)
+
+
+  trade_admin_api.close_session()
 
 if __name__ == '__main__':
   main()

@@ -20,10 +20,9 @@ class GoxConfig(SafeConfigParser):
                 ,["bitcoiner", "bitcoind_host", "127.0.0.1"]
                 ,["bitcoiner", "bitcoind_port", 8332]
                 ,["bitcoiner", "bitcoind_prot", "https"]
-                ,["bitcoiner", "om_host", "127.0.0.1"]
-                ,["bitcoiner", "om_port", 8443]
-                ,["bitcoiner", "om_user", ""]
-                ,["bitcoiner", "om_pwd", ""]
+                ,["bitcoiner", "trade_in_connection_string", "tcp://127.0.0.1:5755"]
+                ,["bitcoiner", "trade_user", ""]
+                ,["bitcoiner", "trade_pwd", ""]
                 ]
 
     def __init__(self, filename):
@@ -111,10 +110,10 @@ class Secret:
         self.bitcoind_host = self.config.get_string("bitcoiner", "bitcoind_host")
         self.bitcoind_port = self.config.get_int("bitcoiner", "bitcoind_port")
         self.bitcoind_protocol = self.config.get_string("bitcoiner", "bitcoind_prot")
-        self.om_host = self.config.get_string("bitcoiner", "om_host")
+        self.trade_in_connection_string = self.config.get_string("bitcoiner", "trade_in_connection_string")
         self.om_port = self.config.get_int("bitcoiner", "om_port")
-        self.om_user = ""
-        self.om_pwd = ""
+        self.trade_user = ""
+        self.trade_pwd = ""
 
         # pylint: disable=C0103
         self.password_from_commandline_option = None
@@ -122,10 +121,10 @@ class Secret:
     def decrypt(self, password):
         """decrypt all protected data from the ini file with the given password."""
 
-        bitcoind_key = self.config.get_string("bitcoiner", "bitcoind_user")
-        bitcoind_sec = self.config.get_string("bitcoiner", "bitcoind_secret")
-        om_user      = self.config.get_string("bitcoiner", "om_user")
-        om_pwd       = self.config.get_string("bitcoiner", "om_pwd")
+        bitcoind_key  = self.config.get_string("bitcoiner", "bitcoind_user")
+        bitcoind_sec  = self.config.get_string("bitcoiner", "bitcoind_secret")
+        trade_user    = self.config.get_string("bitcoiner", "trade_user")
+        trade_pwd     = self.config.get_string("bitcoiner", "trade_pwd")
 
         if bitcoind_sec == "" or bitcoind_key == "":
             return self.S_NO_SECRET
@@ -138,13 +137,13 @@ class Secret:
         try:
             encrypted_bitcoind_key = base64.b64decode(bitcoind_key.strip().encode("ascii"))
             encrypted_bitcoind_secret = base64.b64decode(bitcoind_sec.strip().encode("ascii"))
-            encrypted_om_user = base64.b64decode(om_user.strip().encode("ascii"))
-            encrypted_om_pwd = base64.b64decode(om_pwd.strip().encode("ascii"))
+            encrypted_trade_user = base64.b64decode(trade_user.strip().encode("ascii"))
+            encrypted_trade_pwd = base64.b64decode(trade_pwd.strip().encode("ascii"))
 
             self.bitcoind_key = aes.decrypt(encrypted_bitcoind_key).strip()
             self.bitcoind_secret = aes.decrypt(encrypted_bitcoind_secret).strip()
-            self.om_user = aes.decrypt(encrypted_om_user).strip()
-            self.om_pwd = aes.decrypt(encrypted_om_pwd).strip()
+            self.trade_user = aes.decrypt(encrypted_trade_user).strip()
+            self.trade_pwd = aes.decrypt(encrypted_trade_pwd).strip()
         except ValueError:
             return self.S_FAIL
 
@@ -156,11 +155,11 @@ class Secret:
             dummy = self.bitcoind_secret.decode("ascii")
             self.bitcoind_secret = dummy
 
-            dummy = self.om_user.decode("ascii")
-            self.om_user = dummy
+            dummy = self.trade_user.decode("ascii")
+            self.trade_user = dummy
 
-            dummy = self.om_pwd.decode("ascii")
-            self.om_pwd = dummy
+            dummy = self.trade_pwd.decode("ascii")
+            self.trade_pwd = dummy
 
             return self.S_OK
 
@@ -201,8 +200,8 @@ class Secret:
 
         bitcoind_key =    raw_input("  bitcoind rpc user: ").strip()
         bitcoind_secret = raw_input("bitcoind rpc secret: ").strip()
-        om_user =         raw_input(" order_matcher user: ").strip()
-        om_pwd  =         raw_input("  order_matcher pwd: ").strip()
+        trade_user =         raw_input(" order_matcher user: ").strip()
+        trade_pwd  =         raw_input("  order_matcher pwd: ").strip()
         while True:
             password1 = getpass.getpass("        password: ").strip()
             if password1 == "":
@@ -228,17 +227,17 @@ class Secret:
         bitcoind_secret += " " * (16 - len(bitcoind_secret) % 16)
         bitcoind_secret = base64.b64encode(aes.encrypt(bitcoind_secret)).decode("ascii")
 
-        om_user += " " * (16 - len(om_user) % 16)
-        om_user = base64.b64encode(aes.encrypt(om_user)).decode("ascii")
+        trade_user += " " * (16 - len(trade_user) % 16)
+        trade_user = base64.b64encode(aes.encrypt(trade_user)).decode("ascii")
 
-        om_pwd += " " * (16 - len(om_pwd) % 16)
-        om_pwd = base64.b64encode(aes.encrypt(om_pwd)).decode("ascii")
+        trade_pwd += " " * (16 - len(trade_pwd) % 16)
+        trade_pwd = base64.b64encode(aes.encrypt(trade_pwd)).decode("ascii")
 
 
         self.config.set("bitcoiner", "bitcoind_user",   bitcoind_key)
         self.config.set("bitcoiner", "bitcoind_secret", bitcoind_secret)
-        self.config.set("bitcoiner", "om_user",   om_user)
-        self.config.set("bitcoiner", "om_pwd",    om_pwd)
+        self.config.set("bitcoiner", "trade_user",   trade_user)
+        self.config.set("bitcoiner", "trade_pwd",    trade_pwd)
         self.config.save()
 
         print("encrypted secret has been saved in %s" % self.config.filename)

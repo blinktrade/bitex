@@ -17,6 +17,7 @@ from tornado import template
 from tornado.options import define, options
 import tornado
 
+from bitex.message import JsonMessage
 
 define("trade_pub", default="tcp://127.0.0.1:5756", help="zmq publisher queue")
 define("template_dir", default=DEFAULT_TEMPLATE_PATH, help="email template path")
@@ -64,36 +65,43 @@ def main():
   while  True:
     try:
       raw_email_message = socket.recv()
-
-      msg = json.loads(raw_email_message)
-
       log('IN', 'TRADE_IN_PUB',  raw_email_message)
+
+
+      msg = JsonMessage(raw_email_message)
+
+      if not msg.isEmail():
+        log('ERROR', 'EXCEPTION', 'Received message is not an email message')
+        continue
 
       try:
         sender = u'BitEx Suporte <suporte@bitex.com.br>'
         body = ""
-        msg_to = msg['To']
-        subject = msg['Subject']
+        msg_to = msg.get('To')
+        subject = msg.get('Subject')
         content_type = 'plain'
 
-        if 'Template' in msg and msg['Template']:
-          template_name = msg['Template']
+        if msg.has('Template') and msg.get('Template'):
+          template_name = msg.get('Template')
+
           if template_name[-4:] == 'html':
             content_type = 'html'
 
           t_loader = template_loader.load( template_name )
 
           params = {}
-          if 'Params' in msg and msg['Params']:
-            params = json.loads(msg['Params'])
+          if msg.has('Params') and msg.get('Params'):
+            params = json.loads(msg.get('Params'))
 
-          body = t_loader.generate( **params).decode('utf-8')
-        elif 'Body' in msg and msg['Body']:
-          body = msg['Body']
+          body = t_loader.generate(**params).decode('utf-8')
 
+        elif msg.has('RawData') and msg.get('RawData'):
+          body = msg.get('RawData')
+
+        log('DEBUG', 'EMAIL', '{"Sender":"%s","To":"%s","Subject":"%s"}' % (sender,msg_to,subject) )
         send_email (sender, msg_to, subject, body, content_type )
 
-        log('INFO', 'SUCCESS', msg['EmailId'])
+        log('INFO', 'SUCCESS', msg.get('EmailThreadID'))
 
       except Exception as ex:
         log('ERROR', 'EXCEPTION',  str(ex)  )
@@ -105,8 +113,6 @@ def main():
 
     except Exception as ex:
       time.sleep(1)
-
-
 
 if __name__ == '__main__':
   main()

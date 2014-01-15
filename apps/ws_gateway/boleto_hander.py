@@ -23,10 +23,7 @@ def print_pdf_boleto(boleto, pdf_file):
 class BoletoHandler(tornado.web.RequestHandler):
   def get(self, *args, **kwargs):
 
-
     buffer = StringIO()
-
-
 
     boleto_id = self.get_argument("boleto_id", default="-1", strip=False)
     download = int(self.get_argument("download", default="0", strip=False))
@@ -35,25 +32,23 @@ class BoletoHandler(tornado.web.RequestHandler):
     else:
       raise tornado.httpclient.HTTPError( 404 )
 
-    session_id = self.application.application_connection_id
 
-    self.application.trade_in_socket.send_unicode( "REQ," +  session_id + ', {"MsgType":"U22", "BoletoId":' + str(boleto_id) + '}')
-    response_message = self.application.trade_in_socket.recv()
-    raw_resp_message_header = response_message[:3]
-    raw_resp_message        = response_message[4:].strip()
+    boleto_response_msg = self.application.application_trade_client.sendString(
+      '{"MsgType":"U22", "BoletoId":' + str(boleto_id) + '}' )
 
-    print raw_resp_message
 
-    from   json import loads
-    boleto = loads(raw_resp_message)
+    if not boleto_response_msg.isBoletoResponse():
+      raise tornado.httpclient.HTTPError( 404 )
 
-    if boleto['data_documento']:
+    boleto = boleto_response_msg.message
+
+    if 'data_documento' in boleto and  boleto['data_documento']:
       boleto['data_documento'] = datetime.datetime.strptime( boleto['data_documento'] , "%Y-%m-%d").date()
 
-    if boleto['data_vencimento']:
+    if 'data_vencimento' in boleto and boleto['data_vencimento']:
       boleto['data_vencimento'] = datetime.datetime.strptime( boleto['data_vencimento'] , "%Y-%m-%d").date()
 
-    if boleto['data_processamento']:
+    if 'data_processamento' in boleto and boleto['data_processamento']:
       boleto['data_processamento'] = datetime.datetime.strptime( boleto['data_processamento'] , "%Y-%m-%d").date()
 
     if boleto:

@@ -6,7 +6,6 @@ class Session(object):
   def __init__(self, session_id):
     self.session_id   = session_id
 
-    self.is_logged  = False
     self.user       = None
     self.should_end = False
 
@@ -14,7 +13,6 @@ class Session(object):
     if self.user:
       raise UserAlreadyLogged
     self.user = user
-    self.is_logged = True
 
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest
@@ -61,5 +59,15 @@ class Session(object):
 
     elif msg.type == 'U22': # Request Boleto
       return processRequestBoleto(self, msg)
+
+
+    elif msg.type == 'A0':  # Request Query in Database
+      return processRequestDatabaseQuery(self, msg)
+
+    elif msg.type == 'S0':  # Bitcoin New Address
+      return processBitcoinNewAddress(self, msg)
+
+    elif msg.type == 'S2':  # Get Number of Free Bitcoin New Address
+      return processGetNumberOfFreeBitcoinNewAddress(self, msg)
 
     raise InvalidMessageError()
