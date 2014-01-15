@@ -23,7 +23,6 @@ http {
     }
 
     upstream ws_gateway {
-      ip_hash;
       server   localhost:8443;
       server   localhost:8444;
       server   localhost:8445;
@@ -37,6 +36,7 @@ http {
     server {
         listen       443;
         server_name  localhost;
+        #server_name  bitex.com.br;
 
         ssl                  on;
         ssl_certificate     /Users/rodrigo/bitex/ssl/server.crt;
