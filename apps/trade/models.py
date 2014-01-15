@@ -453,17 +453,20 @@ class UserEmail(Base):
 
     msg = {
       'MsgType' : 'C',
-      'EmailId': user_email.id,
+      'EmailThreadID': user_email.id,
       'OrigTime': user_email.created,
       'To': user_email.user.email,
       'Subject' : subject,
-      'Body': '',
+      'EmailType': '0',
+      'RawDataLength': 0,
+      'RawData': '',
       'Template':'',
       'Params':'{}'
     }
 
     if body:
-      msg['Body'] = body
+      msg['RawData'] = body
+      msg['RawDataLength'] = len(body)
 
     if template:
       msg['Template'] = template

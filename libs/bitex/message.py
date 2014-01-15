@@ -65,6 +65,7 @@ class JsonMessage(BaseMessage):
     self.valid_message_types = {
       '0':   'Heartbeat',
       '1':   'TestRequest',
+      'C':   'Email',
       'V':   'MarketDataRequest',
       'W':   'MarketDataFullRefresh',
       'X':   'MarketDataIncrementalRefresh',
@@ -196,10 +197,16 @@ class JsonMessage(BaseMessage):
 
       #TODO: Validate all fields of New Order Single Message
 
+    elif self.type == 'C': # Email
+      self.raise_exception_if_required_tag_is_missing('EmailThreadID')
+      self.raise_exception_if_required_tag_is_missing('Subject')
+      self.raise_exception_if_required_tag_is_missing('EmailType')
+
+
+
     elif self.type == 'F':  #Order Cancel Request
       pass
       #TODO: Validate all fields of Order Cancel Message
-
 
     elif self.type == 'U2' :  # User Balance
       self.raise_exception_if_required_tag_is_missing('BalanceReqID')
