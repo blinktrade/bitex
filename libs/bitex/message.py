@@ -1,11 +1,32 @@
 __author__ = 'rodrigo'
 import json
 
+class InvalidMessageException(Exception):
+  def __init__(self, raw_message, json_message=None, invalid_tag=None):
+    super(InvalidMessageException, self).__init__()
+    self.raw_message = raw_message
+    self.json_message = json_message
+    self.invalid_tag = invalid_tag
+  def __str__(self):
+    return 'Invalid Message'
+
+class InvalidMessageLengthException(InvalidMessageException):
+  def __str__(self):
+    return 'Invalid message length'
+
+class InvalidMessageTypeException(InvalidMessageException):
+  def __str__(self):
+    return 'Invalid Message Type (%s)' % str(self.invalid_tag)
+
+class InvalidMessageMissingTagException(InvalidMessageException):
+  def __str__(self):
+    return 'Missing tag %s' % str(self.invalid_tag)
+
 
 class BaseMessage(object):
   MAX_MESSAGE_LENGTH = 4096
   def __init__(self, raw_message):
-    pass
+    self.raw_message = str(raw_message)
 
   def has(self, attr):
     raise  NotImplementedError()
@@ -19,188 +40,194 @@ class BaseMessage(object):
 
 class JsonMessage(BaseMessage):
   MAX_MESSAGE_LENGTH = 4096
+  def raise_exception_if_required_tag_is_missing(self, tag):
+    if tag not in self.message:
+      raise InvalidMessageMissingTagException(self.raw_message, self.message, tag)
+
+
   def __init__(self, raw_message):
     super(JsonMessage, self).__init__(raw_message)
     self.valid = False
 
     # make sure a malicious users didn't send us more than 4096 bytes
     if len(raw_message) > self.MAX_MESSAGE_LENGTH:
-      return
+      raise InvalidMessageLengthException(raw_message)
 
     # parse the message
     self.message = json.loads(str(raw_message))
 
     if 'MsgType' not in self.message:
-      return
+      raise InvalidMessageTypeException(raw_message, self.message)
 
     self.type = self.message['MsgType']
     del self.message['MsgType']
 
+    self.valid_message_types = {
+      '0':   'Heartbeat',
+      '1':   'TestRequest',
+      'V':   'MarketDataRequest',
+      'W':   'MarketDataFullRefresh',
+      'X':   'MarketDataIncrementalRefresh',
+      'Y':   'MarketDataRequestReject',
+      'BE':  'UserRequest',
+      'BF':  'UserResponse',
+      'D':   'NewOrderSingle',
+      'F':   'OrderCancelRequest',
+      'U0':  'Signup',
+      'U2':  'UserBalanceRequest',
+      'U3':  'UserBalanceResponse',
+      'U4':  'OrdersListRequest',
+      'U5':  'OrdersListResponse',
+      'U6':  'BTCWithdrawRequest',
+      'U7':  'BTCWithdrawResponse',
+      'U8':  'BRLWithdrawRequest',
+      'U9':  'BRLWithdrawResponse',
+      'U10': 'ResetPasswordRequest',
+      'U11': 'ResetPasswordResponse',
+      'U12': 'ResetPasswordRequest',
+      'U13': 'ResetPasswordResponse',
+      'U16': 'EnableDisableTwoFactorAuthenticationRequest',
+      'U17': 'EnableDisableTwoFactorAuthenticationResponse',
+      'U18': 'GenerateBoletoRequest',
+      'U19': 'GenerateBoletoResponse',
+      'U20': 'BoletoOptionsRequest',
+      'U21': 'BoletoOptionsResponse',
+      'U22': 'BoletoRequest',
+      'U23': 'BoletoResponse',
+      'S0':  'BitcoinNewAddressRequest',
+      'S1':  'BitcoinNewAddressResponse',
+      'S2':  'NumberOfFreeBitcoinNewAddressRequest',
+      'S3':  'NumberOfFreeBitcoinNewAddressResponse',
+      'A0':  'DbQueryRequest',
+      'A1':  'DbQueryResponse',
+      'ERROR': 'ErrorMessage',
+    }
 
-    self.valid = True
 
+    def make_helper_is_message_type( tag):
+      def _method(self):
+        return self.type == tag
+      return _method
+
+    for k,v in self.valid_message_types.iteritems():
+      _method = make_helper_is_message_type(k)
+      setattr(JsonMessage, 'is' + v, _method)
 
     #validate Type
-    if self.type not in ('0', '1', 'V', 'Y', 'BE', 'BF', 'D', 'F',
-                         'U0', 'U2', 'U4', 'U6', 'U8', 'U10', 'U12', 'U14', 'U16', 'U18', 'U20', 'U22',
-                         'U1', 'U3', 'U5', 'U7', 'U9', 'U11', 'U13', 'U15', 'U17', 'U19', 'U21', 'U23',
-                         'S0', 'S1', 'S2', 'S3',
-                         'A0', 'A1'):
-      self.valid = False
-      return
+    if self.type not in self.valid_message_types:
+      raise InvalidMessageTypeException(raw_message, self.message, self.type)
 
     # validate all fields
     if self.type == '0':  #Heartbeat
-      self.valid = self.valid and  'TestReqID' in self.message
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('TestReqID')
 
       #TODO: Validate all fields of Heartbeat Message
 
     elif self.type == '1':  # TestRequest
-      self.valid = self.valid and  'TestReqID' in self.message
-      if not self.valid:
-        return
-      #TODO: Validate all fields of TestRequest Message
-
+      self.raise_exception_if_required_tag_is_missing('TestReqID')
 
     elif self.type == 'V':  #MarketData Request
-      self.valid = self.valid and  'MDReqID' in self.message
-      self.valid = self.valid and  'SubscriptionRequestType' in self.message
-      self.valid = self.valid and  'MarketDepth' in self.message
-      self.valid = self.valid and  ( 'SubscriptionRequestType'  in self.message and 'MDUpdateType' in self.message )
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('MDReqID')
+      self.raise_exception_if_required_tag_is_missing('SubscriptionRequestType')
+      self.raise_exception_if_required_tag_is_missing('MarketDepth')
+
+      subscriptionRequestType = self.message.get('SubscriptionRequestType')
+      if subscriptionRequestType == '1':
+        self.raise_exception_if_required_tag_is_missing('MDUpdateType')
+
 
       #TODO: Validate all fields of MarketData Request Message
 
     elif self.type == 'Y':
-      self.valid = self.valid and  'MDReqID' in self.message
-      if not self.valid:
-        return
-
+      self.raise_exception_if_required_tag_is_missing('MDReqID')
       #TODO: Validate all fields of MarketData Request Cancel Message
 
     elif self.type == 'BE':  #logon
-      self.valid = self.valid and  'UserReqID' in self.message
-      self.valid = self.valid and  'Username' in self.message
-      self.valid = self.valid and  'UserReqTyp' in self.message
+      self.raise_exception_if_required_tag_is_missing('UserReqID')
+      self.raise_exception_if_required_tag_is_missing('Username')
+      self.raise_exception_if_required_tag_is_missing('UserReqTyp')
 
       reqId = self.message.get('UserReqID')
       if reqId in ('1', '3'):
-        self.valid = self.valid and  'Password' in self.message
+        self.raise_exception_if_required_tag_is_missing('Password')
 
       if reqId == '3':
-        self.valid = self.valid and  'NewPassword' in self.message
+        self.raise_exception_if_required_tag_is_missing('NewPassword')
 
-      if not self.valid:
-        return
 
       #TODO: Validate all fields of Logon Message
 
-
     elif self.type == 'U0':  #Signup
-      self.valid = self.valid and  'Username' in self.message
-      self.valid = self.valid and  'Password' in self.message
-      self.valid = self.valid and  'Email' in self.message
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('Username')
+      self.raise_exception_if_required_tag_is_missing('Password')
+      self.raise_exception_if_required_tag_is_missing('Email')
 
       #TODO: Validate all fields of Signup Message
 
     elif self.type == 'U10':  #Request Reset Password
-      self.valid = self.valid and  'Email' in self.message
+      self.raise_exception_if_required_tag_is_missing('Email')
 
     elif self.type == 'U12':  #Reset Password
-      self.valid = self.valid and  'Token' in self.message
-      self.valid = self.valid and  'NewPassword' in self.message
+      self.raise_exception_if_required_tag_is_missing('Token')
+      self.raise_exception_if_required_tag_is_missing('NewPassword')
 
     elif self.type == 'U16':  #Enable Disable Two Factor Authentication
-      self.valid = self.valid and  'Enable' in self.message
+      self.raise_exception_if_required_tag_is_missing('Enable')
 
     elif self.type == 'U18': # Generate Boleto
-      self.valid = self.valid and  'BoletoId' in self.message
-      self.valid = self.valid and  'Value' in self.message
-
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('BoletoId')
+      self.raise_exception_if_required_tag_is_missing('Value')
 
     elif self.type == 'U20': # Request Boleto Options
-      self.valid = self.valid and  'BoletoOptionReqId' in self.message
+      self.raise_exception_if_required_tag_is_missing('BoletoOptionReqId')
 
-      if not self.valid:
-        return
 
     elif self.type == 'U22': # Request Boleto
-      self.valid = self.valid and  'BoletoId' in self.message
+      self.raise_exception_if_required_tag_is_missing('BoletoId')
 
-      if not self.valid:
-        return
 
     elif self.type == 'D':  #New Order Single
-      self.valid = self.valid and  'ClOrdID' in self.message
-      self.valid = self.valid and  'Symbol' in self.message
-      self.valid = self.valid and  'Side' in self.message
-      self.valid = self.valid and  'OrdType' in self.message
-      self.valid = self.valid and  'Price' in self.message
-      self.valid = self.valid and  'OrderQty' in self.message
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('ClOrdID')
+      self.raise_exception_if_required_tag_is_missing('Symbol')
+      self.raise_exception_if_required_tag_is_missing('Side')
+      self.raise_exception_if_required_tag_is_missing('OrdType')
+      self.raise_exception_if_required_tag_is_missing('Price')
+      self.raise_exception_if_required_tag_is_missing('OrderQty')
 
       #TODO: Validate all fields of New Order Single Message
 
     elif self.type == 'F':  #Order Cancel Request
-      if not self.valid:
-        return
-
+      pass
       #TODO: Validate all fields of Order Cancel Message
 
 
     elif self.type == 'U2' :  # User Balance
-      self.valid = self.valid and  'BalanceReqID' in self.message
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('BalanceReqID')
 
       #TODO: Validate all fields of Request For Balance Message
-
-
     elif self.type == 'U4': #  Orders List
-      self.valid = self.valid and  'OrdersReqID' in self.message
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('OrdersReqID')
 
       #TODO: Validate all fields of Request For Open Orders Message
-
     elif self.type == 'U6': # Request for BTC Withdraw
-      self.valid = self.valid and  'WithdrawReqID' in self.message
-      self.valid = self.valid and  'Amount' in self.message
-      self.valid = self.valid and  'Wallet' in self.message
-
-      if not self.valid:
-        return
+      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
+      self.raise_exception_if_required_tag_is_missing('Amount')
+      self.raise_exception_if_required_tag_is_missing('Wallet')
 
       #TODO: Validate all fields of Request For BTC Withdraw  Message
-
     elif self.type == 'U8': # Request for BRL Withdraw
-      self.valid = self.valid and  'WithdrawReqID' in self.message
-      self.valid = self.valid and  'Amount' in self.message
-      self.valid = self.valid and  'BankNumber' in self.message
-      self.valid = self.valid and  'BankName' in self.message
-      self.valid = self.valid and  'AccountName' in self.message
-      self.valid = self.valid and  'AccountNumber' in self.message
-      self.valid = self.valid and  'AccountBranch' in self.message
-      self.valid = self.valid and  'CPFCNPJ' in self.message
+      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
+      self.raise_exception_if_required_tag_is_missing('Amount')
+      self.raise_exception_if_required_tag_is_missing('BankNumber')
+      self.raise_exception_if_required_tag_is_missing('BankName')
+      self.raise_exception_if_required_tag_is_missing('AccountName')
+      self.raise_exception_if_required_tag_is_missing('AccountNumber')
+      self.raise_exception_if_required_tag_is_missing('AccountBranch')
+      self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
 
-      if not self.valid:
-        return
-
-        #TODO: Validate all fields of Request For BTC Withdraw  Message
-
-
-    elif self.type == 'S0': # Bitcoin New Adress
-      self.valid = self.valid and  'BtcAddress' in self.message
-      if not self.valid:
-        return
+      #TODO: Validate all fields of Request For BTC Withdraw  Message
+    elif self.type == 'S0': # Bitcoin New Address
+      self.raise_exception_if_required_tag_is_missing('BtcAddress')
 
 
   def has(self, attr):
@@ -211,5 +238,4 @@ class JsonMessage(BaseMessage):
       return  default
     return self.message[attr]
 
-  def is_valid(self):
-    return self.valid
+
