@@ -2,11 +2,12 @@ __author__ = 'rodrigo'
 import json
 
 class InvalidMessageException(Exception):
-  def __init__(self, raw_message, json_message=None, invalid_tag=None):
+  def __init__(self, raw_message, json_message=None, tag=None, value=None):
     super(InvalidMessageException, self).__init__()
     self.raw_message = raw_message
     self.json_message = json_message
-    self.invalid_tag = invalid_tag
+    self.tag = tag
+    self.value = value
   def __str__(self):
     return 'Invalid Message'
 
@@ -16,12 +17,15 @@ class InvalidMessageLengthException(InvalidMessageException):
 
 class InvalidMessageTypeException(InvalidMessageException):
   def __str__(self):
-    return 'Invalid Message Type (%s)' % str(self.invalid_tag)
+    return 'Invalid Message Type (%s)' % str(self.tag)
 
 class InvalidMessageMissingTagException(InvalidMessageException):
   def __str__(self):
-    return 'Missing tag %s' % str(self.invalid_tag)
+    return 'Missing tag %s' % str(self.tag)
 
+class InvalidMessageFieldException(InvalidMessageException):
+  def __str__(self):
+    return 'Invalid value tag(%s)=%s'%(self.tag, self.value)
 
 class BaseMessage(object):
   MAX_MESSAGE_LENGTH = 4096
@@ -44,6 +48,26 @@ class JsonMessage(BaseMessage):
     if tag not in self.message:
       raise InvalidMessageMissingTagException(self.raw_message, self.message, tag)
 
+  def raise_exception_if_not_a_integer(self, tag):
+    val = self.get(tag)
+    if not type(val) == int:
+      raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
+
+  def raise_exception_if_not_a_number(self, tag):
+    val = self.get(tag)
+    if not( type(val) == float or type(val) == int):
+      raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
+
+  def raise_exception_if_empty(self, tag):
+    val = self.get(tag)
+    if not val :
+      raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
+
+  def raise_exception_if_not_greater_than_zero(self, tag):
+    self.raise_exception_if_not_a_number(tag)
+    val = self.get(tag)
+    if not val > 0:
+      raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
 
   def __init__(self, raw_message):
     super(JsonMessage, self).__init__(raw_message)
@@ -79,8 +103,8 @@ class JsonMessage(BaseMessage):
       'U3':  'UserBalanceResponse',
       'U4':  'OrdersListRequest',
       'U5':  'OrdersListResponse',
-      'U6':  'BTCWithdrawRequest',
-      'U7':  'BTCWithdrawResponse',
+      'U6':  'CryptoCoinWithdrawRequest',
+      'U7':  'CryptoCoinWithdrawResponse',
       'U8':  'BRLWithdrawRequest',
       'U9':  'BRLWithdrawResponse',
       'U10': 'ResetPasswordRequest',
@@ -95,6 +119,8 @@ class JsonMessage(BaseMessage):
       'U21': 'BoletoOptionsResponse',
       'U22': 'BoletoRequest',
       'U23': 'BoletoResponse',
+      'U24': 'WithdrawConfirmationRequest',
+      'U25': 'WithdrawConfirmationResponse',
       'S0':  'BitcoinNewAddressRequest',
       'S1':  'BitcoinNewAddressResponse',
       'S2':  'NumberOfFreeBitcoinNewAddressRequest',
@@ -211,17 +237,30 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U2' :  # User Balance
       self.raise_exception_if_required_tag_is_missing('BalanceReqID')
 
+      self.raise_exception_if_not_a_integer('BalanceReqID')
+      self.raise_exception_if_not_greater_than_zero('BalanceReqID')
+
       #TODO: Validate all fields of Request For Balance Message
     elif self.type == 'U4': #  Orders List
       self.raise_exception_if_required_tag_is_missing('OrdersReqID')
+      self.raise_exception_if_empty('OrdersReqID')
 
-      #TODO: Validate all fields of Request For Open Orders Message
-    elif self.type == 'U6': # Request for BTC Withdraw
+
+    elif self.type == 'U6': # Request for Crypto Coin Withdraw
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_required_tag_is_missing('Amount')
       self.raise_exception_if_required_tag_is_missing('Wallet')
+      self.raise_exception_if_required_tag_is_missing('Currency')
 
-      #TODO: Validate all fields of Request For BTC Withdraw  Message
+      self.raise_exception_if_not_a_integer('WithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
+
+      self.raise_exception_if_not_a_number('Amount')
+      self.raise_exception_if_not_greater_than_zero('Amount')
+
+      self.raise_exception_if_empty('Wallet')
+      self.raise_exception_if_empty('Currency')
+
     elif self.type == 'U8': # Request for BRL Withdraw
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_required_tag_is_missing('Amount')
