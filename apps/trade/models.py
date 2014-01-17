@@ -481,6 +481,82 @@ class UserEmail(Base):
     return  user_email
 
 
+class Withdraw(Base):
+  __tablename__   = 'withdraws'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  username        = Column(String,        nullable=False)
+  currency        = Column(String,        nullable=False)
+  amount          = Column(Integer,       nullable=False)
+
+  # withdraw to digital currencies
+  wallet          = Column(String)
+
+  # withdraw to Brazilian banks
+  bank_number     = Column(Integer) # Brazilian banks have a number
+  bank_name       = Column(String)
+  account_name    = Column(String)
+  account_number  = Column(String)
+  account_branch  = Column(String)  # Agencia
+  cpf_cnpj        = Column(String)
+
+  # withdraw to international banks
+  address         = Column(String)
+  city            = Column(String)
+  postal_code     = Column(String)
+  region_state    = Column(String)
+  country         = Column(String)
+  bank_swift      = Column(String)
+  intermediate_swift = Column(String)
+
+  # for US Banks
+  routing_number  = Column(String)
+
+  confirmation_token = Column(String)
+  status          = Column(Integer,       nullable=False, default=0)
+  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+  @staticmethod
+  def create_crypto_coin_withdraw( session, user, currency, amount, wallet ):
+    import uuid
+    confirmation_token = uuid.uuid4().hex
+    withdraw_record = Withdraw(user_id  = user.id,
+                               username = user.username,
+                               currency = currency,
+                               amount   = amount,
+                               wallet   = wallet,
+                               confirmation_token = confirmation_token)
+
+    session.add(withdraw_record)
+    session.flush()
+
+
+    UserEmail.create( session = session,
+                      user_id = user.id,
+                      subject = u"[BitEx] Confirme a operação de saque.",
+                      template= "withdraw_confirmation_ptBR.txt",
+                      params= '{"token":"' + confirmation_token + '", ' \
+                               '"amount":' + str(amount) + ', '\
+                               '"username":"' + user.username + '",'\
+                               '"currency":"' + currency + '",'\
+                               '"created":"' + str(withdraw_record.created) + '",'\
+                               '"wallet":"' + wallet + '"}')
+    return withdraw_record
+
+  def __repr__(self):
+    return "<Withdraw(id=%d, user_id=%d, username='%s', currency='%s', amount='%d', " \
+           "wallet='%s', "\
+           "bank_number=%d, bank_name='%s', account_name='%s', account_number='%s', account_branch='%s', cpf_cnpj='%s', "\
+           "address='%s', city='%s', postal_code='%s', region_state='%s', country='%s', bank_swift='%s', intermediate_swift='%s, " \
+           "routing_number='%s',"\
+           "confirmation_token='%s', status='%s', created='%s')>" % (
+      self.id, self.user_id, self.username, self.currency, self.amount,
+      self.wallet,
+      self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
+      self.address, self.city, self.postal_code, self.region_state, self.country, self.bank_swift, self.intermediate_swift,
+      self.routing_number,
+      self.confirmation_token, self.status, self.created)
+
 
 class WithdrawBTC(Base):
   __tablename__   = 'withdraws_btc'
@@ -491,6 +567,11 @@ class WithdrawBTC(Base):
   wallet          = Column(String,        nullable=False)
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+  @staticmethod
+  def create( session, user_id, subject, template=None, params=None, body = None ):
+    pass
+
 
   def __repr__(self):
     return "<WithdrawBTC(id=%d, user_id=%d, username='%s', amount='%d', wallet='%s', status='%s', created='%s')>" % (
@@ -856,7 +937,6 @@ class BoletoOptions(Base):
 
     boleto.sacado_nome        = user.username
     boleto.sacado_documento   = user.id
-    boleto.sacado_endereco    = user.email
 
     session.add(self)
     session.add(boleto)

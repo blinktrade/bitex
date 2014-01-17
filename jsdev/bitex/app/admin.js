@@ -85,8 +85,13 @@ bitex.app.admin = function() {
       'sortable': true,
       'formatter': function(s){ return s; }
     },{
+      'property': 'currency',
+      'label': 'Currency',
+      'sortable': true,
+      'formatter': function(s){ return s; }
+    },{
       'property': 'amount',
-      'label': 'Amount ( BTC )',
+      'label': 'Amount',
       'sortable': true,
       'formatter': function(value){return (value/1e8).toFixed(8);}
     },{

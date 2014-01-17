@@ -51,6 +51,8 @@ class BoletoHandler(tornado.web.RequestHandler):
     if 'data_processamento' in boleto and boleto['data_processamento']:
       boleto['data_processamento'] = datetime.datetime.strptime( boleto['data_processamento'] , "%Y-%m-%d").date()
 
+    boleto['sacado'] = [ 'username:' + boleto['sacado_nome'], 'user_id:' + boleto['sacado_documento']  ]
+
     if boleto:
       from pyboleto.pdf import BoletoPDF
       boleto_pdf = BoletoPDF(buffer)

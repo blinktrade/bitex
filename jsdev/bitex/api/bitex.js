@@ -48,6 +48,7 @@ bitex.api.BitEx.EventType = {
   OPENED: 'opened',
 
   RAW_MESSAGE: 'raw_message',
+  ERROR_MESSAGE: 'error_message',
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
 
@@ -150,6 +151,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
   this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.RAW_MESSAGE, msg ) );
 
   switch( msg['MsgType'] ) {
+    case 'ERROR':
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ERROR_MESSAGE, msg ) );
+      break;
+
+
     case '0':  //Heartbeat
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.HEARTBEAT, msg ) );
       break;
@@ -325,12 +331,14 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
 /**
  * @param {number} amount 
  * @param {string} address
+ * @param {string} currency
  */
-bitex.api.BitEx.prototype.withDrawBTC = function( amount, address  ) {
+bitex.api.BitEx.prototype.withDrawCryptoCoin = function( amount, address, currency  ) {
   var reqId = parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U6',
     'WithdrawReqID': reqId,
+    'Currency': currency,
     'Amount': amount,
     'Wallet': address
   };

@@ -7,7 +7,7 @@ from bitex.json_encoder import  JsonEncoder
 
 import json
 
-from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, NeedSecondFactorException
+from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, NeedSecondFactorException, Withdraw
 
 from execution import OrderMatcher
 
@@ -317,8 +317,15 @@ def processGenerateBoleto(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
-def processBTCWithdrawRequest(session, msg):
-  pass
+def processCryptoCoinWithdrawRequest(session, msg):
+  amount       = msg.get('Amount')
+  wallet       = msg.get('Wallet')
+  currency     = msg.get('Currency')
+
+  withdraw_record = Withdraw.create_crypto_coin_withdraw(application.db_session, session.user, currency, amount, wallet)
+  application.db_session.commit()
+
+
 
 @login_required
 def processBRLWithdrawRequest(session, msg):
@@ -332,7 +339,7 @@ def processRequestDatabaseQuery(session, msg):
   table       = msg.get('Table', '')
   sort_column = msg.get('Sort', '')
   sort_order  = msg.get('SortOrder', 'ASC')
-  offset    = page * page_size
+  offset      = page * page_size
 
   # TODO: Check all parameters to avoid an sql injection :(
 

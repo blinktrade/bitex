@@ -68,7 +68,7 @@ http {
                 
             }
 
-            location /account_verification/ {
+            location /(account_verification|withdraw_confirmation|withdraw_confirmed)/ {
                 proxy_pass https://ws_gateway;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header Host $host;
