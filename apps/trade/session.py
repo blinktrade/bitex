@@ -36,8 +36,8 @@ class Session(object):
     elif msg.type == 'U4': # Request for Open Orders
       return processRequestForOpenOrders(self, msg)
 
-    elif msg.type == 'U6': # BTC Withdraw Request
-      return processBTCWithdrawRequest(self, msg)
+    elif msg.type == 'U6': # CryptoCoin Withdraw Request
+      return processCryptoCoinWithdrawRequest(self, msg)
 
     elif msg.type == 'U8': # BRL Withdraw Request
       return processBRLWithdrawRequest(self, msg)
