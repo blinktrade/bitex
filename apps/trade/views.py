@@ -318,6 +318,7 @@ def processGenerateBoleto(session, msg):
 
 @login_required
 def processCryptoCoinWithdrawRequest(session, msg):
+  reqId        = msg.get('WithdrawReqID')
   amount       = msg.get('Amount')
   wallet       = msg.get('Wallet')
   currency     = msg.get('Currency')
@@ -325,7 +326,57 @@ def processCryptoCoinWithdrawRequest(session, msg):
   withdraw_record = Withdraw.create_crypto_coin_withdraw(application.db_session, session.user, currency, amount, wallet)
   application.db_session.commit()
 
+  response = {
+    'MsgType':            'U7',
+    'WithdrawReqID':      reqId,
+    'WithdrawID':         withdraw_record.id,
+  }
 
+  return json.dumps(response, cls=JsonEncoder)
+
+
+def processWithdrawConfirmationRequest(session, msg):
+  reqId = msg.get('WithdrawReqID')
+  token = msg.get('ConfirmationToken')
+
+  withdraw_data = application.db_session.query(Withdraw).filter_by(confirmation_token=token).first()
+  if not withdraw_data:
+    response = {'MsgType':'U25', 'WithdrawReqID': reqId}
+    return json.dumps(response, cls=JsonEncoder)
+
+  # TODO: Check if the user has enough balance to complete the operation
+
+  # TODO: Check if the user has exceed the 24 hours withdraw limit
+
+  # TODO: update the user balance
+
+  # TODO: execute the transfer
+
+  response = {
+    'MsgType':            'U25',
+    'WithdrawReqID':      reqId,
+    'ConfirmationToken':  withdraw_data.confirmation_token,
+    'WithdrawID':         withdraw_data.id,
+    'Currency':           withdraw_data.currency,
+    'Amount':             withdraw_data.amount,
+    'Wallet':             withdraw_data.wallet,
+    'BankNumber':         withdraw_data.bank_number,
+    'BankName':           withdraw_data.bank_name,
+    'AccountName':        withdraw_data.account_name,
+    'AccountNumber':      withdraw_data.account_number,
+    'AccountBranch':      withdraw_data.account_branch,
+    'CPFCNPJ':            withdraw_data.cpf_cnpj,
+    'Address':            withdraw_data.address,
+    'City':               withdraw_data.city,
+    'PostalCode':         withdraw_data.postal_code,
+    'RegionState':        withdraw_data.region_state,
+    'Country':            withdraw_data.country,
+    'BankSwift':          withdraw_data.bank_swift,
+    'IntermediateSwift':  withdraw_data.intermediate_swift,
+    'RoutingNumber':      withdraw_data.routing_number,
+    'Created':            withdraw_data.created
+  }
+  return json.dumps(response, cls=JsonEncoder)
 
 @login_required
 def processBRLWithdrawRequest(session, msg):

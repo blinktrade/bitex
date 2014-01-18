@@ -512,7 +512,7 @@ class Withdraw(Base):
   # for US Banks
   routing_number  = Column(String)
 
-  confirmation_token = Column(String)
+  confirmation_token = Column(String, index=True, unique=True)
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 

@@ -60,7 +60,7 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
-  WITHDRAW_RESPONSE: 'withdraw_response',
+  CRYPTO_COIN_WITHDRAW_RESPONSE: 'crypto_coin_withdraw_response',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -183,8 +183,8 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, msg ) );
       break;
 
-    case 'U10': // Withdraw Response
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
+    case 'U7': // CryptoCoin Withdraw Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CRYPTO_COIN_WITHDRAW_RESPONSE, msg ) );
       break;
 
     case 'U3': // Balance Response
@@ -333,7 +333,7 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
  * @param {string} address
  * @param {string} currency
  */
-bitex.api.BitEx.prototype.withDrawCryptoCoin = function( amount, address, currency  ) {
+bitex.api.BitEx.prototype.withdrawCryptoCoin = function( amount, address, currency  ) {
   var reqId = parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U6',
@@ -344,6 +344,20 @@ bitex.api.BitEx.prototype.withDrawCryptoCoin = function( amount, address, curren
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * @param {string} confirmation_token
+ */
+bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
+  var reqId = parseInt(Math.random() * 1000000, 10);
+  var msg = {
+    'MsgType': 'U24',
+    'WithdrawReqID': reqId,
+    'ConfirmationToken': confirmation_token
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
 
 /**
  * @param {string} token
@@ -598,6 +612,8 @@ goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prot
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
+goog.exportProperty(BitEx.prototype, 'withdrawCryptoCoin', bitex.api.BitEx.prototype.withdrawCryptoCoin);
+goog.exportProperty(BitEx.prototype, 'confirmWithdraw', bitex.api.BitEx.prototype.confirmWithdraw);
 goog.exportProperty(BitEx.prototype, 'enableTwoFactor', bitex.api.BitEx.prototype.enableTwoFactor);
 goog.exportProperty(BitEx.prototype, 'resetPassword', bitex.api.BitEx.prototype.resetPassword);
 goog.exportProperty(BitEx.prototype, 'requestOrderList', bitex.api.BitEx.prototype.requestOrderList);

@@ -60,6 +60,8 @@ class Session(object):
     elif msg.type == 'U22': # Request Boleto
       return processRequestBoleto(self, msg)
 
+    elif msg.type == 'U24': # Withdraw Confirmation Request
+      return processWithdrawConfirmationRequest(self, msg)
 
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)

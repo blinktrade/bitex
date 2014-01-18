@@ -164,8 +164,6 @@ class WebSocketGatewayApplication(tornado.web.Application):
       (r'/', WebSocketHandler),
       (r'/print_boleto(.*)', BoletoHandler),
       (r'/account_verification/.*', AccountVerificationHandler),
-      (r'/withdraw_confirmation/.*', WithdrawConfirmationHandler),
-      (r'/withdraw_confirmed/.*', WithdrawConfirmedHandler),
     ]
     settings = dict(
       cookie_secret='cookie_secret'

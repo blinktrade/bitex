@@ -152,7 +152,7 @@ bitex.app.bitex = function( url ) {
   withdraw_btc.decorate( goog.dom.getElement('id_btc_withdraw') );
 
   withdraw_btc.addEventListener( bitex.ui.WithdrawBTC.EventType.WITHDRAW_BTC, function(e){
-    bitEx.withDrawCryptoCoin(e.qty, e.address, 'BTC');
+    bitEx.withdrawCryptoCoin(e.qty, e.address, 'BTC');
   });
 
   var order_entry = new bitex.ui.OrderEntry();
@@ -259,10 +259,32 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-  bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, function(e){
+  var withdrawConfirmationDialog;
+  bitEx.addEventListener(bitex.api.BitEx.EventType.CRYPTO_COIN_WITHDRAW_RESPONSE, function(e){
     var msg = e.data;
-    console.log(msg);
-    console.log('====>');
+
+    if (goog.isDefAndNotNull(withdrawConfirmationDialog)) {
+      withdrawConfirmationDialog.dispose();
+    }
+
+    var dlg_content =
+      '<p>Para a sua segurança, nós enviamos um <strong>código de confirmação</strong> para o seu email. </p> ' +
+      '<input id="id_withdraw_confirmation" placeholder="Código de confirmação" class="input-block-level">' +
+      '<p><i>A operação só será efeutada mediante ao código de confirmação que fora enviada para o seu email.</i></p>';
+
+    withdrawConfirmationDialog = new bootstrap.Dialog();
+    withdrawConfirmationDialog.setTitle('Confirme a operação de saque');
+    withdrawConfirmationDialog.setContent(dlg_content);
+    withdrawConfirmationDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+    withdrawConfirmationDialog.setVisible(true);
+
+    goog.events.listenOnce(withdrawConfirmationDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'ok') {
+        var token = goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") );
+        bitEx.confirmWithdraw(token);
+      }
+      withdrawConfirmationDialog.dispose();
+    });
   });
 
   bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK,  function(e) {

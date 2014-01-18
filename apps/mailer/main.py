@@ -98,7 +98,7 @@ def main():
         elif msg.has('RawData') and msg.get('RawData'):
           body = msg.get('RawData')
 
-        log('DEBUG', 'EMAIL', u'{"Sender":"%s","To":"%s","Subject":"%s"}' % (sender,msg_to,subject) )
+        log('DEBUG', 'EMAIL', u'{"Sender":"%s","To":"%s","Subject":"%s", "Body":"%s" }' % (sender,msg_to,subject,body))
         send_email (sender, msg_to, subject, body, content_type )
 
         log('INFO', 'SUCCESS', msg.get('EmailThreadID'))

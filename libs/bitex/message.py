@@ -69,6 +69,9 @@ class JsonMessage(BaseMessage):
     if not val > 0:
       raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
 
+  def toJSON(self):
+    return self.message
+
   def __init__(self, raw_message):
     super(JsonMessage, self).__init__(raw_message)
     self.valid = False
@@ -260,6 +263,25 @@ class JsonMessage(BaseMessage):
 
       self.raise_exception_if_empty('Wallet')
       self.raise_exception_if_empty('Currency')
+
+    elif self.type == 'U7': # Response for Crypto Coin Withdraw
+      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
+      self.raise_exception_if_not_a_integer('WithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
+
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+
+    elif self.type == 'U24': # WithdrawConfirmationRequest
+      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
+      self.raise_exception_if_not_a_integer('WithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
+
+      self.raise_exception_if_required_tag_is_missing('ConfirmationToken')
+      self.raise_exception_if_empty('ConfirmationToken')
+
+    elif self.type == 'U25': # WithdrawConfirmationResponse
+      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
 
     elif self.type == 'U8': # Request for BRL Withdraw
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
