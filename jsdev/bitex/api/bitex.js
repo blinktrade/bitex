@@ -61,6 +61,7 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
   CRYPTO_COIN_WITHDRAW_RESPONSE: 'crypto_coin_withdraw_response',
+  BRL_BANK_TRANSFER_WITHDRAW_RESPONSE: 'brl_bank_transfer_withdraw_response',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -185,6 +186,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U7': // CryptoCoin Withdraw Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CRYPTO_COIN_WITHDRAW_RESPONSE, msg ) );
+      break;
+
+    case 'U9': // BRL Bank Transfer Withdraw Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BRL_BANK_TRANSFER_WITHDRAW_RESPONSE, msg ) );
       break;
 
     case 'U3': // Balance Response
@@ -341,6 +346,32 @@ bitex.api.BitEx.prototype.withdrawCryptoCoin = function( amount, address, curren
     'Currency': currency,
     'Amount': amount,
     'Wallet': address
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * @param {string} amount
+ * @param {string} bank_number
+ * @param {string} bank_name
+ * @param {string} account_name
+ * @param {string} account_number
+ * @param {string} account_branch
+ * @param {string} cpf_cnpj
+ */
+bitex.api.BitEx.prototype.withdrawBRLBankTransfer = function( amount, bank_number, bank_name, account_name,
+                                                              account_number, account_branch, cpf_cnpj) {
+  var reqId = parseInt(Math.random() * 1000000, 10);
+  var msg = {
+    'MsgType'       : 'U8',
+    'WithdrawReqID' : reqId,
+    'Amount'        : amount,
+    'BankNumber'    : bank_number,
+    'BankName'      : bank_name,
+    'AccountName'   : account_name,
+    'AccountNumber' : account_number,
+    'AccountBranch' : account_branch,
+    'CPFCNPJ'       : cpf_cnpj
   };
   this.ws_.send(JSON.stringify( msg ));
 };

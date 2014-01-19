@@ -108,8 +108,8 @@ class JsonMessage(BaseMessage):
       'U5':  'OrdersListResponse',
       'U6':  'CryptoCoinWithdrawRequest',
       'U7':  'CryptoCoinWithdrawResponse',
-      'U8':  'BRLWithdrawRequest',
-      'U9':  'BRLWithdrawResponse',
+      'U8':  'BRLBankTransferWithdrawRequest',
+      'U9':  'BRLBankTransferWithdrawResponse',
       'U10': 'ResetPasswordRequest',
       'U11': 'ResetPasswordResponse',
       'U12': 'ResetPasswordRequest',
@@ -264,7 +264,31 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_empty('Wallet')
       self.raise_exception_if_empty('Currency')
 
-    elif self.type == 'U7': # Response for Crypto Coin Withdraw
+    elif self.type == 'U8': # Request for BRL Bank Transfer Withdraw
+      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
+      self.raise_exception_if_required_tag_is_missing('Amount')
+      self.raise_exception_if_required_tag_is_missing('BankNumber')
+      self.raise_exception_if_required_tag_is_missing('BankName')
+      self.raise_exception_if_required_tag_is_missing('AccountName')
+      self.raise_exception_if_required_tag_is_missing('AccountNumber')
+      self.raise_exception_if_required_tag_is_missing('AccountBranch')
+      self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
+
+      self.raise_exception_if_not_a_integer('WithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
+
+      self.raise_exception_if_not_a_number('Amount')
+      self.raise_exception_if_not_greater_than_zero('Amount')
+
+      self.raise_exception_if_empty('BankNumber')
+      self.raise_exception_if_empty('BankName')
+      self.raise_exception_if_empty('AccountName')
+      self.raise_exception_if_empty('AccountNumber')
+      self.raise_exception_if_empty('AccountBranch')
+      self.raise_exception_if_empty('CPFCNPJ')
+
+
+    elif self.type == 'U7' or self.type == 'U9': # Response for Withdraw ( Crypto Coin or BRL Bank Transfer )
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_not_a_integer('WithdrawReqID')
       self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
@@ -283,15 +307,6 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U25': # WithdrawConfirmationResponse
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
 
-    elif self.type == 'U8': # Request for BRL Withdraw
-      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
-      self.raise_exception_if_required_tag_is_missing('Amount')
-      self.raise_exception_if_required_tag_is_missing('BankNumber')
-      self.raise_exception_if_required_tag_is_missing('BankName')
-      self.raise_exception_if_required_tag_is_missing('AccountName')
-      self.raise_exception_if_required_tag_is_missing('AccountNumber')
-      self.raise_exception_if_required_tag_is_missing('AccountBranch')
-      self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
 
       #TODO: Validate all fields of Request For BTC Withdraw  Message
     elif self.type == 'S0': # Bitcoin New Address

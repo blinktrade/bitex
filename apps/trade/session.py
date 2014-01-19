@@ -39,8 +39,8 @@ class Session(object):
     elif msg.type == 'U6': # CryptoCoin Withdraw Request
       return processCryptoCoinWithdrawRequest(self, msg)
 
-    elif msg.type == 'U8': # BRL Withdraw Request
-      return processBRLWithdrawRequest(self, msg)
+    elif msg.type == 'U8': # BRL Bank Transfer Withdraw Request
+      return processBRLBankTransferWithdrawRequest(self, msg)
 
     elif msg.type == 'U10': # Request password request
       return processRequestPasswordRequest(self, msg)

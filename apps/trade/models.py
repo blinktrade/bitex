@@ -493,7 +493,7 @@ class Withdraw(Base):
   wallet          = Column(String)
 
   # withdraw to Brazilian banks
-  bank_number     = Column(Integer) # Brazilian banks have a number
+  bank_number     = Column(String) # Brazilian banks have a number
   bank_name       = Column(String)
   account_name    = Column(String)
   account_number  = Column(String)
@@ -515,6 +515,42 @@ class Withdraw(Base):
   confirmation_token = Column(String, index=True, unique=True)
   status          = Column(Integer,       nullable=False, default=0)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+
+  @staticmethod
+  def create_brl_bank_transfer_withdraw(session, user, amount, bank_number,
+                                        bank_name, account_name, account_number, account_branch, cpf_cnpj):
+    import uuid
+    confirmation_token = uuid.uuid4().hex
+    withdraw_record = Withdraw(user_id        = user.id,
+                               username       = user.username,
+                               currency       = 'BRL',
+                               amount         = amount,
+                               bank_number    = bank_number,
+                               bank_name      = bank_name,
+                               account_name   = account_name,
+                               account_number = account_number,
+                               account_branch = account_branch,
+                               cpf_cnpj       = cpf_cnpj)
+    session.add(withdraw_record)
+    session.flush()
+
+    UserEmail.create( session = session,
+                      user_id = user.id,
+                      subject = u"[BitEx] Confirme a operação de saque.",
+                      template= "withdraw_confirmation_ptBR.txt",
+                      params= '{"token":"' + confirmation_token + '", '\
+                              '"amount":' + str(amount) + ', '\
+                              '"username":"' + user.username + '",'\
+                              '"currency":"BRL",'\
+                              '"created":"' + str(withdraw_record.created) + '",'\
+                              '"bank_number":"' + bank_number + '",'\
+                              '"bank_name":"' + bank_name + '",'\
+                              '"account_name":"' + account_name + '",'\
+                              '"account_number":"' + account_number + '",'\
+                              '"account_branch":"' + account_branch + '",'\
+                              '"cpf_cnpj":"' + cpf_cnpj + '"}')
+    return withdraw_record
 
   @staticmethod
   def create_crypto_coin_withdraw( session, user, currency, amount, wallet ):

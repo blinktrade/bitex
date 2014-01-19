@@ -335,6 +335,31 @@ def processCryptoCoinWithdrawRequest(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 
+@login_required
+def processBRLBankTransferWithdrawRequest(session, msg):
+  reqId          = msg.get('WithdrawReqID')
+  amount         = msg.get('Amount')
+  bank_number    = msg.get('BankNumber')
+  bank_name      = msg.get('BankName')
+  account_name   = msg.get('AccountName')
+  account_number = msg.get('AccountNumber')
+  account_branch = msg.get('AccountBranch')
+  cpf_cnpj       = msg.get('CPFCNPJ')
+
+
+  withdraw_record = Withdraw.create_brl_bank_transfer_withdraw(application.db_session, session.user, amount,
+                                                               bank_number, bank_name, account_name, account_number,
+                                                               account_branch, cpf_cnpj)
+  application.db_session.commit()
+
+  response = {
+    'MsgType':            'U9',
+    'WithdrawReqID':      reqId,
+    'WithdrawID':         withdraw_record.id,
+  }
+  return json.dumps(response, cls=JsonEncoder)
+
+
 def processWithdrawConfirmationRequest(session, msg):
   reqId = msg.get('WithdrawReqID')
   token = msg.get('ConfirmationToken')
@@ -351,6 +376,8 @@ def processWithdrawConfirmationRequest(session, msg):
   # TODO: update the user balance
 
   # TODO: execute the transfer
+
+  # TODO: change the withdraw status to confirmed by the user
 
   response = {
     'MsgType':            'U25',
@@ -377,10 +404,6 @@ def processWithdrawConfirmationRequest(session, msg):
     'Created':            withdraw_data.created
   }
   return json.dumps(response, cls=JsonEncoder)
-
-@login_required
-def processBRLWithdrawRequest(session, msg):
-  pass
 
 @login_required
 @staff_user_required
