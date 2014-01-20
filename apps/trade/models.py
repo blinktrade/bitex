@@ -489,6 +489,8 @@ class Withdraw(Base):
   currency        = Column(String,        nullable=False)
   amount          = Column(Integer,       nullable=False)
 
+  type            = Column(String,        nullable=False)
+
   # withdraw to digital currencies
   wallet          = Column(String)
 
@@ -512,10 +514,29 @@ class Withdraw(Base):
   # for US Banks
   routing_number  = Column(String)
 
-  confirmation_token = Column(String, index=True, unique=True)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  confirmation_token = Column(String,     index=True, unique=True)
+  status          = Column(String(1),     nullable=False, default='0', index=True)
+  created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
 
+
+  @staticmethod
+  def user_confirm(session, confirmation_token):
+    withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).first()
+    if not withdraw_data:
+      return  None
+
+    withdraw_data.status = '1'
+    session.add(withdraw_data)
+    session.flush()
+
+    ##### Doing the withdraw manually during launch
+    # TODO: Check if the user has enough balance to complete the operation
+    # TODO: Check if the user has exceed the 24 hours withdraw limit
+    # TODO: update the user balance
+    # TODO: execute the transfer
+    # TODO: change the withdraw status to confirmed by the user
+
+    return  withdraw_data
 
   @staticmethod
   def create_brl_bank_transfer_withdraw(session, user, amount, bank_number,
@@ -525,22 +546,30 @@ class Withdraw(Base):
     withdraw_record = Withdraw(user_id        = user.id,
                                username       = user.username,
                                currency       = 'BRL',
+                               type           = 'BBT',  # BBT - Brazil Bank Transfer
                                amount         = amount,
                                bank_number    = bank_number,
                                bank_name      = bank_name,
                                account_name   = account_name,
                                account_number = account_number,
                                account_branch = account_branch,
-                               cpf_cnpj       = cpf_cnpj)
+                               cpf_cnpj       = cpf_cnpj,
+                               confirmation_token = confirmation_token)
     session.add(withdraw_record)
     session.flush()
+
+    formatted_amount = u'{:,.2f}'.format(amount / 1.e5)
+    formatted_amount = formatted_amount.replace(',', '#')
+    formatted_amount = formatted_amount.replace('.', ',')
+    formatted_amount = formatted_amount.replace('#', '.')
+
 
     UserEmail.create( session = session,
                       user_id = user.id,
                       subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_ptBR.txt",
+                      template= "withdraw_confirmation_brl_bank_transfer_ptBR.txt",
                       params= '{"token":"' + confirmation_token + '", '\
-                              '"amount":' + str(amount) + ', '\
+                              '"amount":"' + formatted_amount + '", '\
                               '"username":"' + user.username + '",'\
                               '"currency":"BRL",'\
                               '"created":"' + str(withdraw_record.created) + '",'\
@@ -559,6 +588,7 @@ class Withdraw(Base):
     withdraw_record = Withdraw(user_id  = user.id,
                                username = user.username,
                                currency = currency,
+                               type     = 'CRY',  # CRY - Crypto Coin Transfer
                                amount   = amount,
                                wallet   = wallet,
                                confirmation_token = confirmation_token)
@@ -567,12 +597,17 @@ class Withdraw(Base):
     session.flush()
 
 
+    formatted_amount = u'{:,.8f}'.format(amount / 1.e8)
+    formatted_amount = formatted_amount.replace(',', '#')
+    formatted_amount = formatted_amount.replace('.', ',')
+    formatted_amount = formatted_amount.replace('#', '.')
+
     UserEmail.create( session = session,
                       user_id = user.id,
                       subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_ptBR.txt",
+                      template= "withdraw_confirmation_crypto_coin_ptBR.txt",
                       params= '{"token":"' + confirmation_token + '", ' \
-                               '"amount":' + str(amount) + ', '\
+                               '"amount":"' + formatted_amount + '", '\
                                '"username":"' + user.username + '",'\
                                '"currency":"' + currency + '",'\
                                '"created":"' + str(withdraw_record.created) + '",'\
@@ -580,63 +615,18 @@ class Withdraw(Base):
     return withdraw_record
 
   def __repr__(self):
-    return "<Withdraw(id=%d, user_id=%d, username='%s', currency='%s', amount='%d', " \
+    return "<Withdraw(id=%d, user_id=%d, username='%s', currency='%s', type='%s', amount='%d', " \
            "wallet='%s', "\
-           "bank_number=%d, bank_name='%s', account_name='%s', account_number='%s', account_branch='%s', cpf_cnpj='%s', "\
+           "bank_number='%s', bank_name='%s', account_name='%s', account_number='%s', account_branch='%s', cpf_cnpj='%s', "\
            "address='%s', city='%s', postal_code='%s', region_state='%s', country='%s', bank_swift='%s', intermediate_swift='%s, " \
            "routing_number='%s',"\
            "confirmation_token='%s', status='%s', created='%s')>" % (
-      self.id, self.user_id, self.username, self.currency, self.amount,
+      self.id, self.user_id, self.username, self.currency, self.type,self.amount,
       self.wallet,
       self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
       self.address, self.city, self.postal_code, self.region_state, self.country, self.bank_swift, self.intermediate_swift,
       self.routing_number,
       self.confirmation_token, self.status, self.created)
-
-
-class WithdrawBTC(Base):
-  __tablename__   = 'withdraws_btc'
-  id              = Column(Integer,       primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'))
-  username        = Column(String,        nullable=False)
-  amount          = Column(Integer,       nullable=False)
-  wallet          = Column(String,        nullable=False)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
-
-  @staticmethod
-  def create( session, user_id, subject, template=None, params=None, body = None ):
-    pass
-
-
-  def __repr__(self):
-    return "<WithdrawBTC(id=%d, user_id=%d, username='%s', amount='%d', wallet='%s', status='%s', created='%s')>" % (
-      self.id, self.user_id, self.username, self.amount, self.wallet, self.status, self.created)
-
-
-class WithdrawBRL(Base):
-  __tablename__   = 'withdraws_brl'
-  id              = Column(Integer,       primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'))
-  username        = Column(String,        nullable=False)
-  amount          = Column(Integer,       nullable=False)
-  bank_number     = Column(Integer,       nullable=False)
-  bank_name       = Column(String,        nullable=False)
-  account_name    = Column(String,        nullable=False)
-  account_number  = Column(String,        nullable=False)
-  account_branch  = Column(String,        nullable=False)  # Agencia
-  cpf_cnpj        = Column(String,        nullable=False)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
-
-  def __repr__(self):
-    return "<WithdrawBRL(id=%d, user_id=%d, username='%s', amount='%d'," \
-           "bank_number=%d,bank_name='%s',account_name='%s',account_number='%s',account_branch='%s',cpf_cnpj='%s', " \
-           "status='%s', created='%s')>" % (
-      self.id, self.user_id, self.username, self.amount,
-      self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
-      self.status, self.created)
-
 
 
 class Order(Base):

@@ -63,6 +63,9 @@ class Session(object):
     elif msg.type == 'U24': # Withdraw Confirmation Request
       return processWithdrawConfirmationRequest(self, msg)
 
+    elif msg.type == 'U26': # Withdraw List Request
+      return processWithdrawListRequest(self, msg)
+
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)
 

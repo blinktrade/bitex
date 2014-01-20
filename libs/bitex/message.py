@@ -30,7 +30,7 @@ class InvalidMessageFieldException(InvalidMessageException):
 class BaseMessage(object):
   MAX_MESSAGE_LENGTH = 4096
   def __init__(self, raw_message):
-    self.raw_message = str(raw_message)
+    self.raw_message = raw_message
 
   def has(self, attr):
     raise  NotImplementedError()
@@ -81,7 +81,7 @@ class JsonMessage(BaseMessage):
       raise InvalidMessageLengthException(raw_message)
 
     # parse the message
-    self.message = json.loads(str(raw_message))
+    self.message = json.loads(raw_message)
 
     if 'MsgType' not in self.message:
       raise InvalidMessageTypeException(raw_message, self.message)
@@ -124,6 +124,9 @@ class JsonMessage(BaseMessage):
       'U23': 'BoletoResponse',
       'U24': 'WithdrawConfirmationRequest',
       'U25': 'WithdrawConfirmationResponse',
+      'U26': 'WithdrawListRequest',
+      'U27': 'WithdrawListResponse',
+
       'S0':  'BitcoinNewAddressRequest',
       'S1':  'BitcoinNewAddressResponse',
       'S2':  'NumberOfFreeBitcoinNewAddressRequest',
@@ -307,8 +310,14 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U25': # WithdrawConfirmationResponse
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
 
+    elif self.type == 'U26': # Withdraw List Request
+      self.raise_exception_if_required_tag_is_missing('WithdrawListReqID')
+      self.raise_exception_if_empty('WithdrawListReqID')
 
-      #TODO: Validate all fields of Request For BTC Withdraw  Message
+    elif self.type == 'U27': # Withdraw List Response
+      self.raise_exception_if_required_tag_is_missing('WithdrawListReqID')
+      self.raise_exception_if_empty('WithdrawListReqID')
+
     elif self.type == 'S0': # Bitcoin New Address
       self.raise_exception_if_required_tag_is_missing('BtcAddress')
 

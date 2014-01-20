@@ -17,6 +17,7 @@ goog.require('bitex.ui.OrderBookEvent');
 
 goog.require('bitex.ui.OrderManager');
 goog.require('bitex.ui.AccountActivity');
+goog.require('bitex.ui.WithdrawList');
 
 goog.require('goog.events');
 goog.require('goog.dom.forms');
@@ -48,6 +49,8 @@ bitex.app.bitex = function( url ) {
   var order_book_offer = null;
 
   var account_activity_table = null;
+
+  var withdraw_list_table = null;
 
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
     var view_name = e.view;
@@ -84,6 +87,35 @@ bitex.app.bitex = function( url ) {
     goog.dom.classes.add( document.body, 'active-view-' + view_name );
   });
 
+  // When user select 'withdraw', let's load all withdraw requests from this user
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e){
+    var view_name = e.view;
+    if (view_name !== 'withdraw' || !bitEx.isLogged() ) {
+      return;
+    }
+
+    if (!goog.isDefAndNotNull(withdraw_list_table)) {
+      var el = goog.dom.getElement('id_withdraw_list_table');
+
+      withdraw_list_table = new bitex.ui.WithdrawList();
+      withdraw_list_table.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,function(e) {
+        var page = e.options['Page'];
+        var limit = e.options['Limit'];
+        bitEx.requestWithdrawList( 'all_withdraws', page, limit, ['1', '2'] );
+      });
+
+      withdraw_list_table.decorate(el);
+
+      bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE,  function(e) {
+        var msg = e.data;
+
+        if (msg['WithdrawListReqID'] === 'all_withdraws' && goog.isDefAndNotNull(withdraw_list_table) ) {
+          withdraw_list_table.setResultSet( msg['WithdrawListGrp'], msg['Columns'] );
+        }
+      });
+
+    }
+  });
 
   // when user select 'account_activity', let's load all transactions from this user.
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {

@@ -334,7 +334,6 @@ def processCryptoCoinWithdrawRequest(session, msg):
 
   return json.dumps(response, cls=JsonEncoder)
 
-
 @login_required
 def processBRLBankTransferWithdrawRequest(session, msg):
   reqId          = msg.get('WithdrawReqID')
@@ -359,25 +358,17 @@ def processBRLBankTransferWithdrawRequest(session, msg):
   }
   return json.dumps(response, cls=JsonEncoder)
 
-
+@login_required
 def processWithdrawConfirmationRequest(session, msg):
   reqId = msg.get('WithdrawReqID')
   token = msg.get('ConfirmationToken')
 
-  withdraw_data = application.db_session.query(Withdraw).filter_by(confirmation_token=token).first()
+  withdraw_data = Withdraw.user_confirm(application.db_session, token)
   if not withdraw_data:
     response = {'MsgType':'U25', 'WithdrawReqID': reqId}
     return json.dumps(response, cls=JsonEncoder)
 
-  # TODO: Check if the user has enough balance to complete the operation
-
-  # TODO: Check if the user has exceed the 24 hours withdraw limit
-
-  # TODO: update the user balance
-
-  # TODO: execute the transfer
-
-  # TODO: change the withdraw status to confirmed by the user
+  application.db_session.commit()
 
   response = {
     'MsgType':            'U25',
@@ -404,6 +395,60 @@ def processWithdrawConfirmationRequest(session, msg):
     'Created':            withdraw_data.created
   }
   return json.dumps(response, cls=JsonEncoder)
+
+
+@login_required
+def processWithdrawListRequest(session, msg):
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  status_list = msg.get('StatusList', ['1', '2'] )
+  offset      = page * page_size
+
+  withdraws = application.db_session.query(Withdraw).\
+                                          filter_by( user_id = session.user.id ).\
+                                          filter(Withdraw.status.in_( status_list )).\
+                                          order_by(Withdraw.created.desc()).\
+                                          limit( page_size ).offset( offset )
+
+  withdraw_list = []
+  columns = [ 'WithdrawID'   , 'Type'             , 'Currency'      , 'Amount' , 'Wallet', 'BankNumber' ,'AccountName',
+              'AccountNumber', 'AccountBranch'    , 'CPFCNPJ'       , 'Address', 'City'  , 'PostalCode', 'Country'   ,
+              'BankSwift'    , 'IntermediateSwift', 'RoutingNumber' , 'Created', 'Status', 'RegionState','BankName' ]
+
+  for withdraw in withdraws:
+    withdraw_list.append( [
+      withdraw.id,
+      withdraw.type,
+      withdraw.currency,
+      withdraw.amount,
+      withdraw.wallet,
+      withdraw.bank_number,
+      withdraw.account_name,
+      withdraw.account_number,
+      withdraw.account_branch,
+      withdraw.cpf_cnpj,
+      withdraw.address,
+      withdraw.city,
+      withdraw.postal_code,
+      withdraw.country,
+      withdraw.bank_swift,
+      withdraw.intermediate_swift,
+      withdraw.routing_number,
+      withdraw.created,
+      withdraw.status,
+      withdraw.region_state,
+      withdraw.bank_name
+    ])
+
+  response_msg = {
+    'MsgType'           : 'U27', # WithdrawListResponse
+    'WithdrawListReqID' : msg.get('WithdrawListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'WithdrawListGrp'   : withdraw_list
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
 
 @login_required
 @staff_user_required

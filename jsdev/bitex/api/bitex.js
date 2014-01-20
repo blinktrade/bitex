@@ -60,8 +60,10 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
+  /* Withdraws */
   CRYPTO_COIN_WITHDRAW_RESPONSE: 'crypto_coin_withdraw_response',
   BRL_BANK_TRANSFER_WITHDRAW_RESPONSE: 'brl_bank_transfer_withdraw_response',
+  WITHDRAW_LIST_RESPONSE: 'withdraw_list_response',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -208,6 +210,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BOLETO_OPTIONS_RESPONSE, msg ) );
       break;
 
+    case 'U27': // Withdraw List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE, msg ) );
+      break;
+
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR) );
@@ -344,14 +350,14 @@ bitex.api.BitEx.prototype.withdrawCryptoCoin = function( amount, address, curren
     'MsgType': 'U6',
     'WithdrawReqID': reqId,
     'Currency': currency,
-    'Amount': amount,
+    'Amount': parseInt(amount * 1e8, 10),
     'Wallet': address
   };
   this.ws_.send(JSON.stringify( msg ));
 };
 
 /**
- * @param {string} amount
+ * @param {number} amount
  * @param {string} bank_number
  * @param {string} bank_name
  * @param {string} account_name
@@ -365,7 +371,7 @@ bitex.api.BitEx.prototype.withdrawBRLBankTransfer = function( amount, bank_numbe
   var msg = {
     'MsgType'       : 'U8',
     'WithdrawReqID' : reqId,
-    'Amount'        : amount,
+    'Amount'        : parseInt(amount * 1e5, 10),
     'BankNumber'    : bank_number,
     'BankName'      : bank_name,
     'AccountName'   : account_name,
@@ -387,6 +393,31 @@ bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
     'ConfirmationToken': confirmation_token
   };
   this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * Request a withdraw list
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
+ */
+bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+  var status = opt_status || ['1', '2'];
+
+  var msg = {
+    'MsgType': 'U26',
+    'WithdrawListReqID': requestId,
+    'Page': page,
+    'PageSize': limit,
+    'StatusList': status
+  };
+  this.ws_.send(JSON.stringify( msg ));
+
+  return requestId;
 };
 
 
