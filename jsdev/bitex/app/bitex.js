@@ -8,14 +8,16 @@ goog.require('bitex.ui.OrderBook.Side');
 goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderEntry.EventType');
 
-goog.require('bitex.ui.WithdrawBTC');
-goog.require('bitex.ui.WithdrawBTC.EventType');
+
+goog.require('bitex.ui.Withdraw');
+goog.require('bitex.ui.Withdraw.EventType');
 
 goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
 
 goog.require('bitex.ui.OrderManager');
 goog.require('bitex.ui.AccountActivity');
+goog.require('bitex.ui.WithdrawList');
 
 goog.require('goog.events');
 goog.require('goog.dom.forms');
@@ -47,6 +49,8 @@ bitex.app.bitex = function( url ) {
   var order_book_offer = null;
 
   var account_activity_table = null;
+
+  var withdraw_list_table = null;
 
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
     var view_name = e.view;
@@ -83,6 +87,35 @@ bitex.app.bitex = function( url ) {
     goog.dom.classes.add( document.body, 'active-view-' + view_name );
   });
 
+  // When user select 'withdraw', let's load all withdraw requests from this user
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e){
+    var view_name = e.view;
+    if (view_name !== 'withdraw' || !bitEx.isLogged() ) {
+      return;
+    }
+
+    if (!goog.isDefAndNotNull(withdraw_list_table)) {
+      var el = goog.dom.getElement('id_withdraw_list_table');
+
+      withdraw_list_table = new bitex.ui.WithdrawList();
+      withdraw_list_table.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,function(e) {
+        var page = e.options['Page'];
+        var limit = e.options['Limit'];
+        bitEx.requestWithdrawList( 'all_withdraws', page, limit, ['1', '2'] );
+      });
+
+      withdraw_list_table.decorate(el);
+
+      bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE,  function(e) {
+        var msg = e.data;
+
+        if (msg['WithdrawListReqID'] === 'all_withdraws' && goog.isDefAndNotNull(withdraw_list_table) ) {
+          withdraw_list_table.setResultSet( msg['WithdrawListGrp'], msg['Columns'] );
+        }
+      });
+
+    }
+  });
 
   // when user select 'account_activity', let's load all transactions from this user.
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
@@ -147,12 +180,73 @@ bitex.app.bitex = function( url ) {
     }
   });
 
+  var withdraws_component = new goog.ui.Component();
+  withdraws_component.decorate(goog.dom.getElement('withdraw_accordion'));
 
-  var withdraw_btc = new bitex.ui.WithdrawBTC();
-  withdraw_btc.decorate( goog.dom.getElement('id_btc_withdraw') );
+  /*
+  var withdraw_ltc = new bitex.ui.Withdraw( { parent_id:'withdraw_accordion',
+                                              button_label:'Retirada em LTC',
+                                              title: 'Retirada em Litecoin',
+                                              description: 'Utilize o formulário abaixo para iniciar a sua retirada.',
+                                              controls: [ ['amount', 'Quantidade', 'Digite a quantidade', 'Ł'],
+                                                ['Wallet', 'carteira', 'Digite o endereço de sua carteira'] ]  });
+  withdraws_component.addChild(withdraw_ltc, true);
+  */
 
-  withdraw_btc.addEventListener( bitex.ui.WithdrawBTC.EventType.WITHDRAW_BTC, function(e){
-    bitEx.withDrawCryptoCoin(e.qty, e.address, 'BTC');
+  var withdraw_btc = new bitex.ui.Withdraw( { parent_id:'withdraw_accordion',
+                                              button_label:'Retirada em BTC',
+                                              title: 'Retirada em Bitcoin',
+                                              description: 'Utilize o formulário abaixo para iniciar a sua retirada.',
+                                              controls: [ ['amount', 'Quantidade', 'Digite a quantidade', '฿'],
+                                                          ['wallet', 'Carteira', 'Digite o endereço de sua carteira'] ]  });
+
+  var withdraw_brl_bank_transfer =
+      new bitex.ui.Withdraw({ parent_id:'withdraw_accordion',
+                              button_label:'Retirada em BRL',
+                              title: 'Transferência Bancária no Brasil',
+                              description: 'Transferência Bancaria via DOC-C ou TED o custo de R$ 10,00 é cobrado.',
+                              controls: [ ['amount',          'Valor',          'ex. 2300', 'R$'],
+                                          ['bank_number',     'Número do banco', 'ex. 341'],
+                                          ['bank_name',       'Nome do banco', 'ex. Banco Itáu'],
+                                          ['account_branch',  'Código da agência', 'ex. 5555'],
+                                          ['account_name',    'Nome do titular da conta', 'ex. José da Silva'],
+                                          ['account_number',  'Conta corrente', 'ex. 888888'],
+                                          ['CPFCNPJ',         'CPF ou CNPJ', 'ex. 888888']
+                              ]});
+
+  withdraws_component.addChild(withdraw_btc, true);
+  withdraws_component.addChild(withdraw_brl_bank_transfer, true);
+
+
+  withdraw_btc.addEventListener( bitex.ui.Withdraw.EventType.WITHDRAW, function(e){
+    var amount = e.target.getModel().data['amount'];
+    amount = amount.replace(',','.');
+    if (amount.lastIndexOf('.') != amount.indexOf('.') ) {
+      alert('Valor de saque inválido. Por favor digite somente números sem separadores de milhares.');
+      return;
+    }
+
+
+    bitEx.withdrawCryptoCoin( parseFloat(amount),
+                              e.target.getModel().data['wallet'] ,
+                              'BTC');
+  });
+
+  withdraw_brl_bank_transfer.addEventListener( bitex.ui.Withdraw.EventType.WITHDRAW, function(e){
+    var amount = e.target.getModel().data['amount'];
+    amount = amount.replace(',','.');
+    if (amount.lastIndexOf('.') != amount.indexOf('.') ) {
+      alert('Valor de saque inválido. Por favor digite somente números sem separadores de milhares.');
+      return;
+    }
+
+    bitEx.withdrawBRLBankTransfer( parseFloat(amount),
+                                   e.target.getModel().data['bank_number'] ,
+                                   e.target.getModel().data['bank_name'] ,
+                                   e.target.getModel().data['account_name'] ,
+                                   e.target.getModel().data['account_number'] ,
+                                   e.target.getModel().data['account_branch'] ,
+                                   e.target.getModel().data['CPFCNPJ'])
   });
 
   var order_entry = new bitex.ui.OrderEntry();
@@ -244,7 +338,7 @@ bitex.app.bitex = function( url ) {
   });
 
   order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
-    bitEx.cancelOrder(e.client_order_id );
+    bitEx.cancelOrder( undefined, e.order_id );
   });
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
@@ -259,11 +353,36 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-  bitEx.addEventListener(bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, function(e){
+  var withdrawConfirmationDialog;
+  var withdrawResponseFunction = function(e){
     var msg = e.data;
-    console.log(msg);
-    console.log('====>');
-  });
+
+    if (goog.isDefAndNotNull(withdrawConfirmationDialog)) {
+      withdrawConfirmationDialog.dispose();
+    }
+
+    var dlg_content =
+        '<p>Para a sua segurança, nós enviamos um <strong>código de confirmação</strong> para o seu email. </p> ' +
+            '<input id="id_withdraw_confirmation" placeholder="Código de confirmação" class="input-block-level">' +
+            '<p><i>A operação só será efeutada mediante ao código de confirmação que fora enviada para o seu email.</i></p>';
+
+    withdrawConfirmationDialog = new bootstrap.Dialog();
+    withdrawConfirmationDialog.setTitle('Confirme a operação de saque');
+    withdrawConfirmationDialog.setContent(dlg_content);
+    withdrawConfirmationDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+    withdrawConfirmationDialog.setVisible(true);
+
+    goog.events.listenOnce(withdrawConfirmationDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'ok') {
+        var token = goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") );
+        bitEx.confirmWithdraw(token);
+      }
+      withdrawConfirmationDialog.dispose();
+    });
+  };
+  bitEx.addEventListener(bitex.api.BitEx.EventType.BRL_BANK_TRANSFER_WITHDRAW_RESPONSE, withdrawResponseFunction );
+  bitEx.addEventListener(bitex.api.BitEx.EventType.CRYPTO_COIN_WITHDRAW_RESPONSE, withdrawResponseFunction );
+
 
   bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK,  function(e) {
     var msg = e.data;

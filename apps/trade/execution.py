@@ -107,7 +107,8 @@ class OrderMatcher(object):
 
     rpt_order  = ExecutionReport( order, execution_side )
     execution_reports.append( ( order.user_id, rpt_order.toJson() )  )
-
+    if order.user_id != order.account_id:
+      execution_reports.append( ( order.account_id, rpt_order.toJson() )  )
 
     is_last_match_a_partial_execution_on_counter_order = False
     execution_counter = 0
@@ -128,12 +129,14 @@ class OrderMatcher(object):
         # generate a cancel report
         cancel_rpt_counter_order  = ExecutionReport( counter_order, execution_side )
         execution_reports.append( ( counter_order.user_id, cancel_rpt_counter_order.toJson() )  )
+        if counter_order.user_id != counter_order.account_id:
+          execution_reports.append( ( counter_order.account_id, cancel_rpt_counter_order.toJson() )  )
 
         # go to the next order
         is_last_match_a_partial_execution_on_counter_order = False
         continue
 
-      # Get the desired executed price and qty, by matching agains the counter_order
+      # Get the desired executed price and qty, by matching against the counter_order
       executed_qty = order.match( counter_order, order.leaves_qty)
       executed_price = counter_order.price
 
@@ -157,6 +160,8 @@ class OrderMatcher(object):
         order.cancel_qty( qty_to_cancel_from_order )
         cancel_rpt_order  = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, cancel_rpt_order.toJson() )  )
+        if order.user_id != order.account_id:
+          execution_reports.append( ( order.account_id, cancel_rpt_order.toJson() )  )
         break
 
 
@@ -185,6 +190,8 @@ class OrderMatcher(object):
         # generate a cancel report
         cancel_rpt_counter_order  = ExecutionReport( counter_order, execution_side )
         execution_reports.append( ( counter_order.user_id, cancel_rpt_counter_order.toJson() )  )
+        if counter_order.user_id != counter_order.account_id:
+          execution_reports.append( ( counter_order.account_id, cancel_rpt_counter_order.toJson() )  )
 
         # go to the next order
         is_last_match_a_partial_execution_on_counter_order = False
@@ -219,6 +226,13 @@ class OrderMatcher(object):
 
         rpt_order         = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, rpt_order.toJson() )  )
+        if order.user_id != order.account_id:
+          execution_reports.append( ( order.account_id, rpt_order.toJson() )  )
+
+        rpt_counter_order = ExecutionReport( counter_order, execution_side )
+        execution_reports.append( ( counter_order.user_id, rpt_counter_order.toJson() )  )
+        if counter_order.user_id != counter_order.account_id:
+          execution_reports.append( ( counter_order.account_id, rpt_counter_order.toJson() )  )
 
         def generate_email_subject_and_body( order, trade ):
           from json import  dumps
@@ -258,9 +272,6 @@ class OrderMatcher(object):
                           subject = email_data[0],
                           template= email_data[1],
                           params  = email_data[2])
-        rpt_counter_order = ExecutionReport( counter_order, execution_side )
-        execution_reports.append( ( counter_order.user_id, rpt_counter_order.toJson() )  )
-
 
         email_data = generate_email_subject_and_body(counter_order, trade)
         UserEmail.create( session = session,
@@ -268,8 +279,6 @@ class OrderMatcher(object):
                           subject = email_data[0],
                           template= email_data[1],
                           params  = email_data[2])
-        execution_reports.append( ( counter_order.user_id, rpt_counter_order.toJson() )  )
-
 
 
       #
@@ -284,12 +293,18 @@ class OrderMatcher(object):
         cancel_rpt_order  = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, cancel_rpt_order.toJson() )  )
 
+        if order.user_id != order.account_id:
+          execution_reports.append( ( order.account_id, cancel_rpt_order.toJson() )  )
+
+
       if qty_to_cancel_from_counter_order:
         counter_order.cancel_qty(qty_to_cancel_from_counter_order)
 
         # generate a cancel report
         cancel_rpt_counter_order  = ExecutionReport( counter_order, execution_side )
         execution_reports.append( ( counter_order.user_id, cancel_rpt_counter_order.toJson() )  )
+        if counter_order.user_id != counter_order.account_id:
+          execution_reports.append( ( counter_order.account_id, cancel_rpt_counter_order.toJson() )  )
 
       if counter_order.has_leaves_qty:
         is_last_match_a_partial_execution_on_counter_order = True
@@ -335,7 +350,6 @@ class OrderMatcher(object):
       # Generate an Order Cancel Reject - Order not found
       return
 
-
     # let's find the  order position
     self_side = []
     if order.is_buy:
@@ -373,6 +387,10 @@ class OrderMatcher(object):
     # Generate a cancel report
     cancel_rpt = ExecutionReport( order, '1' if order.is_buy else '2' )
     application.publish(order.user_id, cancel_rpt.toJson() )
+
+    if order.user_id != order.account_id:
+      application.publish(order.account_id, cancel_rpt.toJson() )
+
 
     # market data
     md_entry_type = '0' if order.is_buy else '1'

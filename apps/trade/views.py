@@ -66,10 +66,26 @@ def processLogin(session, msg):
 
 @login_required
 def processNewOrderSingle(session, msg):
+  from errors import NotAuthorizedError, InvalidClientIDError
+
+  if msg.has('ClientID') and not session.user.is_broker:
+    raise NotAuthorizedError()
+
+  account_id = session.user.account_id
+  account_user = session.user
+  if session.user.is_broker:
+    if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
+      client = application.db_session.query(User).filter( User.id == msg.get('ClientID')  ).first()
+      if not client:
+        raise InvalidClientIDError()
+      account_user = client
+      account_id   = client.account_id
+
   # process the new order.
   order = Order( user_id          = session.user.id,
-                 account_id       = session.user.account_id,
+                 account_id       = msg.get('ClientID', account_id ),
                  user             = session.user,
+                 account_user     = account_user,
                  username         = session.user.username,
                  client_order_id  = msg.get('ClOrdID'),
                  symbol           = msg.get('Symbol'),
@@ -100,10 +116,13 @@ def processCancelOrderRequest(session, msg):
   elif msg.has('OrderID'):
     order = application.db_session.query(Order).\
                                     filter(Order.status.in_(("0", "1"))).\
-                                    filter_by( user_id = session.user.id ).\
                                     filter_by( id =  msg.get('OrderID')  ).first()
     if order:
-      order_list.append(order)
+      if order.user_id == session.user.id:
+        order_list.append(order)
+      elif order.account_id == session.user.id:
+        order_list.append(order)
+
   else:
     orders = application.db_session.query(Order).\
                                     filter(Order.status.in_(("0", "1"))).\
@@ -155,11 +174,19 @@ def processRequestForOpenOrders(session, msg):
   status_list = msg.get('StatusList', ['0', '1'] )
   offset      = page * page_size
 
-  orders = application.db_session.query(Order).\
-                                  filter(Order.status.in_( status_list )).\
-                                  filter_by( user_id = session.user.id ).\
-                                  order_by(Order.created.desc()).\
-                                  limit( page_size ).offset( offset )
+  if session.user.is_broker:
+    orders = application.db_session.query(Order).\
+                                          filter(Order.status.in_( status_list )).\
+                                          filter_by( user_id = session.user.id ).\
+                                          order_by(Order.created.desc()).\
+                                          limit( page_size ).offset( offset )
+
+  else:
+    orders = application.db_session.query(Order).\
+                                          filter(Order.status.in_( status_list )).\
+                                          filter_by( account_id = session.user.id ).\
+                                          order_by(Order.created.desc()).\
+                                          limit( page_size ).offset( offset )
 
   order_list = []
   columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
@@ -318,6 +345,7 @@ def processGenerateBoleto(session, msg):
 
 @login_required
 def processCryptoCoinWithdrawRequest(session, msg):
+  reqId        = msg.get('WithdrawReqID')
   amount       = msg.get('Amount')
   wallet       = msg.get('Wallet')
   currency     = msg.get('Currency')
@@ -325,11 +353,129 @@ def processCryptoCoinWithdrawRequest(session, msg):
   withdraw_record = Withdraw.create_crypto_coin_withdraw(application.db_session, session.user, currency, amount, wallet)
   application.db_session.commit()
 
+  response = {
+    'MsgType':            'U7',
+    'WithdrawReqID':      reqId,
+    'WithdrawID':         withdraw_record.id,
+  }
+
+  return json.dumps(response, cls=JsonEncoder)
+
+@login_required
+def processBRLBankTransferWithdrawRequest(session, msg):
+  reqId          = msg.get('WithdrawReqID')
+  amount         = msg.get('Amount')
+  bank_number    = msg.get('BankNumber')
+  bank_name      = msg.get('BankName')
+  account_name   = msg.get('AccountName')
+  account_number = msg.get('AccountNumber')
+  account_branch = msg.get('AccountBranch')
+  cpf_cnpj       = msg.get('CPFCNPJ')
+
+
+  withdraw_record = Withdraw.create_brl_bank_transfer_withdraw(application.db_session, session.user, amount,
+                                                               bank_number, bank_name, account_name, account_number,
+                                                               account_branch, cpf_cnpj)
+  application.db_session.commit()
+
+  response = {
+    'MsgType':            'U9',
+    'WithdrawReqID':      reqId,
+    'WithdrawID':         withdraw_record.id,
+  }
+  return json.dumps(response, cls=JsonEncoder)
+
+@login_required
+def processWithdrawConfirmationRequest(session, msg):
+  reqId = msg.get('WithdrawReqID')
+  token = msg.get('ConfirmationToken')
+
+  withdraw_data = Withdraw.user_confirm(application.db_session, token)
+  if not withdraw_data:
+    response = {'MsgType':'U25', 'WithdrawReqID': reqId}
+    return json.dumps(response, cls=JsonEncoder)
+
+  application.db_session.commit()
+
+  response = {
+    'MsgType':            'U25',
+    'WithdrawReqID':      reqId,
+    'ConfirmationToken':  withdraw_data.confirmation_token,
+    'WithdrawID':         withdraw_data.id,
+    'Currency':           withdraw_data.currency,
+    'Amount':             withdraw_data.amount,
+    'Wallet':             withdraw_data.wallet,
+    'BankNumber':         withdraw_data.bank_number,
+    'BankName':           withdraw_data.bank_name,
+    'AccountName':        withdraw_data.account_name,
+    'AccountNumber':      withdraw_data.account_number,
+    'AccountBranch':      withdraw_data.account_branch,
+    'CPFCNPJ':            withdraw_data.cpf_cnpj,
+    'Address':            withdraw_data.address,
+    'City':               withdraw_data.city,
+    'PostalCode':         withdraw_data.postal_code,
+    'RegionState':        withdraw_data.region_state,
+    'Country':            withdraw_data.country,
+    'BankSwift':          withdraw_data.bank_swift,
+    'IntermediateSwift':  withdraw_data.intermediate_swift,
+    'RoutingNumber':      withdraw_data.routing_number,
+    'Created':            withdraw_data.created
+  }
+  return json.dumps(response, cls=JsonEncoder)
 
 
 @login_required
-def processBRLWithdrawRequest(session, msg):
-  pass
+def processWithdrawListRequest(session, msg):
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  status_list = msg.get('StatusList', ['1', '2'] )
+  offset      = page * page_size
+
+  withdraws = application.db_session.query(Withdraw).\
+                                          filter_by( user_id = session.user.id ).\
+                                          filter(Withdraw.status.in_( status_list )).\
+                                          order_by(Withdraw.created.desc()).\
+                                          limit( page_size ).offset( offset )
+
+  withdraw_list = []
+  columns = [ 'WithdrawID'   , 'Type'             , 'Currency'      , 'Amount' , 'Wallet', 'BankNumber' ,'AccountName',
+              'AccountNumber', 'AccountBranch'    , 'CPFCNPJ'       , 'Address', 'City'  , 'PostalCode', 'Country'   ,
+              'BankSwift'    , 'IntermediateSwift', 'RoutingNumber' , 'Created', 'Status', 'RegionState','BankName' ]
+
+  for withdraw in withdraws:
+    withdraw_list.append( [
+      withdraw.id,
+      withdraw.type,
+      withdraw.currency,
+      withdraw.amount,
+      withdraw.wallet,
+      withdraw.bank_number,
+      withdraw.account_name,
+      withdraw.account_number,
+      withdraw.account_branch,
+      withdraw.cpf_cnpj,
+      withdraw.address,
+      withdraw.city,
+      withdraw.postal_code,
+      withdraw.country,
+      withdraw.bank_swift,
+      withdraw.intermediate_swift,
+      withdraw.routing_number,
+      withdraw.created,
+      withdraw.status,
+      withdraw.region_state,
+      withdraw.bank_name
+    ])
+
+  response_msg = {
+    'MsgType'           : 'U27', # WithdrawListResponse
+    'WithdrawListReqID' : msg.get('WithdrawListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'WithdrawListGrp'   : withdraw_list
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
 
 @login_required
 @staff_user_required

@@ -50,7 +50,17 @@ class TradeApplication(object):
   def log(self, command, key, value=None):
     log_msg = command + ',' + key
     if value:
-      log_msg += ',' + str(value)
+      try:
+        log_msg += ',' + value
+      except Exception,e :
+        try:
+          log_msg += ',' + str(value)
+        except Exception,e :
+          try:
+            log_msg += ',' + unicode(value)
+          except Exception,e :
+            log_msg += ', [object]'
+
     self.replay_logger.info(  log_msg )
 
   def log_start_data(self):
@@ -63,7 +73,7 @@ class TradeApplication(object):
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','END')
 
-    from models import User, BoletoOptions, Order
+    from models import User, BoletoOptions, Order, Withdraw
 
     # log all users on the replay log
     users = self.db_session.query(User)
@@ -78,6 +88,9 @@ class TradeApplication(object):
     for order in orders:
       self.log('DB_ENTITY','ORDER',order)
 
+    withdraws = self.db_session.query(Withdraw)
+    for withdraw in withdraws:
+      self.log('DB_ENTITY', 'WITHDRAW', withdraw )
 
   def publish(self, key, data):
     self.publish_queue.append([ key, data ])

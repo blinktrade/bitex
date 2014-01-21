@@ -389,6 +389,12 @@ bitex.ui.DataGrid.prototype.resultSetToElements = function(resultSet, columns) {
     var tr = goog.dom.createDom( 'tr', this.row_class_fn_(row_set_obj) );
     var td_elements = {};
 
+    var rowSetObj = {};
+    for ( var x in columns) {
+      rowSetObj[columns[x]] = row_set[x];
+    }
+
+
     goog.array.forEach( row_set, function(value, result_set_index) {
       var index = result_set_col_index[result_set_index];
 
@@ -396,7 +402,7 @@ bitex.ui.DataGrid.prototype.resultSetToElements = function(resultSet, columns) {
         var formatter = this.columns_[index]['formatter'] || function(){return '' + value };
         var classes = this.columns_[index]['classes'] || goog.nullFunction;
 
-        var td = goog.dom.createDom( 'td', classes(value), formatter(value) );
+        var td = goog.dom.createDom( 'td', classes(value), formatter(value, rowSetObj ) );
         td_elements[this.columns_[ index]['property'] ]  = td;
       } else {
 

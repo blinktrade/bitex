@@ -60,7 +60,10 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
-  WITHDRAW_RESPONSE: 'withdraw_response',
+  /* Withdraws */
+  CRYPTO_COIN_WITHDRAW_RESPONSE: 'crypto_coin_withdraw_response',
+  BRL_BANK_TRANSFER_WITHDRAW_RESPONSE: 'brl_bank_transfer_withdraw_response',
+  WITHDRAW_LIST_RESPONSE: 'withdraw_list_response',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -183,8 +186,12 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, msg ) );
       break;
 
-    case 'U10': // Withdraw Response
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
+    case 'U7': // CryptoCoin Withdraw Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CRYPTO_COIN_WITHDRAW_RESPONSE, msg ) );
+      break;
+
+    case 'U9': // BRL Bank Transfer Withdraw Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BRL_BANK_TRANSFER_WITHDRAW_RESPONSE, msg ) );
       break;
 
     case 'U3': // Balance Response
@@ -201,6 +208,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U21': // Request Boleto Options Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BOLETO_OPTIONS_RESPONSE, msg ) );
+      break;
+
+    case 'U27': // Withdraw List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE, msg ) );
       break;
 
     case 'W':
@@ -333,17 +344,82 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
  * @param {string} address
  * @param {string} currency
  */
-bitex.api.BitEx.prototype.withDrawCryptoCoin = function( amount, address, currency  ) {
+bitex.api.BitEx.prototype.withdrawCryptoCoin = function( amount, address, currency  ) {
   var reqId = parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U6',
     'WithdrawReqID': reqId,
     'Currency': currency,
-    'Amount': amount,
+    'Amount': parseInt(amount * 1e8, 10),
     'Wallet': address
   };
   this.ws_.send(JSON.stringify( msg ));
 };
+
+/**
+ * @param {number} amount
+ * @param {string} bank_number
+ * @param {string} bank_name
+ * @param {string} account_name
+ * @param {string} account_number
+ * @param {string} account_branch
+ * @param {string} cpf_cnpj
+ */
+bitex.api.BitEx.prototype.withdrawBRLBankTransfer = function( amount, bank_number, bank_name, account_name,
+                                                              account_number, account_branch, cpf_cnpj) {
+  var reqId = parseInt(Math.random() * 1000000, 10);
+  var msg = {
+    'MsgType'       : 'U8',
+    'WithdrawReqID' : reqId,
+    'Amount'        : parseInt(amount * 1e5, 10),
+    'BankNumber'    : bank_number,
+    'BankName'      : bank_name,
+    'AccountName'   : account_name,
+    'AccountNumber' : account_number,
+    'AccountBranch' : account_branch,
+    'CPFCNPJ'       : cpf_cnpj
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * @param {string} confirmation_token
+ */
+bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
+  var reqId = parseInt(Math.random() * 1000000, 10);
+  var msg = {
+    'MsgType': 'U24',
+    'WithdrawReqID': reqId,
+    'ConfirmationToken': confirmation_token
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
+
+/**
+ * Request a withdraw list
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
+ */
+bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+  var status = opt_status || ['1', '2'];
+
+  var msg = {
+    'MsgType': 'U26',
+    'WithdrawListReqID': requestId,
+    'Page': page,
+    'PageSize': limit,
+    'StatusList': status
+  };
+  this.ws_.send(JSON.stringify( msg ));
+
+  return requestId;
+};
+
 
 /**
  * @param {string} token
@@ -598,6 +674,8 @@ goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prot
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
+goog.exportProperty(BitEx.prototype, 'withdrawCryptoCoin', bitex.api.BitEx.prototype.withdrawCryptoCoin);
+goog.exportProperty(BitEx.prototype, 'confirmWithdraw', bitex.api.BitEx.prototype.confirmWithdraw);
 goog.exportProperty(BitEx.prototype, 'enableTwoFactor', bitex.api.BitEx.prototype.enableTwoFactor);
 goog.exportProperty(BitEx.prototype, 'resetPassword', bitex.api.BitEx.prototype.resetPassword);
 goog.exportProperty(BitEx.prototype, 'requestOrderList', bitex.api.BitEx.prototype.requestOrderList);

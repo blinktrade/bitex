@@ -1,0 +1,17 @@
+Olá {{username}}
+
+Código de confirmação: {{token}}
+
+Atenção, este código de confirmação é válido para confirmar a seguinte operação de saque:
+Data: {{created}}
+Valor: {{amount}}
+Moeda: {{currency}}
+Destino: {{wallet}}
+
+Atenção:
+Este procedimento é necessário para aumentar a segurança do sistema, pois caso a sua senha na BitEx seja comprometida,
+o invasor não poderá realizar a operação de saque de bitcoins se ele não possuir acesso a sua conta de email.
+
+Grato,
+Equipe BitEx
+Cuidando da segurança dos seus bitcoins

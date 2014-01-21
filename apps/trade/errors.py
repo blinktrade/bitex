@@ -25,3 +25,6 @@ class InvalidMessageError(TradeRuntimeError):
 
 class NotAuthorizedError(TradeRuntimeError):
   error_description = "Not authorized"
+
+class InvalidClientIDError(TradeRuntimeError):
+  error_description = "Invalid Client ID"

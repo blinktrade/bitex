@@ -3,11 +3,13 @@ from errors import *
 from views import *
 
 class Session(object):
-  def __init__(self, session_id):
-    self.session_id   = session_id
+  def __init__(self, session_id, remote_ip=None, client_version=None):
+    self.session_id     = session_id
+    self.remote_ip      = remote_ip
+    self.client_version = client_version
 
-    self.user       = None
-    self.should_end = False
+    self.user           = None
+    self.should_end     = False
 
   def set_user(self, user):
     if self.user:
@@ -39,8 +41,8 @@ class Session(object):
     elif msg.type == 'U6': # CryptoCoin Withdraw Request
       return processCryptoCoinWithdrawRequest(self, msg)
 
-    elif msg.type == 'U8': # BRL Withdraw Request
-      return processBRLWithdrawRequest(self, msg)
+    elif msg.type == 'U8': # BRL Bank Transfer Withdraw Request
+      return processBRLBankTransferWithdrawRequest(self, msg)
 
     elif msg.type == 'U10': # Request password request
       return processRequestPasswordRequest(self, msg)
@@ -60,6 +62,11 @@ class Session(object):
     elif msg.type == 'U22': # Request Boleto
       return processRequestBoleto(self, msg)
 
+    elif msg.type == 'U24': # Withdraw Confirmation Request
+      return processWithdrawConfirmationRequest(self, msg)
+
+    elif msg.type == 'U26': # Withdraw List Request
+      return processWithdrawListRequest(self, msg)
 
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)

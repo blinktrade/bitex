@@ -75,9 +75,9 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'property': 'ClOrdID',
       'label': 'Ações',
       'sortable': false,
-      'formatter': function(id){
+      'formatter': function(id, row_set_obj){
         var classes = "icon-remove";
-        var i =goog.dom.createDom( 'i', { 'class':classes, 'data-client-order-id':id });
+        var i =goog.dom.createDom( 'i', { 'class':classes, 'data-order-id':row_set_obj["OrderID"] });
         return goog.dom.createDom( 'a', { 'class':"text-error", "href":"#" }, i);
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
@@ -292,9 +292,9 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
   var handler = this.getHandler();
 
   handler.listen(this.getElement(), 'click', function(e){
-    var client_order_id = e.target.getAttribute('data-client-order-id');
-    if (goog.isDefAndNotNull(client_order_id)) {
-      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, client_order_id) );
+    var order_id = e.target.getAttribute('data-order-id');
+    if (goog.isDefAndNotNull(order_id)) {
+      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, order_id) );
     }
   });
 };
@@ -303,17 +303,17 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
 /**
  *
  * @param {string} type
- * @param {string} client_order_id
+ * @param {string} order_id
  * @extends {goog.events.Event}
  * @constructor
  */
-bitex.ui.OrderManagerEvent = function(type, client_order_id) {
+bitex.ui.OrderManagerEvent = function(type, order_id) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
-  this.client_order_id = client_order_id;
+  this.order_id = order_id;
 };
 goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);
 

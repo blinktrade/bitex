@@ -76,6 +76,7 @@ class User(Base):
   verified        = Column(Integer, nullable=False, default=0)
   is_staff        = Column(Boolean, nullable=False, default=False)
   is_system       = Column(Boolean, nullable=False, default=False)
+  is_broker       = Column(Boolean, nullable=False, default=False)
 
   daily_withdraw_btc_limit = Column(Integer, nullable=False, default=0)
   daily_withdraw_ltc_limit = Column(Integer, nullable=False, default=0)
@@ -102,13 +103,13 @@ class User(Base):
   def __repr__(self):
     return "<User(id=%d, username='%s', email='%s'," \
            " balance_btc=%d, balance_ltc=%d, balance_brl=%d, balance_usd=%d, bitcoin_address='%s'," \
-           " verified=%d, is_staff=%s, is_system=%s, created='%s', last_login='%s'," \
+           " verified=%d, is_staff=%s, is_system=%s, is_broker=%s,  created='%s', last_login='%s'," \
            " daily_withdraw_btc_limit=%d, daily_withdraw_ltc_limit=%d, daily_withdraw_brl_limit=%d, daily_withdraw_usd_limit=%d,"\
            " daily_withdraw_btc=%d, daily_withdraw_ltc=%d, daily_withdraw_brl=%d, daily_withdraw_usd=%d," \
            " last_withdraw_btc='%s', last_withdraw_ltc='%s', last_withdraw_brl='%s', last_withdraw_usd='%s' )>" \
           % (self.id, self.username, self.email,
              self.balance_btc, self.balance_ltc, self.balance_brl, self.balance_usd, self.bitcoin_address,
-             self.verified, self.is_staff, self.is_system,self.created, self.last_login,
+             self.verified, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login,
              self.daily_withdraw_btc_limit, self.daily_withdraw_ltc_limit, self.daily_withdraw_brl_limit, self.daily_withdraw_usd_limit,
              self.daily_withdraw_btc, self.daily_withdraw_ltc, self.daily_withdraw_brl, self.daily_withdraw_usd,
              self.last_withdraw_btc, self.last_withdraw_ltc,self.last_withdraw_brl,self.last_withdraw_usd)
@@ -140,6 +141,12 @@ class User(Base):
         setattr(self , balance_attribute, current_balance + value )
       elif operation == 'DEBIT':
         setattr(self , balance_attribute, current_balance - value )
+
+  def get_currency_balance(self, currency_symbol):
+    attribute = 'balance_' + currency_symbol.lower().strip()
+    if not hasattr( self, attribute ):
+      return 0
+    return getattr( self,attribute, 0)
 
 
   def get_balance(self, reqId = None):
@@ -263,18 +270,7 @@ class User(Base):
 
 
   def withdraw_btc(self, session, amount, wallet):
-    withdraw_btc =  WithdrawBTC( user_id  = self.id,
-                                 username = self.username,
-                                 amount   = amount,
-                                 wallet   = wallet)
-    session.add(withdraw_btc)
-    session.flush()
-
-    UserEmail.create( session = session,
-                      user_id = self.id,
-                      subject = u"Registrado pedido de saque de BTC número %d." % withdraw_btc.id )
-
-
+    obsolete_code = """
     if self.daily_withdraw_btc < self.daily_withdraw_btc_limit:
       if not self.last_withdraw_btc:
         self.last_withdraw_btc = datetime.datetime.now()
@@ -301,21 +297,12 @@ class User(Base):
       application.publish( self.id, btc_hot_wallet_transfer_msg )
 
     self.publish_balance_update()
+    """
 
   def withdraw_brl(self, session, amount, bank_number,bank_name,account_name,
                    account_number,account_branch,cpf_cnpj ):
 
-    withdraw_brl =  WithdrawBRL( user_id        = self.id,
-                                 amount         = amount,
-                                 bank_number    = bank_number,
-                                 bank_name      = bank_name     ,
-                                 account_name   = account_name  ,
-                                 account_number = account_number,
-                                 account_branch = account_branch,
-                                 cpf_cnpj       = cpf_cnpj)
-    session.add(withdraw_brl)
-    session.flush()
-
+    obsolete_code = """
     UserEmail.create( session = session,
                       user_id = self.id,
                       subject = u"Registrado pedido de saque de R$ número %d." % withdraw_brl.id )
@@ -346,7 +333,7 @@ class User(Base):
       application.publish( self.id, brl_bank_transfer_msg )
 
     self.publish_balance_update()
-
+    """
 
 class BitcoinAddress(Base):
   __tablename__   = 'bitcoin_address'
@@ -485,15 +472,18 @@ class Withdraw(Base):
   __tablename__   = 'withdraws'
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
+  account_id      = Column(Integer,       ForeignKey('users.id'))
   username        = Column(String,        nullable=False)
   currency        = Column(String,        nullable=False)
   amount          = Column(Integer,       nullable=False)
+
+  type            = Column(String,        nullable=False)
 
   # withdraw to digital currencies
   wallet          = Column(String)
 
   # withdraw to Brazilian banks
-  bank_number     = Column(Integer) # Brazilian banks have a number
+  bank_number     = Column(String) # Brazilian banks have a number
   bank_name       = Column(String)
   account_name    = Column(String)
   account_number  = Column(String)
@@ -512,31 +502,102 @@ class Withdraw(Base):
   # for US Banks
   routing_number  = Column(String)
 
-  confirmation_token = Column(String)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  confirmation_token = Column(String,     index=True, unique=True)
+  status          = Column(String(1),     nullable=False, default='0', index=True)
+  created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
+  reason          = Column(String)
+
+  @staticmethod
+  def user_confirm(session, confirmation_token):
+    withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).first()
+    if not withdraw_data:
+      return  None
+
+    withdraw_data.status = '1'
+    session.add(withdraw_data)
+    session.flush()
+
+    ##### Doing the withdraw manually during launch
+    # TODO: Check if the user has enough balance to complete the operation
+    # TODO: Check if the user has exceed the 24 hours withdraw limit
+    # TODO: update the user balance
+    # TODO: execute the transfer
+    # TODO: change the withdraw status to confirmed by the user
+
+    return  withdraw_data
+
+  @staticmethod
+  def create_brl_bank_transfer_withdraw(session, user, amount, bank_number,
+                                        bank_name, account_name, account_number, account_branch, cpf_cnpj):
+    import uuid
+    confirmation_token = uuid.uuid4().hex
+    withdraw_record = Withdraw(user_id        = user.id,
+                               account_id     = user.id,
+                               username       = user.username,
+                               currency       = 'BRL',
+                               type           = 'BBT',  # BBT - Brazil Bank Transfer
+                               amount         = amount,
+                               bank_number    = bank_number,
+                               bank_name      = bank_name,
+                               account_name   = account_name,
+                               account_number = account_number,
+                               account_branch = account_branch,
+                               cpf_cnpj       = cpf_cnpj,
+                               confirmation_token = confirmation_token)
+    session.add(withdraw_record)
+    session.flush()
+
+    formatted_amount = u'{:,.2f}'.format(amount / 1.e5)
+    formatted_amount = formatted_amount.replace(',', '#')
+    formatted_amount = formatted_amount.replace('.', ',')
+    formatted_amount = formatted_amount.replace('#', '.')
+
+
+    UserEmail.create( session = session,
+                      user_id = user.id,
+                      subject = u"[BitEx] Confirme a operação de saque.",
+                      template= "withdraw_confirmation_brl_bank_transfer_ptBR.txt",
+                      params= '{"token":"' + confirmation_token + '", '\
+                              '"amount":"' + formatted_amount + '", '\
+                              '"username":"' + user.username + '",'\
+                              '"currency":"BRL",'\
+                              '"created":"' + str(withdraw_record.created) + '",'\
+                              '"bank_number":"' + bank_number + '",'\
+                              '"bank_name":"' + bank_name + '",'\
+                              '"account_name":"' + account_name + '",'\
+                              '"account_number":"' + account_number + '",'\
+                              '"account_branch":"' + account_branch + '",'\
+                              '"cpf_cnpj":"' + cpf_cnpj + '"}')
+    return withdraw_record
 
   @staticmethod
   def create_crypto_coin_withdraw( session, user, currency, amount, wallet ):
     import uuid
     confirmation_token = uuid.uuid4().hex
-    withdraw_record = Withdraw(user_id  = user.id,
-                               username = user.username,
-                               currency = currency,
-                               amount   = amount,
-                               wallet   = wallet,
+    withdraw_record = Withdraw(user_id    = user.id,
+                               account_id = user.id,
+                               username   = user.username,
+                               currency   = currency,
+                               type       = 'CRY',  # CRY - Crypto Coin Transfer
+                               amount     = amount,
+                               wallet     = wallet,
                                confirmation_token = confirmation_token)
 
     session.add(withdraw_record)
     session.flush()
 
 
+    formatted_amount = u'{:,.8f}'.format(amount / 1.e8)
+    formatted_amount = formatted_amount.replace(',', '#')
+    formatted_amount = formatted_amount.replace('.', ',')
+    formatted_amount = formatted_amount.replace('#', '.')
+
     UserEmail.create( session = session,
                       user_id = user.id,
                       subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_ptBR.txt",
+                      template= "withdraw_confirmation_crypto_coin_ptBR.txt",
                       params= '{"token":"' + confirmation_token + '", ' \
-                               '"amount":' + str(amount) + ', '\
+                               '"amount":"' + formatted_amount + '", '\
                                '"username":"' + user.username + '",'\
                                '"currency":"' + currency + '",'\
                                '"created":"' + str(withdraw_record.created) + '",'\
@@ -544,63 +605,18 @@ class Withdraw(Base):
     return withdraw_record
 
   def __repr__(self):
-    return "<Withdraw(id=%d, user_id=%d, username='%s', currency='%s', amount='%d', " \
+    return "<Withdraw(id=%d, user_id=%d, account_id=%d, username='%s', currency='%s', type='%s', amount='%d', " \
            "wallet='%s', "\
-           "bank_number=%d, bank_name='%s', account_name='%s', account_number='%s', account_branch='%s', cpf_cnpj='%s', "\
+           "bank_number='%s', bank_name='%s', account_name='%s', account_number='%s', account_branch='%s', cpf_cnpj='%s', "\
            "address='%s', city='%s', postal_code='%s', region_state='%s', country='%s', bank_swift='%s', intermediate_swift='%s, " \
            "routing_number='%s',"\
-           "confirmation_token='%s', status='%s', created='%s')>" % (
-      self.id, self.user_id, self.username, self.currency, self.amount,
+           "confirmation_token='%s', status='%s', created='%s', reason='%s')>" % (
+      self.id, self.user_id, self.account_id, self.username, self.currency, self.type,self.amount,
       self.wallet,
       self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
       self.address, self.city, self.postal_code, self.region_state, self.country, self.bank_swift, self.intermediate_swift,
       self.routing_number,
-      self.confirmation_token, self.status, self.created)
-
-
-class WithdrawBTC(Base):
-  __tablename__   = 'withdraws_btc'
-  id              = Column(Integer,       primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'))
-  username        = Column(String,        nullable=False)
-  amount          = Column(Integer,       nullable=False)
-  wallet          = Column(String,        nullable=False)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
-
-  @staticmethod
-  def create( session, user_id, subject, template=None, params=None, body = None ):
-    pass
-
-
-  def __repr__(self):
-    return "<WithdrawBTC(id=%d, user_id=%d, username='%s', amount='%d', wallet='%s', status='%s', created='%s')>" % (
-      self.id, self.user_id, self.username, self.amount, self.wallet, self.status, self.created)
-
-
-class WithdrawBRL(Base):
-  __tablename__   = 'withdraws_brl'
-  id              = Column(Integer,       primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'))
-  username        = Column(String,        nullable=False)
-  amount          = Column(Integer,       nullable=False)
-  bank_number     = Column(Integer,       nullable=False)
-  bank_name       = Column(String,        nullable=False)
-  account_name    = Column(String,        nullable=False)
-  account_number  = Column(String,        nullable=False)
-  account_branch  = Column(String,        nullable=False)  # Agencia
-  cpf_cnpj        = Column(String,        nullable=False)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
-
-  def __repr__(self):
-    return "<WithdrawBRL(id=%d, user_id=%d, username='%s', amount='%d'," \
-           "bank_number=%d,bank_name='%s',account_name='%s',account_number='%s',account_branch='%s',cpf_cnpj='%s', " \
-           "status='%s', created='%s')>" % (
-      self.id, self.user_id, self.username, self.amount,
-      self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
-      self.status, self.created)
-
+      self.confirmation_token, self.status, self.created, self.reason)
 
 
 class Order(Base):
@@ -608,9 +624,10 @@ class Order(Base):
 
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('orders', order_by=id))
+  user            = relationship("User",  foreign_keys=[user_id])
   username        = Column(String(15),    nullable=False )
-  account_id      = Column(Integer,       nullable=False)
+  account_id      = Column(Integer,       ForeignKey('users.id'))
+  account_user    = relationship("User",  foreign_keys=[account_id] )
   client_order_id = Column(String(30),    nullable=False, index=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
   symbol          = Column(String(12),    nullable=False)
@@ -684,22 +701,11 @@ class Order(Base):
 
   def get_available_qty_to_execute(self, side, qty, price):
     """This function returns qty that are available for execution"""
-
-    price_attribute = 'balance_' + self.symbol[:3].lower()
-    qty_attribute   = 'balance_' + self.symbol[3:].lower()
-
-    if side == '1' and  not hasattr( self.user, price_attribute ):
-      return 0
-
-    if side == '2' and  not hasattr( self.user, qty_attribute ):
-      return 0
-
-    balance_price = getattr( self.user,price_attribute, 0)
-    balance_qty   = getattr( self.user,qty_attribute, 0)
-
+    balance_price = self.account_user.get_currency_balance(self.symbol[:3].lower())
+    balance_qty   = self.account_user.get_currency_balance(self.symbol[3:].lower())
 
     if side == '1' : # buy
-      qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8) )
+      qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8))
       return qty_to_buy
     elif side == '2': # Sell
       qty_to_sell = min( qty, balance_qty )
@@ -765,28 +771,6 @@ class Order(Base):
   @property
   def is_sell(self):
     return  self.side == '2'
-
-
-  @staticmethod
-  def get_order( session, order_id=None, client_order_id=None ):
-    if  client_order_id is not None:
-      order = session.query(Order).\
-                filter_by( user_id = self.user.id ).\
-                filter_by( client_order_id =  client_order_id  ).first()
-    else:
-      order = session.query(Order).\
-                filter_by( user_id = self.user.id ).\
-                filter_by( id =  order_id  ).first()
-
-    return  order
-
-  @staticmethod
-  def cancel_order(session, user_id, order_id, client_order_id ):
-    order = Order.get_order(session,  order_id, client_order_id)
-
-    # TODO: Make sure the order belong to the same user
-    if order.user_id != user_id:
-      raise OrderNotFound
 
 
 class Trade(Base):
