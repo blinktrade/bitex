@@ -2087,9 +2087,9 @@ function $bitex$ui$OrderManager$$($opt_blinkDelay$$, $opt_domHelper$$5$$) {
     return($s$$32$$ / 1E5).toFixed(5)
   }, classes:function() {
     return $bitex$ui$OrderManager$CSS_CLASS$$ + "-avg-price"
-  }}, {property:"ClOrdID", label:"A\u00e7\u00f5es", sortable:$JSCompiler_alias_FALSE$$, formatter:function($i$$118_id$$7$$) {
-    $i$$118_id$$7$$ = $goog$dom$createDom$$("i", {"class":"icon-remove", "data-client-order-id":$i$$118_id$$7$$});
-    return $goog$dom$createDom$$("a", {"class":"text-error", href:"#"}, $i$$118_id$$7$$)
+  }}, {property:"ClOrdID", label:"A\u00e7\u00f5es", sortable:$JSCompiler_alias_FALSE$$, formatter:function($id$$7$$, $row_set_obj$$3$$) {
+    var $i$$118$$ = $goog$dom$createDom$$("i", {"class":"icon-remove", "data-order-id":$row_set_obj$$3$$.OrderID});
+    return $goog$dom$createDom$$("a", {"class":"text-error", href:"#"}, $i$$118$$)
   }, classes:function() {
     return $bitex$ui$OrderManager$CSS_CLASS$$ + "-actions"
   }}]}, $opt_domHelper$$5$$)
@@ -2176,14 +2176,14 @@ $bitex$ui$OrderManager$$.prototype.$insertOrder$ = function $$bitex$ui$OrderMana
 };
 $bitex$ui$OrderManager$$.prototype.$enterDocument$ = function $$bitex$ui$OrderManager$$$$$enterDocument$$() {
   $bitex$ui$OrderManager$$.$superClass_$.$enterDocument$.call(this);
-  $JSCompiler_StaticMethods_listen$$(this.$getHandler$(), this.$getElement$(), "click", function($client_order_id_e$$39$$) {
-    $client_order_id_e$$39$$ = $client_order_id_e$$39$$.target.getAttribute("data-client-order-id");
-    $client_order_id_e$$39$$ != $JSCompiler_alias_NULL$$ && this.dispatchEvent(new $bitex$ui$OrderManagerEvent$$("cancel", $client_order_id_e$$39$$))
+  $JSCompiler_StaticMethods_listen$$(this.$getHandler$(), this.$getElement$(), "click", function($e$$39_order_id$$) {
+    $e$$39_order_id$$ = $e$$39_order_id$$.target.getAttribute("data-order-id");
+    $e$$39_order_id$$ != $JSCompiler_alias_NULL$$ && this.dispatchEvent(new $bitex$ui$OrderManagerEvent$$("cancel", $e$$39_order_id$$))
   })
 };
-function $bitex$ui$OrderManagerEvent$$($type$$95$$, $client_order_id$$1$$) {
+function $bitex$ui$OrderManagerEvent$$($type$$95$$, $order_id$$1$$) {
   $goog$events$Event$$.call(this, $type$$95$$);
-  this.$client_order_id$ = $client_order_id$$1$$
+  this.$order_id$ = $order_id$$1$$
 }
 $goog$inherits$$($bitex$ui$OrderManagerEvent$$, $goog$events$Event$$);
 $goog$ui$registry$setDecoratorByClassName$$($bitex$ui$OrderManager$CSS_CLASS$$, function() {
@@ -4158,7 +4158,7 @@ $goog$exportPath_$$("bitex.app.bitex", function($url$$31$$) {
     $JSCompiler_StaticMethods_setView$$($router$$, "trading")
   });
   $order_manager$$.addEventListener("cancel", function($e$$100$$) {
-    $bitEx$$.$cancelOrder$($e$$100$$.$client_order_id$)
+    $bitEx$$.$cancelOrder$($JSCompiler_alias_VOID$$, $e$$100$$.$order_id$)
   });
   $bitEx$$.addEventListener("execution_report", function($e$$101_msg$$39$$) {
     $e$$101_msg$$39$$ = $e$$101_msg$$39$$.data;

@@ -66,10 +66,26 @@ def processLogin(session, msg):
 
 @login_required
 def processNewOrderSingle(session, msg):
+  from errors import NotAuthorizedError, InvalidClientIDError
+
+  if msg.has('ClientID') and not session.user.is_broker:
+    raise NotAuthorizedError()
+
+  account_id = session.user.account_id
+  account_user = session.user
+  if session.user.is_broker:
+    if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
+      client = application.db_session.query(User).filter( User.id == msg.get('ClientID')  ).first()
+      if not client:
+        raise InvalidClientIDError()
+      account_user = client
+      account_id   = client.account_id
+
   # process the new order.
   order = Order( user_id          = session.user.id,
-                 account_id       = session.user.account_id,
+                 account_id       = msg.get('ClientID', account_id ),
                  user             = session.user,
+                 account_user     = account_user,
                  username         = session.user.username,
                  client_order_id  = msg.get('ClOrdID'),
                  symbol           = msg.get('Symbol'),
@@ -100,10 +116,13 @@ def processCancelOrderRequest(session, msg):
   elif msg.has('OrderID'):
     order = application.db_session.query(Order).\
                                     filter(Order.status.in_(("0", "1"))).\
-                                    filter_by( user_id = session.user.id ).\
                                     filter_by( id =  msg.get('OrderID')  ).first()
     if order:
-      order_list.append(order)
+      if order.user_id == session.user.id:
+        order_list.append(order)
+      elif order.account_id == session.user.id:
+        order_list.append(order)
+
   else:
     orders = application.db_session.query(Order).\
                                     filter(Order.status.in_(("0", "1"))).\
@@ -155,11 +174,19 @@ def processRequestForOpenOrders(session, msg):
   status_list = msg.get('StatusList', ['0', '1'] )
   offset      = page * page_size
 
-  orders = application.db_session.query(Order).\
-                                  filter(Order.status.in_( status_list )).\
-                                  filter_by( user_id = session.user.id ).\
-                                  order_by(Order.created.desc()).\
-                                  limit( page_size ).offset( offset )
+  if session.user.is_broker:
+    orders = application.db_session.query(Order).\
+                                          filter(Order.status.in_( status_list )).\
+                                          filter_by( user_id = session.user.id ).\
+                                          order_by(Order.created.desc()).\
+                                          limit( page_size ).offset( offset )
+
+  else:
+    orders = application.db_session.query(Order).\
+                                          filter(Order.status.in_( status_list )).\
+                                          filter_by( account_id = session.user.id ).\
+                                          order_by(Order.created.desc()).\
+                                          limit( page_size ).offset( offset )
 
   order_list = []
   columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',

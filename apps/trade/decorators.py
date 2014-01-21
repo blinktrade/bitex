@@ -14,6 +14,13 @@ def staff_user_required(func):
     return func(session, *args, **kwargs)
   return decorator
 
+def broker_user_required(func):
+  def decorator(session,*args, **kwargs):
+    if session.user is None or session.user.is_broker == False:
+      raise NotAuthorizedError()
+    return func(session, *args, **kwargs)
+  return decorator
+
 def system_user_required(func):
   def decorator(session,*args, **kwargs):
     if session.user is None or session.user.is_system == False:

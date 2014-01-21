@@ -3,11 +3,13 @@ from errors import *
 from views import *
 
 class Session(object):
-  def __init__(self, session_id):
-    self.session_id   = session_id
+  def __init__(self, session_id, remote_ip=None, client_version=None):
+    self.session_id     = session_id
+    self.remote_ip      = remote_ip
+    self.client_version = client_version
 
-    self.user       = None
-    self.should_end = False
+    self.user           = None
+    self.should_end     = False
 
   def set_user(self, user):
     if self.user:

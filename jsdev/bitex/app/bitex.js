@@ -338,7 +338,7 @@ bitex.app.bitex = function( url ) {
   });
 
   order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
-    bitEx.cancelOrder(e.client_order_id );
+    bitEx.cancelOrder( undefined, e.order_id );
   });
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
