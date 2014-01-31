@@ -56,12 +56,13 @@ def get_hexdigest(algorithm, salt, raw_password):
 class NeedSecondFactorException(Exception):
   pass
 
-
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
   username        = Column(String(15), nullable=False, index=True, unique=True )
   email           = Column(String(75), nullable=False, index=True, unique=True)
+
+  broker_id       = Column(Integer, ForeignKey('users.id'))
 
   password_algo   = Column(String(8), nullable=False)
   password_salt   = Column(String(128), nullable=False)
@@ -101,13 +102,15 @@ class User(Base):
 
 
   def __repr__(self):
-    return "<User(id=%d, username='%s', email='%s'," \
-           " balance_btc=%d, balance_ltc=%d, balance_brl=%d, balance_usd=%d, bitcoin_address='%s'," \
-           " verified=%d, is_staff=%s, is_system=%s, is_broker=%s,  created='%s', last_login='%s'," \
-           " daily_withdraw_btc_limit=%d, daily_withdraw_ltc_limit=%d, daily_withdraw_brl_limit=%d, daily_withdraw_usd_limit=%d,"\
-           " daily_withdraw_btc=%d, daily_withdraw_ltc=%d, daily_withdraw_brl=%d, daily_withdraw_usd=%d," \
-           " last_withdraw_btc='%s', last_withdraw_ltc='%s', last_withdraw_brl='%s', last_withdraw_usd='%s' )>" \
-          % (self.id, self.username, self.email,
+    return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
+           u" password_algo=%r, password_salt=%r, password=%r,"\
+           u" balance_btc=%r, balance_ltc=%r, balance_brl=%r, balance_usd=%r, bitcoin_address=%r," \
+           u" verified=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, last_login=%r," \
+           u" daily_withdraw_btc_limit=%r, daily_withdraw_ltc_limit=%r, daily_withdraw_brl_limit=%r, daily_withdraw_usd_limit=%r,"\
+           u" daily_withdraw_btc=%r, daily_withdraw_ltc=%r, daily_withdraw_brl=%r, daily_withdraw_usd=%r," \
+           u" last_withdraw_btc=%r, last_withdraw_ltc=%r, last_withdraw_brl=%r, last_withdraw_usd=%r )>" \
+          % (self.id, self.username, self.email, self.broker_id,
+             self.password_algo, self.password_salt, self.password,
              self.balance_btc, self.balance_ltc, self.balance_brl, self.balance_usd, self.bitcoin_address,
              self.verified, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login,
              self.daily_withdraw_btc_limit, self.daily_withdraw_ltc_limit, self.daily_withdraw_brl_limit, self.daily_withdraw_usd_limit,
@@ -305,7 +308,7 @@ class User(Base):
     obsolete_code = """
     UserEmail.create( session = session,
                       user_id = self.id,
-                      subject = u"Registrado pedido de saque de R$ número %d." % withdraw_brl.id )
+                      subject = u"Registrado pedido de saque de R$ número %r." % withdraw_brl.id )
 
     if self.daily_withdraw_brl < self.daily_withdraw_brl_limit:
       if not self.last_withdraw_brl:
@@ -335,13 +338,57 @@ class User(Base):
     self.publish_balance_update()
     """
 
+class Broker(Base):
+  __tablename__         = 'brokers'
+  id                    = Column(Integer,       ForeignKey('users.id'),  unique=True)
+  user                  = relationship("User",  backref=backref('brokers', order_by=id))
+  short_name            = Column(String(30),    primary_key=True)
+  business_name         = Column(String(30),    nullable=False)
+  address               = Column(String(255),   nullable=False)
+  state                 = Column(String(30),    nullable=False)
+  zip_code              = Column(String(12),    nullable=False)
+  country               = Column(String(2),     nullable=False)
+  phone_number_1        = Column(String(15),    nullable=False)
+  phone_number_2        = Column(String(15))
+  skype                 = Column(String(30),    nullable=False)
+
+  currencies            = Column(String(255),   nullable=False)
+  tos_url               = Column(String(255),   nullable=False)
+
+  boleto_fee            = Column(Integer,       nullable=False, default=0)
+  withdraw_brl_bank_fee = Column(Integer,       nullable=False, default=0)
+  withdraw_wallet_fee   = Column(Integer,       nullable=False, default=0)
+  withdraw_swift_fee    = Column(Integer,       nullable=False, default=0)
+  withdraw_ach_fee      = Column(Integer,       nullable=False, default=0)
+
+  transaction_fee_buy   = Column(Integer,       nullable=False, default=0)
+  transaction_fee_sell  = Column(Integer,       nullable=False, default=0)
+
+  status                = Column(String(1),     nullable=False, default='0', index=True)
+  ranking               = Column(Integer,       nullable=False, default=0, index=True)
+
+  def __repr__(self):
+    return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
+           u"address=%r, state=%r, zip_code=%r, country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r," \
+           u"currencies=%r, tos_url=%r, " \
+           u"boleto_fee=%r ,withdraw_brl_bank_fee=%r,withdraw_wallet_fee=%r,withdraw_swift_fee=%r,withdraw_ach_fee=%r," \
+           u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
+           u"status=%r, ranking=%r >"% (
+      self.id, self.short_name, self.business_name,
+      self.address, self.state, self.zip_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,
+      self.currencies, self.tos_url,
+      self.boleto_fee, self.withdraw_brl_bank_fee, self.withdraw_wallet_fee, self.withdraw_swift_fee, self.withdraw_ach_fee,
+      self.transaction_fee_buy, self.transaction_fee_sell,
+      self.status, self.ranking )
+
+
 class BitcoinAddress(Base):
   __tablename__   = 'bitcoin_address'
   bitcoin_address = Column(String(50), nullable=True, primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'), nullable=True, index=True )
 
   def __repr__(self):
-    return "<BitcoinAddress(bitcoin_address='%s', user_id=%d)>"%(self.bitcoin_address, self.user_id)
+    return u"<BitcoinAddress(bitcoin_address=%r, user_id=%r)>"%(self.bitcoin_address, self.user_id)
 
 
 class Deposit(Base):
@@ -357,7 +404,7 @@ class Deposit(Base):
   origin          = Column(String(255),   nullable=False)
 
   def __repr__(self):
-    return "<Deposit(id=%d, user_id=%d, account_id=%d, currency='%s', amount='%d', status=%d, created='%s', origin='%s')>" % (
+    return u"<Deposit(id=%r, user_id=%r, account_id=%r, currency=%r, amount='%r', status=%r, created=%r, origin=%r)>" % (
       self.id, self.user_id, self.account_id, self.currency, self.amount, self.status, self.created, self.origin )
 
 
@@ -605,12 +652,12 @@ class Withdraw(Base):
     return withdraw_record
 
   def __repr__(self):
-    return "<Withdraw(id=%d, user_id=%d, account_id=%d, username='%s', currency='%s', type='%s', amount='%d', " \
-           "wallet='%s', "\
-           "bank_number='%s', bank_name='%s', account_name='%s', account_number='%s', account_branch='%s', cpf_cnpj='%s', "\
-           "address='%s', city='%s', postal_code='%s', region_state='%s', country='%s', bank_swift='%s', intermediate_swift='%s, " \
-           "routing_number='%s',"\
-           "confirmation_token='%s', status='%s', created='%s', reason='%s')>" % (
+    return u"<Withdraw(id=%r, user_id=%r, account_id=%r, username=%r, currency=%r, type=%r, amount='%r', " \
+           u"wallet=%r, "\
+           u"bank_number=%r, bank_name=%r, account_name=%r, account_number=%r, account_branch=%r, cpf_cnpj=%r, "\
+           u"address=%r, city=%r, postal_code=%r, region_state=%r, country=%r, bank_swift=%r, intermediate_swift=%r, " \
+           u"routing_number=%r,"\
+           u"confirmation_token=%r, status=%r, created=%r, reason=%r)>" % (
       self.id, self.user_id, self.account_id, self.username, self.currency, self.type,self.amount,
       self.wallet,
       self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
@@ -628,6 +675,7 @@ class Order(Base):
   username        = Column(String(15),    nullable=False )
   account_id      = Column(Integer,       ForeignKey('users.id'))
   account_user    = relationship("User",  foreign_keys=[account_id] )
+  account_username= Column(String(15),    nullable=False )
   client_order_id = Column(String(30),    nullable=False, index=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
   symbol          = Column(String(12),    nullable=False)
@@ -642,6 +690,7 @@ class Order(Base):
   last_qty        = Column(Integer,       nullable=False, default=0)
   average_price   = Column(Integer,       nullable=False, default=0)
   cxl_qty         = Column(Integer,       nullable=False, default=0)
+  fee             = Column(Integer,       nullable=False, default=0)
 
   
   def __init__(self, *args, **kwargs):
@@ -655,9 +704,9 @@ class Order(Base):
 
 
   def __repr__(self):
-    return "<Order(id=%d, user_id=%d, username='%s',account_id=%d, client_order_id='%s', " \
-           "symbol='%s', side='%s', type='%s', price=%d, order_qty=%d, cum_qty=%d, leaves_qty=%d, " \
-           "created='%s', last_price=%d,  cxl_qty=%d, last_qty=%d, status='%s', average_price=%d)>" \
+    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r, client_order_id=%r, " \
+           "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, " \
+           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r)>" \
             % (self.id, self.user_id, self.username, self.account_id, self.client_order_id,
                self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
                str(self.created), self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price)
@@ -788,8 +837,8 @@ class Trade(Base):
   trade_type        = Column(Integer,       nullable=False, default=0)  # regular trade
 
   def __repr__(self):
-    return "<Trade(id='%s', order_id:%d, counter_order_id:%d, buyer_username='%s',seller_username='%s',  " \
-           "side:'%s', symbol='%s', size:%d, price:%d, created='%s', trade_type=%d )>"\
+    return "<Trade(id=%r, order_id:%r, counter_order_id:%r, buyer_username=%r,seller_username=%r,  " \
+           "side:%r, symbol=%r, size:%r, price:%r, created=%r, trade_type=%r )>"\
     % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
        self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
@@ -802,6 +851,7 @@ class Boleto(Base):
   __tablename__       = 'boleto'
 
   id                  = Column(Integer,   primary_key=True)
+  broker_id            = Column(Integer,    ForeignKey('users.id'))
 
   # Informações Gerais
   codigo_banco        = Column(String(3),  nullable=False)
@@ -810,6 +860,7 @@ class Boleto(Base):
   aceite              = Column(String(1),  nullable=False, default='N')
   valor_documento     = Column(Numeric(9,2), nullable=False)
   valor               = Column(Numeric(9,2), nullable=True)
+
   data_vencimento     = Column(Date,   nullable=False, index=True)
   data_documento      = Column(Date,   nullable=False, index=True, default=datetime.date.today)
   data_processamento  = Column(Date,   nullable=True, index=True)
@@ -821,6 +872,7 @@ class Boleto(Base):
   cedente             = Column(String(255),nullable=False)
   cedente_documento   = Column(String(50), nullable=False)
   cedente_cidade      = Column(String(255),nullable=False)
+
   cedente_uf          = Column(String(2),  nullable=False)
   cedente_endereco    = Column(String(255),nullable=False)
   cedente_bairro      = Column(String(255),nullable=False)
@@ -846,9 +898,26 @@ class Boleto(Base):
                                                                  u"dos correios até a data de vencimento")
   instrucoes         = Column(Text,nullable=False, default=u"Não receber após 30 dias.")
 
+  def __repr__(self):
+    return u"<Boleto(id=%r, broker_id=%r, " \
+           u"codigo_banco=%r,carteira=%r,aceite=%r,valor_documento=%r, valor=%r, " \
+           u"data_vencimento=%r,data_documento=%r, data_processamento=%r, numero_documento=%r," \
+           u"agencia_cedente=%r,  conta_cedente=%r, cedente=%r, cedente_documento=%r ,cedente_cidade=%r," \
+           u"cedente_uf=%r , cedente_endereco=%r, cedente_bairro=%r, cedente_cep=%r, " \
+           u"sacado_nome=%r,sacado_documento=%r,sacado_cidade=%r,sacado_uf=%r,sacado_endereco=%r,sacado_bairro=%r,sacado_cep=%r," \
+           u"quantidade=%r,especie_documento=%r,especie=%r,moeda=%r,demonstrativo=%r,local_pagamento=%r," \
+           u"instrucoes=%r )>" % (
+      self.id, self.broker_id,
+      self.codigo_banco, self.carteira, self.aceite, self.valor_documento, self.valor,
+      self.data_vencimento, self.data_documento, self.data_processamento, self.numero_documento,
+      self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
+      self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep,
+      self.sacado_nome, self.sacado_documento, self.sacado_cidade, self.sacado_uf, self.sacado_endereco, self.sacado_bairro, self.cedente_cep,
+      self.quantidade, self.especie_documento, self.especie, self.moeda, self.demonstrativo, self.local_pagamento,
+      self.instrucoes)
+
   def __unicode__(self):
     return self.numero_documento
-
 
   def print_pdf_pagina(self, pdf_file):
     from pyboleto import bank
@@ -871,6 +940,7 @@ class BoletoOptions(Base):
   __tablename__         = 'boleto_options'
 
   id                    = Column(Integer,    primary_key=True)
+  broker_id             = Column(Integer,    ForeignKey('users.id'), index=True)
 
   description           = Column(String(255),nullable=False)
 
@@ -890,10 +960,10 @@ class BoletoOptions(Base):
   cedente_cep           = Column(String(9),  nullable=False)
 
   def __repr__(self):
-    return "<BoletoOptions(id=%d, description:'%s', codigo_banco:'%s', carteira='%s',last_numero_documento=%d,  "\
-           "agencia_cedente:'%s', conta_cedente='%s', cedente:'%s', cedente_documento:'%s', cedente_cidade='%s', " \
-           "cedente_uf='%s', cedente_endereco='%s', cedente_bairro='%s',cedente_cep='%s' )>"\
-    % (self.id, self.description, self.codigo_banco, self.carteira, self.last_numero_documento,
+    return u"<BoletoOptions(id=%r, broker_id=%r, description=%r, codigo_banco=%r, carteira=%r,last_numero_documento=%r,  "\
+           u"agencia_cedente=%r, conta_cedente=%r, cedente=%r, cedente_documento=%r, cedente_cidade=%r, " \
+           u"cedente_uf=%r, cedente_endereco=%r, cedente_bairro=%r,cedente_cep=%r )>"\
+    % (self.id, self.broker_id, self.description, self.codigo_banco, self.carteira, self.last_numero_documento,
        self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
       self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep)
 
@@ -901,6 +971,7 @@ class BoletoOptions(Base):
     self.last_numero_documento +=  1
 
     boleto = Boleto()
+    boleto.broker_id          = self.broker_id
     boleto.codigo_banco       = self.codigo_banco
     boleto.carteira           = self.carteira
     boleto.numero_documento   = str(self.last_numero_documento)

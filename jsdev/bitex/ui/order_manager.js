@@ -77,7 +77,13 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'sortable': false,
       'formatter': function(id, row_set_obj){
         var classes = "icon-remove";
-        var i =goog.dom.createDom( 'i', { 'class':classes, 'data-order-id':row_set_obj["OrderID"] });
+        var attributes = { 'class':classes, 'data-client-order-id': id } ;
+
+        if ( goog.isDefAndNotNull(row_set_obj) ) {
+          attributes['data-order-id'] = row_set_obj["OrderID"];
+        }
+
+        var i =goog.dom.createDom( 'i', attributes );
         return goog.dom.createDom( 'a', { 'class':"text-error", "href":"#" }, i);
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
@@ -174,7 +180,7 @@ bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_repo
 
   if (goog.isDefAndNotNull(tr_element)) {
     goog.object.forEach(execution_report_msg, function(value,column, obj) {
-      var td_element = this.setColumnValue( tr_element, column, value );
+      var td_element = this.setColumnValue( tr_element, column, value  );
       if (goog.isDefAndNotNull( td_element)) {
 
         var blink_class = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
@@ -295,6 +301,9 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
     var order_id = e.target.getAttribute('data-order-id');
     if (goog.isDefAndNotNull(order_id)) {
       this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, order_id) );
+    } else {
+      var client_order_id = e.target.getAttribute('data-client-order-id');
+      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, undefined, client_order_id) );
     }
   });
 };
@@ -303,17 +312,24 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
 /**
  *
  * @param {string} type
- * @param {string} order_id
+ * @param {=string} opt_order_id
+ * @param {=string} opt_client_order_id
  * @extends {goog.events.Event}
  * @constructor
  */
-bitex.ui.OrderManagerEvent = function(type, order_id) {
+bitex.ui.OrderManagerEvent = function(type, opt_order_id, opt_client_order_id) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
-  this.order_id = order_id;
+  this.order_id = opt_order_id;
+
+  /**
+   * @type {string}
+   */
+  this.client_order_id = opt_client_order_id;
+
 };
 goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);
 

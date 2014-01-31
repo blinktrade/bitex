@@ -68,6 +68,9 @@ class Session(object):
     elif msg.type == 'U26': # Withdraw List Request
       return processWithdrawListRequest(self, msg)
 
+    elif msg.type == 'U28': # Request broker lists
+      return processBrokerListRequest(self, msg)
+
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)
 

@@ -331,9 +331,10 @@ bitex.ui.DataGrid.prototype.reload = function() {
  * @param {Element} row_element
  * @param {string} column
  * @param {*} value
+ * @param {=Array.<Array.<*> >} opt_row_set_obj
  * @return {Element}
  */
-bitex.ui.DataGrid.prototype.setColumnValue = function(row_element, column, value) {
+bitex.ui.DataGrid.prototype.setColumnValue = function(row_element, column, value, opt_row_set_obj) {
   var result_set_col_index = {};
   goog.array.forEach( this.columns_, function(this_col, index_row_set) {
     result_set_col_index[this_col['property']] = index_row_set;
@@ -343,12 +344,13 @@ bitex.ui.DataGrid.prototype.setColumnValue = function(row_element, column, value
     return undefined;
   }
 
+
   var td_element = goog.dom.getChildren(row_element)[ index ];
 
   var currentValue = goog.dom.getTextContent(td_element);
 
   var formatter = this.columns_[index]['formatter'] || function(){return '' + value };
-  var new_value = formatter(value);
+  var new_value = formatter(value, opt_row_set_obj);
 
   if (currentValue !== new_value){
     if ( goog.isString(new_value)) {

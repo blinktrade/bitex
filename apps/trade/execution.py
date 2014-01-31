@@ -243,12 +243,12 @@ class OrderMatcher(object):
           formatted_btc = formatted_btc.replace('.', ',')
           formatted_btc = formatted_btc.replace('#', '.')
 
-          formatted_brl = u'R$ {:,.2f}'.format(order.order_price / 1.e5)
+          formatted_brl = u'R$ {:,.2f}'.format(order.price / 1.e5)
           formatted_brl = formatted_brl.replace(',', '#')
           formatted_brl = formatted_brl.replace('.', ',')
           formatted_brl = formatted_brl.replace('#', '.')
 
-          formatted_total_price = u'R$ {:,.2f}'.format( order.order_qty/1.e8 * order.order_price / 1.e5)
+          formatted_total_price = u'R$ {:,.2f}'.format( order.order_qty/1.e8 * order.price / 1.e5)
           formatted_total_price = formatted_total_price.replace(',', '#')
           formatted_total_price = formatted_total_price.replace('.', ',')
           formatted_total_price = formatted_total_price.replace('#', '.')

@@ -14,7 +14,6 @@
 
     <meta charset="utf-8">
 
-
     <meta property="og:site_name" content="BitEx - Bolsa Brasileira de Moedas Criptografadas"/>
     <meta property="og:locale" content="pt_BR"/>
 
@@ -23,7 +22,6 @@
     <meta property="og:description" content="Compre e venda Bitcoin, Litecoin com rapidez e segurança.">
     <meta property="og:type" content="website"/>
     <meta property="og:image" content="http://www.bitex.com.br/static/images/bitcoin530.png"/>
-
 
     <meta itemprop="name" content="BitEx - Bolsa Brasileira de Moedas Criptografadas">
     <meta itemprop="description" content="Compre e venda Bitcoin, Litecoin com rapidez e segurança.">
@@ -163,6 +161,15 @@
           </div>
 
           <div class="control-group">
+            <label class="control-label">Corretor</label>
+            <div class="controls">
+              <select id="id_signup_broker" name="broker" size="4">
+                <option value="1" selected>Clebson Derivan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="control-group">
             <label class="control-label">Termos e Serviços</label>
             <div class="controls">
 
@@ -261,6 +268,115 @@
           <div id="offerbook">
             <div class="section-title">
               <h3>Livro de ofertas</h3>
+            </div>
+
+            <div class="row-fluid">
+              <div id="id_order_entry_buy" class="well span6 order-entry">
+                <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+                <input type="hidden" name="side" class="order-entry-side" value="1">
+                <input type="hidden" name="type" class="order-entry-type" value="2">
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"> <span>Quantidade:</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+
+                      <input class="input-block-level order-entry-amount" type="text" required/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"> <span>Preço por ฿:</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"><span class="add-on">R$</span>
+
+                      <input class="input-block-level order-entry-price" type="text" required/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"><span>Total:</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"><span class="add-on">R$</span>
+
+                      <input class="input-block-level order-entry-total" type="text" required/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"> <span>Taxa (opcional):</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"> <span class="add-on">฿</span>
+
+                      <input class="input-block-level order-entry-fee" type="text" value="0" />
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5">
+                    <input class="input-block-level order-entry-client-id" placeholder="Client ID" style="display:none" />
+                  </div>
+                  <div class="span5">
+                    <button class="btn btn-success btn-execution order-entry-action">COMPRAR</button>
+                  </div>
+                </div>
+              </div>
+              <div id="id_order_entry_sell" class="well span6 order-entry">
+                <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+                <input type="hidden" name="side" class="order-entry-side" value="2">
+                <input type="hidden" name="type" class="order-entry-type" value="2">
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"> <span>Quantidade:</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+
+                      <input class="input-block-level order-entry-amount" type="text" value="0" required/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"> <span>Preço por ฿:</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"><span class="add-on">R$</span>
+
+                      <input class="input-block-level order-entry-price" type="text" required/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"><span>Total:</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"><span class="add-on">R$</span>
+
+                      <input class="input-block-level order-entry-total" type="text" required/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5 order-entry-label"> <span>Taxa (opcional):</span>
+                  </div>
+                  <div class="span6">
+                    <div class="input-prepend input-block-level order-entry-data"> <span class="add-on">฿</span>
+
+                      <input class="input-block-level order-entry-fee" type="text" value="0" />
+                    </div>
+                  </div>
+                </div>
+                <div class="row-fluid">
+                  <div class="span5">
+                    <input class="input-block-level order-entry-client-id" placeholder="Client ID" style="display:none" />
+                  </div>
+                  <div class="span5">
+                    <button class="btn btn-danger btn-execution order-entry-action">VENDER</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="well">

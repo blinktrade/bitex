@@ -7,7 +7,7 @@ from bitex.json_encoder import  JsonEncoder
 
 import json
 
-from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, NeedSecondFactorException, Withdraw
+from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, NeedSecondFactorException, Withdraw, Broker
 
 from execution import OrderMatcher
 
@@ -60,7 +60,8 @@ def processLogin(session, msg):
     'Username':         session.user.username,
     'TwoFactorEnabled': session.user.two_factor_enabled,
     'BtcAddress':       session.user.bitcoin_address,
-    'UserStatus':       1
+    'UserStatus':       1,
+    'IsBroker':         session.user.is_broker
   }
   return json.dumps(login_response, cls=JsonEncoder)
 
@@ -68,7 +69,7 @@ def processLogin(session, msg):
 def processNewOrderSingle(session, msg):
   from errors import NotAuthorizedError, InvalidClientIDError
 
-  if msg.has('ClientID') and not session.user.is_broker:
+  if msg.has('ClientID') and msg.has('ClientID') != session.user.id and not session.user.is_broker:
     raise NotAuthorizedError()
 
   account_id = session.user.account_id
@@ -86,6 +87,7 @@ def processNewOrderSingle(session, msg):
                  account_id       = msg.get('ClientID', account_id ),
                  user             = session.user,
                  account_user     = account_user,
+                 account_username = account_user.username,
                  username         = session.user.username,
                  client_order_id  = msg.get('ClOrdID'),
                  symbol           = msg.get('Symbol'),
@@ -145,13 +147,25 @@ def processSignup(session, msg):
       'UserStatusText': u'Nome de usuário ou Email já estão registrados!'
     }
     application.db_session.rollback()
-    return login_response
+    return json.dumps(login_response, cls=JsonEncoder)
+
+  broker = application.db_session.query(Broker).filter( Broker.id == msg.get('BrokerID')  ).first()
+  if not broker:
+    login_response = {
+      'MsgType': 'BF',
+      'Username': '',
+      'UserStatus': 3,
+      'UserStatusText': u'Invalid broker!'
+    }
+    application.db_session.rollback()
+    return json.dumps(login_response, cls=JsonEncoder)
 
   # signup the user
   # create the user on Database
   u = User( username            = msg.get('Username'),
             email               = msg.get('Email'),
             password            = msg.get('Password'),
+            broker_id           = msg.get('BrokerID'),
             balance_btc         = 0,
             balance_ltc         = 0,
             balance_usd         = 0,
@@ -265,7 +279,7 @@ def processEnableDisableTwoFactorAuth(session, msg):
 
 @login_required
 def processRequestBoletoOptions(session, msg):
-  boleto_options = application.db_session.query(BoletoOptions)
+  boleto_options = application.db_session.query(BoletoOptions).filter_by(broker_id=session.user.broker_id)
 
   boleto_options_group = []
 
@@ -476,6 +490,62 @@ def processWithdrawListRequest(session, msg):
     'WithdrawListGrp'   : withdraw_list
   }
   return json.dumps(response_msg, cls=JsonEncoder)
+
+def processBrokerListRequest(session, msg):
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  status_list = msg.get('StatusList', ['1'] )
+  offset      = page * page_size
+
+  brokers = application.db_session.query(Broker).\
+                                   filter_by( id = session.user.broker_id ).\
+                                   filter(Broker.status.in_( status_list )).\
+                                   order_by(Broker.ranking ).\
+                                   limit( page_size ).offset( offset )
+
+  broker_list = []
+  columns = [ 'BrokerID'        , 'ShortName'      , 'BusinessName'      , 'Address'            ,
+              'State'           , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'            ,
+              'Currencies'      , 'TtosUrl'        , 'BoletoFee'         , 'WithdrawBRLBankFee' , 'WithdrawWalletFee',
+              'WithdrawSwiftFee', 'WithdrawAchFee' ,'TransactionFeeBuy'  , 'TransactionFeeSell' , 'Status'           ,
+              'ranking' ]
+
+  for broker in brokers:
+    broker_list.append( [
+      broker.id                   ,
+      broker.user                 ,
+      broker.short_name           ,
+      broker.business_name        ,
+      broker.address              ,
+      broker.state                ,
+      broker.zip_code             ,
+      broker.country              ,
+      broker.phone_number_1       ,
+      broker.phone_number_2       ,
+      broker.skype                ,
+      broker.currencies           ,
+      broker.tos_url              ,
+      broker.boleto_fee           ,
+      broker.withdraw_brl_bank_fee,
+      broker.withdraw_wallet_fee  ,
+      broker.withdraw_swift_fee   ,
+      broker.withdraw_ach_fee     ,
+      broker.transaction_fee_buy  ,
+      broker.transaction_fee_sell ,
+      broker.status               ,
+      broker.ranking              ,
+    ])
+
+  response_msg = {
+    'MsgType'           : 'U29',
+    'BrokerListReqID'   : msg.get('BrokerListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'BrokerListGrp'     : broker_list
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
 
 @login_required
 @staff_user_required

@@ -73,16 +73,25 @@ class TradeApplication(object):
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','END')
 
-    from models import User, BoletoOptions, Order, Withdraw
+    from models import User, Boleto, BoletoOptions, Order, Withdraw, Broker
 
     # log all users on the replay log
     users = self.db_session.query(User)
     for user in users:
       self.log('DB_ENTITY', 'USER', user)
 
+    # log all users on the replay log
+    brokers = self.db_session.query(Broker)
+    for broker in brokers:
+      self.log('DB_ENTITY', 'BROKER', broker)
+
     boleto_options = self.db_session.query(BoletoOptions)
-    for boleto in boleto_options:
-      self.log('DB_ENTITY', 'BOLETO',  boleto)
+    for boleto_option in boleto_options:
+      self.log('DB_ENTITY', 'BOLETO_OPTION',  boleto_option)
+
+    boletos = self.db_session.query(Boleto)
+    for boleto in boletos:
+      self.log('DB_ENTITY', 'BOLETO',  repr(boleto))
 
     orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:

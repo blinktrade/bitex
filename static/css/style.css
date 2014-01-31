@@ -299,3 +299,23 @@ ul.parsley-error-list li {
 .btn-cancel-order {
   text-decoration: none !important;
 }
+
+
+.order-entry {
+}
+.order-entry-data {
+  margin-bottom: 5px;
+}
+.order-entry-data input {
+  text-align:right;
+  width: 89%;
+}
+.order-entry-label {
+  padding:5px 5px 0 0;
+  text-align: right;
+}
+@media (max-width: 767px) {
+  .order-entry-label {
+    text-align: left;
+  }
+}

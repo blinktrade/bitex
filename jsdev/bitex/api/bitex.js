@@ -420,6 +420,32 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
   return requestId;
 };
 
+/**
+ * Request the Broker's list
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {Array.<string>=} opt_status. Defaults to ['1'] ( active brokers )
+ */
+bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_page, opt_limit, opt_status){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+  var status = opt_status || ['1'];
+
+  var msg = {
+    'MsgType': 'U28',
+    'BrokerListReqID': requestId,
+    'Page': page,
+    'PageSize': limit,
+    'StatusList': status
+  };
+  this.ws_.send(JSON.stringify( msg ));
+
+  return requestId;
+};
+
+
 
 /**
  * @param {string} token
@@ -489,13 +515,15 @@ bitex.api.BitEx.prototype.unSubscribeMarketData = function(market_data_id){
  * @param {string} username
  * @param {string} password
  * @param {string} email
+ * @param {number} broker
  */
-bitex.api.BitEx.prototype.signUp = function(username, password, email){
+bitex.api.BitEx.prototype.signUp = function(username, password, email, broker){
   var msg = {
     'MsgType': 'U0',
     'Username': username,
     'Password': password,
-    'Email': email
+    'Email': email,
+    'BrokerID': broker
   };
   this.ws_.send(JSON.stringify( msg ));
 };
@@ -559,11 +587,13 @@ bitex.api.BitEx.prototype.requestBoletoOptions = function( opt_requestId ) {
  * @param {number} qty
  * @param {number} price
  * @param {string} side
+ * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @param {string=} opt_orderType Defaults to Limited Order
  * @return {number}
+ *
  */
-bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_clientOrderId, opt_orderType  ){
+bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_client_id, opt_clientOrderId, opt_orderType ){
   var clientOrderId = opt_clientOrderId || parseInt( 1e7 * Math.random() , 10 );
   var orderType = '' + opt_orderType || '2';
   price = parseInt(price * 1e5, 10);
@@ -579,6 +609,10 @@ bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_c
     'OrderQty': qty
   };
 
+  if (goog.isDefAndNotNull(opt_client_id)) {
+    msg['ClientID'] = opt_client_id;
+  }
+
   this.ws_.send(JSON.stringify( msg ));
 
   return clientOrderId;
@@ -593,10 +627,10 @@ bitex.api.BitEx.prototype.cancelOrder = function( opt_clientOrderId, opt_OrderId
     'MsgType': 'F'
   };
 
-  if (opt_clientOrderId) {
-    msg['OrigClOrdID'] = opt_clientOrderId;
-  } else if (opt_OrderId) {
+  if (opt_OrderId) {
     msg['OrderID'] = opt_OrderId;
+  } else if (opt_clientOrderId) {
+    msg['OrigClOrdID'] = opt_clientOrderId;
   }
 
   this.ws_.send(JSON.stringify( msg ));
@@ -614,11 +648,12 @@ bitex.api.BitEx.prototype.sendRawMessage  = function(msg) {
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
+ * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @return {number}
  */
-bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, opt_clientOrderId  ){
-  return this.sendOrder_(symbol, qty, price, '1', opt_clientOrderId, '2');
+bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, opt_client_id, opt_clientOrderId ){
+  return this.sendOrder_(symbol, qty, price, '1', opt_client_id, opt_clientOrderId, '2');
 };
 
 /**
@@ -626,11 +661,12 @@ bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, op
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
+ * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @return {number}
  */
-bitex.api.BitEx.prototype.sendSellLimitedOrder = function( symbol, qty, price, opt_clientOrderId  ){
-  return this.sendOrder_(symbol, qty, price, '2', opt_clientOrderId, '2');
+bitex.api.BitEx.prototype.sendSellLimitedOrder = function( symbol, qty, price, opt_client_id, opt_clientOrderId  ){
+  return this.sendOrder_(symbol, qty, price, '2', opt_client_id, opt_clientOrderId, '2');
 };
 
 /**
@@ -675,6 +711,8 @@ goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.pr
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
 goog.exportProperty(BitEx.prototype, 'withdrawCryptoCoin', bitex.api.BitEx.prototype.withdrawCryptoCoin);
+goog.exportProperty(BitEx.prototype, 'requestWithdrawList', bitex.api.BitEx.prototype.requestWithdrawList);
+goog.exportProperty(BitEx.prototype, 'requestBrokerList', bitex.api.BitEx.prototype.requestBrokerList );
 goog.exportProperty(BitEx.prototype, 'confirmWithdraw', bitex.api.BitEx.prototype.confirmWithdraw);
 goog.exportProperty(BitEx.prototype, 'enableTwoFactor', bitex.api.BitEx.prototype.enableTwoFactor);
 goog.exportProperty(BitEx.prototype, 'resetPassword', bitex.api.BitEx.prototype.resetPassword);

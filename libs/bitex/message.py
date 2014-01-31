@@ -126,6 +126,8 @@ class JsonMessage(BaseMessage):
       'U25': 'WithdrawConfirmationResponse',
       'U26': 'WithdrawListRequest',
       'U27': 'WithdrawListResponse',
+      'U28': 'BrokerListRequest',
+      'U29': 'BrokerListResponse',
 
       'S0':  'BitcoinNewAddressRequest',
       'S1':  'BitcoinNewAddressResponse',
@@ -194,8 +196,17 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('Username')
       self.raise_exception_if_required_tag_is_missing('Password')
       self.raise_exception_if_required_tag_is_missing('Email')
+      self.raise_exception_if_required_tag_is_missing('BrokerID')
 
-      #TODO: Validate all fields of Signup Message
+
+      self.raise_exception_if_empty('Username')
+      self.raise_exception_if_empty('Password')
+      self.raise_exception_if_empty('Email')
+      self.raise_exception_if_not_a_integer('BrokerID')
+      self.raise_exception_if_not_greater_than_zero('BrokerID')
+
+      #TODO: password is greater than 8 bytes
+      #TODO: email is valid
 
     elif self.type == 'U10':  #Request Reset Password
       self.raise_exception_if_required_tag_is_missing('Email')
@@ -317,6 +328,15 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U27': # Withdraw List Response
       self.raise_exception_if_required_tag_is_missing('WithdrawListReqID')
       self.raise_exception_if_empty('WithdrawListReqID')
+
+    elif self.type == 'U28': # Broker List Request
+      self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
+      self.raise_exception_if_empty('BrokerListReqID')
+
+    elif self.type == 'U29': # Broker List Response
+      self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
+      self.raise_exception_if_empty('BrokerListReqID')
+
 
     elif self.type == 'S0': # Bitcoin New Address
       self.raise_exception_if_required_tag_is_missing('BtcAddress')

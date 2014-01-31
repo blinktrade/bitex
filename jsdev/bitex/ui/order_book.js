@@ -198,13 +198,13 @@ bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, user
   var qtyEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'qty'), qty);
 
   var userNameEl;
-  if (username === this.username_) {
+  //if (username === this.username_) {
     userNameEl = dom.createDom('td', undefined,
                    dom.createDom( 'a', { 'class':'btn-cancel-order text-error', 'href':'', 'data-order-id':id },
-                     dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  Cancelar')));
-  } else {
-    userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);
-  }
+                     dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  ' + username )));
+  //} else {
+  //  userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);
+  //}
 
   var td_list;
   if (this.side_ ==  bitex.ui.OrderBook.Side.BUY) {

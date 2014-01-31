@@ -8,6 +8,9 @@ goog.require('bitex.ui.OrderBook.Side');
 goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderEntry.EventType');
 
+goog.require('bitex.ui.OrderEntryX');
+goog.require('bitex.ui.OrderEntryX.EventType');
+
 
 goog.require('bitex.ui.Withdraw');
 goog.require('bitex.ui.Withdraw.EventType');
@@ -248,11 +251,58 @@ bitex.app.bitex = function( url ) {
                                    e.target.getModel().data['account_branch'] ,
                                    e.target.getModel().data['CPFCNPJ'])
   });
+  var buy_order_entry = new bitex.ui.OrderEntryX();
+  buy_order_entry.decorate( goog.dom.getElement('id_order_entry_buy') );
+
+  var sell_order_entry = new bitex.ui.OrderEntryX();
+  sell_order_entry.decorate( goog.dom.getElement('id_order_entry_sell') );
+
+
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_offer_brl', function(e) {
+    var formatted_best_offer = /* @type {string}  */  e.data;
+    buy_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_offer) );
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_bid_brl', function(e) {
+    var formatted_best_bid = /* @type {string}  */  e.data;
+    sell_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_bid) );
+  });
+
+  buy_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
+    var client_order_id = bitEx.sendBuyLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
+    var pendingOrderMessage = {
+      'OrderID': '-',
+      'ClOrdID': '' + client_order_id,
+      'OrdStatus': '-',
+      'Symbol': 'BTCBRL',
+      'Side': '1',
+      'OrderQty': e.target.getAmount() * 1e8,
+      'Price': e.target.getPrice()  * 1e5
+    };
+    order_manager.processExecutionReport(pendingOrderMessage);
+  });
+
+  sell_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
+    var client_order_id = bitEx.sendSellLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
+    var pendingOrderMessage = {
+      'OrderID': '-',
+      'ClOrdID': '' + client_order_id,
+      'OrdStatus': '-',
+      'Symbol': 'BTCBRL',
+      'Side': '2',
+      'OrderQty': e.target.getAmount() * 1e8,
+      'Price': e.target.getPrice()  * 1e5
+    };
+    order_manager.processExecutionReport(pendingOrderMessage);
+  });
+
 
   var order_entry = new bitex.ui.OrderEntry();
   order_entry.decorate( goog.dom.getElement('id_order_entry') );
 
   var order_manager = new bitex.ui.OrderManager();
+
 
   order_entry.addEventListener( bitex.ui.OrderEntry.EventType.BUY_LIMITED, function(e){
     var client_order_id = bitEx.sendBuyLimitedOrder( e.symbol, e.qty, e.price );
@@ -306,6 +356,14 @@ bitex.app.bitex = function( url ) {
     model.set('Username', msg['Username']);
     model.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
     model.set('BtcAddress', msg['BtcAddress']);
+    model.set('IsBroker', msg['IsBroker'] );
+
+    buy_order_entry.setClientID(model.get('UserID'));
+    buy_order_entry.setBrokerMode(model.get('IsBroker')  );
+
+    sell_order_entry.setClientID(model.get('UserID'));
+    sell_order_entry.setBrokerMode(model.get('IsBroker')  );
+
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
@@ -338,7 +396,7 @@ bitex.app.bitex = function( url ) {
   });
 
   order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
-    bitEx.cancelOrder( undefined, e.order_id );
+    bitEx.cancelOrder( e.client_order_id , e.order_id );
   });
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
@@ -508,14 +566,12 @@ bitex.app.bitex = function( url ) {
     if (side == '0') {
       if (index === 0) {
         model.set('formatted_best_bid_brl', price);
-        price_changed(price);
       }
 
       order_book_bid.insertOrder(index, orderId, price, qty, username );
     } else if (side == '1') {
       if (index === 0) {
         model.set('formatted_best_offer_brl', price);
-        price_changed(price);
       }
 
 
@@ -523,7 +579,7 @@ bitex.app.bitex = function( url ) {
     }
   });
 
-
+  /*
   function price_changed(price) {
     var new_px = price.toString().trim();
     var old_px = goog.dom.getTextContent(goog.dom.getElement('formatted_quote_brl'));
@@ -542,6 +598,7 @@ bitex.app.bitex = function( url ) {
       goog.dom.setTextContent(goog.dom.getElement('formatted_order_total'), total);
     }
   }
+  */
 
   goog.events.listen(goog.dom.getElement('id_order_qty'),goog.events.EventType.BLUR,function(e) {
     var new_px = goog.dom.forms.getValue( goog.dom.getElement("id_price") );
@@ -564,7 +621,7 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener('trade',  function(e) {
     var msg = e.data;
     var price =  (msg['MDEntryPx']/1e5).toFixed(5);
-    price_changed(price);
+    //price_changed(price);
   });
 
   bitEx.addEventListener('balance_response',  function(e) {
@@ -619,6 +676,7 @@ bitex.app.bitex = function( url ) {
     var email = goog.dom.forms.getValue( goog.dom.getElement("id_signup_email") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_signup_password") );
     var password2 = goog.dom.forms.getValue( goog.dom.getElement("id_signup_password2") );
+    var broker = goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement("id_signup_broker")));
 
 
     if (goog.string.isEmpty(username) || !goog.string.isAlphaNumeric(username) ) {
@@ -650,7 +708,7 @@ bitex.app.bitex = function( url ) {
         return;
       }
       goog.events.listenOnce( bitEx, 'opened', function(e){
-        bitEx.signUp(username, password, email);
+        bitEx.signUp(username, password, email, broker);
       });
 
     } else {
