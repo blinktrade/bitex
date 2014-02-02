@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt_BR">
+<head>
+  <meta charset="utf-8">
+  <title>BitCoin Center - Satoshi Square</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Buy and sell Crypto currencies.">
+
+  <meta name="keywords" content="bitcoin, litecoin, BTC, LTC">
+
+  <meta name="author" content="Rodrigo">
+
+  <link rel="shortcut icon" href="./images/favicon.ico">
+
+  <meta charset="utf-8">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <!--Bootstrap-->
+  <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+  <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+
+  <link href="./css/Dialog.css" rel="stylesheet">
+  <link href="./css/fuelux.css" rel="stylesheet">
+  <link href="./css/style.css?v4" rel="stylesheet">
+  <link href="./css/sticky.css" rel="stylesheet">
+  <script src="./js/sticky.min.js" type="text/javascript"></script>
+
+  <link rel="canonical" href="https://www.bitex.com.br" />
+  <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+
+  <!-- bitex application -->
+  <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v4" type="text/javascript"></script>
+</head>
+
+<body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="" data-switch-view="offerbook">Bitcoin Center - Satoshi Square</a>
+
+      <ul class="nav navbar-nav pull-right">
+        <li class="bitex-hide-if-logged"><a href="/markets.html">Markets</a></li>
+        <li class="bitex-display-if-logged"><a href="" data-switch-view="trading">BTCUSD <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink"></span></a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="clearfix" style="padding: 30px;"></div>
+
+<div class="container">
+
+<div id="start" class="page  row-fluid">
+
+  <header class="jumbotron">
+    <h1>Bitcoin Center </h1>
+    <p class="lead">Satoshi Square</p>
+  </header>
+
+  <div class="row bitex-hide-if-logged" style="text-align: center;">
+    <form action="" class="form-inline">
+      <label for="id_landing_username">Username:</label>
+      <input class="focus" id="id_landing_username" placeholder="Badge number" size="30" type="text">
+      <label for="id_landing_password">Password:</label>
+      <input id="id_landing_password" placeholder="" size="30" type="password">
+      <button id="id_landing_signin" class="btn btn-success">Login</button>
+    </form>
+  </div>
+</div>
+
+
+<div id="signup" class="page  row-fluid">
+  <div class="page-header">
+    <h1>Register</h1>
+  </div>
+  <p>Already registered? <a href="#" data-switch-view="signin" >Login</a>.</p>
+
+  <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
+
+    <div class="control-group">
+      <label class="control-label">Username</label>
+      <div class="controls">
+        <input id="id_signup_username" name="Username" size="30" type="text" placeholder="Your badge number or phone number">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Email address</label>
+      <div class="controls">
+        <input id="id_signup_email" name="Email" size="30" type="text" placeholder="eg.: joe@doe.com">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Password</label>
+      <div class="controls">
+        <input id="id_signup_password" name="Password" size="30" type="password">
+        <p class="help-block">At least 8 characters</p>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Confirm your password</label>
+      <div class="controls">
+        <input id="id_signup_password2" name="Password2" size="30" type="password">
+      </div>
+    </div>
+
+    <div class="control-group" style="display: none;">
+      <label class="control-label">Broker</label>
+      <div class="controls">
+        <select id="id_signup_broker" name="broker" size="4">
+          <option value="1" selected>None</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Terms of service</label>
+      <div class="controls">
+
+        <label class="checkbox">
+          <input id="user_agreed_tos" name="" type="checkbox" checked>
+          I agree with <a href="#" data-switch-view="tos">terms terms of service</a>.
+        </label>
+      </div>
+    </div>
+  </form>
+
+  <button id="id_btn_signup" class="btn btn-primary">Register</button>
+</div>
+
+<div id="signin" class="page  row-fluid">
+  <div class="page-header">
+    <h1>Login</h1>
+  </div>
+  <p>Don't have an account? <a href="#" data-switch-view="signup">Register</a></p>
+
+  <form accept-charset="UTF-8" action="" method="post">
+    <div class="clearfix">
+      <label for="id_username">Username ( Badge number )</label>
+      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
+    </div>
+    <div class="clearfix">
+      <label for="id_password">Password</label>
+      <div class="input"><input id="id_password"  placeholder="Senha" name="password" type="password"></div>
+    </div>
+    <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
+    <div class="actions">
+      <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Login">
+    </div>
+  </form>
+</div>
+
+
+<div id="forgot_password" class="page row">
+  <div class="page-header">
+    <h1>Password recovery</h1>
+  </div>
+
+  <form accept-charset="UTF-8" action="" method="post">
+    <div class="clearfix">
+      <label for="id_forgot_password_email">e-mail</label>
+      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
+    </div>
+    <div class="actions">
+      <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recover password">
+    </div>
+  </form>
+</div>
+
+
+<div id="set_new_password" class="page  row">
+  <div class="page-header">
+    <h1>Set new password</h1>
+  </div>
+  <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
+
+    <div class="control-group">
+      <label class="control-label">Security code</label>
+      <div class="controls">
+        <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
+        <p class="help-block">We just sent a security code to your email.</p>
+      </div>
+
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">New password</label>
+      <div class="controls">
+        <input id="id_set_new_password_password" name="Password" size="30" type="password">
+        <p class="help-block">At least 8 characters</p>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Confirm your password</label>
+      <div class="controls">
+        <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
+      </div>
+    </div>
+
+
+    <div class="actions">
+      <input id="id_btn_set_new_password"  class="btn btn-primary" name="commit" type="submit" value="Reset password">
+    </div>
+  </form>
+</div>
+
+<div class="page row-fluid bitex-display-if-logged">
+
+<div  class="span9">
+
+<div id="offerbook">
+  <div class="section-title">
+    <h3>Order Book</h3>
+  </div>
+
+  <div class="row-fluid">
+    <div id="id_order_entry_buy" class="well span6 order-entry">
+      <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+      <input type="hidden" name="side" class="order-entry-side" value="1">
+      <input type="hidden" name="type" class="order-entry-type" value="2">
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>Amount:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+
+            <input class="input-block-level order-entry-amount" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>Price per ฿:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+
+            <input class="input-block-level order-entry-price" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"><span>Total:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+            <input class="input-block-level order-entry-total" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid" style="display: none;">
+        <div class="span5 order-entry-label"> <span>Fee (optional):</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+            <input class="input-block-level order-entry-fee" type="text" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5">
+          <input class="input-block-level order-entry-client-id" placeholder="Client ID" style="display:none" />
+        </div>
+        <div class="span5">
+          <button class="btn btn-success btn-execution order-entry-action">BUY</button>
+        </div>
+      </div>
+    </div>
+    <div id="id_order_entry_sell" class="well span6 order-entry">
+      <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+      <input type="hidden" name="side" class="order-entry-side" value="2">
+      <input type="hidden" name="type" class="order-entry-type" value="2">
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>Amount:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+
+            <input class="input-block-level order-entry-amount" type="text" value="0" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>Price per ฿:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+
+            <input class="input-block-level order-entry-price" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"><span>Total:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+
+            <input class="input-block-level order-entry-total" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid" style="display: none;">
+        <div class="span5 order-entry-label"> <span>Fee (optional):</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+            <input class="input-block-level order-entry-fee" type="text" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5">
+          <input class="input-block-level order-entry-client-id" placeholder="Client ID" style="display:none" />
+        </div>
+        <div class="span5">
+          <button class="btn btn-danger btn-execution order-entry-action">SELL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="well">
+    <div class="row-fluid">
+      <div class="span6">
+        <div class="text-center"><h4>BID</h4></div>
+        <table id="order_book_bid"  class="table">
+          <thead>
+          <tr>
+            <th>Buyer</th>
+            <th>Amount(BTC)</th>
+            <th>Price($)</th>
+          </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <div class="span6">
+        <div class="text-center"><h4>ASK</h4></div>
+        <table id="order_book_offer"  class="table">
+          <thead>
+          <tr>
+            <th>Price(R$)</th>
+            <th>Amount(BTC)</th>
+            <th>Seller</th>
+          </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="account_activity">
+  <div class="section-title">
+    <h3>History</h3>
+  </div>
+
+  <div class="well">
+    <div id="id_trade_history_table"  class="fuelux account-activity" style="height: 450px;width:100%;margin-bottom:20px;">
+      <table class="table table-bordered datagrid datagrid-stretch-header">
+        <thead>
+        <tr style="display: none;">
+          <th colspan="4">
+            <span class="datagrid-header-title"><strong>Transactions</strong></span>
+          </th>
+        </tr>
+        </thead>
+      </table>
+      <div class="datagrid-stretch-wrapper" style="height: 360px;">
+        <table class="table table-bordered datagrid">
+          <tbody></tbody>
+        </table>
+      </div>
+      <table class="table table-bordered datagrid datagrid-stretch-footer">
+        <tfoot>
+        <tr>
+          <th colspan="4">
+            <div class="datagrid-footer-left" style="visibility: visible;">
+              <div class="grid-controls">
+                          <span>
+                            <span class="grid-start"></span> -
+                            <span class="grid-end"></span>
+                          </span>
+              </div>
+            </div>
+            <div class="datagrid-footer-right" style="visibility: visible;">
+              <div class="grid-pager">
+                <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+              </div>
+            </div>
+          </th>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="enable_two_factor">
+  <div class="section-title">
+    <h3>Autenticação em dois passos</h3>
+  </div>
+
+  <div class="content">
+
+    <div class="well span6">
+      <form id="id_enable_two_factor_div" class="form-horizontal ">
+
+        <div class="control-group">
+          <label class="control-label">Key</label>
+          <div class="controls">
+            <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="controls">
+            <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Código de autenticação</label>
+          <div class="controls">
+            <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
+          </div>
+        </div>
+
+      </form>
+
+      <button id="id_btn_enable_two_factor" class="btn btn-primary">Habilitar</button>
+      <button id="id_btn_disable_two_factor" class="btn btn-danger">Desabilitar</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div id="deposit">
+  <div class="section-title">
+    <h3>Depósitos</h3>
+  </div>
+
+  <div class="content">
+    <!-- Main content -->
+    <p>Veja abaixo como depositar em sua conta</p>
+
+    <h3>Bitcoin</h3>
+    <div class="well">
+      <div>Por favor envie Bitcoin para o seu endereço de depósito: </div>
+
+      <img id="id_bitcoin_address_img" style="float:right; margin-top: -30px" src="">
+
+      <h4><span class="bitex-model" data-model-key="BtcAddress"></span></h4>
+      <p>Precisaremos de 6 confirmações para transações em Bitcoin para refletir o deposito no site. </p>
+
+    </div>
+    <div class="clearfix"></div>
+
+    <h3>Boleto Bancário</h3>
+    <div class="well">
+      <div class="row-fluid">
+        <div class="input-prepend input-append">
+          <span class="add-on">R$</span><input id="id_boleto_value" class="span4" id="appendedPrependedInput" size="16" type="text"><span class="add-on">,00</span>
+        </div>
+      </div>
+      <div class="row-fluid boleto-options-group">
+        <!--
+        {% for boleto_option in boleto_options %}
+          <button class="btn btn-primary btn-boleto" data-boleto-id="{{  boleto_option.id }}">{{ escape(boleto_option.description) }}</button>
+        {% end %}
+        -->
+      </div>
+      <p>Confirmação após 1 dia se o Boleto for pago no mesmo Banco, caso contrário será de 3 dias úteis.</p>
+    </div>
+
+
+    <h3>Transferência Bancária via DOC ou TED</h3>
+    <div class="well">
+      <p>
+        Favor entrar em contato pelo email <a href="mailto:suporte@bitex.com.br">suporte@bitex.com.br</a>
+      </p>
+      <p>
+        obs: Disponível apenas para contas <a href="" data-switch-view="verification">verificadas</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="withdraw">
+  <div class="section-title">
+    <h3>Saques</h3>
+  </div>
+
+  <div class="content">
+    <p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>
+    <table class="table table-striped" style="width: 300px">
+      <tbody><tr><td><strong>BRL Saldo disponível</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><strong>BTC Saldo disponível</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="accordion" id="withdraw_accordion">
+    </div>
+
+
+    <div class="well">
+      <div id="id_withdraw_list_table"  class="fuelux account-activity" style="height: 450px;width:100%;margin-bottom:20px;">
+        <table class="table table-bordered datagrid datagrid-stretch-header">
+          <thead>
+          <tr>
+            <th colspan="4">
+              <span class="datagrid-header-title"><strong>Histórico dos pedidos de saque</strong></span>
+            </th>
+          </tr>
+          </thead>
+        </table>
+        <div class="datagrid-stretch-wrapper" style="height: 360px;">
+          <table class="table table-bordered datagrid">
+            <tbody></tbody>
+          </table>
+        </div>
+        <table class="table table-bordered datagrid datagrid-stretch-footer">
+          <tfoot>
+          <tr>
+            <th colspan="4">
+              <div class="datagrid-footer-left" style="visibility: visible;">
+                <div class="grid-controls">
+                          <span>
+                            <span class="grid-start"></span> -
+                            <span class="grid-end"></span>
+                          </span>
+                </div>
+              </div>
+              <div class="datagrid-footer-right" style="visibility: visible;">
+                <div class="grid-pager">
+                  <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                  <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+                </div>
+              </div>
+            </th>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="settings">
+  <div class="section-title">
+    <h3>Configurações</h3>
+  </div>
+</div>
+
+<div id="verification">
+  <div class="section-title">
+    <h3>Verificação</h3>
+  </div>
+
+  <iframe id="JotFormIFrame"
+          onload="window.parent.scrollTo(0,0)" allowtransparency="true"
+          src="" frameborder="0"
+          style="width:100%; height:1250px; border:none;" scrolling="no"></iframe>
+</div>
+
+</div>
+
+<div class="span3 sidebar">
+  <h3><span class="bitex-model" data-model-key="Username"></span></h3>
+  <div id="account_overview" style="display: none">
+    <h6>Sua Conta</h6>
+    <table class="data">
+      <tbody>
+      <tr><td><strong>R$</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><strong>฿</strong></td><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h6>Menu</h6>
+  <ul class="nav nav-list">
+    <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
+    <li style="display: none;"><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósito</a></li>
+    <li style="display: none;"><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Saques</a></li>
+    <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
+    <li style="display: none;"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>
+    <li style="display: none;"><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Autenticação em 2 passos</a></li>
+
+    <li style="display: none;"><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Sugestões &amp; Supporte</a></li>
+    <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
+  </ul>
+</div>
+</div>
+
+
+<div id="tos" class="page">
+
+  <div class="page-header">
+    <h1>Terms of service</h1>
+  </div>
+  <!-- Main content -->
+  <div class="well">
+    [NONE.]
+  </div>
+</div>
+
+</div>
+
+
+<footer class="footer">
+  <div class="container">
+    <p>© 2013 Bitcoin Center - Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
+      Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a></p>
+  </div>
+</footer>
+
+<script>
+  bitex.app.satoshi_square('wss://localhost/trade/');
+  //bitex.app.bitex('wss://192.168.1.50/trade/');
+</script>
+
+
+</body>
+
+</html>
+

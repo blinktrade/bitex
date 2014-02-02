@@ -81,12 +81,10 @@ class MarketDataPublisher(object):
     application.publish( 'MD_INCREMENTAL_' + symbol + '.' + entry_type , md )
 
   @staticmethod
-  def publish_trade(trade):
-    md = {
-      "MsgType":"X",
-      "MDBkTyp": '3', # Order Depth
-      "TradeDate": trade.created,
-      "MDIncGrp": [{
+  def publish_trades(symbol, trades):
+    md_trades = []
+    for trade in trades:
+      md_trades.append({
         "MDUpdateAction":"0",
         "MDEntryType": "2",  # Trade
         "Symbol": trade.symbol,
@@ -100,9 +98,13 @@ class MarketDataPublisher(object):
         "TradeID": trade.id,
         "MDEntryBuyer": trade.buyer_username,
         "MDEntrySeller": trade.seller_username,
-        }]
+      })
+    md = {
+      "MsgType":"X",
+      "MDBkTyp": '3', # Order Depth
+      "MDIncGrp": md_trades
     }
-    application.publish( 'MD_TRADE_' + trade.symbol , md )
+    application.publish( 'MD_TRADE_' + symbol , md )
 
   @staticmethod
   def generate_md_full_refresh( session, symbol, market_depth, om, entries  ):

@@ -69,14 +69,14 @@ def processLogin(session, msg):
 def processNewOrderSingle(session, msg):
   from errors import NotAuthorizedError, InvalidClientIDError
 
-  if msg.has('ClientID') and msg.has('ClientID') != session.user.id and not session.user.is_broker:
+  if msg.has('ClientID') and int(msg.get('ClientID')) != session.user.id and not session.user.is_broker:
     raise NotAuthorizedError()
 
   account_id = session.user.account_id
   account_user = session.user
   if session.user.is_broker:
     if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
-      client = application.db_session.query(User).filter( User.id == msg.get('ClientID')  ).first()
+      client = application.db_session.query(User).filter( User.id == int(msg.get('ClientID'))  ).first()
       if not client:
         raise InvalidClientIDError()
       account_user = client

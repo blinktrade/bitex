@@ -342,6 +342,8 @@ class OrderMatcher(object):
                                                  counter_md_entry_type,
                                                  execution_counter )
 
+    if trades_to_publish:
+      MarketDataPublisher.publish_trades(self.symbol, trades_to_publish)
     return ""
 
 

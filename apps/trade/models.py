@@ -704,12 +704,12 @@ class Order(Base):
 
 
   def __repr__(self):
-    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r, client_order_id=%r, " \
+    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r client_order_id=%r, " \
            "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, " \
-           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r)>" \
-            % (self.id, self.user_id, self.username, self.account_id, self.client_order_id,
+           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r)>" \
+            % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
                self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
-               str(self.created), self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price)
+               self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
@@ -788,11 +788,11 @@ class Order(Base):
     from_symbol = self.symbol[:3].lower()
     to_symbol = self.symbol[3:].lower()
     if self.side == '1' :  # BUY
-      self.user.update_balance( 'DEBIT',  from_symbol, total_value )
-      self.user.update_balance( 'CREDIT', to_symbol  , qty )
+      self.account_user.update_balance( 'DEBIT',  from_symbol, total_value )
+      self.account_user.update_balance( 'CREDIT', to_symbol  , qty )
     elif self.side == '2': # Sell
-      self.user.update_balance( 'CREDIT', from_symbol, total_value )
-      self.user.update_balance( 'DEBIT',  to_symbol  , qty )
+      self.account_user.update_balance( 'CREDIT', from_symbol, total_value )
+      self.account_user.update_balance( 'DEBIT',  to_symbol  , qty )
 
 
     self.average_price = ((price * qty) + (self.cum_qty * self.average_price )) / ( self.cum_qty + qty )
@@ -802,7 +802,7 @@ class Order(Base):
     self.last_qty = qty
     self._adjust_status()
 
-    self.user.publish_balance_update()
+    self.account_user.publish_balance_update()
 
   @property
   def is_cancelled(self):

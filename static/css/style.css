@@ -246,8 +246,17 @@ ul.parsley-error-list li {
   background-color: lightcoral;
 }
 
+.last-trades-row {
+  font-size: 14px;
+}
+
+.last-trades-row td {
+  line-height: 2px;
+}
+
+
 .order-book-row {
-  font-size: 12px;
+  font-size: 14px;
 }
 .order-book-row td {
   line-height: 2px;
