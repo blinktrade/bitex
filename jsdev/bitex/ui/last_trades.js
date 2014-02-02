@@ -79,9 +79,6 @@ bitex.ui.LastTrades.prototype.publishTrade = function( date, time, symbol, side,
   var price_currency  = symbol.substr(3,3);
   var size_currency   = symbol.substr(0,3);
 
-  price =  (price/1e5).toFixed(0);
-  size  =  (size/1e8).toFixed(3);
-
   var dateEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'date') , date);
   var timeEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'time') , time);
   var sideEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'side') , side);

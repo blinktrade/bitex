@@ -74,8 +74,7 @@ class MarketDataPublisher(object):
         "MDEntryDate": order.created.date(),
         "MDEntryTime": order.created.time(),
         "OrderID": order.id,
-        "Username": str(order.account_id)
-        #"Username": order.username
+        "Username": order.account_username
       }]
     }
     application.publish( 'MD_INCREMENTAL_' + symbol + '.' + entry_type , md )

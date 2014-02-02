@@ -371,7 +371,7 @@ bitex.api.BitEx.prototype.withdrawBRLBankTransfer = function( amount, bank_numbe
   var msg = {
     'MsgType'       : 'U8',
     'WithdrawReqID' : reqId,
-    'Amount'        : parseInt(amount * 1e5, 10),
+    'Amount'        : parseInt(amount * 1e8, 10),
     'BankNumber'    : bank_number,
     'BankName'      : bank_name,
     'AccountName'   : account_name,
@@ -596,7 +596,7 @@ bitex.api.BitEx.prototype.requestBoletoOptions = function( opt_requestId ) {
 bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_client_id, opt_clientOrderId, opt_orderType ){
   var clientOrderId = opt_clientOrderId || parseInt( 1e7 * Math.random() , 10 );
   var orderType = '' + opt_orderType || '2';
-  price = parseInt(price * 1e5, 10);
+  price = parseInt(price * 1e8, 10);
   qty = parseInt(qty * 1e8, 10);
 
   var msg = {

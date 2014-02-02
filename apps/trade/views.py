@@ -120,12 +120,14 @@ def processCancelOrderRequest(session, msg):
                                     filter(Order.status.in_(("0", "1"))).\
                                     filter_by( id =  msg.get('OrderID')  ).first()
     if order:
-      if order.user_id == session.user.id:
+      if order.user_id == session.user.id:  # user/broker cancelling his own order
         order_list.append(order)
-      elif order.account_id == session.user.id:
+      elif order.account_id == session.user.id:  # user cancelling an order sent by his broker
         order_list.append(order)
-
+      elif order.account_user.broker_id == session.user.id:  # broker cancelling an order sent by an user
+        order_list.append(order)
   else:
+    # user cancelling all the orders he sent.
     orders = application.db_session.query(Order).\
                                     filter(Order.status.in_(("0", "1"))).\
                                     filter_by( user_id = session.user.id )

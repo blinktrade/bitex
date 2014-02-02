@@ -1,6 +1,6 @@
 goog.provide('bitex.app.markets');
 
-
+goog.require('goog.debug');
 goog.require('bitex.api.BitEx');
 
 goog.require('bitex.ui.OrderBook');
@@ -82,12 +82,21 @@ bitex.app.markets = function( url ) {
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.TRADE, function(e) {
     var msg = e.data;
+    var price =  (msg['MDEntryPx']/1e8).toFixed(0);
+    var size =  (msg['MDEntrySize']/1e8).toFixed(3);
+
+    // Workaround for satoshi square USD market
+    var symbol = msg['Symbol'];
+    if (symbol === 'BTCBRL') {
+      symbol = 'BTCUSD';
+    }
+
     last_trades.publishTrade(msg['MDEntryDate'],
                              msg['MDEntryTime'],
-                             msg['Symbol'],
+                             symbol,
                              msg['Side'],
-                             msg['MDEntryPx'],
-                             msg['MDEntrySize'],
+                             price,
+                             size,
                              msg['MDEntryBuyer'],
                              msg['MDEntrySeller'] );
   });
@@ -137,8 +146,8 @@ bitex.app.markets = function( url ) {
   bitEx.addEventListener('ob_new_order',  function(e) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
-    var qty = (msg['MDEntrySize']/1e8).toFixed(8);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(0);
+    var qty = (msg['MDEntrySize']/1e8).toFixed(3);
     var username = msg['Username'];
     var orderId =  msg['OrderID'];
     var side = msg['MDEntryType'];
@@ -154,13 +163,6 @@ bitex.app.markets = function( url ) {
       }
       order_book_offer.insertOrder(index, orderId, price, qty, username );
     }
-  });
-
-  bitEx.addEventListener('trade',  function(e) {
-    var msg = e.data;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
-
-    // TODO: show the trade
   });
 
   bitEx.addEventListener('error',  function(e) {

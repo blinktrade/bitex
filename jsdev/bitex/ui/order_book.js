@@ -194,9 +194,6 @@ bitex.ui.OrderBook.prototype.updateOrder = function( index, qty) {
 bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, username ) {
   var dom = this.getDomHelper();
 
-  price = price.substr(0, price.indexOf('.'));
-  qty = qty.substr(0, qty.length - 5 );
-
   var priceEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'price') , price);
   var qtyEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'qty'), qty);
 

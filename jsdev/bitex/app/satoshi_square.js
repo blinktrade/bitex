@@ -256,23 +256,24 @@ bitex.app.satoshi_square = function( url ) {
   sell_order_entry.decorate( goog.dom.getElement('id_order_entry_sell') );
 
 
-
   model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_offer_brl', function(e) {
-    var formatted_best_offer = /** @type {string}  */  e.data;
+    var formatted_best_offer = e.data;
     buy_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_offer) );
   });
 
   model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_bid_brl', function(e) {
-    var formatted_best_bid = /** @type {string}  */  e.data;
+    var formatted_best_bid = e.data;
     sell_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_bid) );
   });
 
   buy_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
     var client_order_id = bitEx.sendBuyLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
+    $.sticky('Sent order ' + client_order_id);
   });
 
   sell_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
     var client_order_id = bitEx.sendSellLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
+    $.sticky('Sent order ' + client_order_id);
   });
 
 
@@ -495,8 +496,8 @@ bitex.app.satoshi_square = function( url ) {
   bitEx.addEventListener('ob_new_order',  function(e) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
-    var qty = (msg['MDEntrySize']/1e8).toFixed(8);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(2);
+    var qty = (msg['MDEntrySize']/1e8).toFixed(3);
     var username = msg['Username'];
     var orderId =  msg['OrderID'];
     var side = msg['MDEntryType'];
@@ -519,7 +520,7 @@ bitex.app.satoshi_square = function( url ) {
 
   bitEx.addEventListener('trade',  function(e) {
     var msg = e.data;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     //price_changed(price);
   });
 
@@ -529,7 +530,7 @@ bitex.app.satoshi_square = function( url ) {
     model.set('balance_brl', msg['balance_brl']);
     model.set('balance_btc', msg['balance_btc']);
 
-    var formatted_brl = (msg['balance_brl']/1e5).toFixed(2);
+    var formatted_brl = (msg['balance_brl']/1e8).toFixed(2);
     var formatted_btc = (msg['balance_btc']/1e8).toFixed(8);
     model.set('formatted_balance_brl', formatted_brl);
     model.set('formatted_balance_btc', formatted_btc);
@@ -648,7 +649,7 @@ bitex.app.satoshi_square = function( url ) {
   });
 
   model.addEventListener( bitex.model.Model.EventType.SET + 'BtcAddress', function(e) {
-    var btc_address = /** @type {string}  */  e.data;
+    var btc_address = e.data;
     var qr_code = 'https://chart.googleapis.com/chart?chs=100x100&chld=M%7C0&cht=qr&chl=' + btc_address;
 
     btc_adrress_el = goog.dom.getElement('id_bitcoin_address_img');
@@ -656,7 +657,7 @@ bitex.app.satoshi_square = function( url ) {
   });
 
   model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
-    var secret = /**  @type {string} */ e.data;
+    var secret = e.data;
     var has_secret = goog.string.isEmpty(secret);
 
     var divEl = goog.dom.getElement('id_enable_two_factor_div');
@@ -664,7 +665,7 @@ bitex.app.satoshi_square = function( url ) {
   });
 
   model.addEventListener( bitex.model.Model.EventType.SET + 'TwoFactorEnabled', function(e){
-    var enabled = /** @type {boolean} */ e.data;
+    var enabled = e.data;
 
     var secret = model.get('TwoFactorSecret');
     var has_secret = goog.string.isEmpty(secret);

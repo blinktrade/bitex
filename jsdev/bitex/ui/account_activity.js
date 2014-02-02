@@ -41,7 +41,7 @@ bitex.ui.AccountActivity = function( opt_domHelper) {
       'property': 'Price',
       'label': 'Preço R$',
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'price'); }
     },{
       'property': 'CumQty',
@@ -53,13 +53,13 @@ bitex.ui.AccountActivity = function( opt_domHelper) {
       'property': 'AvgPx',
       'label': 'Preço médio R$',
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(2);},
+      'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'Volume',
       'label': 'Valor R$',
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(2);},
+      'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'vol'); }
     }
   ];

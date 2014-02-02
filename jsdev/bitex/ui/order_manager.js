@@ -51,7 +51,7 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'property': 'Price',
       'label': 'Preço R$',
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'price'); }
     },{
       'property': 'LeavesQty',
@@ -69,7 +69,7 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'property': 'AvgPx',
       'label': 'Preço médio',
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'ClOrdID',
@@ -263,10 +263,10 @@ bitex.ui.OrderManager.prototype.insertOrder = function(clientOrderId,
 
   // Let's update the order
   orderQty   = (orderQty/1e8).toFixed(8);
-  price      = (price/1e5).toFixed(5);
+  price      = (price/1e8).toFixed(5);
   leavesQty  = (leavesQty/1e8).toFixed(8);
   var cumQty = (opt_cumQty|0/1e8).toFixed(8);
-  var avgPx  = (opt_avgPrice|0/1e5).toFixed(5);
+  var avgPx  = (opt_avgPrice|0/1e8).toFixed(5);
   var orderId = opt_orderId|'';
 
   var status_desc = bitex.ui.OrderManager.Status[status];

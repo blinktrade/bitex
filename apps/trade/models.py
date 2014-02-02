@@ -260,7 +260,7 @@ class User(Base):
     if currency == 'BTC':
       formatted_amount =  u'BTC {0:.8f}'.format(amount/1.e8)
     elif currency == 'BRL':
-      formatted_amount =  u'R$ {0:.2f}'.format(amount/1.e5)
+      formatted_amount =  u'R$ {0:.2f}'.format(amount/1.e8)
 
     msg = u"Depósito de " + formatted_amount + u" realizado em sua conta."
     UserEmail.create( session = session,
@@ -594,7 +594,7 @@ class Withdraw(Base):
     session.add(withdraw_record)
     session.flush()
 
-    formatted_amount = u'{:,.2f}'.format(amount / 1.e5)
+    formatted_amount = u'{:,.2f}'.format(amount / 1.e8)
     formatted_amount = formatted_amount.replace(',', '#')
     formatted_amount = formatted_amount.replace('.', ',')
     formatted_amount = formatted_amount.replace('#', '.')
@@ -750,8 +750,8 @@ class Order(Base):
 
   def get_available_qty_to_execute(self, side, qty, price):
     """This function returns qty that are available for execution"""
-    balance_price = self.account_user.get_currency_balance(self.symbol[:3].lower())
-    balance_qty   = self.account_user.get_currency_balance(self.symbol[3:].lower())
+    balance_price = self.account_user.get_currency_balance(self.symbol[3:].lower())
+    balance_qty   = self.account_user.get_currency_balance(self.symbol[:3].lower())
 
     if side == '1' : # buy
       qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8))
@@ -785,8 +785,8 @@ class Order(Base):
     total_value = int(float(price) * float(qty)/1e8)
 
     # adjust balances
-    from_symbol = self.symbol[:3].lower()
-    to_symbol = self.symbol[3:].lower()
+    from_symbol = self.symbol[3:].lower()
+    to_symbol = self.symbol[:3].lower()
     if self.side == '1' :  # BUY
       self.account_user.update_balance( 'DEBIT',  from_symbol, total_value )
       self.account_user.update_balance( 'CREDIT', to_symbol  , qty )

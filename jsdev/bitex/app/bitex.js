@@ -278,7 +278,7 @@ bitex.app.bitex = function( url ) {
       'Symbol': 'BTCBRL',
       'Side': '1',
       'OrderQty': e.target.getAmount() * 1e8,
-      'Price': e.target.getPrice()  * 1e5
+      'Price': e.target.getPrice()  * 1e8
     };
     order_manager.processExecutionReport(pendingOrderMessage);
   });
@@ -292,7 +292,7 @@ bitex.app.bitex = function( url ) {
       'Symbol': 'BTCBRL',
       'Side': '2',
       'OrderQty': e.target.getAmount() * 1e8,
-      'Price': e.target.getPrice()  * 1e5
+      'Price': e.target.getPrice()  * 1e8
     };
     order_manager.processExecutionReport(pendingOrderMessage);
   });
@@ -313,7 +313,7 @@ bitex.app.bitex = function( url ) {
       'Symbol': e.symbol,
       'Side': '1',
       'OrderQty': e.qty * 1e8,
-      'Price': e.price * 1e5
+      'Price': e.price * 1e8
     };
     order_manager.processExecutionReport(pendingOrderMessage);
   });
@@ -327,7 +327,7 @@ bitex.app.bitex = function( url ) {
       'Symbol': e.symbol,
       'Side': '2',
       'OrderQty': e.qty * 1e8,
-      'Price': e.price * 1e5
+      'Price': e.price * 1e8
     };
     order_manager.processExecutionReport(pendingOrderMessage);
   });
@@ -557,7 +557,7 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener('ob_new_order',  function(e) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
     var username = msg['Username'];
     var orderId =  msg['OrderID'];
@@ -620,7 +620,7 @@ bitex.app.bitex = function( url ) {
 
   bitEx.addEventListener('trade',  function(e) {
     var msg = e.data;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     //price_changed(price);
   });
 
@@ -630,7 +630,7 @@ bitex.app.bitex = function( url ) {
     model.set('balance_brl', msg['balance_brl']);
     model.set('balance_btc', msg['balance_btc']);
 
-    var formatted_brl = (msg['balance_brl']/1e5).toFixed(2);
+    var formatted_brl = (msg['balance_brl']/1e8).toFixed(2);
     var formatted_btc = (msg['balance_btc']/1e8).toFixed(8);
     model.set('formatted_balance_brl', formatted_brl);
     model.set('formatted_balance_btc', formatted_btc);

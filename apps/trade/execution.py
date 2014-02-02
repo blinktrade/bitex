@@ -203,8 +203,8 @@ class OrderMatcher(object):
         counter_order.execute(executed_qty, executed_price )
 
         # create a Trade record
-        buyer_username = order.user.username
-        seller_username = counter_order.user.username
+        buyer_username = order.account_user.username
+        seller_username = counter_order.account_user.username
         if order.is_sell:
           tmp_username = buyer_username
           buyer_username = seller_username
@@ -243,12 +243,12 @@ class OrderMatcher(object):
           formatted_btc = formatted_btc.replace('.', ',')
           formatted_btc = formatted_btc.replace('#', '.')
 
-          formatted_brl = u'R$ {:,.2f}'.format(order.price / 1.e5)
+          formatted_brl = u'R$ {:,.2f}'.format(order.price / 1.e8)
           formatted_brl = formatted_brl.replace(',', '#')
           formatted_brl = formatted_brl.replace('.', ',')
           formatted_brl = formatted_brl.replace('#', '.')
 
-          formatted_total_price = u'R$ {:,.2f}'.format( order.order_qty/1.e8 * order.price / 1.e5)
+          formatted_total_price = u'R$ {:,.2f}'.format( order.order_qty/1.e8 * order.price / 1.e8)
           formatted_total_price = formatted_total_price.replace(',', '#')
           formatted_total_price = formatted_total_price.replace('.', ',')
           formatted_total_price = formatted_total_price.replace('#', '.')

@@ -51,7 +51,7 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
         if (row_set_obj['Type'] == "CRY" ) {
           return (s/1e8).toFixed(8); // is a crypto coin withdraw ?
         } else {
-          return (s/1e5).toFixed(2);
+          return (s/1e8).toFixed(2);
         }
       },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'amount'); }

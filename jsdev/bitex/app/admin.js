@@ -170,7 +170,7 @@ bitex.app.admin = function() {
       'property': 'balance_brl',
       'label': 'R$',
       'sortable': true,
-      'formatter': function(value){return (value/1e5).toFixed(5);}
+      'formatter': function(value){return (value/1e8).toFixed(5);}
     },{
       'property': 'verified',
       'label': 'Verified',
@@ -437,7 +437,7 @@ bitex.app.admin = function() {
   bitEx.addEventListener('ob_new_order',  function(e) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
     var username = msg['Username'];
     var orderId =  msg['OrderID'];
@@ -500,19 +500,9 @@ bitex.app.admin = function() {
     if (is_valid) {
 
       var currency =  goog.dom.forms.getValue( goog.dom.getElement('id_deposit_currency'));
-      var amount =  goog.dom.forms.getValue( goog.dom.getElement('id_deposit_amount'));
+      var amount =  goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement('id_deposit_amount'))) * 1e8;
       var user_id =  goog.dom.forms.getValue( goog.dom.getElement('id_deposit_user_id'));
       var origin =  goog.dom.forms.getValue( goog.dom.getElement('id_deposit_origin'));
-
-      if (currency == 'BRL' || currency == 'USD' ) {
-        amount = parseInt(amount * 1e5, 10) ;
-      } else if (currency == 'BTC' || currency == 'LTC' ) {
-        amount = parseInt(amount * 1e8, 10)
-      } else {
-        alert('invalid currency code');
-        e.stopPropagation();
-        return;
-      }
 
       if (amount === 0) {
         alert('invalid amount');
