@@ -9,12 +9,14 @@ class Session(object):
     self.client_version = client_version
 
     self.user           = None
+    self.broker         = None
     self.should_end     = False
 
   def set_user(self, user):
     if self.user:
       raise UserAlreadyLogged
     self.user = user
+    self.broker = user.broker
 
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest

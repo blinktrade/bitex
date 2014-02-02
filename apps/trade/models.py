@@ -63,6 +63,8 @@ class User(Base):
   email           = Column(String(75), nullable=False, index=True, unique=True)
 
   broker_id       = Column(Integer, ForeignKey('users.id'))
+  broker          = relationship("User", remote_side=[id])
+
 
   password_algo   = Column(String(8), nullable=False)
   password_salt   = Column(String(128), nullable=False)
@@ -676,6 +678,9 @@ class Order(Base):
   account_id      = Column(Integer,       ForeignKey('users.id'))
   account_user    = relationship("User",  foreign_keys=[account_id] )
   account_username= Column(String(15),    nullable=False )
+  broker_id       = Column(Integer,       ForeignKey('users.id'))
+  broker_user     = relationship("User",  foreign_keys=[broker_id] )
+  broker_username = Column(String(15),    nullable=False )
   client_order_id = Column(String(30),    nullable=False, index=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
   symbol          = Column(String(12),    nullable=False)
@@ -704,10 +709,12 @@ class Order(Base):
 
 
   def __repr__(self):
-    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r client_order_id=%r, " \
+    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r, client_order_id=%r, " \
+           "broker_id=%r, broker_username=%r," \
            "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, " \
            "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r)>" \
             % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
+               self.broker_id, self.broker_username,
                self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
                self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee)
 

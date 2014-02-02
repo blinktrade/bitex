@@ -164,6 +164,7 @@ class MarketDataSubscriber(object):
       'price'     : msg.get('MDEntryPx'),
       'qty'       : msg.get('MDEntrySize'),
       'username'  : msg.get('Username'),
+      'broker'    : msg.get('Broker'),
       'order_id'  : msg.get('OrderID'),
       'side'      : msg.get('MDEntryType'),
       'order_time': msg.get('MDEntryTime'),
@@ -188,6 +189,7 @@ class MarketDataSubscriber(object):
       'price'     : msg.get('MDEntryPx'),
       'qty'       : msg.get('MDEntrySize'),
       'username'  : msg.get('Username'),
+      'broker'    : msg.get('Broker'),
       'order_id'  : msg.get('OrderID'),
       'side'      : msg.get('MDEntryType'),
       'order_time': msg.get('MDEntryTime'),
@@ -262,15 +264,16 @@ def generate_md_full_refresh( symbol, market_depth, entries  ):
         entry_position += 1
 
         entry_list.append( {
-          "MDEntryType": entry_type,
-          "MDEntryPositionNo": entry_position,
-          "MDEntryID": order['order_id'],
-          "MDEntryPx": order['price'],
-          "MDEntrySize": order['qty'],
-          "MDEntryDate": order['order_date'],
-          "MDEntryTime": order['order_time'],
-          "OrderID": order['order_id'],
-          "Username": order['username']
+          "MDEntryType"       : entry_type,
+          "MDEntryPositionNo" : entry_position,
+          "MDEntryID"         : order['order_id'],
+          "MDEntryPx"         : order['price'],
+          "MDEntrySize"       : order['qty'],
+          "MDEntryDate"       : order['order_date'],
+          "MDEntryTime"       : order['order_time'],
+          "OrderID"           : order['order_id'],
+          "Username"          : order['username'],
+          'Broker'            : order['broker']
         })
 
         if entry_position >= market_depth > 0:

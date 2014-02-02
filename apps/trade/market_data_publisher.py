@@ -31,8 +31,8 @@ class MarketDataPublisher(object):
         "MDEntryDate": order.created.date(),
         "MDEntryTime": order.created.time(),
         "OrderID": order.id,
-        "Username": str(order.account_id)
-        #"Username": order.username
+        "Username": order.account_username,
+        "Broker": order.broker_username
       })
 
     md = {
@@ -74,7 +74,9 @@ class MarketDataPublisher(object):
         "MDEntryDate": order.created.date(),
         "MDEntryTime": order.created.time(),
         "OrderID": order.id,
-        "Username": order.account_username
+        "Username": order.account_username,
+        "Broker": order.broker_username
+
       }]
     }
     application.publish( 'MD_INCREMENTAL_' + symbol + '.' + entry_type , md )
@@ -129,8 +131,8 @@ class MarketDataPublisher(object):
             "MDEntryDate": order.created.date(),
             "MDEntryTime": order.created.time(),
             "OrderID": order.id,
-            "Username": str(order.account_id)
-            #"Username": order.username
+            "Username": order.account_username,
+            "Broker": order.broker_username
           })
 
           if entry_position >= market_depth > 0:
