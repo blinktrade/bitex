@@ -560,6 +560,7 @@ bitex.app.bitex = function( url ) {
     var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
     var username = msg['Username'];
+    var broker = msg['Broker'];
     var orderId =  msg['OrderID'];
     var side = msg['MDEntryType'];
 
@@ -568,14 +569,14 @@ bitex.app.bitex = function( url ) {
         model.set('formatted_best_bid_brl', price);
       }
 
-      order_book_bid.insertOrder(index, orderId, price, qty, username );
+      order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
     } else if (side == '1') {
       if (index === 0) {
         model.set('formatted_best_offer_brl', price);
       }
 
 
-      order_book_offer.insertOrder(index, orderId, price, qty, username );
+      order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
     }
   });
 

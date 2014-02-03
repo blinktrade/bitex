@@ -440,13 +440,14 @@ bitex.app.admin = function() {
     var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
     var username = msg['Username'];
+    var broker = msg['Broker'];
     var orderId =  msg['OrderID'];
     var side = msg['MDEntryType'];
 
     if (side == '0') {
-      order_book_bid.insertOrder(index, orderId, price, qty, username );
+      order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
     } else if (side == '1') {
-      order_book_offer.insertOrder(index, orderId, price, qty, username );
+      order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
     }
 
   });

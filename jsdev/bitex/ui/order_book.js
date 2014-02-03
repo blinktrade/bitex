@@ -175,7 +175,7 @@ bitex.ui.OrderBook.prototype.updateOrder = function( index, qty) {
   var tdQtyEl = dom.getChildren( trEl )[1];
   dom.setTextContent(tdQtyEl, qty);
 
-  var blink_class = goog.getCssName(this.getBaseCssClass(), 'blink');
+  var blink_class = 'warning'; //goog.getCssName(this.getBaseCssClass(), 'blink');
   goog.dom.classes.add( tdQtyEl,  blink_class );
 
   goog.Timer.callOnce( function(){
@@ -190,21 +190,22 @@ bitex.ui.OrderBook.prototype.updateOrder = function( index, qty) {
  * @param {number} price
  * @param {number} qty
  * @param {string} username
+ * @param {string} broker
  */
-bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, username ) {
+bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, username, broker ) {
   var dom = this.getDomHelper();
 
   var priceEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'price') , price);
   var qtyEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'qty'), qty);
 
   var userNameEl;
-  //if (username === this.username_) {
+  if (username === this.username_ || broker === this.username_ ){
     userNameEl = dom.createDom('td', undefined,
                    dom.createDom( 'a', { 'class':'btn-cancel-order text-error', 'href':'', 'data-order-id':id },
                      dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  ' + username )));
-  //} else {
-  //  userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);
-  //}
+  } else {
+    userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);
+  }
 
   var td_list;
   if (this.side_ ==  bitex.ui.OrderBook.Side.BUY) {
@@ -229,7 +230,7 @@ bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, user
   dom.insertChildAt( this.bodyEl_, rowEl, index );
 
 
-  var blink_class = goog.getCssName(this.getBaseCssClass(), 'blink');
+  var blink_class  = 'warning'; // goog.getCssName(this.getBaseCssClass(), 'blink');
   goog.dom.classes.add( rowEl,  blink_class );
 
   goog.Timer.callOnce( function(){

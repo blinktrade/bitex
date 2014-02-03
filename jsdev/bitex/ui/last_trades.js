@@ -96,7 +96,7 @@ bitex.ui.LastTrades.prototype.publishTrade = function( date, time, symbol, side,
   var rowEl = dom.createDom( 'tr', tr_properties , td_list );
   dom.insertChildAt(this.bodyEl_, rowEl, 0);
 
-  var blink_class = goog.getCssName(this.getBaseCssClass(), 'blink');
+  var blink_class = 'warning';
   goog.dom.classes.add( rowEl,  blink_class );
 
   goog.Timer.callOnce( function(){

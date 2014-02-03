@@ -183,7 +183,7 @@ bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_repo
       var td_element = this.setColumnValue( tr_element, column, value  );
       if (goog.isDefAndNotNull( td_element)) {
 
-        var blink_class = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
+        var blink_class = 'warning'; //goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
         goog.dom.classes.add( td_element,  blink_class );
         goog.Timer.callOnce( function(){
           goog.dom.classes.remove( td_element,  blink_class );

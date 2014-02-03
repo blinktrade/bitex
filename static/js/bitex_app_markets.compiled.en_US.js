@@ -2253,25 +2253,24 @@ function $JSCompiler_StaticMethods_updateOrder$$($JSCompiler_StaticMethods_updat
   $index$$63_trEl$$1$$ = $JSCompiler_StaticMethods_getChildren$$($JSCompiler_StaticMethods_updateOrder$self$$.$bodyEl_$)[$index$$63_trEl$$1$$];
   var $tdQtyEl$$ = $JSCompiler_StaticMethods_getChildren$$($index$$63_trEl$$1$$)[1];
   $dom$$5$$.$setTextContent$($tdQtyEl$$, $qty$$);
-  var $blink_class$$1$$ = $JSCompiler_StaticMethods_updateOrder$self$$.$getBaseCssClass$() + "-blink";
-  $goog$dom$classes$add$$($tdQtyEl$$, $blink_class$$1$$);
+  $goog$dom$classes$add$$($tdQtyEl$$, "warning");
   $goog$Timer$callOnce$$(function() {
-    $goog$dom$classes$remove$$($tdQtyEl$$, $blink_class$$1$$)
+    $goog$dom$classes$remove$$($tdQtyEl$$, "warning")
   }, $JSCompiler_StaticMethods_updateOrder$self$$.$blink_delay_$, $JSCompiler_StaticMethods_updateOrder$self$$)
 }
-function $JSCompiler_StaticMethods_insertOrder$$($JSCompiler_StaticMethods_insertOrder$self$$, $index$$64$$, $id$$8$$, $price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$) {
+function $JSCompiler_StaticMethods_insertOrder$$($JSCompiler_StaticMethods_insertOrder$self$$, $index$$64$$, $id$$8$$, $price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$, $broker$$) {
   var $dom$$6$$ = $JSCompiler_StaticMethods_insertOrder$self$$.$getDomHelper$();
   $price_priceEl$$ = $dom$$6$$.$createDom$("td", $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-price", $price_priceEl$$);
   $qty$$1_qtyEl$$ = $dom$$6$$.$createDom$("td", $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-qty", $qty$$1_qtyEl$$);
-  $td_list_userNameEl_username$$1$$ = $dom$$6$$.$createDom$("td", $JSCompiler_alias_VOID$$, $dom$$6$$.$createDom$("a", {"class":"btn-cancel-order text-error", href:"", "data-order-id":$id$$8$$}, $dom$$6$$.$createDom$("i", {"class":"icon-remove", style:"line-height: 2px;", "data-order-id":$id$$8$$}, "  " + $td_list_userNameEl_username$$1$$)));
+  $td_list_userNameEl_username$$1$$ = $td_list_userNameEl_username$$1$$ === $JSCompiler_StaticMethods_insertOrder$self$$.$username_$ || $broker$$ === $JSCompiler_StaticMethods_insertOrder$self$$.$username_$ ? $dom$$6$$.$createDom$("td", $JSCompiler_alias_VOID$$, $dom$$6$$.$createDom$("a", {"class":"btn-cancel-order text-error", href:"", "data-order-id":$id$$8$$}, $dom$$6$$.$createDom$("i", {"class":"icon-remove", style:"line-height: 2px;", "data-order-id":$id$$8$$}, "  " + $td_list_userNameEl_username$$1$$))) : 
+  $dom$$6$$.$createDom$("td", $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-username", $td_list_userNameEl_username$$1$$);
   "0" == $JSCompiler_StaticMethods_insertOrder$self$$.$side_$ ? ($goog$dom$classes$add$$($td_list_userNameEl_username$$1$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-left"), $goog$dom$classes$add$$($price_priceEl$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-right"), $td_list_userNameEl_username$$1$$ = [$td_list_userNameEl_username$$1$$, $qty$$1_qtyEl$$, $price_priceEl$$]) : ($goog$dom$classes$add$$($td_list_userNameEl_username$$1$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + 
   "-right"), $goog$dom$classes$add$$($price_priceEl$$, $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-left"), $td_list_userNameEl_username$$1$$ = [$price_priceEl$$, $qty$$1_qtyEl$$, $td_list_userNameEl_username$$1$$]);
   var $rowEl$$ = $dom$$6$$.$createDom$("tr", {"data-order-id":$id$$8$$, "class":$JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-row"}, $td_list_userNameEl_username$$1$$);
   $JSCompiler_StaticMethods_insertChildAt$$($JSCompiler_StaticMethods_insertOrder$self$$.$bodyEl_$, $rowEl$$, $index$$64$$);
-  var $blink_class$$2$$ = $JSCompiler_StaticMethods_insertOrder$self$$.$getBaseCssClass$() + "-blink";
-  $goog$dom$classes$add$$($rowEl$$, $blink_class$$2$$);
+  $goog$dom$classes$add$$($rowEl$$, "warning");
   $goog$Timer$callOnce$$(function() {
-    $goog$dom$classes$remove$$($rowEl$$, $blink_class$$2$$)
+    $goog$dom$classes$remove$$($rowEl$$, "warning")
   }, $JSCompiler_StaticMethods_insertOrder$self$$.$blink_delay_$, $JSCompiler_StaticMethods_insertOrder$self$$)
 }
 ;
@@ -2387,10 +2386,9 @@ function $JSCompiler_StaticMethods_publishTrade$$($JSCompiler_StaticMethods_publ
   $seller_sellerEl$$ = $dom$$9$$.$createDom$("td", $JSCompiler_StaticMethods_publishTrade$self$$.$getBaseCssClass$() + "-seller", $seller_sellerEl$$);
   var $rowEl$$1$$ = $dom$$9$$.$createDom$("tr", {"class":$JSCompiler_StaticMethods_publishTrade$self$$.$getBaseCssClass$() + "-row"}, [$date$$1_timeEl$$, $side$$1_sideEl$$, $price$$1_priceEl$$1$$, $size$$14_sizeEl$$, $buyer_buyerEl$$, $seller_sellerEl$$]);
   $JSCompiler_StaticMethods_insertChildAt$$($JSCompiler_StaticMethods_publishTrade$self$$.$bodyEl_$, $rowEl$$1$$, 0);
-  var $blink_class$$3$$ = $JSCompiler_StaticMethods_publishTrade$self$$.$getBaseCssClass$() + "-blink";
-  $goog$dom$classes$add$$($rowEl$$1$$, $blink_class$$3$$);
+  $goog$dom$classes$add$$($rowEl$$1$$, "warning");
   $goog$Timer$callOnce$$(function() {
-    $goog$dom$classes$remove$$($rowEl$$1$$, $blink_class$$3$$)
+    $goog$dom$classes$remove$$($rowEl$$1$$, "warning")
   }, $JSCompiler_StaticMethods_publishTrade$self$$.$blink_delay_$, $JSCompiler_StaticMethods_publishTrade$self$$)
 }
 ;
@@ -2568,8 +2566,8 @@ $JSCompiler_prototypeAlias$$.$subscribeMarketData$ = function $$JSCompiler_proto
 $JSCompiler_prototypeAlias$$.$unSubscribeMarketData$ = function $$JSCompiler_prototypeAlias$$$$unSubscribeMarketData$$($market_data_id$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"V", MDReqID:$market_data_id$$, SubscriptionRequestType:"2"}))
 };
-$JSCompiler_prototypeAlias$$.$signUp$ = function $$JSCompiler_prototypeAlias$$$$signUp$$($username$$3$$, $password$$2$$, $email$$1$$, $broker$$) {
-  this.$ws_$.send(JSON.stringify({MsgType:"U0", Username:$username$$3$$, Password:$password$$2$$, Email:$email$$1$$, BrokerID:$broker$$}))
+$JSCompiler_prototypeAlias$$.$signUp$ = function $$JSCompiler_prototypeAlias$$$$signUp$$($username$$3$$, $password$$2$$, $email$$1$$, $broker$$1$$) {
+  this.$ws_$.send(JSON.stringify({MsgType:"U0", Username:$username$$3$$, Password:$password$$2$$, Email:$email$$1$$, BrokerID:$broker$$1$$}))
 };
 $JSCompiler_prototypeAlias$$.$requestOrderList$ = function $$JSCompiler_prototypeAlias$$$$requestOrderList$$($opt_requestId$$2_requestId$$2$$, $opt_page$$2$$, $opt_limit$$3$$, $opt_status$$2$$) {
   $opt_requestId$$2_requestId$$2$$ = $opt_requestId$$2_requestId$$2$$ || parseInt(1E7 * Math.random(), 10);
@@ -3327,8 +3325,9 @@ $goog$exportPath_$$("bitex.app.markets", function($url$$31$$) {
   $bitEx$$.addEventListener("ob_new_order", function($e$$86_index$$68$$) {
     var $msg$$26_side$$6$$ = $e$$86_index$$68$$.data;
     $e$$86_index$$68$$ = $msg$$26_side$$6$$.MDEntryPositionNo - 1;
-    var $price$$6$$ = ($msg$$26_side$$6$$.MDEntryPx / 1E8).toFixed(0), $qty$$6$$ = ($msg$$26_side$$6$$.MDEntrySize / 1E8).toFixed(3), $username$$4$$ = $msg$$26_side$$6$$.Username, $orderId$$2$$ = $msg$$26_side$$6$$.OrderID, $msg$$26_side$$6$$ = $msg$$26_side$$6$$.MDEntryType;
-    "0" == $msg$$26_side$$6$$ ? (0 === $e$$86_index$$68$$ && $model$$.set("formatted_best_bid_brl", $price$$6$$), $JSCompiler_StaticMethods_insertOrder$$($order_book_bid$$, $e$$86_index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$)) : "1" == $msg$$26_side$$6$$ && (0 === $e$$86_index$$68$$ && $model$$.set("formatted_best_offer_brl", $price$$6$$), $JSCompiler_StaticMethods_insertOrder$$($order_book_offer$$, $e$$86_index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$))
+    var $price$$6$$ = ($msg$$26_side$$6$$.MDEntryPx / 1E8).toFixed(0), $qty$$6$$ = ($msg$$26_side$$6$$.MDEntrySize / 1E8).toFixed(3), $username$$4$$ = $msg$$26_side$$6$$.Username, $broker$$2$$ = $msg$$26_side$$6$$.Broker, $orderId$$2$$ = $msg$$26_side$$6$$.OrderID, $msg$$26_side$$6$$ = $msg$$26_side$$6$$.MDEntryType;
+    "0" == $msg$$26_side$$6$$ ? (0 === $e$$86_index$$68$$ && $model$$.set("formatted_best_bid_brl", $price$$6$$), $JSCompiler_StaticMethods_insertOrder$$($order_book_bid$$, $e$$86_index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$, $broker$$2$$)) : "1" == $msg$$26_side$$6$$ && (0 === $e$$86_index$$68$$ && $model$$.set("formatted_best_offer_brl", $price$$6$$), $JSCompiler_StaticMethods_insertOrder$$($order_book_offer$$, $e$$86_index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$, 
+    $broker$$2$$))
   });
   $bitEx$$.addEventListener("error", function() {
     $goog$dom$classes$add$$(document.body, "ws-not-connected", "bitex-not-logged");
