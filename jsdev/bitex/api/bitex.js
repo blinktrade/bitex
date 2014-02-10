@@ -71,10 +71,15 @@ bitex.api.BitEx.EventType = {
   HEARTBEAT: 'heartbeat',
   EXECUTION_REPORT: 'execution_report',
 
+  /* Securities */
+  SECURITY_LIST: 'security_list',
+
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
   MARKET_DATA_INCREMENTAL_REFRESH: 'md_incremental_refresh',
   MARKET_DATA_REQUEST_REJECT: 'md_request_reject',
+
+  TRADING_SESSION_STATUS: 'md_status',
   TRADE: 'trade',
   TRADE_CLEAR: 'trade_clear',
   ORDER_BOOK_CLEAR: 'ob_clear',
@@ -174,7 +179,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       }
       break;
 
-    case 'U13': // Password change response:
+    case 'y': // Security List
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_LIST, msg));
+      break;
+
+    case 'U13': // Password change response
       if (msg['UserStatus'] == 1 ) {
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK, msg ) );
       } else {
@@ -216,19 +225,31 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
-        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR) );
-        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR) );
-
+        var has_cleared_trade = false;
+        var has_cleared_book = false;
+        
         for ( var x in msg['MDFullGrp']) {
           var entry = msg['MDFullGrp'][x];
 
           switch (entry['MDEntryType']) {
             case '0': // Bid
             case '1': // Offer
+              if (!has_cleared_book) {
+                has_cleared_book = true;
+                this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR) );
+              }
+              entry['Symbol'] = msg['Symbol'];
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, entry) );
               break;
             case '2': // Trade
+              if (!has_cleared_trade) {
+                has_cleared_trade = true;
+                this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR) );
+              }
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE, entry) );
+              break;
+            case '4': // Trading Session Status
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, entry) );
               break;
           }
         }
@@ -261,6 +282,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
             case '2': // Trade
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE, entry) );
               break;
+            case '4': // Trading Session Status
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, entry) );
+              break;
+
           }
         }
       } else {
@@ -337,6 +362,18 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
     'Email': email
   };
   this.ws_.send(JSON.stringify( msg ));
+};
+
+
+bitex.api.BitEx.prototype.requestBalances = function() {
+  var reqId = parseInt(Math.random() * 1000000, 10);
+
+  var msg = {
+    'MsgType': 'U2',
+    'BalanceReqID': reqId
+  };
+  this.ws_.send(JSON.stringify( msg ));
+
 };
 
 /**
@@ -504,11 +541,27 @@ bitex.api.BitEx.prototype.unSubscribeMarketData = function(market_data_id){
   var msg = {
     'MsgType': 'V',
     'MDReqID': market_data_id,
+    'MarketDepth' : 0,
     'SubscriptionRequestType': '2'
   };
   this.ws_.send(JSON.stringify( msg ));
 };
 
+
+/**
+ * @param {string} opt_requestId. Defaults to random generated number
+ */
+bitex.api.BitEx.prototype.requestSecurityList = function(opt_requestId){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'x',
+    'SecurityReqID': requestId,
+    'SecurityListRequestType': 0, // Symbol
+    'SecurityRequestResult': 0
+  };
+  this.ws_.send(JSON.stringify( msg ));
+};
 
 
 /**
@@ -705,11 +758,13 @@ goog.exportProperty(BitEx.prototype, 'close', bitex.api.BitEx.prototype.close);
 goog.exportProperty(BitEx.prototype, 'login', bitex.api.BitEx.prototype.login);
 goog.exportProperty(BitEx.prototype, 'isLogged', bitex.api.BitEx.prototype.isLogged);
 goog.exportProperty(BitEx.prototype, 'isConnected', bitex.api.BitEx.prototype.isConnected);
+goog.exportProperty(BitEx.prototype, 'requestSecurityList', bitex.api.BitEx.prototype.requestSecurityList);
 goog.exportProperty(BitEx.prototype, 'changePassword', bitex.api.BitEx.prototype.changePassword);
 goog.exportProperty(BitEx.prototype, 'subscribeMarketData', bitex.api.BitEx.prototype.subscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.prototype.unSubscribeMarketData);
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
+goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototype.requestBalances);
 goog.exportProperty(BitEx.prototype, 'withdrawCryptoCoin', bitex.api.BitEx.prototype.withdrawCryptoCoin);
 goog.exportProperty(BitEx.prototype, 'requestWithdrawList', bitex.api.BitEx.prototype.requestWithdrawList);
 goog.exportProperty(BitEx.prototype, 'requestBrokerList', bitex.api.BitEx.prototype.requestBrokerList );

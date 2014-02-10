@@ -31,49 +31,49 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'status'); }
     },{
       'property': 'Side',
-      'label': 'C/V',
+      'label': 'Side',
       'sortable': false,
       'formatter': function(s){
         switch(s){
-          case '1': return 'C';
-          case '2': return 'V';
+          case '1': return 'Buy';
+          case '2': return 'Sell';
         }
         return '';
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'side'); }
     },{
       'property': 'OrderQty',
-      'label': 'Vol. BTC',
+      'label': 'Qty',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-qty'); }
     },{
       'property': 'Price',
-      'label': 'Preço R$',
+      'label': 'Price',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'price'); }
     },{
       'property': 'LeavesQty',
-      'label': 'BTC em aberto',
+      'label': 'Leaves Qty',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'leaves_qty'); }
     },{
       'property': 'CumQty',
-      'label': 'BTC executado',
+      'label': 'Cum Qty',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'cum-qty'); }
     },{
       'property': 'AvgPx',
-      'label': 'Preço médio',
+      'label': 'Average Price',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'ClOrdID',
-      'label': 'Ações',
+      'label': 'Actions',
       'sortable': false,
       'formatter': function(id, row_set_obj){
         var classes = "icon-remove";
@@ -100,11 +100,11 @@ goog.inherits(bitex.ui.OrderManager, bitex.ui.DataGrid);
  * @enum {string}
  */
 bitex.ui.OrderManager.Status = {
-  '-': 'pendente',
-  '0': 'nova',
-  '1': 'exec. parcial',
-  '2': 'executada',
-  '4': 'cancelada'
+  '-': 'Pending',
+  '0': 'New',
+  '1': 'Partially filled',
+  '2': 'Filled',
+  '4': 'Canceled'
 };
 
 /**

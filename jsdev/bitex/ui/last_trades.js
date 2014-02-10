@@ -76,14 +76,12 @@ bitex.ui.LastTrades.prototype.publishTrade = function( date, time, symbol, side,
     side = "Sell";
   }
 
-  var price_currency  = symbol.substr(3,3);
-  var size_currency   = symbol.substr(0,3);
 
   var dateEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'date') , date);
   var timeEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'time') , time);
   var sideEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'side') , side);
-  var priceEl  = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'price') , price + ' ' + price_currency);
-  var sizeEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'size'), size + ' ' + size_currency);
+  var priceEl  = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'price') , price);
+  var sizeEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'size'), size);
   var buyerEl  = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'buyer'), buyer);
   var sellerEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'seller'), seller);
 

@@ -118,11 +118,11 @@
       </div>
     </div>
 
-    <div class="control-group" style="display: none;">
+    <div class="control-group" style="">
       <label class="control-label">Broker</label>
       <div class="controls">
-        <select id="id_signup_broker" name="broker" size="4">
-          <option value="1" selected>None</option>
+        <select id="id_signup_broker" name="broker">
+          <option value="1" selected>Bitcoin Center</option>
         </select>
       </div>
     </div>
@@ -150,12 +150,12 @@
 
   <form accept-charset="UTF-8" action="" method="post">
     <div class="clearfix">
-      <label for="id_username">Username ( Badge number )</label>
-      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
+      <label for="id_username">Username</label>
+      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder="Badge number or username"></div>
     </div>
     <div class="clearfix">
       <label for="id_password">Password</label>
-      <div class="input"><input id="id_password"  placeholder="Senha" name="password" type="password"></div>
+      <div class="input"><input id="id_password"  placeholder="password + [badge number]" name="password" type="password"></div>
     </div>
     <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
     <div class="actions">
@@ -237,17 +237,17 @@
         <div class="span5 order-entry-label"> <span>Amount:</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
 
-            <input class="input-block-level order-entry-amount" type="text" required/>
+            <input class="input-block-level order-entry-amount" type="text" value="0" required/>
           </div>
         </div>
       </div>
       <div class="row-fluid">
-        <div class="span5 order-entry-label"> <span>Price per ฿:</span>
+        <div class="span5 order-entry-label"> <span>Price per <span class="order-entry-amount-sign">฿</span>:</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
 
             <input class="input-block-level order-entry-price" type="text" required/>
           </div>
@@ -257,7 +257,7 @@
         <div class="span5 order-entry-label"><span>Total:</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
             <input class="input-block-level order-entry-total" type="text" required/>
           </div>
         </div>
@@ -266,7 +266,7 @@
         <div class="span5 order-entry-label"> <span>Fee (optional):</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
             <input class="input-block-level order-entry-fee" type="text" value="0" />
           </div>
         </div>
@@ -288,17 +288,17 @@
         <div class="span5 order-entry-label"> <span>Amount:</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
 
             <input class="input-block-level order-entry-amount" type="text" value="0" required/>
           </div>
         </div>
       </div>
       <div class="row-fluid">
-        <div class="span5 order-entry-label"> <span>Price per ฿:</span>
+        <div class="span5 order-entry-label"> <span>Price per <span class="order-entry-amount-sign">฿</span>:</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
 
             <input class="input-block-level order-entry-price" type="text" required/>
           </div>
@@ -308,7 +308,7 @@
         <div class="span5 order-entry-label"><span>Total:</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">$</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
 
             <input class="input-block-level order-entry-total" type="text" required/>
           </div>
@@ -318,7 +318,7 @@
         <div class="span5 order-entry-label"> <span>Fee (optional):</span>
         </div>
         <div class="span6">
-          <div class="input-prepend input-block-level order-entry-data"><span class="add-on">฿</span>
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
             <input class="input-block-level order-entry-fee" type="text" value="0" />
           </div>
         </div>
@@ -342,8 +342,8 @@
           <thead>
           <tr>
             <th>Buyer</th>
-            <th>Amount(BTC)</th>
-            <th>Price($)</th>
+            <th>Amount</th>
+            <th>Price</th>
           </tr>
           </thead>
           <tbody>
@@ -355,8 +355,8 @@
         <table id="order_book_offer"  class="table">
           <thead>
           <tr>
-            <th>Price(R$)</th>
-            <th>Amount(BTC)</th>
+            <th>Price</th>
+            <th>Amount</th>
             <th>Seller</th>
           </tr>
           </thead>
@@ -418,7 +418,7 @@
 
 <div id="enable_two_factor">
   <div class="section-title">
-    <h3>Autenticação em dois passos</h3>
+    <h3>Enable or Disable Two steps authentication</h3>
   </div>
 
   <div class="content">
@@ -440,7 +440,7 @@
         </div>
 
         <div class="control-group">
-          <label class="control-label">Código de autenticação</label>
+          <label class="control-label">Authentication code</label>
           <div class="controls">
             <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
           </div>
@@ -448,8 +448,8 @@
 
       </form>
 
-      <button id="id_btn_enable_two_factor" class="btn btn-primary">Habilitar</button>
-      <button id="id_btn_disable_two_factor" class="btn btn-danger">Desabilitar</button>
+      <button id="id_btn_enable_two_factor" class="btn btn-primary">Enable</button>
+      <button id="id_btn_disable_two_factor" class="btn btn-danger">Disable</button>
 
     </div>
 
@@ -459,26 +459,28 @@
 
 <div id="deposit">
   <div class="section-title">
-    <h3>Depósitos</h3>
+    <h3>Deposits</h3>
   </div>
 
   <div class="content">
     <!-- Main content -->
-    <p>Veja abaixo como depositar em sua conta</p>
+    <!--<p>Veja abaixo como depositar em sua conta</p> -->
 
     <h3>Bitcoin</h3>
     <div class="well">
-      <div>Por favor envie Bitcoin para o seu endereço de depósito: </div>
+      <!--<div>Por favor envie Bitcoin para o seu endereço de depósito: </div> -->
+      <div>Send Bitcoin to this address: </div>
 
       <img id="id_bitcoin_address_img" style="float:right; margin-top: -30px" src="">
 
       <h4><span class="bitex-model" data-model-key="BtcAddress"></span></h4>
-      <p>Precisaremos de 6 confirmações para transações em Bitcoin para refletir o deposito no site. </p>
+      <!--<p>Precisaremos de 6 confirmações para transações em Bitcoin para refletir o deposito no site. </p> -->
+      <p>6 confirmations needed.</p>
 
     </div>
     <div class="clearfix"></div>
 
-    <h3>Boleto Bancário</h3>
+    <h3>Brazilian Reals Boleto</h3>
     <div class="well">
       <div class="row-fluid">
         <div class="input-prepend input-append">
@@ -486,23 +488,19 @@
         </div>
       </div>
       <div class="row-fluid boleto-options-group">
-        <!--
-        {% for boleto_option in boleto_options %}
-          <button class="btn btn-primary btn-boleto" data-boleto-id="{{  boleto_option.id }}">{{ escape(boleto_option.description) }}</button>
-        {% end %}
-        -->
       </div>
-      <p>Confirmação após 1 dia se o Boleto for pago no mesmo Banco, caso contrário será de 3 dias úteis.</p>
+      <p>1 day if the boleto is paid in the same bank, otherwise 3 days.</p>
+      <!-- <p>Confirmação após 1 dia se o Boleto for pago no mesmo Banco, caso contrário será de 3 dias úteis.</p> -->
     </div>
 
 
-    <h3>Transferência Bancária via DOC ou TED</h3>
+    <h3>Bank transfer</h3>
     <div class="well">
       <p>
-        Favor entrar em contato pelo email <a href="mailto:suporte@bitex.com.br">suporte@bitex.com.br</a>
+        Send an email to <a href="mailto:suporte@bitex.com.br">suporte@bitex.com.br</a>
       </p>
       <p>
-        obs: Disponível apenas para contas <a href="" data-switch-view="verification">verificadas</a>
+        ps: Available only to <a href="" data-switch-view="verification">verified</a> accounts
       </p>
     </div>
   </div>
@@ -510,14 +508,14 @@
 
 <div id="withdraw">
   <div class="section-title">
-    <h3>Saques</h3>
+    <h3>Withdraws</h3>
   </div>
 
   <div class="content">
-    <p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>
+    <!--<p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>-->
     <table class="table table-striped" style="width: 300px">
-      <tbody><tr><td><strong>BRL Saldo disponível</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
-      <tr><td><strong>BTC Saldo disponível</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+      <tbody><tr><td><strong>Available USD</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><strong>Available BTC</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
       </tbody>
     </table>
 
@@ -531,7 +529,7 @@
           <thead>
           <tr>
             <th colspan="4">
-              <span class="datagrid-header-title"><strong>Histórico dos pedidos de saque</strong></span>
+              <span class="datagrid-header-title"><strong>Withdraw history</strong></span>
             </th>
           </tr>
           </thead>
@@ -577,7 +575,7 @@
 
 <div id="verification">
   <div class="section-title">
-    <h3>Verificação</h3>
+    <h3>Verify your account</h3>
   </div>
 
   <iframe id="JotFormIFrame"
@@ -590,25 +588,34 @@
 
 <div class="span3 sidebar">
   <h3><span class="bitex-model" data-model-key="Username"></span></h3>
-  <div id="account_overview" style="display: none">
-    <h6>Sua Conta</h6>
+  <div id="account_overview" style="">
+
+    <form class="form-inline">
+      <label class="control-label" for="id_instrument_1">Market: </label>
+      <select id="id_instrument_1">
+        <option></option>
+      </select>
+    </form>
+
+
+    <h6>Your account</h6>
     <table class="data">
       <tbody>
-      <tr><td><strong>R$</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
-      <tr><td><strong>฿</strong></td><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
       </tbody>
     </table>
   </div>
   <h6>Menu</h6>
   <ul class="nav nav-list">
     <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
-    <li style="display: none;"><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósito</a></li>
-    <li style="display: none;"><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Saques</a></li>
+    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
+    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>
     <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
-    <li style="display: none;"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificação</a></li>
-    <li style="display: none;"><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Autenticação em 2 passos</a></li>
+    <li style=""><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
+    <li style=""><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
 
-    <li style="display: none;"><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Sugestões &amp; Supporte</a></li>
+    <li style=""><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Suggestions & Support</a></li>
     <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
   </ul>
 </div>
@@ -638,7 +645,7 @@
 
 <script>
   bitex.app.satoshi_square('wss://localhost/trade/');
-  //bitex.app.bitex('wss://192.168.1.50/trade/');
+  //bitex.app.satoshi_square('wss://192.168.1.50/trade/');
 </script>
 
 

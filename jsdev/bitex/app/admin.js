@@ -263,7 +263,7 @@ bitex.app.admin = function() {
   var onRequestTableData = function( table_name, e ) {
     var options = e.options;
 
-    options['MsgType'] = 'ADMIN_SELECT';
+    options['MsgType'] = 'A0'; //ADMIN_SELECT
     options['Table'] = table_name;
 
     bitEx.sendRawMessage( options );
@@ -276,7 +276,7 @@ bitex.app.admin = function() {
                                      goog.partial( onRequestTableData, 'users' ) );
 
   withdrawBtcDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
-                                        goog.partial( onRequestTableData, 'withdraws_btc' ) );
+                                        goog.partial( onRequestTableData, 'withdraws' ) );
 
   depositDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
                                         goog.partial( onRequestTableData, 'deposits' ) );
@@ -284,7 +284,7 @@ bitex.app.admin = function() {
   bitEx.addEventListener('raw_message',  function(e) {
     var msg = e.data;
     switch(msg['MsgType']) {
-      case 'ADMIN_SELECT_RESPONSE':
+      case 'A1':
         switch( msg['Table'] ) {
           case 'boleto':
             boletoListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
@@ -292,7 +292,7 @@ bitex.app.admin = function() {
           case 'users':
             userListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
             break;
-          case 'withdraws_btc':
+          case 'withdraws':
             withdrawBtcDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
             break;
           case 'deposits':
@@ -300,7 +300,7 @@ bitex.app.admin = function() {
             break;
         }
         break;
-      case 'BOLETO_PAYMENT_RESPONSE':
+      case 'B1': // Boleto Payment Confirmation List
         boletoListDataGrid.reload();
         break;
     }
@@ -354,8 +354,6 @@ bitex.app.admin = function() {
           boleto_value = boleto_value_span_element.getAttribute('data-boleto-value');
         }
 
-
-
         var boletoPaymentDialog = new bootstrap.Dialog();
         boletoPaymentDialog.setTitle('Pagamento do boleto');
         boletoPaymentDialog.setContent('Valo pago: <input id="id_boleto_payment" placeholder="" size="10" value="' + boleto_value + '">');
@@ -371,10 +369,10 @@ bitex.app.admin = function() {
               return;
             }
 
-            boleto_payment = parseInt(boleto_payment, 10);
+            boleto_payment = parseInt(parseFloat(boleto_payment) * 1e8, 10 ) ;
             var depositMsg = {
-              'MsgType': 'BOLETO_PAYMENT',
-              'BoletoID': boleto_id,
+              'MsgType' : 'B0',  // Boleto Payment Confirmation Request
+              'BoletoID': goog.string.toNumber(boleto_id),
               'Currency': 'BRL',
               'Amount': boleto_payment
             };

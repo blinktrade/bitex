@@ -13,16 +13,18 @@ market_data_subscriber_dict = {}
 
 signal_order_depth_entry                  = Signal()
 signal_publish_md_order_depth_incremental = Signal()
+signal_publish_md_status                  = Signal()
 
 
 class MarketDataSubscriber(object):
   def __init__(self,  symbol):
-    self.symbol = symbol
+    self.symbol = str(symbol)
     self.buy_side = []
     self.sell_side = []
     self.bid = 0
     self.ask = 0
     self.trade_list = []
+    self.volume_dict = {}
 
   def subscribe(self, zmq_context,trade_pub_connection_string, trade_client ):
     self.md_pub_socket = zmq_context.socket(zmq.SUB)
@@ -115,6 +117,7 @@ class MarketDataSubscriber(object):
 
   def on_trade_clear(self):
     self.trade_list = []
+    self.volume_dict = {}
 
   def on_book_delete_orders_thru(self, msg):
     print 'on_book_delete_orders_thru', msg
@@ -225,6 +228,21 @@ class MarketDataSubscriber(object):
     if len(self.trade_list) > 100:
       self.trade_list.pop()
 
+      # BTC BRL
+    price_currency  = self.symbol[3:]
+    size_currency   = self.symbol[:3]
+    if price_currency not in self.volume_dict:
+      self.volume_dict[price_currency] = 0
+    if size_currency not in self.volume_dict:
+      self.volume_dict[size_currency] = 0
+
+    volume_price    = int(msg.get('MDEntryPx') * msg.get('MDEntrySize') / 1.e8)
+    volume_size     = msg.get('MDEntrySize')
+    self.volume_dict[price_currency] += volume_price
+    self.volume_dict[size_currency] += volume_size
+
+    self.volume_dict['MDEntryType'] = '4'
+    signal_publish_md_status( 'MD_STATUS', self.volume_dict )
 
 class MarketDataPublisher(object):
   def __init__(self,req_id, market_depth, entries, instrument, handler):
@@ -237,15 +255,21 @@ class MarketDataPublisher(object):
 
     signal_publish_md_order_depth_incremental.connect(self.signal_publish_md_order_depth, instrument + '.3' )
 
+    signal_publish_md_status.connect(self.signal_md_status, 'MD_STATUS' )
+
+  def signal_md_status(self, sender, entry):
+    self.entry_list_order_depth.append(entry)
+
   def signal_order_depth_added_entry(self, sender, entry):
     self.entry_list_order_depth.append(entry)
 
   def signal_publish_md_order_depth(self, sender, md):
-    md["MDReqID"] =  self.req_id
-    md["MDBkTyp"] =  '3'
-    md["MDIncGrp"] = self.entry_list_order_depth
-    self.handler(sender, md)
-    self.entry_list_order_depth = []
+    if len(self.entry_list_order_depth) > 0:
+      md["MDReqID"] =  self.req_id
+      md["MDBkTyp"] =  '3'
+      md["MDIncGrp"] = self.entry_list_order_depth
+      self.handler(sender, md)
+      self.entry_list_order_depth = []
 
 
 def generate_md_full_refresh( symbol, market_depth, entries  ):
@@ -295,8 +319,24 @@ def generate_md_full_refresh( symbol, market_depth, entries  ):
           "MDEntryBuyer":     trade['buyer_username'],
           "MDEntrySeller":    trade['seller_username'],
           })
+
+      volume_dict = {}
       for trade in reversed(trade_list):
         entry_list.append(trade)
+
+        price_currency  = symbol[3:]
+        size_currency   = symbol[:3]
+        if price_currency not in volume_dict:
+          volume_dict[price_currency] = 0
+        if size_currency not in volume_dict:
+          volume_dict[size_currency] = 0
+
+        volume_price    = int(trade['MDEntryPx'] * trade['MDEntrySize'] / 1.e8)
+        volume_size     = trade['MDEntrySize']
+        volume_dict[price_currency] += volume_price
+        volume_dict[size_currency] += volume_size
+        volume_dict['MDEntryType'] = '4'
+      entry_list.append(volume_dict)
 
   md = {
     "MsgType":"W",

@@ -69,6 +69,12 @@ class JsonMessage(BaseMessage):
     if not val > 0:
       raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
 
+  def raise_exception_if_not_in(self, tag, list):
+    val = self.get(tag)
+    if val not in list :
+      raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
+
+
   def toJSON(self):
     return self.message
 
@@ -90,6 +96,7 @@ class JsonMessage(BaseMessage):
     del self.message['MsgType']
 
     self.valid_message_types = {
+      # User messages based on the Fix Protocol
       '0':   'Heartbeat',
       '1':   'TestRequest',
       'C':   'Email',
@@ -101,6 +108,12 @@ class JsonMessage(BaseMessage):
       'BF':  'UserResponse',
       'D':   'NewOrderSingle',
       'F':   'OrderCancelRequest',
+      'x':   'SecurityListRequest',
+      'y':   'SecurityList',
+      'e':   'SecurityStatusRequest',
+      'f':   'SecurityStatus',
+
+      # User  messages
       'U0':  'Signup',
       'U2':  'UserBalanceRequest',
       'U3':  'UserBalanceResponse',
@@ -129,12 +142,20 @@ class JsonMessage(BaseMessage):
       'U28': 'BrokerListRequest',
       'U29': 'BrokerListResponse',
 
+      # Broker messages
+      'B0':  'BoletoPaymentConfirmationRequest',
+      'B1':  'BoletoPaymentConfirmationResponse',
+
+      # System messages
       'S0':  'BitcoinNewAddressRequest',
       'S1':  'BitcoinNewAddressResponse',
       'S2':  'NumberOfFreeBitcoinNewAddressRequest',
       'S3':  'NumberOfFreeBitcoinNewAddressResponse',
+
+      # Administrative messages
       'A0':  'DbQueryRequest',
       'A1':  'DbQueryResponse',
+
       'ERROR': 'ErrorMessage',
     }
 
@@ -245,7 +266,16 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('Subject')
       self.raise_exception_if_required_tag_is_missing('EmailType')
 
+    elif self.type == 'x': # Security List Request
+      self.raise_exception_if_required_tag_is_missing('SecurityReqID')
+      self.raise_exception_if_required_tag_is_missing('SecurityListRequestType')
+      self.raise_exception_if_not_a_integer('SecurityListRequestType')
+      self.raise_exception_if_not_in('SecurityListRequestType', (0,1,2,3,4))
 
+    elif self.type == 'y': # Security List
+      self.raise_exception_if_required_tag_is_missing('SecurityReqID')
+      self.raise_exception_if_required_tag_is_missing('SecurityResponseID')
+      self.raise_exception_if_required_tag_is_missing('SecurityRequestResult')
 
     elif self.type == 'F':  #Order Cancel Request
       pass
@@ -336,6 +366,19 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U29': # Broker List Response
       self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
       self.raise_exception_if_empty('BrokerListReqID')
+
+    elif self.type == 'B0': # Boleto Payment Confirmation
+      self.raise_exception_if_required_tag_is_missing('BoletoID')
+      self.raise_exception_if_required_tag_is_missing('Currency')
+      self.raise_exception_if_required_tag_is_missing('Amount')
+
+      self.raise_exception_if_not_a_integer('BoletoID')
+      self.raise_exception_if_not_greater_than_zero('BoletoID')
+
+      self.raise_exception_if_empty('Currency')
+
+      self.raise_exception_if_not_a_integer('Amount')
+      self.raise_exception_if_not_greater_than_zero('Amount')
 
 
     elif self.type == 'S0': # Bitcoin New Address

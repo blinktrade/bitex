@@ -18,10 +18,12 @@ class TradeApplication(object):
     return cls._instance
 
   def initialize(self):
+    self.publish_queue = []
     self.options = options
 
-    from models import engine
+    from models import engine, db_bootstrap
     self.db_session = scoped_session(sessionmaker(bind=engine))
+    db_bootstrap(self.db_session)
 
     from session_manager import SessionManager
     self.session_manager = SessionManager(timeout_limit=self.options.session_timeout_limit)
@@ -42,8 +44,6 @@ class TradeApplication(object):
     self.replay_logger.setLevel(logging.INFO)
     self.replay_logger.addHandler(input_log_file_handler)
     self.replay_logger.info('START')
-
-    self.publish_queue = []
 
     self.log_start_data()
 
@@ -73,9 +73,17 @@ class TradeApplication(object):
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','END')
 
-    from models import User, Boleto, BoletoOptions, Order, Withdraw, Broker
+    from models import User, Boleto, BoletoOptions, Order, Withdraw, Broker, Currency, Instrument
 
-    # log all users on the replay log
+
+    currencies = self.db_session.query(Currency)
+    for currency in currencies:
+      self.log('DB_ENTITY', 'CURRENCY', currency)
+
+    instruments = self.db_session.query(Instrument)
+    for instrument in instruments:
+      self.log('DB_ENTITY', 'INSTRUMENT', instrument)
+
     users = self.db_session.query(User)
     for user in users:
       self.log('DB_ENTITY', 'USER', user)

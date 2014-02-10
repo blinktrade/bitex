@@ -7,7 +7,8 @@ from bitex.json_encoder import  JsonEncoder
 
 import json
 
-from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, NeedSecondFactorException, Withdraw, Broker
+from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, \
+  NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance, Ledger
 
 from execution import OrderMatcher
 
@@ -29,7 +30,6 @@ def processLogin(session, msg):
                              msg.get('Username'),
                              msg.get('Password'),
                              msg.get('SecondFactor'))
-
     session.set_user(user)
   except NeedSecondFactorException:
     need_second_factor = True
@@ -47,11 +47,8 @@ def processLogin(session, msg):
     session.should_end = True
     return json.dumps(login_response, cls=JsonEncoder)
 
-
   application.db_session.add(session.user)
   application.db_session.commit()
-
-  session.user.publish_balance_update()
 
   # Send the login response
   login_response = {
@@ -142,6 +139,40 @@ def processCancelOrderRequest(session, msg):
 
   return ""
 
+def processSecurityListRequest(session, msg):
+  request_type = msg.get('SecurityListRequestType')
+  instruments =  Instrument.get_instruments(application.db_session, request_type)
+  currencies = Currency.get_currencies(application.db_session)
+
+  response = {
+    'MsgType': 'y', # SecurityList
+    'SecurityReqID': msg.get('SecurityReqID'),
+    'SecurityResponseID': '1',
+    'SecurityRequestResult': 0 if len(instruments) > 1 else 2 , # "0-Valid Request" if found or "2-No instruments found" if not
+    'TotalNumSecurities': len(instruments),
+    'NoRelatedSym': len(instruments),
+    'Instruments': [],
+    'TotalNumCurrencies' : len(currencies),
+    'NoRelatedCurr': len(currencies),
+    'Currencies': []
+  }
+  for instrument in instruments:
+    response['Instruments'].append({
+      'Symbol': instrument.symbol
+    })
+  for currency in currencies:
+    response['Currencies'].append({
+      'Code': currency.code,
+      'Sign': currency.sign,
+      'Description': currency.description,
+      'IsCrypto': currency.is_crypto,
+      'Pip': currency.pip,
+      'FormatPython': currency.format_python,
+      'FormatJS': currency.format_js
+    })
+
+  return json.dumps(response, cls=JsonEncoder)
+
 def processSignup(session, msg):
   if User.get_user( application.db_session, msg.get('Username'), msg.get('Email')):
     login_response = {
@@ -169,11 +200,7 @@ def processSignup(session, msg):
   u = User( username            = msg.get('Username'),
             email               = msg.get('Email'),
             password            = msg.get('Password'),
-            broker_id           = msg.get('BrokerID'),
-            balance_btc         = 0,
-            balance_ltc         = 0,
-            balance_usd         = 0,
-            balance_brl         = 0)
+            broker_id           = msg.get('BrokerID'))
 
   application.db_session.add(u)
   application.db_session.commit()
@@ -182,7 +209,10 @@ def processSignup(session, msg):
 
 @login_required
 def processRequestForBalances(session, msg):
-  response = session.user.get_balance(msg.get('BalanceReqID'))
+  balances = Balance.get_balances_by_account( application.db_session, session.user.account_id )
+  response = { 'MsgType': 'U3', 'BalanceReqID': msg.get('BalanceReqID')  }
+  for balance in balances:
+    response[balance.currency ] = balance.balance
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
@@ -554,6 +584,7 @@ def processBrokerListRequest(session, msg):
 @login_required
 @staff_user_required
 def processRequestDatabaseQuery(session, msg):
+  page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
   columns     = msg.get('Columns', [])
   table       = msg.get('Table', '')
@@ -583,6 +614,22 @@ def processRequestDatabaseQuery(session, msg):
     'Table': table,
     'Columns': columns,
     'ResultSet': [ [ l for l in res ] for res in  result_set ]
+  }
+  return json.dumps(result, cls=JsonEncoder)
+
+@login_required
+@broker_user_required
+def processBoletoPaymentConfirmation(session, msg):
+  boleto_id   = msg.get('BoletoID')
+  currency    = msg.get('Currency')
+  amount      = msg.get('Amount')
+
+  # TODO: Process the boleto payment
+  boleto = application.db_session.query(Boleto).filter_by(id= boleto_id ).filter_by(broker_id=session.user.id).first()
+
+  result = {
+    'MsgType' : 'B1',
+    'BoletoID': boleto_id
   }
   return json.dumps(result, cls=JsonEncoder)
 

@@ -285,6 +285,46 @@ bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_ = function(e) {
   e.preventDefault();
 };
 
+/**
+ * @return {string}
+ */
+bitex.ui.OrderEntryX.prototype.getSymbol = function(){
+  return goog.dom.forms.getValue(this.symbolEl_);
+};
+
+
+/**
+ * @param {string} value
+ */
+bitex.ui.OrderEntryX.prototype.setSymbol = function(value){
+  goog.dom.forms.setValue(this.symbolEl_, value);
+};
+
+
+
+/**
+ * @param {string} value
+ */
+bitex.ui.OrderEntryX.prototype.setAmountCurrencySign = function(value){
+  var dom  = this.getDomHelper();
+  var elements = dom.getElementsByClass(goog.getCssName(this.getBaseCssClass(), 'amount-sign'), this.getElement());
+  goog.array.forEach(elements, function(el){
+    goog.dom.setTextContent(el, value);
+  });
+};
+
+
+/**
+ * @param {string} value
+ */
+bitex.ui.OrderEntryX.prototype.setPriceCurrencySign = function(value){
+  var dom  = this.getDomHelper();
+  var elements = dom.getElementsByClass(goog.getCssName(this.getBaseCssClass(), 'price-sign'), this.getElement());
+  goog.array.forEach(elements, function(el){
+    goog.dom.setTextContent(el, value);
+  });
+};
+
 
 /**
  * @return {string}

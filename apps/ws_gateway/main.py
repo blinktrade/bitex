@@ -103,14 +103,25 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
     if req_msg.isMarketDataRequest(): # Market Data Request
       self.on_market_data_request(req_msg)
+
+      if not self.trade_client.isConnected():
+        self.application.unregister_connection(self)
+        self.trade_client.close()
+        self.close()
+
       return
 
     try:
       resp_message = self.trade_client.sendMessage( req_msg )
       if resp_message:
         self.write_message(resp_message.raw_message)
+
+      if not self.trade_client.isConnected():
+        self.application.unregister_connection(self)
+        self.trade_client.close()
+        self.close()
     except TradeClientException, e:
-      self.write_message('{"MsgType":"ERROR", "Description":"Error establishing connection with trade", "Detail": "' + str(e) + '"}' )
+      self.write_message('{"MsgType":"ERR OR", "Description":"Error establishing connection with trade", "Detail": "' + str(e) + '"}' )
       self.application.unregister_connection(self)
       self.trade_client.close()
       self.close()
@@ -178,8 +189,13 @@ class WebSocketGatewayApplication(tornado.web.Application):
     self.application_trade_client = TradeClient(self.zmq_context, self.trade_in_socket)
     self.application_trade_client.connect()
 
-    self.md_subscriber =  MarketDataSubscriber.get( "BTCBRL")
-    self.md_subscriber.subscribe( self.zmq_context, options.trade_pub, self.application_trade_client )
+    instruments = self.application_trade_client.getSecurityList()
+    self.md_subscriber = {}
+
+    for instrument in instruments:
+      symbol = instrument['Symbol']
+      self.md_subscriber[symbol] =  MarketDataSubscriber.get(symbol)
+      self.md_subscriber[symbol].subscribe( self.zmq_context, options.trade_pub, self.application_trade_client )
 
     self.connections = {}
 

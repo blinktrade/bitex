@@ -13,6 +13,9 @@ class Session(object):
     self.should_end     = False
 
   def set_user(self, user):
+    if user is None:
+      return
+
     if self.user:
       raise UserAlreadyLogged
     self.user = user
@@ -30,6 +33,9 @@ class Session(object):
 
     elif  msg.type == 'F' : # Cancel Order Request
       return processCancelOrderRequest(self, msg)
+
+    elif msg.type == 'x': # Security List Request
+      return processSecurityListRequest(self, msg)
 
     elif msg.type == 'U0': # signup
       return processSignup(self, msg)
@@ -75,6 +81,10 @@ class Session(object):
 
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)
+
+    elif msg.type == 'B0':  # Boleto Payment Confirmation
+      return processBoletoPaymentConfirmation(self, msg)
+
 
     elif msg.type == 'S0':  # Bitcoin New Address
       return processBitcoinNewAddress(self, msg)

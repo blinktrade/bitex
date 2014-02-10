@@ -29,6 +29,7 @@ goog.require('goog.ui.Button');
 
 goog.require('goog.array');
 goog.require('goog.string');
+goog.require('goog.object');
 
 goog.require('bitex.app.UrlRouter');
 goog.require('bitex.model.Model');
@@ -46,12 +47,122 @@ bitex.app.satoshi_square = function( url ) {
   var bitEx = new bitex.api.BitEx();
   var model = new bitex.model.Model(document.body);
 
-  var order_book_bid = null;
-  var order_book_offer = null;
 
   var account_activity_table = null;
 
   var withdraw_list_table = null;
+
+  var currency_info = {};
+  var all_markets = [];
+  var trade_subscriptions = null;
+
+  var order_book_bid = null;
+  var order_book_offer = null;
+  var subscription_1 = null;
+
+  var format_currency = function(value, currency) {
+    /**
+     * @type {bitex.model.OrderBookCurrencyModel}
+     */
+    var currency_def = currency_info[currency];
+
+    var formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
+
+    return formatter.format(value);
+  };
+
+
+  var buy_order_entry = new bitex.ui.OrderEntryX();
+  var sell_order_entry = new bitex.ui.OrderEntryX();
+
+  buy_order_entry.decorate( goog.dom.getElement('id_order_entry_buy') );
+  sell_order_entry.decorate( goog.dom.getElement('id_order_entry_sell') );
+
+  try{
+    bitEx.open(url);
+  } catch( e ) {
+    alert('Error connecting to the server. Please try again');
+    return;
+  }
+
+  buy_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
+    var client_order_id = bitEx.sendBuyLimitedOrder( e.target.getSymbol(),
+                                                     e.target.getAmount(),
+                                                     e.target.getPrice(),
+                                                     e.target.getClientID());
+  });
+
+  sell_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
+    var client_order_id = bitEx.sendSellLimitedOrder( e.target.getSymbol(),
+                                                      e.target.getAmount(),
+                                                      e.target.getPrice(),
+                                                      e.target.getClientID());
+  });
+
+
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.OPENED, function(e) {
+    goog.dom.classes.remove( document.body, 'ws-not-connected' );
+    goog.dom.classes.add( document.body, 'ws-connected' );
+
+    goog.dom.removeChildren(goog.dom.getElement('id_instrument_1'));
+    bitEx.requestSecurityList();
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.CLOSED, function(e) {
+    goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
+    goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
+
+    router.setView('start');
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.ERROR ,  function(e) {
+    goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
+    goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
+
+    var dlg = new bootstrap.Dialog();
+    dlg.setTitle('Error');
+    dlg.setContent('Error connecting to the server. Your browser MUST SUPPORT WebSockets.');
+    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setVisible(true);
+
+    router.setView('start');
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.SECURITY_LIST, function(e) {
+    var msg = e.data;
+    console.log(goog.debug.deepExpose(msg));
+
+    goog.array.forEach(msg['Currencies'], function( currency) {
+      currency_info[ currency['Code'] ] = {
+        code: currency['Code'],
+        format: currency['FormatJS'],
+        description : currency['Description'],
+        sign : currency['Sign'],
+        pip : currency['Pip'],
+        is_crypto : currency['IsCrypto']
+      };
+
+      var balance_key = 'balance_' +  currency['Code'].toLowerCase();
+      model.set( balance_key , 0 );
+      model.set('formatted_' + balance_key, format_currency(0, currency['Code']));
+    });
+
+    var symbols = [];
+    goog.array.forEach(msg['Instruments'], function( instrument) {
+      var symbol = instrument['Symbol'];
+
+      all_markets[symbol]  = {
+        symbol: symbol
+      };
+
+      symbols.push( symbol );
+      var el = goog.dom.createDom('option', undefined, symbol);
+      goog.dom.appendChild( goog.dom.getElement('id_instrument_1'), el );
+    });
+
+    //trade_subscriptions =  bitEx.subscribeMarketData( 0,  symbols , ['2'] );
+  });
 
   router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
     var view_name = e.view;
@@ -169,6 +280,154 @@ bitex.app.satoshi_square = function( url ) {
   });
 
 
+  /**
+   * @param {string} symbol
+   */
+  var switchSymbol = function(symbol) {
+    // Subscribe to MarketData
+    if (subscription_1) {
+      bitEx.unSubscribeMarketData(subscription_1);
+    }
+    subscription_1 =  bitEx.subscribeMarketData( 0, [ symbol ], ['0','1'] );
+
+    if (goog.isDefAndNotNull(order_book_bid)) {
+      order_book_bid.clear();
+      order_book_offer.clear();
+
+      order_book_bid.dispose();
+      order_book_offer.dispose();
+    }
+
+    var qtyCurrency = symbol.substr(0,3);
+    var priceCurrency = symbol.substr(3);
+
+    /**
+     * @type {bitex.model.OrderBookCurrencyModel}
+     */
+    var qtyCurrencyDef = currency_info[qtyCurrency];
+
+    /**
+     * @type {bitex.model.OrderBookCurrencyModel}
+     */
+    var priceCurrencyDef = currency_info[priceCurrency];
+
+    buy_order_entry.setSymbol(symbol);
+    buy_order_entry.setAmountCurrencySign( qtyCurrencyDef.sign );
+    buy_order_entry.setPriceCurrencySign( priceCurrencyDef.sign );
+    sell_order_entry.setSymbol(symbol);
+    sell_order_entry.setAmountCurrencySign( qtyCurrencyDef.sign );
+    sell_order_entry.setPriceCurrencySign( priceCurrencyDef.sign );
+
+    order_book_bid =  new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.BUY, qtyCurrencyDef, priceCurrencyDef);
+    order_book_offer =  new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.SELL, qtyCurrencyDef, priceCurrencyDef);
+    order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
+    order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
+
+    order_book_bid.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
+    order_book_offer.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
+  };
+
+  // when user select 'offerbook', let's the verification iframe for the user.
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
+    var view_name = e.view;
+    if (view_name !== 'offerbook' || !bitEx.isLogged() ) {
+      if (subscription_1) {
+        bitEx.unSubscribeMarketData(subscription_1);
+        subscription_1 = null;
+      }
+
+      if (goog.isDefAndNotNull(order_book_bid)) {
+        order_book_bid.clear();
+        order_book_offer.clear();
+
+        order_book_bid.dispose();
+        order_book_offer.dispose();
+
+        order_book_bid = null;
+        order_book_offer = null;
+      }
+
+      return;
+    }
+
+    var symbol = goog.dom.forms.getValue(goog.dom.getElement('id_instrument_1') ) ;
+    if (goog.isDefAndNotNull(symbol) ) {
+      switchSymbol(symbol);
+    }
+
+    goog.events.listen(goog.dom.getElement('id_instrument_1'), goog.events.EventType.CHANGE  , function(e) {
+      symbol = goog.dom.forms.getValue(goog.dom.getElement('id_instrument_1') ) ;
+      console.log('selected ' + symbol);
+      switchSymbol(symbol);
+    });
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR, function(e){
+    order_book_bid.clear();
+    order_book_offer.clear();
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU,  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'];
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      order_book_bid.deleteOrderThru(index);
+    } else if (side == '1') {
+      order_book_offer.deleteOrderThru(index);
+    }
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDER,  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      order_book_bid.deleteOrder(index);
+    } else if (side == '1') {
+      order_book_offer.deleteOrder(index);
+    }
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.ORDER_BOOK_UPDATE_ORDER,  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var qty = msg['MDEntrySize']/1e8;
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      order_book_bid.updateOrder(index, qty);
+    } else if (side == '1') {
+      order_book_offer.updateOrder(index, qty);
+    }
+  });
+
+  bitEx.addEventListener( bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER,  function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var price =  msg['MDEntryPx']/1e8;
+    var qty = msg['MDEntrySize']/1e8;
+    var username = msg['Username'];
+    var broker = msg['Broker'];
+    var orderId =  msg['OrderID'];
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      if (index === 0) {
+        model.set('formatted_best_bid_brl', price);
+      }
+      order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
+    } else if (side == '1') {
+      if (index === 0) {
+        model.set('formatted_best_offer_brl', price);
+      }
+      order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
+    }
+  });
+
+
   goog.events.listen( document.body, 'click' , function(e){
     var element = e.target;
 
@@ -184,35 +443,25 @@ bitex.app.satoshi_square = function( url ) {
   var withdraws_component = new goog.ui.Component();
   withdraws_component.decorate(goog.dom.getElement('withdraw_accordion'));
 
-  /*
-   var withdraw_ltc = new bitex.ui.Withdraw( { parent_id:'withdraw_accordion',
-   button_label:'Retirada em LTC',
-   title: 'Retirada em Litecoin',
-   description: 'Utilize o formulário abaixo para iniciar a sua retirada.',
-   controls: [ ['amount', 'Quantidade', 'Digite a quantidade', 'Ł'],
-   ['Wallet', 'carteira', 'Digite o endereço de sua carteira'] ]  });
-   withdraws_component.addChild(withdraw_ltc, true);
-   */
-
   var withdraw_btc = new bitex.ui.Withdraw( { parent_id:'withdraw_accordion',
-                                              button_label:'Retirada em BTC',
-                                              title: 'Retirada em Bitcoin',
-                                              description: 'Utilize o formulário abaixo para iniciar a sua retirada.',
-                                              controls: [ ['amount', 'Quantidade', 'Digite a quantidade', '฿'],
-                                                ['wallet', 'Carteira', 'Digite o endereço de sua carteira'] ]  });
+                                              button_label:'Withdraw',
+                                              title: 'Bitcoin withdraw',
+                                              description: 'Fill up the form.',
+                                              controls: [ ['amount', 'Amount', 'eg. 0.44550000', '฿'],
+                                                ['wallet', 'Wallet', 'eg. 1933phfhK3ZgFQNLGSDXvqCn32k2buXY8a'] ]  });
 
   var withdraw_brl_bank_transfer =
       new bitex.ui.Withdraw({ parent_id:'withdraw_accordion',
-                              button_label:'Retirada em BRL',
-                              title: 'Transferência Bancária no Brasil',
-                              description: 'Transferência Bancaria via DOC-C ou TED o custo de R$ 10,00 é cobrado.',
-                              controls: [ ['amount',          'Valor',          'ex. 2300', 'R$'],
-                                ['bank_number',     'Número do banco', 'ex. 341'],
-                                ['bank_name',       'Nome do banco', 'ex. Banco Itáu'],
-                                ['account_branch',  'Código da agência', 'ex. 5555'],
-                                ['account_name',    'Nome do titular da conta', 'ex. José da Silva'],
-                                ['account_number',  'Conta corrente', 'ex. 888888'],
-                                ['CPFCNPJ',         'CPF ou CNPJ', 'ex. 888888']
+                              button_label:'Withdraw',
+                              title: 'Brazilian bank withdraws',
+                              description: 'R$ 10,00 fee for DOC and TED.',
+                              controls: [ ['amount', 'Amount'         , 'eg. 2300', 'R$'],
+                                ['bank_number',     'Bank number'     , 'eg. 341'],
+                                ['bank_name',       'Bank name'       , 'eg. Banco Itáu'],
+                                ['account_branch',  'Account Branch'  , 'eg. 5555'],
+                                ['account_name',    'Account name '   , 'eg. José da Silva'],
+                                ['account_number',  'Account number'  , 'ex. 888888'],
+                                ['CPFCNPJ',         'CPF or CNPJ'     , 'ex. 567.890.123-45']
                               ]});
 
   withdraws_component.addChild(withdraw_btc, true);
@@ -223,7 +472,7 @@ bitex.app.satoshi_square = function( url ) {
     var amount = e.target.getModel().data['amount'];
     amount = amount.replace(',','.');
     if (amount.lastIndexOf('.') != amount.indexOf('.') ) {
-      alert('Valor de saque inválido. Por favor digite somente números sem separadores de milhares.');
+      alert('Invalid value.');
       return;
     }
 
@@ -237,7 +486,7 @@ bitex.app.satoshi_square = function( url ) {
     var amount = e.target.getModel().data['amount'];
     amount = amount.replace(',','.');
     if (amount.lastIndexOf('.') != amount.indexOf('.') ) {
-      alert('Valor de saque inválido. Por favor digite somente números sem separadores de milhares.');
+      alert('Invalid value.');
       return;
     }
 
@@ -249,33 +498,17 @@ bitex.app.satoshi_square = function( url ) {
                                    e.target.getModel().data['account_branch'] ,
                                    e.target.getModel().data['CPFCNPJ'])
   });
-  var buy_order_entry = new bitex.ui.OrderEntryX();
-  buy_order_entry.decorate( goog.dom.getElement('id_order_entry_buy') );
-
-  var sell_order_entry = new bitex.ui.OrderEntryX();
-  sell_order_entry.decorate( goog.dom.getElement('id_order_entry_sell') );
 
 
-  model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_offer_brl', function(e) {
+  model.addEventListener( bitex.model.Model.EventType.SET + 'best_offer_brl', function(e) {
     var formatted_best_offer = e.data;
     buy_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_offer) );
   });
 
-  model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_bid_brl', function(e) {
+  model.addEventListener( bitex.model.Model.EventType.SET + 'best_bid_brl', function(e) {
     var formatted_best_bid = e.data;
     sell_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_bid) );
   });
-
-  buy_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
-    var client_order_id = bitEx.sendBuyLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
-    $.sticky('Sent order ' + client_order_id);
-  });
-
-  sell_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
-    var client_order_id = bitEx.sendSellLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
-    $.sticky('Sent order ' + client_order_id);
-  });
-
 
 
   /**
@@ -310,23 +543,7 @@ bitex.app.satoshi_square = function( url ) {
     sell_order_entry.setClientID(model.get('UserID'));
     sell_order_entry.setBrokerMode(model.get('IsBroker')  );
 
-
-    if (goog.isDefAndNotNull(order_book_bid)) {
-      order_book_bid.dispose() ;
-      order_book_offer.dispose();
-    }
-
-    order_book_bid = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.BUY);
-    order_book_offer = new bitex.ui.OrderBook(model.get('Username'), bitex.ui.OrderBook.Side.SELL);
-    order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
-    order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
-
-    order_book_bid.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
-    order_book_offer.addEventListener(bitex.ui.OrderBook.EventType.CANCEL, onCancelOrder_);
-
-
-    // Subscribe to MarketData
-    bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
+    bitEx.requestBalances();
 
     // Request Boleto Options
     bitEx.requestBoletoOptions();
@@ -357,14 +574,21 @@ bitex.app.satoshi_square = function( url ) {
     if (goog.isDefAndNotNull(withdrawConfirmationDialog)) {
       withdrawConfirmationDialog.dispose();
     }
-
+    /*
     var dlg_content =
         '<p>Para a sua segurança, nós enviamos um <strong>código de confirmação</strong> para o seu email. </p> ' +
             '<input id="id_withdraw_confirmation" placeholder="Código de confirmação" class="input-block-level">' +
             '<p><i>A operação só será efeutada mediante ao código de confirmação que fora enviada para o seu email.</i></p>';
 
+    */
+
+    var dlg_content =
+        '<p>We just sent a <strong>confirmation code</strong> to your email. </p> ' +
+            '<input id="id_withdraw_confirmation" placeholder="Código de confirmação" class="input-block-level">' +
+            '<p><i>This is security measure to improve your account security</i></p>';
+
     withdrawConfirmationDialog = new bootstrap.Dialog();
-    withdrawConfirmationDialog.setTitle('Confirme a operação de saque');
+    withdrawConfirmationDialog.setTitle('Confirm the withdraw request');
     withdrawConfirmationDialog.setContent(dlg_content);
     withdrawConfirmationDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
     withdrawConfirmationDialog.setVisible(true);
@@ -384,7 +608,7 @@ bitex.app.satoshi_square = function( url ) {
   bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK,  function(e) {
     var msg = e.data;
     var dlg = new bootstrap.Dialog();
-    dlg.setTitle('Sucesso');
+    dlg.setTitle('Success');
     dlg.setContent(msg['UserStatusText']);
     dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
     dlg.setVisible(true);
@@ -395,7 +619,7 @@ bitex.app.satoshi_square = function( url ) {
   bitEx.addEventListener( bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR,  function(e) {
     var msg = e.data;
     var dlg = new bootstrap.Dialog();
-    dlg.setTitle('Erro');
+    dlg.setTitle('Error chaning password');
     dlg.setContent(msg['UserStatusText']);
     dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
     dlg.setVisible(true);
@@ -419,7 +643,7 @@ bitex.app.satoshi_square = function( url ) {
 
       secondFactorDialog = new bootstrap.Dialog();
       secondFactorDialog.setTitle('Autenticação em 2 passos');
-      secondFactorDialog.setContent('Código de autenticação do Google Authenticator: <input id="id_second_factor" placeholder="ex. 555555" size="10">');
+      secondFactorDialog.setContent('Google Authenticator code: <input id="id_second_factor" placeholder="eg. 555555" size="10">');
       secondFactorDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
       secondFactorDialog.setVisible(true);
 
@@ -442,81 +666,13 @@ bitex.app.satoshi_square = function( url ) {
 
     } else {
       var error_dialog = new bootstrap.Dialog();
-      error_dialog.setTitle('Erro');
+      error_dialog.setTitle('Error');
       error_dialog.setContent(msg['UserStatusText']);
       error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
       error_dialog.setVisible(true);
     }
-
-
   });
 
-  bitEx.addEventListener('ob_clear', function(e){
-    order_book_bid.clear();
-    order_book_offer.clear();
-  });
-
-  bitEx.addEventListener('ob_delete_orders_thru',  function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'];
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      order_book_bid.deleteOrderThru(index);
-    } else if (side == '1') {
-      order_book_offer.deleteOrderThru(index);
-    }
-  });
-
-  bitEx.addEventListener('ob_delete_order',  function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'] - 1;
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      order_book_bid.deleteOrder(index);
-    } else if (side == '1') {
-      order_book_offer.deleteOrder(index);
-    }
-
-  });
-  bitEx.addEventListener('ob_update_order',  function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'] - 1;
-    var qty = (msg['MDEntrySize']/1e8).toFixed(8);
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      order_book_bid.updateOrder(index, qty);
-    } else if (side == '1') {
-      order_book_offer.updateOrder(index, qty);
-    }
-  });
-
-  bitEx.addEventListener('ob_new_order',  function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'] - 1;
-    var price =  (msg['MDEntryPx']/1e8).toFixed(2);
-    var qty = (msg['MDEntrySize']/1e8).toFixed(3);
-    var username = msg['Username'];
-    var broker = msg['Broker'];
-    var orderId =  msg['OrderID'];
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      if (index === 0) {
-        model.set('formatted_best_bid_brl', price);
-      }
-
-      order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
-    } else if (side == '1') {
-      if (index === 0) {
-        model.set('formatted_best_offer_brl', price);
-      }
-
-      order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
-    }
-  });
 
   bitEx.addEventListener('trade',  function(e) {
     var msg = e.data;
@@ -524,16 +680,19 @@ bitex.app.satoshi_square = function( url ) {
     //price_changed(price);
   });
 
-  bitEx.addEventListener('balance_response',  function(e) {
+  bitEx.addEventListener( bitex.api.BitEx.EventType.BALANCE_RESPONSE,  function(e) {
     var msg = e.data;
+    delete msg['MsgType'];
+    delete msg['BalanceReqID'];
 
-    model.set('balance_brl', msg['balance_brl']);
-    model.set('balance_btc', msg['balance_btc']);
+    goog.object.forEach(msg, function( balance, currency ) {
+      balance = balance / 1e8;
 
-    var formatted_brl = (msg['balance_brl']/1e8).toFixed(2);
-    var formatted_btc = (msg['balance_btc']/1e8).toFixed(8);
-    model.set('formatted_balance_brl', formatted_brl);
-    model.set('formatted_balance_btc', formatted_btc);
+      var balance_key = 'balance_' +  currency.toLowerCase();
+      model.set( balance_key , balance );
+
+      model.set('formatted_' + balance_key, format_currency(balance, currency));
+    });
   });
 
 
@@ -626,7 +785,11 @@ bitex.app.satoshi_square = function( url ) {
       });
 
     } else {
-      bitEx.close();
+      if (goog.string.isEmpty(second_factor) ) {
+        bitEx.login(username, password);
+      } else {
+        bitEx.login(username, password, second_factor);
+      }
     }
   };
 
@@ -719,6 +882,7 @@ bitex.app.satoshi_square = function( url ) {
   });
 
   goog.events.listen( goog.dom.getElement('id_btn_set_new_password'), 'click', function(e){
+
     e.stopPropagation();
     e.preventDefault();
 
@@ -810,8 +974,8 @@ bitex.app.satoshi_square = function( url ) {
     var dlg = new bootstrap.Dialog();
     dlg.setTitle('Boleto');
     dlg.setContent('<a  target="_blank" href="/print_boleto?boleto_id=' +  msg['BoletoId']
-                       + '" class="btn btn-primary">Imprimir boleto</a> ou fazer <a href="/print_boleto?download=1&boleto_id='
-                       +  msg['BoletoId'] + '">download do boleto</a> em seu computador');
+                       + '" class="btn btn-primary">Print</a> or <a href="/print_boleto?download=1&boleto_id='
+                       +  msg['BoletoId'] + '">Download</a>');
 
     dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
     dlg.setVisible(true);
@@ -834,30 +998,6 @@ bitex.app.satoshi_square = function( url ) {
   });
 
 
-  bitEx.addEventListener('opened', function(e) {
-    goog.dom.classes.remove( document.body, 'ws-not-connected' );
-    goog.dom.classes.add( document.body, 'ws-connected' );
-  });
-
-  bitEx.addEventListener('closed', function(e) {
-    goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
-    goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
-
-    router.setView('start');
-  });
-
-  bitEx.addEventListener('error',  function(e) {
-    goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
-    goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
-
-    var dlg = new bootstrap.Dialog();
-    dlg.setTitle('Erro');
-    dlg.setContent('Error connecting to the server. Your browser MUST SUPPORT WebSockets.');
-    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
-    dlg.setVisible(true);
-
-    router.setView('start');
-  });
 };
 
 goog.exportSymbol('bitex.app.satoshi_square', bitex.app.satoshi_square );

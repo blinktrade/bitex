@@ -22,7 +22,7 @@ bitex.ui.AccountActivity = function( opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'order-id'); }
     },{
       'property': 'Side',
-      'label': 'C/V',
+      'label': 'Side',
       'sortable': false,
       'formatter': function(s){
         switch(s){
@@ -34,30 +34,30 @@ bitex.ui.AccountActivity = function( opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'side'); }
     },{
       'property': 'OrderDate',
-      'label': 'Data/Hora',
+      'label': 'Date/Time',
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'order-date'); }
     },{
       'property': 'Price',
-      'label': 'Preço R$',
+      'label': 'Price',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'price'); }
     },{
       'property': 'CumQty',
-      'label': 'Volume BTC',
+      'label': 'Qty',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'cum-qty'); }
     },{
       'property': 'AvgPx',
-      'label': 'Preço médio R$',
+      'label': 'Average Price',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'Volume',
-      'label': 'Valor R$',
+      'label': 'Total',
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'vol'); }

@@ -17,6 +17,8 @@ class TradeClientException(Exception):
       return self.error_message + '( detail:%s)'%self.detail
     return self.error_message
 
+
+
 class TradeClient(object):
   def  __init__(self, zmq_context, trade_in_socket, trade_pub = None):
     self.zmq_context      = zmq_context
@@ -66,6 +68,14 @@ class TradeClient(object):
   def isConnected(self):
     return self.connection_id is not None
 
+  def getSecurityList(self):
+    resp =  self.sendJSON({  'MsgType' : 'x',
+                            'SecurityReqID': 'getSecurityList',
+                            'SecurityListRequestType': 0})
+
+    return resp.get('Instruments')
+
+
   def sendString(self, string_msg):
     self.trade_in_socket.send_unicode( "REQ," +  self.connection_id + ',' + string_msg)
 
@@ -79,6 +89,10 @@ class TradeClient(object):
         rep_msg = JsonMessage(raw_resp_message)
       except Exception:
         pass
+
+    if raw_resp_message_header == 'CLS' and rep_msg and not rep_msg.isErrorMessage():
+      self.close()
+      return rep_msg
 
     if raw_resp_message_header != 'REP':
       self.close()
