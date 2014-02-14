@@ -88,7 +88,7 @@ class Currency(Base):
 
 class Instrument(Base):
   __tablename__   = 'instruments'
-  symbol          = Column(String(12),  primary_key=True)
+  symbol          = Column(String(12), primary_key=True)
   currency        = Column(String(4) , ForeignKey('currencies.code'))
   description     = Column(String(12), nullable=False )
 
@@ -368,20 +368,25 @@ class Ledger(Base):
   id                    = Column(Integer,       primary_key=True)
   currency              = Column(String(4),     ForeignKey('currencies.code'),nullable=False)
   account_id            = Column(Integer,       ForeignKey('users.id'),       nullable=False)
-  payee_id              = Column(Integer,       ForeignKey('users.id'))
+  broker_id             = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payee_id              = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payeee_broker_id      = Column(Integer,       ForeignKey('users.id'),       nullable=False)
   operation             = Column(String(1),     nullable=False)
   amount                = Column(Integer,       nullable=False)
   balance               = Column(Integer,       nullable=False)
   created               = Column(DateTime, default=datetime.datetime.now, nullable=False)
 
   @staticmethod
-  def deposit(session, account_id, currency, amount):
+  def deposit(session, account_id, payee_id, broker_id, payeee_broker_id, currency, amount):
     balance = Balance.update_balance(session, 'CREDIT', account_id, currency, amount)
-    ledger = Ledger( currency     = currency,
-                     account_id   = account_id,
-                     operation    = 'C',
-                     amount       = amount,
-                    balance      = balance)
+    ledger = Ledger( currency         = currency,
+                     account_id       = account_id,
+                     payee_id         = payee_id,
+                     broker_id        = broker_id,
+                     payeee_broker_id = payeee_broker_id,
+                     operation        = 'C',
+                     amount           = amount,
+                     balance          = balance)
     session.add(ledger)
 
 
@@ -394,19 +399,23 @@ class Ledger(Base):
     from_symbol = symbol[3:].upper() #BRL
 
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, from_symbol, total_value )
-    order_record_debit = Ledger( currency     = from_symbol,
-                                 account_id   = order.account_id,
-                                 payee_id     = counter_order.account_id,
-                                 operation    = 'D'  if order.is_buy else 'C',
-                                 amount       = total_value,
-                                 balance      = balance)
+    order_record_debit = Ledger( currency         = from_symbol,
+                                 account_id       = order.account_id,
+                                 broker_id        = order.broker_id,
+                                 payee_id         = counter_order.account_id,
+                                 payeee_broker_id = counter_order.broker_id,
+                                 operation        = 'D'  if order.is_buy else 'C',
+                                 amount           = total_value,
+                                 balance          = balance)
     session.add(order_record_debit)
 
 
     balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, from_symbol, total_value )
     counter_order_record_credit = Ledger(currency     = from_symbol,
                                          account_id   = counter_order.account_id,
+                                         broker_id    = counter_order.broker_id,
                                          payee_id     = order.account_id,
+                                         payeee_broker_id = order.broker_id,
                                          operation    = 'C'  if order.is_buy else 'D',
                                          amount       = total_value,
                                          balance      = balance)
@@ -416,7 +425,9 @@ class Ledger(Base):
     balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, to_symbol, qty )
     order_record_credit = Ledger(currency     = to_symbol,
                                  account_id   = order.account_id,
+                                 broker_id    = order.broker_id,
                                  payee_id     = counter_order.account_id,
+                                 payeee_broker_id = counter_order.broker_id,
                                  operation    = 'C'  if order.is_buy else 'D',
                                  amount       = qty,
                                  balance      = balance)
@@ -425,7 +436,9 @@ class Ledger(Base):
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, to_symbol, qty )
     counter_order_record_debit = Ledger(currency     = to_symbol,
                                         account_id   = counter_order.account_id,
+                                        broker_id    = counter_order.broker_id,
                                         payee_id     = order.account_id,
+                                        payeee_broker_id = order.broker_id,
                                         operation    = 'D' if order.is_buy else 'C',
                                         amount       = qty,
                                         balance      = balance)
@@ -1124,6 +1137,9 @@ def db_bootstrap(session):
                currencies=u'BRL', tos_url=u'http://bitex.com.br/tos/bitex/',
                boleto_fee=-3.9 ,withdraw_brl_bank_fee=-15,withdraw_wallet_fee=0,withdraw_swift_fee=-150,
                withdraw_ach_fee=0,transaction_fee_buy=0.2,transaction_fee_sell=0.3, status=u'1', ranking=0)
+    session.add(e)
+    session.commit()
+
 
   currencies = [
     [ 'USD' , '$'       , 'Dollar'   ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
@@ -1138,8 +1154,8 @@ def db_bootstrap(session):
     #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)'],
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)']
 
-    [ 'BTC' , u'm\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'm\u0e3f #,##0;(m\u0e3f #,##0)'],
-    [ 'LTC' , u'm\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'm\u0141 #,##0;(m\u0141 #,##0)']
+    [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
+    [ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
   ]
   for c in currencies:
     if Currency.get_currency(session,c[0]) :
@@ -1162,16 +1178,16 @@ def db_bootstrap(session):
 
 
   # create 1000 test users for the NYC Bitcoin Center - Satoshi square
-  for x in xrange(2, 10):
+  for x in xrange(2, 1000):
     if not User.get_user(session, str(x)):
       e = User(id=x, username=str(x), email= str(x) + '@bitex.com.br',  broker_id=1, password='password' + str(x),
                verified=1, is_staff=False, is_system=False, is_broker=False)
       session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      Ledger.deposit(session, x, 'BTC', 100e8)
-      Ledger.deposit(session, x, 'USD', 100000e8)
-      Ledger.deposit(session, x, 'BRL', 200000e8)
+      Ledger.deposit(session, x, 1, 1, 1, 'BTC', 100e8)
+      Ledger.deposit(session, x, 1, 1, 1, 'USD', 100000e8)
+      Ledger.deposit(session, x, 1, 1, 1, 'BRL', 200000e8)
       session.commit()
 
 

@@ -21,6 +21,8 @@ goog.require('goog.string');
 
 goog.require('bitex.model.Model');
 goog.require('bitex.model.Model.EventType');
+goog.require('bitex.model.OrderBookInstrumentModel');
+goog.require('bitex.model.OrderBookCurrencyModel');
 
 goog.require('bootstrap.Dialog');
 goog.require('goog.debug');
@@ -42,7 +44,15 @@ bitex.app.markets = function( url ) {
   var subscription_1 = null;
   var subscription_2 = null;
 
+  /**
+   * @type {Object.<bitex.model.OrderBookCurrencyModel>}
+   */
   var currency_info = {};
+
+  /**
+   * @type {Object.<bitex.model.OrderBookInstrumentModel>}
+   */
+  var instrument_info = {};
 
   var format_currency = function(value, currency) {
     /**
@@ -86,13 +96,19 @@ bitex.app.markets = function( url ) {
         is_crypto : currency['IsCrypto']
       };
     });
-    console.log( goog.debug.deepExpose(currency_info) );
 
     var symbols = [];
     goog.array.forEach(msg['Instruments'], function( instrument) {
+      instrument_info[instrument['Symbol']] = {
+        symbol: instrument['Symbol'],
+        currency: instrument['Currency'],
+        description: instrument['Description']
+      };
+
       var symbol = instrument['Symbol'];
       symbols.push( symbol );
-      var el = goog.dom.createDom('option', undefined, symbol);
+
+      var el = goog.dom.createDom('option', {'value': symbol }, instrument['Description']);
       goog.dom.appendChild( goog.dom.getElement('id_instrument_1'), el );
     });
 
@@ -170,15 +186,16 @@ bitex.app.markets = function( url ) {
     try {
       //  {"BRL": 52800000000, "MDEntryType": "4", "BTC": 66000000}
       var msg = e.data;
-      if (goog.isDefAndNotNull( msg['BRL'] ) ) {
-        var volume_blr = (msg['BRL'] / 1e8).toFixed(0);
-        model.set('formatted_volume_brl', volume_blr);
-      }
-      if (goog.isDefAndNotNull( msg['BTC'] ) ) {
-        var volume_btc = (msg['BTC'] / 1e8).toFixed(3);
-        model.set('formatted_volume_btc', volume_btc);
-      }
 
+      delete msg['MDEntryType'];
+
+      goog.object.forEach( msg, function(volume, currency) {
+        volume = volume / 1e8;
+
+        var volume_key = 'volume_' +  currency.toLowerCase();
+        model.set( volume_key , volume );
+        model.set('formatted_' + volume_key, format_currency(volume, currency));
+      });
     } catch(str) { }
   });
 

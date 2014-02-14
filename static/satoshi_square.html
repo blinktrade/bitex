@@ -50,7 +50,7 @@
 
       <ul class="nav navbar-nav pull-right">
         <li class="bitex-hide-if-logged"><a href="/markets.html">Markets</a></li>
-        <li class="bitex-display-if-logged"><a href="" data-switch-view="trading">BTCUSD <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_brl" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_brl" data-blink-class="md-blink"></span></a></li>
+        <li class="bitex-display-if-logged"><a href="" data-switch-view="trading">BTCUSD <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_usd" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_usd" data-blink-class="md-blink"></span></a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
       </ul>
@@ -230,7 +230,7 @@
 
   <div class="row-fluid">
     <div id="id_order_entry_buy" class="well span6 order-entry">
-      <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+      <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCUSD">
       <input type="hidden" name="side" class="order-entry-side" value="1">
       <input type="hidden" name="type" class="order-entry-type" value="2">
       <div class="row-fluid">
@@ -281,7 +281,7 @@
       </div>
     </div>
     <div id="id_order_entry_sell" class="well span6 order-entry">
-      <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCBRL">
+      <input type="hidden" name="symbol" class="order-entry-symbol" value="BTCUSD">
       <input type="hidden" name="side" class="order-entry-side" value="2">
       <input type="hidden" name="type" class="order-entry-type" value="2">
       <div class="row-fluid">
@@ -514,7 +514,7 @@
   <div class="content">
     <!--<p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>-->
     <table class="table table-striped" style="width: 300px">
-      <tbody><tr><td><strong>Available USD</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+      <tbody><tr><td><strong>Available USD</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
       <tr><td><strong>Available BTC</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
       </tbody>
     </table>
@@ -601,7 +601,7 @@
     <h6>Your account</h6>
     <table class="data">
       <tbody>
-      <tr><td><span class="bitex-model" data-model-key="formatted_balance_brl" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
       <tr><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
       </tbody>
     </table>

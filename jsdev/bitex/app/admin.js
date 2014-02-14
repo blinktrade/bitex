@@ -162,16 +162,6 @@ bitex.app.admin = function() {
       'sortable': true,
       'formatter': function(s){ return s; }
     },{
-      'property': 'balance_btc',
-      'label': 'BTC',
-      'sortable': true,
-      'formatter': function(value){return (value/1e8).toFixed(8);}
-    },{
-      'property': 'balance_brl',
-      'label': 'R$',
-      'sortable': true,
-      'formatter': function(value){return (value/1e8).toFixed(5);}
-    },{
       'property': 'verified',
       'label': 'Verified',
       'sortable': true,

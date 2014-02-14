@@ -2,6 +2,7 @@ goog.provide('bitex.model.Model');
 goog.provide('bitex.model.Model.EventType');
 goog.provide('bitex.model.ModelEvent');
 goog.provide('bitex.model.OrderBookCurrencyModel');
+goog.provide('bitex.model.OrderBookInstrumentModel');
 
 
 goog.require('goog.structs.Map');
@@ -17,6 +18,11 @@ goog.require('goog.dom.classes');
  * @typedef {{ code:String, format:String, description:String, sign:String, pip:number, is_crypto:Boolean  }}
  */
 bitex.model.OrderBookCurrencyModel;
+
+/**
+ * @typedef {{ symbol:String, currency:String, description:String }}
+ */
+bitex.model.OrderBookInstrumentModel;
 
 
 /**

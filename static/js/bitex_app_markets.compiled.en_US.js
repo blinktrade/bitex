@@ -3689,13 +3689,12 @@ $goog$exportPath_$$("bitex.app.markets", function($url$$31$$) {
     $goog$array$forEach$$($e$$79_msg$$24$$.Currencies, function($currency$$2$$) {
       $currency_info$$[$currency$$2$$.Code] = {code:$currency$$2$$.Code, $format$:$currency$$2$$.FormatJS, description:$currency$$2$$.Description, $sign$:$currency$$2$$.Sign, $pip$:$currency$$2$$.Pip, $is_crypto$:$currency$$2$$.IsCrypto}
     });
-    console.log($goog$debug$deepExpose$$($currency_info$$));
     var $symbols$$1$$ = [];
-    $goog$array$forEach$$($e$$79_msg$$24$$.Instruments, function($el$$46_instrument_symbol$$5$$) {
-      $el$$46_instrument_symbol$$5$$ = $el$$46_instrument_symbol$$5$$.Symbol;
-      $symbols$$1$$.push($el$$46_instrument_symbol$$5$$);
-      $el$$46_instrument_symbol$$5$$ = $goog$dom$createDom$$("option", $JSCompiler_alias_VOID$$, $el$$46_instrument_symbol$$5$$);
-      $goog$dom$getElement$$("id_instrument_1").appendChild($el$$46_instrument_symbol$$5$$)
+    $goog$array$forEach$$($e$$79_msg$$24$$.Instruments, function($el$$46_instrument$$) {
+      var $symbol$$5$$ = $el$$46_instrument$$.Symbol;
+      $symbols$$1$$.push($symbol$$5$$);
+      $el$$46_instrument$$ = $goog$dom$createDom$$("option", {value:$symbol$$5$$}, $el$$46_instrument$$.Description);
+      $goog$dom$getElement$$("id_instrument_1").appendChild($el$$46_instrument$$)
     });
     $bitEx$$.$subscribeMarketData$(0, $symbols$$1$$, ["2"])
   });
@@ -3727,8 +3726,13 @@ $goog$exportPath_$$("bitex.app.markets", function($url$$31$$) {
   $bitEx$$.addEventListener("md_status", function($e$$84$$) {
     try {
       var $msg$$26$$ = $e$$84$$.data;
-      $msg$$26$$.BRL != $JSCompiler_alias_NULL$$ && $model$$.set("formatted_volume_brl", ($msg$$26$$.BRL / 1E8).toFixed(0));
-      $msg$$26$$.BTC != $JSCompiler_alias_NULL$$ && $model$$.set("formatted_volume_btc", ($msg$$26$$.BTC / 1E8).toFixed(3))
+      delete $msg$$26$$.MDEntryType;
+      $goog$object$forEach$$($msg$$26$$, function($volume$$, $currency$$3$$) {
+        $volume$$ /= 1E8;
+        var $volume_key$$ = "volume_" + $currency$$3$$.toLowerCase();
+        $model$$.set($volume_key$$, $volume$$);
+        $model$$.set("formatted_" + $volume_key$$, $format_currency$$($volume$$, $currency$$3$$))
+      })
     }catch($str$$52$$) {
     }
   });
