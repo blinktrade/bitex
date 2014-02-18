@@ -7,6 +7,41 @@ goog.require('goog.ui.registry');
 
 goog.require('goog.dom.TagName');
 
+/**
+ * @desc Column ID of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_ID = goog.getMsg('ID');
+
+/**
+ * @desc Column Status of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_STATUS = goog.getMsg('Status');
+
+/**
+ * @desc Column Currency of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_CURRENCY = goog.getMsg('Currency');
+
+/**
+ * @desc Column Amount of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_AMOUNT = goog.getMsg('Amount');
+
+/**
+ * @desc Column Created of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_CREATED = goog.getMsg('Date/Hour');
+
+/**
+ * @desc Column Wallet of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_WALLET = goog.getMsg('Wallet');
+
+/**
+ * @desc Column Detail of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_DETAIL = goog.getMsg('Details');
+
 
 /**
  * @param {goog.dom.DomHelper=} opt_domHelper
@@ -17,12 +52,12 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
   var grid_columns = [
     {
       'property': 'WithdrawID',
-      'label': 'ID',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_ID,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'withdraw-id'); }
     },{
       'property': 'Status',
-      'label': 'Situação',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_STATUS,
       'sortable': false,
       'formatter': function(s){
         switch(s){
@@ -35,17 +70,17 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'status'); }
     },{
       'property': 'Created',
-      'label': 'Data/Hora',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_CREATED,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'created'); }
     },{
       'property': 'Currency',
-      'label': 'Moeda',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_CURRENCY,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'currency'); }
     },{
       'property': 'Amount',
-      'label': 'Valor',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_AMOUNT,
       'sortable': false,
       'formatter': function(s, row_set_obj){
         if (row_set_obj['Type'] == "CRY" ) {
@@ -57,7 +92,7 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'amount'); }
     },{
       'property': 'Wallet',
-      'label': 'Detalhes',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_DETAIL,
       'sortable': false,
       'formatter': function(s, row_set_obj){
         delete row_set_obj['WithdrawID'];

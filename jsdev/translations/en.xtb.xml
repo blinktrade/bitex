@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE translationbundle SYSTEM "translationbundle.dtd">
-<translationbundle lang="pt_BR">
+<translationbundle lang="en_US">
     <!-- ../bitex/api/bitex.js -->
     <!-- ../bitex/app/admin.js -->
     <!-- ../bitex/app/bitex.js -->
@@ -8,19 +8,53 @@
     <!-- ../bitex/app/satoshi_square.js -->
     <translation id="5743734095470344451">Withdraw</translation>
     <translation id="1665132237497548554">Bitcoin withdrawal</translation>
+    <translation id="5287452069436627398">Amount</translation>
+    <translation id="6199107164753403907">eg. 0.44550000</translation>
     <translation id="1900924298639858818">Brazilian Bank Withdrawal</translation>
+    <translation id="1702204003341689750">eg. 2300</translation>
     <!-- ../bitex/app/url_router.js -->
     <!-- ../bitex/fsm/fsm.js -->
     <!-- ../bitex/model/model.js -->
     <!-- ../bitex/ui/account_activity.js -->
+    <translation id="6843864912009919805">ID</translation>
+    <translation id="1159462222642106601">Side</translation>
+    <translation id="3584342616551132388">Date/Time</translation>
+    <translation id="2145987329723512251">Price</translation>
+    <translation id="5088847860270762216">Qty</translation>
+    <translation id="8516168426198762290">Avg. Price</translation>
+    <translation id="9144502694009394125">Total</translation>
     <!-- ../bitex/ui/bitex_datagrid.js -->
     <!-- ../bitex/ui/last_trades.js -->
     <!-- ../bitex/ui/order_book.js -->
     <!-- ../bitex/ui/order_entry.js -->
     <!-- ../bitex/ui/order_entryx.js -->
     <!-- ../bitex/ui/order_manager.js -->
+    <translation id="4074349737120839915">ID</translation>
+    <translation id="6178399923739131757">Status</translation>
+    <translation id="2183547009519815142">Side</translation>
+    <translation id="4642438927941107670">Qty</translation>
+    <translation id="2506463809523281007">Price</translation>
+    <translation id="5858834917273196487">Leaves Qty</translation>
+    <translation id="1975600462777767642">Cum Qty</translation>
+    <translation id="7751096803755647453">Average Price</translation>
+    <translation id="4650774354751697290">Date/Time</translation>
+    <translation id="6005798175559036606">Actions</translation>
+    <translation id="2354691648543224176">Buy</translation>
+    <translation id="1530868274778197347">Sell</translation>
+    <translation id="2862418125748017210">Pending</translation>
+    <translation id="7651405300494245365">New</translation>
+    <translation id="7884388121836672294">Partially filled</translation>
+    <translation id="8518549624003419322">Filled</translation>
+    <translation id="4661807207545160901">Cancelled</translation>
     <!-- ../bitex/ui/withdraw.js -->
     <!-- ../bitex/ui/withdraw_list.js -->
+    <translation id="6762041175470619352">ID</translation>
+    <translation id="909806336906094688">Status</translation>
+    <translation id="7442299103845522435">Currency</translation>
+    <translation id="3872080233688046838">Amount</translation>
+    <translation id="1996999318694812051">Date/Time</translation>
+    <translation id="8376210582968521122">Wallet</translation>
+    <translation id="2533475876080710712">Details</translation>
     <!-- ../bitex/util/util.js -->
     <!-- ../closure-bootstrap/javascript/bootstrap/Button.js -->
     <!-- ../closure-bootstrap/javascript/bootstrap/ButtonRenderer.js -->

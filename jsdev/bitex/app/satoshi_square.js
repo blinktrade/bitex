@@ -612,11 +612,21 @@ bitex.app.satoshi_square = function( url ) {
    */
   var MSG_LABEL_BITCOIN_WITHDRAWAL = goog.getMsg('Bitcoin withdrawal');
 
+  /**
+   * @desc Amount label
+   */
+  var MSG_LABEL_AMOUNT = goog.getMsg('Amount');
+
+  /**
+   * @desc Amount label
+   */
+  var MSG_LABEL_AMOUNT_BITCOIN_PLACEHOLDER = goog.getMsg('eg. 0.44550000');
+
   var withdraw_btc = new bitex.ui.Withdraw( { parent_id:'withdraw_accordion',
                                               button_label:MSG_BTN_WITHDRAW,
                                               title: MSG_LABEL_BITCOIN_WITHDRAWAL,
                                               description: 'Fill up the form.',
-                                              controls: [ ['amount', 'Amount', 'eg. 0.44550000', '฿'],
+                                              controls: [ ['amount', MSG_LABEL_AMOUNT, MSG_LABEL_AMOUNT_BITCOIN_PLACEHOLDER, '฿'],
                                                 ['wallet', 'Wallet', 'eg. 1933phfhK3ZgFQNLGSDXvqCn32k2buXY8a'] ]  });
 
   /**
@@ -624,12 +634,18 @@ bitex.app.satoshi_square = function( url ) {
    */
   var MSG_LABEL_BRAZILIAN_BANK_WITHDRAWAL = goog.getMsg('Brazilian Bank Withdrawal');
 
+  /**
+   * @desc Amount label
+   */
+  var MSG_LABEL_AMOUNT_BRAZLIAN_BANK_PLACEHOLDER = goog.getMsg('eg. 2300');
+
+
   var withdraw_brl_bank_transfer =
       new bitex.ui.Withdraw({ parent_id:'withdraw_accordion',
                               button_label:MSG_BTN_WITHDRAW,
                               title: MSG_LABEL_BRAZILIAN_BANK_WITHDRAWAL,
                               description: 'R$ 10,00 fee for DOC and TED.',
-                              controls: [ ['amount', 'Amount'         , 'eg. 2300', 'R$'],
+                              controls: [ ['amount', MSG_LABEL_AMOUNT , MSG_LABEL_AMOUNT_BRAZLIAN_BANK_PLACEHOLDER, 'R$'],
                                 ['bank_number',     'Bank number'     , 'eg. 341'],
                                 ['bank_name',       'Bank name'       , 'eg. Banco Itáu'],
                                 ['account_branch',  'Account Branch'  , 'eg. 5555'],

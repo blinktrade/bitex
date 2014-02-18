@@ -135,8 +135,6 @@ bitex.ui.OrderEntryX.prototype.decorateInternal = function(element) {
 };
 
 
-
-
 /** @override */
 bitex.ui.OrderEntryX.prototype.enterDocument = function() {
   var handler = this.getHandler();

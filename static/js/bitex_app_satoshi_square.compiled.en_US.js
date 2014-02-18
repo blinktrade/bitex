@@ -2018,7 +2018,7 @@ function $bitex$ui$AccountActivity$$($opt_domHelper$$3$$) {
     return($s$$20$$ / 1E8).toFixed(8)
   }, classes:function() {
     return $bitex$ui$AccountActivity$CSS_CLASS$$ + "-cum-qty"
-  }}, {property:"AvgPx", label:"Average Price", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$21$$) {
+  }}, {property:"AvgPx", label:"Avg. Price", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$21$$) {
     return($s$$21$$ / 1E8).toFixed(2)
   }, classes:function() {
     return $bitex$ui$AccountActivity$CSS_CLASS$$ + "-avg-price"
@@ -2051,7 +2051,7 @@ $goog$ui$registry$setDecoratorByClassName$$($bitex$ui$AccountActivity$CSS_CLASS$
 function $bitex$ui$WithdrawList$$($opt_domHelper$$4$$) {
   $bitex$ui$DataGrid$$.call(this, {rowClassFn:this.$getRowClass$, columns:[{property:"WithdrawID", label:"ID", sortable:$JSCompiler_alias_FALSE$$, classes:function() {
     return $bitex$ui$WithdrawList$CSS_CLASS$$ + "-withdraw-id"
-  }}, {property:"Status", label:"Situa\u00e7\u00e3o", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$23$$) {
+  }}, {property:"Status", label:"Status", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$23$$) {
     switch($s$$23$$) {
       case "0":
         return"N\u00e3o confirmado";
@@ -2063,15 +2063,15 @@ function $bitex$ui$WithdrawList$$($opt_domHelper$$4$$) {
     return""
   }, classes:function() {
     return $bitex$ui$WithdrawList$CSS_CLASS$$ + "-status"
-  }}, {property:"Created", label:"Data/Hora", sortable:$JSCompiler_alias_FALSE$$, classes:function() {
+  }}, {property:"Created", label:"Date/Time", sortable:$JSCompiler_alias_FALSE$$, classes:function() {
     return $bitex$ui$WithdrawList$CSS_CLASS$$ + "-created"
-  }}, {property:"Currency", label:"Moeda", sortable:$JSCompiler_alias_FALSE$$, classes:function() {
+  }}, {property:"Currency", label:"Currency", sortable:$JSCompiler_alias_FALSE$$, classes:function() {
     return $bitex$ui$WithdrawList$CSS_CLASS$$ + "-currency"
-  }}, {property:"Amount", label:"Valor", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$24$$, $row_set_obj$$1$$) {
+  }}, {property:"Amount", label:"Amount", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$24$$, $row_set_obj$$1$$) {
     return"CRY" == $row_set_obj$$1$$.Type ? ($s$$24$$ / 1E8).toFixed(8) : ($s$$24$$ / 1E8).toFixed(2)
   }, classes:function() {
     return $bitex$ui$WithdrawList$CSS_CLASS$$ + "-amount"
-  }}, {property:"Wallet", label:"Detalhes", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$25$$, $row_set_obj$$2$$) {
+  }}, {property:"Wallet", label:"Details", sortable:$JSCompiler_alias_FALSE$$, formatter:function($s$$25$$, $row_set_obj$$2$$) {
     delete $row_set_obj$$2$$.WithdrawID;
     delete $row_set_obj$$2$$.Status;
     delete $row_set_obj$$2$$.Amount;
@@ -4923,8 +4923,8 @@ $goog$exportPath_$$("bitex.app.satoshi_square", function($url$$31$$) {
   });
   var $boleto_buttons_withdraws_component$$ = new $goog$ui$Component$$;
   $boleto_buttons_withdraws_component$$.$decorate$($goog$dom$getElement$$("withdraw_accordion"));
-  var $withdraw_btc$$ = new $bitex$ui$Withdraw$$({$parent_id$:"withdraw_accordion", $button_label$:"Withdraw", title:"Bitcoin withdrawal ...", description:"Fill up the form.", controls:[["amount", "Amount", "eg. 0.44550000", "\u0e3f"], ["wallet", "Wallet", "eg. 1933phfhK3ZgFQNLGSDXvqCn32k2buXY8a"]]}), $withdraw_brl_bank_transfer$$ = new $bitex$ui$Withdraw$$({$parent_id$:"withdraw_accordion", $button_label$:"Withdraw", title:"Brazilian Bank Withdrawal ...", description:"R$ 10,00 fee for DOC and TED.", 
-  controls:[["amount", "Amount", "eg. 2300", "R$"], ["bank_number", "Bank number", "eg. 341"], ["bank_name", "Bank name", "eg. Banco It\u00e1u"], ["account_branch", "Account Branch", "eg. 5555"], ["account_name", "Account name ", "eg. Jos\u00e9 da Silva"], ["account_number", "Account number", "ex. 888888"], ["CPFCNPJ", "CPF or CNPJ", "ex. 567.890.123-45"]]});
+  var $withdraw_btc$$ = new $bitex$ui$Withdraw$$({$parent_id$:"withdraw_accordion", $button_label$:"Withdraw", title:"Bitcoin withdrawal", description:"Fill up the form.", controls:[["amount", "Amount", "eg. 0.44550000", "\u0e3f"], ["wallet", "Wallet", "eg. 1933phfhK3ZgFQNLGSDXvqCn32k2buXY8a"]]}), $withdraw_brl_bank_transfer$$ = new $bitex$ui$Withdraw$$({$parent_id$:"withdraw_accordion", $button_label$:"Withdraw", title:"Brazilian Bank Withdrawal", description:"R$ 10,00 fee for DOC and TED.", controls:[["amount", 
+  "Amount", "eg. 2300", "R$"], ["bank_number", "Bank number", "eg. 341"], ["bank_name", "Bank name", "eg. Banco It\u00e1u"], ["account_branch", "Account Branch", "eg. 5555"], ["account_name", "Account name ", "eg. Jos\u00e9 da Silva"], ["account_number", "Account number", "ex. 888888"], ["CPFCNPJ", "CPF or CNPJ", "ex. 567.890.123-45"]]});
   $JSCompiler_StaticMethods_addChild$$($boleto_buttons_withdraws_component$$, $withdraw_btc$$);
   $JSCompiler_StaticMethods_addChild$$($boleto_buttons_withdraws_component$$, $withdraw_brl_bank_transfer$$);
   $withdraw_btc$$.addEventListener("withdraw_event", function($e$$117$$) {

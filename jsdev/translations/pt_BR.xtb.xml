@@ -9,18 +9,52 @@
     <translation id="5743734095470344451">Saque</translation>
     <translation id="1665132237497548554">Sacar Bitcoin</translation>
     <translation id="1900924298639858818">Sacar Reais em sua conta corrente</translation>
+    <translation id="5287452069436627398">Valor</translation>
+    <translation id="6199107164753403907">ex. 0.44550000</translation>
+    <translation id="1702204003341689750">ex. 2300</translation>
     <!-- ../bitex/app/url_router.js -->
     <!-- ../bitex/fsm/fsm.js -->
     <!-- ../bitex/model/model.js -->
     <!-- ../bitex/ui/account_activity.js -->
+    <translation id="6843864912009919805">ID</translation>
+    <translation id="1159462222642106601">Compra/Venda</translation>
+    <translation id="3584342616551132388">Data/Hora</translation>
+    <translation id="2145987329723512251">Preço</translation>
+    <translation id="5088847860270762216">Qtd</translation>
+    <translation id="8516168426198762290">Preço médio</translation>
+    <translation id="9144502694009394125">Total</translation>
     <!-- ../bitex/ui/bitex_datagrid.js -->
     <!-- ../bitex/ui/last_trades.js -->
     <!-- ../bitex/ui/order_book.js -->
     <!-- ../bitex/ui/order_entry.js -->
     <!-- ../bitex/ui/order_entryx.js -->
     <!-- ../bitex/ui/order_manager.js -->
+    <translation id="4074349737120839915">ID</translation>
+    <translation id="6178399923739131757">Situação</translation>
+    <translation id="2183547009519815142">C/V</translation>
+    <translation id="4642438927941107670">Quantidade</translation>
+    <translation id="2506463809523281007">Preço</translation>
+    <translation id="5858834917273196487">Qty. Pendente</translation>
+    <translation id="1975600462777767642">Qtc. Executada</translation>
+    <translation id="7751096803755647453">Preço Médio</translation>
+    <translation id="4650774354751697290">Data/Hora</translation>
+    <translation id="6005798175559036606">Ações</translation>
+    <translation id="2354691648543224176">Compra</translation>
+    <translation id="1530868274778197347">Venda</translation>
+    <translation id="2862418125748017210">Pendente</translation>
+    <translation id="7651405300494245365">Nova</translation>
+    <translation id="7884388121836672294">Excec. Parcial</translation>
+    <translation id="8518549624003419322">Excecutada</translation>
+    <translation id="4661807207545160901">Cancelada</translation>
     <!-- ../bitex/ui/withdraw.js -->
     <!-- ../bitex/ui/withdraw_list.js -->
+    <translation id="6762041175470619352">ID</translation>
+    <translation id="909806336906094688">Situação</translation>
+    <translation id="7442299103845522435">Moeda</translation>
+    <translation id="3872080233688046838">Valor</translation>
+    <translation id="1996999318694812051">Data/Hora</translation>
+    <translation id="8376210582968521122">Carteira</translation>
+    <translation id="2533475876080710712">Detalhes</translation>
     <!-- ../bitex/util/util.js -->
     <!-- ../closure-bootstrap/javascript/bootstrap/Button.js -->
     <!-- ../closure-bootstrap/javascript/bootstrap/ButtonRenderer.js -->
