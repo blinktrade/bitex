@@ -224,7 +224,6 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_empty('Password')
       self.raise_exception_if_empty('Email')
       self.raise_exception_if_not_a_integer('BrokerID')
-      self.raise_exception_if_not_greater_than_zero('BrokerID')
 
       #TODO: password is greater than 8 bytes
       #TODO: email is valid

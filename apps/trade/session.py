@@ -85,11 +85,4 @@ class Session(object):
     elif msg.type == 'B0':  # Boleto Payment Confirmation
       return processBoletoPaymentConfirmation(self, msg)
 
-
-    elif msg.type == 'S0':  # Bitcoin New Address
-      return processBitcoinNewAddress(self, msg)
-
-    elif msg.type == 'S2':  # Get Number of Free Bitcoin New Address
-      return processGetNumberOfFreeBitcoinNewAddress(self, msg)
-
     raise InvalidMessageError()

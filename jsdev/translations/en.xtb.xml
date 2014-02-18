@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE translationbundle SYSTEM "translationbundle.dtd">
+<translationbundle lang="pt_BR">
+    <!-- ../bitex/api/bitex.js -->
+    <!-- ../bitex/app/admin.js -->
+    <!-- ../bitex/app/bitex.js -->
+    <!-- ../bitex/app/markets.js -->
+    <!-- ../bitex/app/satoshi_square.js -->
+    <translation id="5743734095470344451">Withdraw</translation>
+    <translation id="1665132237497548554">Bitcoin withdrawal</translation>
+    <translation id="1900924298639858818">Brazilian Bank Withdrawal</translation>
+    <!-- ../bitex/app/url_router.js -->
+    <!-- ../bitex/fsm/fsm.js -->
+    <!-- ../bitex/model/model.js -->
+    <!-- ../bitex/ui/account_activity.js -->
+    <!-- ../bitex/ui/bitex_datagrid.js -->
+    <!-- ../bitex/ui/last_trades.js -->
+    <!-- ../bitex/ui/order_book.js -->
+    <!-- ../bitex/ui/order_entry.js -->
+    <!-- ../bitex/ui/order_entryx.js -->
+    <!-- ../bitex/ui/order_manager.js -->
+    <!-- ../bitex/ui/withdraw.js -->
+    <!-- ../bitex/ui/withdraw_list.js -->
+    <!-- ../bitex/util/util.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Button.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/ButtonRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Dialog.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Pills.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/PillsRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Tab.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/TabBarRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/TabRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Tabs.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/TabsRenderer.js -->
+</translationbundle>

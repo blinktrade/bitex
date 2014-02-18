@@ -113,12 +113,12 @@ class User(Base):
   broker_id       = Column(Integer, ForeignKey('users.id'))
   broker          = relationship("User", remote_side=[id])
 
+  state           = Column(String(30),    nullable=False)
+  country_code    = Column(String(2),     nullable=False)
 
   password_algo   = Column(String(8), nullable=False)
   password_salt   = Column(String(128), nullable=False)
   password        = Column(String(128), nullable=False)
-
-  bitcoin_address = Column(String(50), nullable=True, index=True)
 
   verified        = Column(Integer, nullable=False, default=0)
   is_staff        = Column(Boolean, nullable=False, default=False)
@@ -135,11 +135,11 @@ class User(Base):
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
            u" password_algo=%r, password_salt=%r, password=%r,"\
-           u" bitcoin_address=%r," \
+           u" state=%r, country_code=%r, "\
            u" verified=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, last_login=%r )>" \
           % (self.id, self.username, self.email, self.broker_id,
              self.password_algo, self.password_salt, self.password,
-             self.bitcoin_address,
+             self.state, self.country_code,
              self.verified, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login)
 
   def __init__(self, *args, **kwargs):
@@ -150,10 +150,6 @@ class User(Base):
   @property
   def account_id(self):
     return self.id
-
-
-  def new_address(self, btc_address):
-    self.bitcoin_address = btc_address
 
   def set_password(self, raw_password):
     import random
@@ -166,8 +162,10 @@ class User(Base):
     return self.password == get_hexdigest(self.password_algo, self.password_salt, raw_password)
 
   @staticmethod
-  def get_user( session, username=None, email=None):
-    if username and email:
+  def get_user( session, username=None, email=None, user_id=None ):
+    if user_id:
+      filter_obj = or_(User.id == user_id)
+    elif username and email:
       filter_obj = or_( User.username==username, User.email==email )
     elif username:
       filter_obj = or_( User.username==username )
@@ -195,16 +193,6 @@ class User(Base):
 
       # update the last login
       user.last_login = datetime.datetime.now()
-
-      if not user.bitcoin_address:
-        avaliable_btc_address = session.query(BitcoinAddress).filter_by(user_id=None).first()
-        if not avaliable_btc_address:
-          logging.error('There is no available bitcoin address in the BitcoinAddress table. Please run bitcoiner with --new_address option')
-        else:
-          avaliable_btc_address.user_id = user.id
-          session.add(avaliable_btc_address)
-
-          user.bitcoin_address = avaliable_btc_address.bitcoin_address
 
       return user
     return None
@@ -235,7 +223,7 @@ class User(Base):
                        status=2)
     session.add(deposit)
 
-    Balance.update_balance(session, 'CREDIT', self.account_id, currency, amount)
+    Balance.update_balance(session, 'CREDIT', self.account_id, self.broker_id, currency, amount)
     deposit.status = '2'
 
     session.flush()
@@ -317,35 +305,41 @@ class Balance(Base):
   __tablename__         = 'balances'
   id                    = Column(Integer,       primary_key=True)
   account_id            = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
   currency              = Column(String(4),     ForeignKey('currencies.code') ,nullable=False )
   balance               = Column(Integer,       nullable=False, default=0)
   last_update           = Column(DateTime, default=datetime.datetime.now, nullable=False)
 
-  __table_args__ = (UniqueConstraint('account_id', 'currency', name='_balance_uc'), )
+  __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_balance_uc'), )
 
   def __repr__(self):
-    return u"<Balance(id=%r, account_id=%r, currency=%r, balance=%r)>" % (
-      self.id, self.account_id, self.currency, self.balance )
+    return u"<Balance(id=%r, account_id=%r, broker_id=%r, currency=%r, balance=%r)>" % (
+      self.id, self.account_id,  self.broker_id, self.currency, self.balance )
 
   @staticmethod
   def get_balances_by_account(session, account_id):
-    return session.query(Balance).filter_by(account_id = account_id )
+    return session.query(Balance).filter_by(account_id = account_id)
 
   @staticmethod
-  def get_balance(session, account_id, currency ):
+  def get_balances_by_account_broker(session, account_id, broker_id):
+    return session.query(Balance).filter_by(account_id = account_id).filter_by(broker_id = broker_id )
+
+  @staticmethod
+  def get_balance(session, account_id, broker_id, currency ):
     currency  = currency.strip().upper()
-    balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(currency = currency).first()
+    balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
     if not balance_obj:
       return 0
     return balance_obj.balance
 
   @staticmethod
-  def update_balance(session,operation, account_id, currency, value ):
+  def update_balance(session,operation, account_id, broker_id, currency, value ):
     currency  = currency.strip().upper()
-    balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(currency = currency).first()
+    balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
     if not balance_obj:
       balance_obj = Balance(account_id  = account_id,
                             currency    = currency,
+                            broker_id   = broker_id,
                             balance     = 0)
 
     if operation == 'CREDIT':
@@ -374,11 +368,18 @@ class Ledger(Base):
   operation             = Column(String(1),     nullable=False)
   amount                = Column(Integer,       nullable=False)
   balance               = Column(Integer,       nullable=False)
-  created               = Column(DateTime, default=datetime.datetime.now, nullable=False)
+  created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  description           = Column(String(255))
+
+  def __repr__(self):
+    return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payeee_broker_id=%r," \
+                    u"operation=%r,amount=%r,balance=%r,created=%r,description=%r)>" % (
+      self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payeee_broker_id,
+      self.operation, self.amount, self.balance, self.created, self.description)
 
   @staticmethod
-  def deposit(session, account_id, payee_id, broker_id, payeee_broker_id, currency, amount):
-    balance = Balance.update_balance(session, 'CREDIT', account_id, currency, amount)
+  def deposit(session, account_id, payee_id, broker_id, payeee_broker_id, currency, amount, description=None):
+    balance = Balance.update_balance(session, 'CREDIT', account_id, broker_id, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
                      payee_id         = payee_id,
@@ -386,7 +387,8 @@ class Ledger(Base):
                      payeee_broker_id = payeee_broker_id,
                      operation        = 'C',
                      amount           = amount,
-                     balance          = balance)
+                     balance          = balance,
+                     description      = description )
     session.add(ledger)
 
 
@@ -398,7 +400,7 @@ class Ledger(Base):
     to_symbol = symbol[:3].upper()   #BTC
     from_symbol = symbol[3:].upper() #BRL
 
-    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, from_symbol, total_value )
+    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.broker_id, from_symbol, total_value )
     order_record_debit = Ledger( currency         = from_symbol,
                                  account_id       = order.account_id,
                                  broker_id        = order.broker_id,
@@ -406,11 +408,12 @@ class Ledger(Base):
                                  payeee_broker_id = counter_order.broker_id,
                                  operation        = 'D'  if order.is_buy else 'C',
                                  amount           = total_value,
-                                 balance          = balance)
+                                 balance          = balance,
+                                 description      = 'Trade')
     session.add(order_record_debit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, from_symbol, total_value )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, counter_order.broker_id, from_symbol, total_value )
     counter_order_record_credit = Ledger(currency     = from_symbol,
                                          account_id   = counter_order.account_id,
                                          broker_id    = counter_order.broker_id,
@@ -418,11 +421,12 @@ class Ledger(Base):
                                          payeee_broker_id = order.broker_id,
                                          operation    = 'C'  if order.is_buy else 'D',
                                          amount       = total_value,
-                                         balance      = balance)
+                                         balance      = balance,
+                                         description  = 'Trade')
     session.add(counter_order_record_credit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.account_id, to_symbol, qty )
     order_record_credit = Ledger(currency     = to_symbol,
                                  account_id   = order.account_id,
                                  broker_id    = order.broker_id,
@@ -430,10 +434,11 @@ class Ledger(Base):
                                  payeee_broker_id = counter_order.broker_id,
                                  operation    = 'C'  if order.is_buy else 'D',
                                  amount       = qty,
-                                 balance      = balance)
+                                 balance      = balance,
+                                 description  = 'Trade')
     session.add(order_record_credit)
 
-    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.broker_id, to_symbol, qty )
     counter_order_record_debit = Ledger(currency     = to_symbol,
                                         account_id   = counter_order.account_id,
                                         broker_id    = counter_order.broker_id,
@@ -441,7 +446,8 @@ class Ledger(Base):
                                         payeee_broker_id = order.broker_id,
                                         operation    = 'D' if order.is_buy else 'C',
                                         amount       = qty,
-                                        balance      = balance)
+                                        balance      = balance,
+                                        description  = 'Trade')
     session.add(counter_order_record_debit)
 
 
@@ -454,10 +460,12 @@ class Broker(Base):
   address               = Column(String(255),   nullable=False)
   state                 = Column(String(30),    nullable=False)
   zip_code              = Column(String(12),    nullable=False)
-  country               = Column(String(2),     nullable=False)
+  country_code          = Column(String(2),     nullable=False)
+  country               = Column(String(20),    nullable=False)
   phone_number_1        = Column(String(15),    nullable=False)
   phone_number_2        = Column(String(15))
   skype                 = Column(String(30),    nullable=False)
+  email                 = Column(String(15))
 
   currencies            = Column(String(255),   nullable=False)
   tos_url               = Column(String(255),   nullable=False)
@@ -478,28 +486,31 @@ class Broker(Base):
   def get_broker(session, broker_id):
     return session.query(Broker).filter_by(id = broker_id ).first()
 
+  @staticmethod
+  def get_list(session, status_list, country = None, page_size = None, offset = None):
+    query = session.query(Broker).filter(Broker.status.in_( status_list ) )
+    if country:
+      query = query.filter_by( country = country )
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+    return query
+
+
   def __repr__(self):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
-           u"address=%r, state=%r, zip_code=%r, country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r," \
+           u"address=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
            u"currencies=%r, tos_url=%r, " \
            u"boleto_fee=%r ,withdraw_brl_bank_fee=%r,withdraw_wallet_fee=%r,withdraw_swift_fee=%r,withdraw_ach_fee=%r," \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r )>"% (
       self.id, self.short_name, self.business_name,
-      self.address, self.state, self.zip_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,
+      self.address, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.currencies, self.tos_url,
       self.boleto_fee, self.withdraw_brl_bank_fee, self.withdraw_wallet_fee, self.withdraw_swift_fee, self.withdraw_ach_fee,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking )
-
-
-class BitcoinAddress(Base):
-  __tablename__   = 'bitcoin_address'
-  bitcoin_address = Column(String(50), nullable=True, primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'), nullable=True, index=True )
-
-  def __repr__(self):
-    return u"<BitcoinAddress(bitcoin_address=%r, user_id=%r)>"%(self.bitcoin_address, self.user_id)
 
 
 class Deposit(Base):
@@ -685,6 +696,13 @@ class Withdraw(Base):
     return  withdraw_data
 
   @staticmethod
+  def get_list(session, user_id, status_list, page_size, offset):
+    return session.query(Withdraw).filter_by( user_id = user_id)\
+                                  .filter(Withdraw.status.in_( status_list ))\
+                                  .order_by(Withdraw.created.desc()).limit( page_size ).offset( offset )
+
+
+  @staticmethod
   def create_brl_bank_transfer_withdraw(session, user, amount, bank_number,
                                         bank_name, account_name, account_number, account_branch, cpf_cnpj):
     import uuid
@@ -846,6 +864,27 @@ class Order(Base):
         return True
     return  False
 
+  @staticmethod
+  def get_order_by_client_order_id(session, status_list, user_id, client_order_id):
+    return session.query(Order).filter(Order.status.in_( status_list  )).filter_by( user_id = user_id ).filter_by( client_order_id =  client_order_id  ).first()
+
+  @staticmethod
+  def get_order_by_order_id(session, status_list, order_id):
+    return session.query(Order).filter(Order.status.in_( status_list  )).filter_by( id = order_id  ).first()
+
+  @staticmethod
+  def get_list_by_user_id(session, status_list, user_id, page_size=None, offset=None ):
+    if not page_size:
+      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( user_id = user_id ).order_by(Order.created.desc())
+    else:
+      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( user_id = user_id ).order_by(Order.created.desc()).limit( page_size ).offset( offset )
+
+  @staticmethod
+  def get_list_by_account_id(session, status_list, user_id, page_size=None, offset=None ):
+    if not page_size:
+      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( account_id = user_id ).order_by(Order.created.desc())
+    else:
+      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( account_id = user_id ).order_by(Order.created.desc()).limit( page_size ).offset( offset )
 
   def match(self, other, execute_qty):
     if self.is_buy and other.is_sell:
@@ -858,8 +897,8 @@ class Order(Base):
 
   def get_available_qty_to_execute(self, session, side, qty, price):
     """This function returns qty that are available for execution"""
-    balance_price =  Balance.get_balance(session, self.account_id, self.symbol[3:])
-    balance_qty   =  Balance.get_balance(session, self.account_id, self.symbol[:3])
+    balance_price =  Balance.get_balance(session, self.account_id, self.broker_id, self.symbol[3:])
+    balance_qty   =  Balance.get_balance(session, self.account_id, self.broker_id, self.symbol[:3])
 
     if side == '1' : # buy
       qty_to_buy = min( qty, int((float(balance_price)/float(price)) * 1e8))
@@ -1038,6 +1077,17 @@ class Boleto(Base):
   def __unicode__(self):
     return self.numero_documento
 
+  @staticmethod
+  def get_boleto(session, boleto_id):
+    return session.query(Boleto).filter_by(id=boleto_id).first()
+
+  @staticmethod
+  def process_boleto_payment(session, broker_id, boleto_id, currency, amount ):
+    boleto = session.query(Boleto).filter_by(id= boleto_id ).filter_by(broker_id=broker_id).first()
+
+    #TODO: implement boleto payment.
+    pass
+
   def print_pdf_pagina(self, pdf_file):
     from pyboleto import bank
 
@@ -1086,6 +1136,14 @@ class BoletoOptions(Base):
        self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
       self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep)
 
+  @staticmethod
+  def get_boleto_option(session, boleto_option_id):
+    return session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
+
+  @staticmethod
+  def get_list(session, broker_id):
+    return  session.query(BoletoOptions).filter_by(broker_id=broker_id)
+
   def generate_boleto(self,session, user, value):
     self.last_numero_documento +=  1
 
@@ -1124,19 +1182,38 @@ Base.metadata.create_all(engine)
 
 def db_bootstrap(session):
   if not User.get_user(session, 'admin'):
-    e = User(id=1, username='admin', email='admin@bitex.com.br',  broker_id=1, password='abc12345',
+    e = User(id=0, username='admin', email='admin@bitex.com.br',  broker_id=None, password='abc12345',
+             country_code='', state='',
              verified=1, is_staff=True, is_system=False, is_broker=True)
 
     session.add(e)
     session.commit()
 
-  if not Broker.get_broker(session, 1):
-    e = Broker(id=1, short_name=u'bitex', business_name=u'Corretora Bitex',
-               address=u'Av Sao Joao, 11 - Sao Paulo', state=u'BR', zip_code=u'SP', country=u'11209-1946',
-               phone_number_1=u'+55 (13) 9177-1116', phone_number_2=None, skype=u'clebsonbr',
-               currencies=u'BRL', tos_url=u'http://bitex.com.br/tos/bitex/',
-               boleto_fee=-3.9 ,withdraw_brl_bank_fee=-15,withdraw_wallet_fee=0,withdraw_swift_fee=-150,
-               withdraw_ach_fee=0,transaction_fee_buy=0.2,transaction_fee_sell=0.3, status=u'1', ranking=0)
+  if not User.get_user(session, 'nybitcoincenter'):
+    e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=None, password='abc12345',
+             country_code='US', state='NY',
+             verified=1, is_staff=False, is_system=False, is_broker=True)
+
+    session.add(e)
+    session.commit()
+
+  if not Broker.get_broker(session, 0):
+    e = Broker(id=0, short_name=u'None', business_name=u'None',
+               address=u'', state=u'', zip_code=u'', country='', country_code='',
+               phone_number_1='+1 (917) 753-1359', phone_number_2=None, skype='blinktrade', email=None,
+               currencies='BTC', tos_url=u'http://bitex.com.br/tos/bitex/',
+               boleto_fee=None ,withdraw_brl_bank_fee=None,withdraw_wallet_fee=None,withdraw_swift_fee=None,
+               withdraw_ach_fee=None,transaction_fee_buy=None,transaction_fee_sell=None, status=u'1', ranking=0)
+    session.add(e)
+    session.commit()
+
+  if not Broker.get_broker(session, 9000001):
+    e = Broker(id=9000001, short_name=u'NyBitcoinCenter', business_name=u'Bitcoin Center NYC',
+               address=u'40 Broad Street', state=u'NY', zip_code=u'10004', country_code='US', country='United States',
+               phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='nycbitcoincenter', email='NYCBitcoinCenter@gmail.com',
+               currencies='USD', tos_url=u'http://nycbitcoincenter.com/tos/bitex/',
+               boleto_fee=None ,withdraw_brl_bank_fee=None,withdraw_wallet_fee=None,withdraw_swift_fee=None,
+               withdraw_ach_fee=None,transaction_fee_buy=None,transaction_fee_sell=None, status=u'1', ranking=1)
     session.add(e)
     session.commit()
 
@@ -1180,14 +1257,15 @@ def db_bootstrap(session):
   # create 1000 test users for the NYC Bitcoin Center - Satoshi square
   for x in xrange(2, 1000):
     if not User.get_user(session, str(x)):
-      e = User(id=x, username=str(x), email= str(x) + '@bitex.com.br',  broker_id=1, password='password' + str(x),
+      e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, password='password' + str(x),
+               country_code='US', state='NY',
                verified=1, is_staff=False, is_system=False, is_broker=False)
       session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      Ledger.deposit(session, x, 1, 1, 1, 'BTC', 100e8)
-      Ledger.deposit(session, x, 1, 1, 1, 'USD', 100000e8)
-      Ledger.deposit(session, x, 1, 1, 1, 'BRL', 200000e8)
+      Ledger.deposit(session, x, 1, 9000001, 9000001, 'BTC', 100e8)
+      Ledger.deposit(session, x, 1, 9000001, 9000001, 'USD', 100000e8)
+      Ledger.deposit(session, x, 1, 9000001, 9000001, 'BRL', 250000e8)
       session.commit()
 
 

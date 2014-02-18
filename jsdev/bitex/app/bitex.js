@@ -358,11 +358,12 @@ bitex.app.bitex = function( url ) {
     model.set('BtcAddress', msg['BtcAddress']);
     model.set('IsBroker', msg['IsBroker'] );
 
-    buy_order_entry.setClientID(model.get('UserID'));
     buy_order_entry.setBrokerMode(model.get('IsBroker')  );
-
-    sell_order_entry.setClientID(model.get('UserID'));
     sell_order_entry.setBrokerMode(model.get('IsBroker')  );
+    if (! msg['IsBroker'] ) {
+      buy_order_entry.setClientID(model.get('UserID'));
+      sell_order_entry.setClientID(model.get('UserID'));
+    }
 
 
     if (goog.isDefAndNotNull(order_book_bid)) {

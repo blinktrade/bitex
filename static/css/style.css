@@ -65,6 +65,19 @@ body {
   padding: 0 2px;
 }
 
+.bitex-broker .bitex-display-if-broker {
+  display: block;
+}
+.bitex-non-broker .bitex-display-if-broker {
+  display: none;
+}
+.bitex-broker .bitex-display-if-non-broker {
+  display: none;
+}
+.bitex-non-broker .bitex-display-if-non-broker {
+  display: block;
+}
+
 .bitex-logged .bitex-display-if-logged {
   display: block;
 }

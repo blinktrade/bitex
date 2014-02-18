@@ -74,6 +74,9 @@ bitex.api.BitEx.EventType = {
   /* Securities */
   SECURITY_LIST: 'security_list',
 
+  /* Brokers */
+  BROKER_LIST_RESPONSE: 'broker_list',
+
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
   MARKET_DATA_INCREMENTAL_REFRESH: 'md_incremental_refresh',
@@ -221,6 +224,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U27': // Withdraw List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'U29': // Broker List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, msg ) );
       break;
 
     case 'W':
@@ -460,11 +467,12 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
 /**
  * Request the Broker's list
  * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {string=} opt_country.
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
  * @param {Array.<string>=} opt_status. Defaults to ['1'] ( active brokers )
  */
-bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_page, opt_limit, opt_status){
+bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_country, opt_page, opt_limit, opt_status){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
@@ -477,6 +485,10 @@ bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_page, 
     'PageSize': limit,
     'StatusList': status
   };
+  if (goog.isDefAndNotNull(opt_country)) {
+    msg['Country'] = opt_country;
+  }
+
   this.ws_.send(JSON.stringify( msg ));
 
   return requestId;
@@ -568,14 +580,18 @@ bitex.api.BitEx.prototype.requestSecurityList = function(opt_requestId){
  * @param {string} username
  * @param {string} password
  * @param {string} email
+ * @param {number} state
+ * @param {number} country_code
  * @param {number} broker
  */
-bitex.api.BitEx.prototype.signUp = function(username, password, email, broker){
+bitex.api.BitEx.prototype.signUp = function(username, password, email, state, country_code, broker) {
   var msg = {
     'MsgType': 'U0',
     'Username': username,
     'Password': password,
     'Email': email,
+    'State': state,
+    'CountryCode': country_code,
     'BrokerID': broker
   };
   this.ws_.send(JSON.stringify( msg ));

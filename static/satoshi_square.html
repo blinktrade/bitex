@@ -119,11 +119,24 @@
     </div>
 
     <div class="control-group" style="">
+      <label class="control-label">Country</label>
+      <div class="controls">
+        <select id="id_signup_country" name="country"></select>
+      </div>
+    </div>
+
+    <div id="id_signup_state_group" class="control-group" style="display: none">
+      <label class="control-label">State or Province</label>
+      <div class="controls">
+        <select id="id_signup_state" name="state"></select>
+      </div>
+    </div>
+
+    <div class="control-group" style="">
       <label class="control-label">Broker</label>
       <div class="controls">
-        <select id="id_signup_broker" name="broker">
-          <option value="1" selected>Bitcoin Center</option>
-        </select>
+        <select id="id_signup_broker" name="broker"></select>
+        <span id="id_signup_broker_warning" style="display: none">There are no brokers in your area. We will send you an email once we have a broker in your area.</span>
       </div>
     </div>
 
@@ -239,7 +252,7 @@
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
 
-            <input class="input-block-level order-entry-amount" type="text" value="0" required/>
+            <input class="input-block-level order-entry-amount" type="text" value="" required/>
           </div>
         </div>
       </div>
@@ -290,7 +303,7 @@
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
 
-            <input class="input-block-level order-entry-amount" type="text" value="0" required/>
+            <input class="input-block-level order-entry-amount" type="text" value="" required/>
           </div>
         </div>
       </div>
@@ -508,14 +521,15 @@
 
 <div id="withdraw">
   <div class="section-title">
-    <h3>Withdraws</h3>
+    <h3>Withdrawals</h3>
   </div>
 
   <div class="content">
     <!--<p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>-->
     <table class="table table-striped" style="width: 300px">
-      <tbody><tr><td><strong>Available USD</strong></td><td>R$ <span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
-      <tr><td><strong>Available BTC</strong></td><td>฿ <span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+      <tbody>
+      <tr><td><strong>Available USD</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
+      <tr><td><strong>Available BTC</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
       </tbody>
     </table>
 
@@ -529,7 +543,7 @@
           <thead>
           <tr>
             <th colspan="4">
-              <span class="datagrid-header-title"><strong>Withdraw history</strong></span>
+              <span class="datagrid-header-title"><strong>Withdrawal history</strong></span>
             </th>
           </tr>
           </thead>
@@ -597,23 +611,24 @@
       </select>
     </form>
 
-
-    <h6>Your account</h6>
-    <table class="data">
-      <tbody>
-      <tr><td><span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
-      <tr><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
-      </tbody>
-    </table>
+    <div class="bitex-display-if-non-broker">
+      <h6>Your account</h6>
+      <table class="data">
+        <tbody>
+        <tr><td><span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
+        <tr><td><span class="bitex-model"  data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <h6>Menu</h6>
   <ul class="nav nav-list">
     <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
-    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
-    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>
-    <li><a href="" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
-    <li style=""><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
-    <li style=""><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>
+    <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
+    <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
 
     <li style=""><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Suggestions & Support</a></li>
     <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>

@@ -166,10 +166,12 @@ class TradeApplication(object):
           response_message = self.session_manager.process_message( msg_header, session_id, msg )
 
       except TradeRuntimeError, e:
+        self.db_session.rollback()
         self.session_manager.close_session(session_id)
         response_message = 'ERR,{"MsgType":"ERROR", "Description":"' + e.error_description.replace("'", "") + '", "Detail": ""}'
 
       except Exception,e:
+        self.db_session.rollback()
         self.session_manager.close_session(session_id)
         response_message = 'ERR,{"MsgType":"ERROR", "Description":"Unknow error", "Detail": "'  + str(e) + '"}'
 

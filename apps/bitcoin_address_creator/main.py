@@ -59,7 +59,7 @@ class Bitcoiner:
 
       print bitcoin_address
 
-      self.ws.sendMsg( {'MsgType':'BITCOIN_NEW_ADDRESS', 'BtcAddress': bitcoin_address } )
+      self.ws.sendMsg( {'MsgType':'S0', 'BtcAddress': bitcoin_address } )
 
 
 

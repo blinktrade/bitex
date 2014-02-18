@@ -72,7 +72,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
     self.md_subscriptions = {}
 
   def on_trade_publish(self, message):
-    print "on_trade_publish", self.trade_client.connection_id, message
     self.write_message(str(message[1]))
 
   def open(self):
@@ -85,10 +84,11 @@ class WebSocketHandler(websocket.WebSocketHandler):
       self.trade_client.close()
       self.close()
 
+  def write_message(self, message, binary=False):
+    print "out_message,", self.trade_client.connection_id, ',', message
+    super(WebSocketHandler, self).write_message(message, binary)
 
   def on_message(self, raw_message):
-    print 'on_message', self.trade_client.connection_id, raw_message
-
     if not self.trade_client.isConnected():
       return
 
@@ -101,6 +101,11 @@ class WebSocketHandler(websocket.WebSocketHandler):
       self.close()
       return
 
+    if req_msg.isUserRequest():
+      print 'in_message ,', self.trade_client.connection_id, ' , ***LOGIN***'
+    else:
+      print 'in_message ,', self.trade_client.connection_id, ',', raw_message
+
     if req_msg.isMarketDataRequest(): # Market Data Request
       self.on_market_data_request(req_msg)
 
@@ -108,7 +113,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.application.unregister_connection(self)
         self.trade_client.close()
         self.close()
-
       return
 
     try:
@@ -131,7 +135,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
     print 'on_close', self.trade_client.connection_id
     self.application.unregister_connection(self)
     self.trade_client.close()
-
 
   def on_market_data_request(self, msg):
     # Generate a FullRefresh

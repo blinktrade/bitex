@@ -7,8 +7,8 @@ from bitex.json_encoder import  JsonEncoder
 
 import json
 
-from models import  User, BitcoinAddress, Order, UserPasswordReset, Boleto, BoletoOptions, \
-  NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance, Ledger
+from models import  User, Order, UserPasswordReset, Boleto, BoletoOptions, \
+  NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance
 
 from execution import OrderMatcher
 
@@ -17,7 +17,7 @@ from decorators import *
 from trade_application import application
 
 def processTestRequest(session, msg):
-  return json.dumps( {
+  return json.dumps({
     "MsgType":"0",
     "TestReqID": msg.get("TestReqID")
   }, cls=JsonEncoder)
@@ -56,28 +56,80 @@ def processLogin(session, msg):
     'UserID':           session.user.id,
     'Username':         session.user.username,
     'TwoFactorEnabled': session.user.two_factor_enabled,
-    'BtcAddress':       session.user.bitcoin_address,
     'UserStatus':       1,
-    'IsBroker':         session.user.is_broker
+    'IsBroker':         session.user.is_broker,
   }
+  broker = None
+
+  if session.user.is_broker:
+    broker = Broker.get_broker( application.db_session,session.user.id)
+  elif session.broker:
+    broker = Broker.get_broker( application.db_session,session.broker.id)
+
+  if broker:
+    login_response['BrokerID'] = broker.id
+    login_response['Broker'] =  {
+      'BrokerID'           : broker.id                   ,
+      'ShortName'          : broker.short_name           ,
+      'BusinessName'       : broker.business_name        ,
+      'Address'            : broker.address              ,
+      'ZipCode'            : broker.state                ,
+      'State'              : broker.zip_code             ,
+      'Country'            : broker.country              ,
+      'PhoneNumber1'       : broker.phone_number_1       ,
+      'PhoneNumber2'       : broker.phone_number_2       ,
+      'Skype'              : broker.skype                ,
+      'Email'              : broker.email                ,
+      'Currencies'         : broker.currencies           ,
+      'TosUrl'             : broker.tos_url              ,
+      'BoletoFee'          : broker.boleto_fee           ,
+      'WithdrawBRLBankFee' : broker.withdraw_brl_bank_fee,
+      'WithdrawWalletFee'  : broker.withdraw_wallet_fee  ,
+      'WithdrawSwiftFee'   : broker.withdraw_swift_fee   ,
+      'WithdrawAchFee'     : broker.withdraw_ach_fee     ,
+      'TransactionFeeBuy'  : broker.transaction_fee_buy  ,
+      'TransactionFeeSell' : broker.transaction_fee_sell ,
+      'Status'             : broker.status               ,
+      'ranking'            : broker.ranking
+    }
   return json.dumps(login_response, cls=JsonEncoder)
 
 @login_required
 def processNewOrderSingle(session, msg):
   from errors import NotAuthorizedError, InvalidClientIDError
 
-  if msg.has('ClientID') and int(msg.get('ClientID')) != session.user.id and not session.user.is_broker:
-    raise NotAuthorizedError()
+  if msg.has('ClientID') and not session.user.is_broker:
+    if msg.get('ClientID').isdigit() and int(msg.get('ClientID')) != session.user.id:
+      raise NotAuthorizedError()
+    elif msg.get('ClientID') != session.user.username:
+      raise NotAuthorizedError()
+    elif msg.get('ClientID') != session.user.email:
+      raise NotAuthorizedError()
 
   account_id = session.user.account_id
   account_user = session.user
+  broker_user = account_user.broker
+
   if session.user.is_broker:
     if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
-      client = application.db_session.query(User).filter( User.id == int(msg.get('ClientID'))  ).first()
+      client = None
+      if msg.get('ClientID').isdigit():
+        client = User.get_user( application.db_session, user_id= int(msg.get('ClientID') ))
+
+      if not client:
+        client = User.get_user(application.db_session, username= msg.get('ClientID'))
+
+      if not client:
+        client = User.get_user(application.db_session, email= msg.get('ClientID'))
+
       if not client:
         raise InvalidClientIDError()
       account_user = client
       account_id   = client.account_id
+      broker_user  = account_user.broker
+
+  if not broker_user:
+    raise NotAuthorizedError()
 
   # process the new order.
   order = Order( user_id          = session.user.id,
@@ -86,8 +138,8 @@ def processNewOrderSingle(session, msg):
                  username         = session.user.username,
                  account_user     = account_user,
                  account_username = account_user.username,
-                 broker_user      = session.broker,
-                 broker_username  = session.broker.username,
+                 broker_user      = broker_user,
+                 broker_username  = broker_user.username,
                  client_order_id  = msg.get('ClOrdID'),
                  symbol           = msg.get('Symbol'),
                  side             = msg.get('Side'),
@@ -108,16 +160,12 @@ def processNewOrderSingle(session, msg):
 def processCancelOrderRequest(session, msg):
   order_list = []
   if  msg.has('OrigClOrdID'):
-    order = application.db_session.query(Order).\
-                                    filter(Order.status.in_(("0", "1"))).\
-                                    filter_by( user_id = session.user.id ).\
-                                    filter_by( client_order_id =  msg.get('OrigClOrdID')  ).first()
+    order = Order.get_order_by_client_order_id(application.db_session, ("0","1"), session.user.id,  msg.get('OrigClOrdID') )
     if order:
       order_list.append(order)
   elif msg.has('OrderID'):
-    order = application.db_session.query(Order).\
-                                    filter(Order.status.in_(("0", "1"))).\
-                                    filter_by( id =  msg.get('OrderID')  ).first()
+    order = Order.get_order_by_order_id(application.db_session, ("0","1"),  msg.get('OrderID') )
+
     if order:
       if order.user_id == session.user.id:  # user/broker cancelling his own order
         order_list.append(order)
@@ -127,9 +175,7 @@ def processCancelOrderRequest(session, msg):
         order_list.append(order)
   else:
     # user cancelling all the orders he sent.
-    orders = application.db_session.query(Order).\
-                                    filter(Order.status.in_(("0", "1"))).\
-                                    filter_by( user_id = session.user.id )
+    orders = Order.get_list_by_user_id( application.db_session, ("0","1"), session.user.id )
     for order in orders:
       order_list.append(order)
 
@@ -176,7 +222,7 @@ def processSecurityListRequest(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 def processSignup(session, msg):
-  if User.get_user( application.db_session, msg.get('Username'), msg.get('Email')):
+  if User.get_user( application.db_session, username= msg.get('Username'), email= msg.get('Email')):
     login_response = {
       'MsgType': 'BF',
       'Username': '',
@@ -186,7 +232,7 @@ def processSignup(session, msg):
     application.db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
 
-  broker = application.db_session.query(Broker).filter( Broker.id == msg.get('BrokerID')  ).first()
+  broker = Broker.get_broker( application.db_session, msg.get('BrokerID')  )
   if not broker:
     login_response = {
       'MsgType': 'BF',
@@ -202,6 +248,8 @@ def processSignup(session, msg):
   u = User( username            = msg.get('Username'),
             email               = msg.get('Email'),
             password            = msg.get('Password'),
+            state               = msg.get('State'),
+            country_code        = msg.get('CountryCode'),
             broker_id           = msg.get('BrokerID'))
 
   application.db_session.add(u)
@@ -214,7 +262,10 @@ def processRequestForBalances(session, msg):
   balances = Balance.get_balances_by_account( application.db_session, session.user.account_id )
   response = { 'MsgType': 'U3', 'BalanceReqID': msg.get('BalanceReqID')  }
   for balance in balances:
-    response[balance.currency ] = balance.balance
+    if balance.broker_id in response:
+      response[balance.broker_id][balance.currency ] = balance.balance
+    else:
+      response[balance.broker_id] = { balance.currency: balance.balance }
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
@@ -225,18 +276,9 @@ def processRequestForOpenOrders(session, msg):
   offset      = page * page_size
 
   if session.user.is_broker:
-    orders = application.db_session.query(Order).\
-                                          filter(Order.status.in_( status_list )).\
-                                          filter_by( user_id = session.user.id ).\
-                                          order_by(Order.created.desc()).\
-                                          limit( page_size ).offset( offset )
-
+    orders = Order.get_list_by_user_id(application.db_session, status_list, session.user.id, page_size, offset)
   else:
-    orders = application.db_session.query(Order).\
-                                          filter(Order.status.in_( status_list )).\
-                                          filter_by( account_id = session.user.id ).\
-                                          order_by(Order.created.desc()).\
-                                          limit( page_size ).offset( offset )
+    orders = Order.get_list_by_account_id(application.db_session, status_list, session.user.id, page_size, offset)
 
   order_list = []
   columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
@@ -315,7 +357,7 @@ def processEnableDisableTwoFactorAuth(session, msg):
 
 @login_required
 def processRequestBoletoOptions(session, msg):
-  boleto_options = application.db_session.query(BoletoOptions).filter_by(broker_id=session.user.broker_id)
+  boleto_options = BoletoOptions.get_list(application.db_session,session.user.broker_id )
 
   boleto_options_group = []
 
@@ -336,7 +378,7 @@ def processRequestBoletoOptions(session, msg):
 def processRequestBoleto(session, msg):
   boleto_id = msg.get('BoletoId')
 
-  boleto = application.db_session.query(Boleto).filter_by(id=boleto_id).first()
+  boleto = Boleto.get_boleto(application.db_session, boleto_id)
   if not boleto:
     return
 
@@ -382,7 +424,7 @@ def processGenerateBoleto(session, msg):
   boleto_option_id = msg.get('BoletoId')
   value            = msg.get('Value')
 
-  boleto_option = application.db_session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
+  boleto_option = BoletoOptions.get_boleto_option(application.db_session, boleto_option_id)
   if not boleto_option:
     response = {'MsgType':'U19', 'BoletoId': 0 }
     return json.dumps(response, cls=JsonEncoder)
@@ -481,11 +523,8 @@ def processWithdrawListRequest(session, msg):
   status_list = msg.get('StatusList', ['1', '2'] )
   offset      = page * page_size
 
-  withdraws = application.db_session.query(Withdraw).\
-                                          filter_by( user_id = session.user.id ).\
-                                          filter(Withdraw.status.in_( status_list )).\
-                                          order_by(Withdraw.created.desc()).\
-                                          limit( page_size ).offset( offset )
+
+  withdraws = Withdraw.get_list(application.db_session, session.user.id, status_list, page_size, offset  )
 
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Type'             , 'Currency'      , 'Amount' , 'Wallet', 'BankNumber' ,'AccountName',
@@ -531,25 +570,21 @@ def processBrokerListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
   status_list = msg.get('StatusList', ['1'] )
+  country     = msg.get('Country', None)
   offset      = page * page_size
 
-  brokers = application.db_session.query(Broker).\
-                                   filter_by( id = session.user.broker_id ).\
-                                   filter(Broker.status.in_( status_list )).\
-                                   order_by(Broker.ranking ).\
-                                   limit( page_size ).offset( offset )
+  brokers = Broker.get_list(application.db_session, status_list, country, page_size, offset)
 
   broker_list = []
-  columns = [ 'BrokerID'        , 'ShortName'      , 'BusinessName'      , 'Address'            ,
-              'State'           , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'            ,
-              'Currencies'      , 'TtosUrl'        , 'BoletoFee'         , 'WithdrawBRLBankFee' , 'WithdrawWalletFee',
-              'WithdrawSwiftFee', 'WithdrawAchFee' ,'TransactionFeeBuy'  , 'TransactionFeeSell' , 'Status'           ,
-              'ranking' ]
+  columns = [ 'BrokerID'        , 'ShortName'      , 'BusinessName'      , 'Address'            , 'State'            ,
+              'ZipCode'         , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'            ,
+              'Currencies'      , 'TosUrl'         , 'BoletoFee'         , 'WithdrawBRLBankFee' , 'WithdrawWalletFee',
+              'WithdrawSwiftFee', 'WithdrawAchFee' , 'TransactionFeeBuy' , 'TransactionFeeSell' , 'Status'           ,
+              'ranking'         , 'Email'          , 'CountryCode']
 
   for broker in brokers:
     broker_list.append( [
       broker.id                   ,
-      broker.user                 ,
       broker.short_name           ,
       broker.business_name        ,
       broker.address              ,
@@ -570,6 +605,8 @@ def processBrokerListRequest(session, msg):
       broker.transaction_fee_sell ,
       broker.status               ,
       broker.ranking              ,
+      broker.email                ,
+      broker.country_code
     ])
 
   response_msg = {
@@ -626,8 +663,7 @@ def processBoletoPaymentConfirmation(session, msg):
   currency    = msg.get('Currency')
   amount      = msg.get('Amount')
 
-  # TODO: Process the boleto payment
-  boleto = application.db_session.query(Boleto).filter_by(id= boleto_id ).filter_by(broker_id=session.user.id).first()
+  Boleto.process_boleto_payment(application.db_session, session.user.id, boleto_id, currency, amount)
 
   result = {
     'MsgType' : 'B1',
@@ -635,33 +671,3 @@ def processBoletoPaymentConfirmation(session, msg):
   }
   return json.dumps(result, cls=JsonEncoder)
 
-
-@login_required
-@system_user_required
-def processBitcoinNewAddress(session, msg):
-  bitcoin_address = application.db_session.query(BitcoinAddress).filter_by(bitcoin_address=msg.get('BtcAddress')).first()
-  if bitcoin_address:
-    return ""
-
-  bitcoin_address = BitcoinAddress( bitcoin_address=msg.get('BtcAddress') )
-  self.application.session.add(bitcoin_address)
-  self.application.session.commit()
-
-  result = {
-    'MsgType'   : 'S1',
-    'BtcAddress' : msg.get('BtcAddress')
-  }
-
-  return json.dumps(result, cls=JsonEncoder)
-
-@login_required
-@system_user_required
-def processGetNumberOfFreeBitcoinNewAddress(session, msg):
-  number_of_free_bitcoins = application.db_session.query(BitcoinAddress).filter_by(user_id=None).count()
-
-  result = {
-    'MsgType'   : 'S3',
-    'NOfBtcAddress' : number_of_free_bitcoins
-  }
-
-  return json.dumps(result, cls=JsonEncoder)

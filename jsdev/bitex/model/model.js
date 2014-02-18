@@ -86,7 +86,6 @@ bitex.model.Model.prototype.get = function(key, opt_val) {
 bitex.model.Model.prototype.set = function(key, value) {
   this.map_.set(key, value);
 
-
   var elements = goog.dom.getElementsByClass('bitex-model', this.element_);
 
   goog.array.forEach( elements, function(el) {
