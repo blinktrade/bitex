@@ -76,6 +76,8 @@ bitex.api.BitEx.EventType = {
 
   /* Brokers */
   BROKER_LIST_RESPONSE: 'broker_list',
+  CUSTOMER_LIST_RESPONSE: 'customer_list',
+  CUSTOMER_DETAIL_RESPONSE: 'customer_detail',
 
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
@@ -228,6 +230,14 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U29': // Broker List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'B3': // Customer List Response
+      this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_LIST_RESPONSE, msg) );
+      break;
+
+    case 'B5': // Customer Detail Response
+      this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_DETAIL_RESPONSE, msg) );
       break;
 
     case 'W':
@@ -491,6 +501,62 @@ bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_countr
 
   this.ws_.send(JSON.stringify( msg ));
 
+  return requestId;
+};
+
+/**
+ * Request the Broker Customer's list
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {string=} opt_country.
+ * @param {string=} opt_state.
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {string=} opt_sort_column
+ * @param {string=} opt_sort_direction. Defaults to ASC
+ * @param {Array.<string>=} opt_status. Defaults to ['1'] ( active brokers )
+ */
+bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_country, opt_state, opt_page, opt_limit, opt_status, opt_sort_column, opt_sort_direction){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+  var status = opt_status || [0,1];
+
+  var msg = {
+    'MsgType': 'B2',
+    'CustomerListReqID': requestId,
+    'Page': page,
+    'PageSize': limit,
+    'StatusList': status
+  };
+  if (goog.isDefAndNotNull(opt_country)) {
+    msg['Country'] = opt_country;
+  }
+  if (goog.isDefAndNotNull(opt_state)) {
+    msg['State'] = opt_state;
+  }
+  if (goog.isDefAndNotNull(opt_sort_column)) {
+    msg['Sort'] = opt_sort_column;
+  }
+  if (goog.isDefAndNotNull(opt_sort_direction)) {
+    msg['SortOrder'] = opt_sort_direction;
+  }
+
+  this.ws_.send(JSON.stringify( msg ));
+  return requestId;
+};
+
+/**
+ * @param {number} clientId
+ */
+bitex.api.BitEx.prototype.requestCustomerDetails = function(clientId){
+  var requestId = parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'B4',
+    'CustomerReqID': requestId,
+    'ClientID': clientId
+  };
+  this.ws_.send(JSON.stringify( msg ));
   return requestId;
 };
 
@@ -783,6 +849,8 @@ goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype
 goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototype.requestBalances);
 goog.exportProperty(BitEx.prototype, 'withdrawCryptoCoin', bitex.api.BitEx.prototype.withdrawCryptoCoin);
 goog.exportProperty(BitEx.prototype, 'requestWithdrawList', bitex.api.BitEx.prototype.requestWithdrawList);
+goog.exportProperty(BitEx.prototype, 'requestCustomerList', bitex.api.BitEx.prototype.requestCustomerList);
+goog.exportProperty(BitEx.prototype, 'requestCustomerDetails', bitex.api.BitEx.prototype.requestCustomerDetails);
 goog.exportProperty(BitEx.prototype, 'requestBrokerList', bitex.api.BitEx.prototype.requestBrokerList );
 goog.exportProperty(BitEx.prototype, 'confirmWithdraw', bitex.api.BitEx.prototype.confirmWithdraw);
 goog.exportProperty(BitEx.prototype, 'enableTwoFactor', bitex.api.BitEx.prototype.enableTwoFactor);

@@ -79,10 +79,15 @@ class Session(object):
     elif msg.type == 'U28': # Request broker lists
       return processBrokerListRequest(self, msg)
 
-    elif msg.type == 'A0':  # Request Query in Database
-      return processRequestDatabaseQuery(self, msg)
-
     elif msg.type == 'B0':  # Boleto Payment Confirmation
       return processBoletoPaymentConfirmation(self, msg)
 
+    elif msg.type == 'B2':  # Customer List Request
+      return processCustomerListRequest(self, msg)
+
+    elif msg.type == 'B4':  # Customer Detail Request
+      return processCustomerDetailRequest(self, msg)
+
+    elif msg.type == 'A0':  # Request Query in Database
+      return processRequestDatabaseQuery(self, msg)
     raise InvalidMessageError()

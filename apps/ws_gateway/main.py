@@ -58,7 +58,6 @@ tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway
 tornado.options.parse_command_line()
 
 from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
-from account_verification import AccountVerificationHandler
 from boleto_hander import BoletoHandler
 
 
@@ -177,7 +176,6 @@ class WebSocketGatewayApplication(tornado.web.Application):
     handlers = [
       (r'/', WebSocketHandler),
       (r'/print_boleto(.*)', BoletoHandler),
-      (r'/account_verification/.*', AccountVerificationHandler),
     ]
     settings = dict(
       cookie_secret='cookie_secret'

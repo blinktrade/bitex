@@ -35,8 +35,8 @@
   <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
 
   <!-- bitex application -->
-  <!-- <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v4" type="text/javascript"></script>  -->
-  <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v4" type="text/javascript"></script>
+  <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v4" type="text/javascript"></script>
+  <!-- <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v4" type="text/javascript"></script> -->
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
@@ -50,7 +50,7 @@
         "></a>
 
       <ul class="nav navbar-nav pull-right">
-        <li class="bitex-hide-if-logged"><a href="/markets.html">Markets</a></li>
+        <li><a href="/markets.html">Markets</a></li>
         <li class="bitex-display-if-logged"><a href="" data-switch-view="trading">BTCUSD <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_usd" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_usd" data-blink-class="md-blink"></span></a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
@@ -67,13 +67,13 @@
 
   <header class="jumbotron">
     <img src="/images/bitcoin-center-black.png" style="">
-    <p class="lead">Satoshi Square</p>
+    <p class="lead">Live bitcoin exchange</p>
   </header>
 
   <div class="row bitex-hide-if-logged" style="text-align: center;">
     <form action="" class="form-inline">
       <label for="id_landing_username">Username:</label>
-      <input class="focus" id="id_landing_username" placeholder="Badge number" size="30" type="text">
+      <input class="focus" id="id_landing_username" placeholder="" size="30" type="text">
       <label for="id_landing_password">Password:</label>
       <input id="id_landing_password" placeholder="" size="30" type="password">
       <button id="id_landing_signin" class="btn btn-success">Login</button>
@@ -93,7 +93,7 @@
     <div class="control-group">
       <label class="control-label">Username</label>
       <div class="controls">
-        <input id="id_signup_username" name="Username" size="30" type="text" placeholder="Your badge number or phone number">
+        <input id="id_signup_username" name="Username" size="30" type="text" placeholder="">
       </div>
     </div>
 
@@ -165,11 +165,11 @@
   <form accept-charset="UTF-8" action="" method="post">
     <div class="clearfix">
       <label for="id_username">Username</label>
-      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder="Badge number or username"></div>
+      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
     </div>
     <div class="clearfix">
       <label for="id_password">Password</label>
-      <div class="input"><input id="id_password"  placeholder="password + [badge number]" name="password" type="password"></div>
+      <div class="input"><input id="id_password"  placeholder="" name="password" type="password"></div>
     </div>
     <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
     <div class="actions">
@@ -382,6 +382,53 @@
   </div>
 </div>
 
+<div id="customers">
+  <div class="section-title">
+    <h3>Customers</h3>
+  </div>
+
+  <div class="well">
+    <div id="id_customer_table"  class="fuelux customers" style="height: 450px;width:100%;margin-bottom:20px;">
+      <table class="table table-bordered datagrid datagrid-stretch-header">
+        <thead>
+        <tr style="display: none;">
+          <th colspan="4">
+            <span class="datagrid-header-title"><strong>Customers</strong></span>
+          </th>
+        </tr>
+        </thead>
+      </table>
+      <div class="datagrid-stretch-wrapper" style="height: 360px;">
+        <table class="table table-bordered datagrid">
+          <tbody></tbody>
+        </table>
+      </div>
+      <table class="table table-bordered datagrid datagrid-stretch-footer">
+        <tfoot>
+        <tr>
+          <th colspan="4">
+            <div class="datagrid-footer-left" style="visibility: visible;">
+              <div class="grid-controls">
+                          <span>
+                            <span class="grid-start"></span> -
+                            <span class="grid-end"></span>
+                          </span>
+              </div>
+            </div>
+            <div class="datagrid-footer-right" style="visibility: visible;">
+              <div class="grid-pager">
+                <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+                <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+              </div>
+            </div>
+          </th>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div id="account_activity">
   <div class="section-title">
     <h3>History</h3>
@@ -427,7 +474,6 @@
       </table>
     </div>
   </div>
-
 </div>
 
 <div id="enable_two_factor">
@@ -593,10 +639,28 @@
     <h3>Verify your account</h3>
   </div>
 
-  <iframe id="JotFormIFrame"
-          onload="window.parent.scrollTo(0,0)" allowtransparency="true"
-          src="" frameborder="0"
-          style="width:100%; height:1250px; border:none;" scrolling="no"></iframe>
+  <iframe id="JotFormIFrame" onload="window.parent.scrollTo(0,0)" allowtransparency="true" src="" frameborder="0" style="width:100%; height:1350px; border:none;" scrolling="no"></iframe>
+  <script type="text/javascript">
+    window.handleIFrameMessage = function(e) {
+      var args = e.data.split(":");
+      var iframe = document.getElementById("JotFormIFrame");
+      if (!iframe)
+        return;
+      switch (args[0]) {
+        case "scrollIntoView":
+          iframe.scrollIntoView();
+          break;
+        case "setHeight":
+          iframe.style.height = args[1] + "px";
+          break;
+      }
+    };
+    if (window.addEventListener) {
+      window.addEventListener("message", handleIFrameMessage, false);
+    } else if (window.attachEvent) {
+      window.attachEvent("onmessage", handleIFrameMessage);
+    }
+  </script>
 </div>
 
 </div>
@@ -624,6 +688,8 @@
   </div>
   <h6>Menu</h6>
   <ul class="nav nav-list">
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> Customers</a></li>
+
     <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
     <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
     <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>

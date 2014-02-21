@@ -6,6 +6,7 @@
     <!-- ../bitex/app/bitex.js -->
     <!-- ../bitex/app/markets.js -->
     <!-- ../bitex/app/satoshi_square.js -->
+    <translation id="2400499506154150669">Customer details</translation>
     <translation id="5743734095470344451">Withdraw</translation>
     <translation id="1665132237497548554">Bitcoin withdrawal</translation>
     <translation id="5287452069436627398">Amount</translation>
@@ -15,6 +16,8 @@
     <!-- ../bitex/app/url_router.js -->
     <!-- ../bitex/fsm/fsm.js -->
     <!-- ../bitex/model/model.js -->
+    <!-- ../bitex/templates/templates.soy.js -->
+    <translation id="4112774560296927039">Username:</translation>
     <!-- ../bitex/ui/account_activity.js -->
     <translation id="6843864912009919805">ID</translation>
     <translation id="1159462222642106601">Side</translation>
@@ -24,6 +27,19 @@
     <translation id="8516168426198762290">Avg. Price</translation>
     <translation id="9144502694009394125">Total</translation>
     <!-- ../bitex/ui/bitex_datagrid.js -->
+    <!-- ../bitex/ui/customers.js -->
+    <translation id="8760059298648880498">ID</translation>
+    <translation id="4133367714099977955">Username</translation>
+    <translation id="1729488863170893175">Verified</translation>
+    <translation id="3491186699363788719">Yes</translation>
+    <translation id="5915224440342247505">No</translation>
+    <translation id="7436020073690507077">Email</translation>
+    <translation id="3276120422247338709">Last seen</translation>
+    <translation id="6933140633350718576">Two step</translation>
+    <translation id="7999894366292936662">Yes</translation>
+    <translation id="7174797153832618058">No</translation>
+    <translation id="2250683114899504658">Actions</translation>
+    <translation id="9029307460728334893">Details</translation>
     <!-- ../bitex/ui/last_trades.js -->
     <!-- ../bitex/ui/order_book.js -->
     <!-- ../bitex/ui/order_entry.js -->

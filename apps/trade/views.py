@@ -81,6 +81,7 @@ def processLogin(session, msg):
       'Skype'              : broker.skype                ,
       'Email'              : broker.email                ,
       'Currencies'         : broker.currencies           ,
+      'VerificationForm'   : broker.verification_jotform ,
       'TosUrl'             : broker.tos_url              ,
       'BoletoFee'          : broker.boleto_fee           ,
       'WithdrawBRLBankFee' : broker.withdraw_brl_bank_fee,
@@ -671,3 +672,72 @@ def processBoletoPaymentConfirmation(session, msg):
   }
   return json.dumps(result, cls=JsonEncoder)
 
+
+@login_required
+@broker_user_required
+def processCustomerListRequest(session, msg):
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  status_list = msg.get('StatusList', [0, 1] )
+  country     = msg.get('Country', None)
+  state       = msg.get('State', None)
+  sort_column = msg.get('Sort', None)
+  sort_order  = msg.get('SortOrder', 'ASC')
+  offset      = page * page_size
+
+  user_list = User.get_list(application.db_session, session.user.id ,status_list, country, state, page_size, offset, sort_column, sort_order)
+
+  result_set = []
+  columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,
+              'Created'         , 'LastLogin'      , 'Verified'          , 'TwoFactorEnabled' ]
+
+  for entity in user_list:
+    result_set.append( [
+      entity.id                   ,
+      entity.username             ,
+      entity.email                ,
+      entity.state                ,
+      entity.country_code         ,
+      entity.created              ,
+      entity.last_login           ,
+      entity.verified             ,
+      entity.two_factor_enabled
+    ])
+
+  response_msg = {
+    'MsgType'           : 'B3',
+    'CustomerListReqID' : msg.get('CustomerListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'CustomerListGrp'   : result_set
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+
+
+@login_required
+@broker_user_required
+def processCustomerDetailRequest(session, msg):
+  client = None
+  if msg.get('ClientID').isdigit():
+    client = User.get_user( application.db_session, user_id= int(msg.get('ClientID') ))
+
+  if not client:
+    client = User.get_user(application.db_session, username= msg.get('ClientID'))
+
+  if not client:
+    client = User.get_user(application.db_session, email= msg.get('ClientID'))
+
+  if not client:
+    return
+
+  if client.broker_id != session.user.id:
+    raise NotAuthorizedError()
+
+  response_msg = {
+    'MsgType'           : 'B5',
+    'CustomerReqID'     : msg.get('CustomerReqID'),
+    'Username'          : client.username
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)

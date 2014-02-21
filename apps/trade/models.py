@@ -179,6 +179,25 @@ class User(Base):
     return None
 
   @staticmethod
+  def get_list(session, broker_id, status_list, country = None, state=None, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+    query = session.query(User).filter(User.verified.in_( status_list ) ).filter_by(broker_id=broker_id)
+    if country:
+      query = query.filter_by( country = country )
+    if state:
+      query = query.filter_by( state = state )
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+    if sort_column:
+      if sort_order == 'ASC':
+        query = query.order(sort_column)
+      else:
+        query = query.order(sort_column).desc()
+    return query
+
+
+  @staticmethod
   def authenticate(session, user, password, second_factor=None):
     user = User.get_user( session, user, user)
 
@@ -467,6 +486,8 @@ class Broker(Base):
   skype                 = Column(String(30),    nullable=False)
   email                 = Column(String(15))
 
+  verification_jotform  = Column(String(50),    nullable=False)
+
   currencies            = Column(String(255),   nullable=False)
   tos_url               = Column(String(255),   nullable=False)
 
@@ -481,6 +502,9 @@ class Broker(Base):
 
   status                = Column(String(1),     nullable=False, default='0', index=True)
   ranking               = Column(Integer,       nullable=False, default=0, index=True)
+
+
+
 
   @staticmethod
   def get_broker(session, broker_id):
@@ -501,13 +525,13 @@ class Broker(Base):
   def __repr__(self):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
            u"address=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
-           u"currencies=%r, tos_url=%r, " \
+           u"verification_jotform=%r, currencies=%r, tos_url=%r, " \
            u"boleto_fee=%r ,withdraw_brl_bank_fee=%r,withdraw_wallet_fee=%r,withdraw_swift_fee=%r,withdraw_ach_fee=%r," \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
-      self.currencies, self.tos_url,
+      self.verification_jotform, self.currencies, self.tos_url,
       self.boleto_fee, self.withdraw_brl_bank_fee, self.withdraw_wallet_fee, self.withdraw_swift_fee, self.withdraw_ach_fee,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking )
@@ -1201,6 +1225,7 @@ def db_bootstrap(session):
     e = Broker(id=0, short_name=u'None', business_name=u'None',
                address=u'', state=u'', zip_code=u'', country='', country_code='',
                phone_number_1='+1 (917) 753-1359', phone_number_2=None, skype='blinktrade', email=None,
+               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
                currencies='BTC', tos_url=u'http://bitex.com.br/tos/bitex/',
                boleto_fee=None ,withdraw_brl_bank_fee=None,withdraw_wallet_fee=None,withdraw_swift_fee=None,
                withdraw_ach_fee=None,transaction_fee_buy=None,transaction_fee_sell=None, status=u'1', ranking=0)
@@ -1211,6 +1236,7 @@ def db_bootstrap(session):
     e = Broker(id=9000001, short_name=u'NyBitcoinCenter', business_name=u'Bitcoin Center NYC',
                address=u'40 Broad Street', state=u'NY', zip_code=u'10004', country_code='US', country='United States',
                phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='nycbitcoincenter', email='NYCBitcoinCenter@gmail.com',
+               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
                currencies='USD', tos_url=u'http://nycbitcoincenter.com/tos/bitex/',
                boleto_fee=None ,withdraw_brl_bank_fee=None,withdraw_wallet_fee=None,withdraw_swift_fee=None,
                withdraw_ach_fee=None,transaction_fee_buy=None,transaction_fee_sell=None, status=u'1', ranking=1)

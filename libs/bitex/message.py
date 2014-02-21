@@ -145,6 +145,10 @@ class JsonMessage(BaseMessage):
       # Broker messages
       'B0':  'BoletoPaymentConfirmationRequest',
       'B1':  'BoletoPaymentConfirmationResponse',
+      'B2':  'CustomerListRequest',
+      'B3':  'CustomerListResponse',
+      'B4':  'CustomerRequest',
+      'B5':  'CustomerResponse',
 
       # System messages
       'S0':  'BitcoinNewAddressRequest',
@@ -379,6 +383,18 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_a_integer('Amount')
       self.raise_exception_if_not_greater_than_zero('Amount')
 
+    elif self.type == 'B2': # Customer List Request
+      self.raise_exception_if_required_tag_is_missing('CustomerListReqID')
+      self.raise_exception_if_empty('CustomerListReqID')
+
+      pass
+    elif self.type == 'B3': # Customer List Response
+      pass
+
+    elif self.type == 'B4': # Customer Request
+      pass
+    elif self.type == 'B5': # Customer Response
+      pass
 
     elif self.type == 'S0': # Bitcoin New Address
       self.raise_exception_if_required_tag_is_missing('BtcAddress')

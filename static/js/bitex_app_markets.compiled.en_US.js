@@ -2827,6 +2827,12 @@ $JSCompiler_prototypeAlias$$.$onMessage_$ = function $$JSCompiler_prototypeAlias
     case "U29":
       this.dispatchEvent(new $bitex$api$BitExEvent$$("broker_list", $e$$53_msg$$));
       break;
+    case "B3":
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("customer_list", $e$$53_msg$$));
+      break;
+    case "B5":
+      this.dispatchEvent(new $bitex$api$BitExEvent$$("customer_detail", $e$$53_msg$$));
+      break;
     case "W":
       if(1 != $e$$53_msg$$.MarketDepth) {
         var $has_cleared_trade$$ = $JSCompiler_alias_FALSE$$, $has_cleared_book$$ = $JSCompiler_alias_FALSE$$, $x$$66$$;
@@ -2929,6 +2935,21 @@ $JSCompiler_prototypeAlias$$.$requestBrokerList$ = function $$JSCompiler_prototy
   this.$ws_$.send(JSON.stringify($msg$$9_opt_page$$1$$));
   return $opt_requestId$$1_requestId$$1$$
 };
+$JSCompiler_prototypeAlias$$.$requestCustomerList$ = function $$JSCompiler_prototypeAlias$$$$requestCustomerList$$($opt_requestId$$2_requestId$$2$$, $opt_country$$1$$, $opt_state$$1$$, $msg$$10_opt_page$$2$$, $opt_limit$$3$$, $opt_status$$2$$, $opt_sort_column$$, $opt_sort_direction$$) {
+  $opt_requestId$$2_requestId$$2$$ = $opt_requestId$$2_requestId$$2$$ || parseInt(1E7 * Math.random(), 10);
+  $msg$$10_opt_page$$2$$ = {MsgType:"B2", CustomerListReqID:$opt_requestId$$2_requestId$$2$$, Page:$msg$$10_opt_page$$2$$ || 0, PageSize:$opt_limit$$3$$ || 100, StatusList:$opt_status$$2$$ || [0, 1]};
+  $opt_country$$1$$ != $JSCompiler_alias_NULL$$ && ($msg$$10_opt_page$$2$$.Country = $opt_country$$1$$);
+  $opt_state$$1$$ != $JSCompiler_alias_NULL$$ && ($msg$$10_opt_page$$2$$.State = $opt_state$$1$$);
+  $opt_sort_column$$ != $JSCompiler_alias_NULL$$ && ($msg$$10_opt_page$$2$$.Sort = $opt_sort_column$$);
+  $opt_sort_direction$$ != $JSCompiler_alias_NULL$$ && ($msg$$10_opt_page$$2$$.SortOrder = $opt_sort_direction$$);
+  this.$ws_$.send(JSON.stringify($msg$$10_opt_page$$2$$));
+  return $opt_requestId$$2_requestId$$2$$
+};
+$JSCompiler_prototypeAlias$$.$requestCustomerDetails$ = function $$JSCompiler_prototypeAlias$$$$requestCustomerDetails$$($clientId$$) {
+  var $requestId$$3$$ = parseInt(1E7 * Math.random(), 10);
+  this.$ws_$.send(JSON.stringify({MsgType:"B4", CustomerReqID:$requestId$$3$$, ClientID:$clientId$$}));
+  return $requestId$$3$$
+};
 $JSCompiler_prototypeAlias$$.$resetPassword$ = function $$JSCompiler_prototypeAlias$$$$resetPassword$$($token$$4$$, $new_password$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"U12", Token:$token$$4$$, NewPassword:$new_password$$}))
 };
@@ -2943,33 +2964,33 @@ $JSCompiler_prototypeAlias$$.$subscribeMarketData$ = function $$JSCompiler_proto
 $JSCompiler_prototypeAlias$$.$unSubscribeMarketData$ = function $$JSCompiler_prototypeAlias$$$$unSubscribeMarketData$$($market_data_id$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"V", MDReqID:$market_data_id$$, MarketDepth:0, SubscriptionRequestType:"2"}))
 };
-$JSCompiler_prototypeAlias$$.$requestSecurityList$ = function $$JSCompiler_prototypeAlias$$$$requestSecurityList$$($opt_requestId$$2$$) {
-  this.$ws_$.send(JSON.stringify({MsgType:"x", SecurityReqID:$opt_requestId$$2$$ || parseInt(1E7 * Math.random(), 10), SecurityListRequestType:0, SecurityRequestResult:0}))
+$JSCompiler_prototypeAlias$$.$requestSecurityList$ = function $$JSCompiler_prototypeAlias$$$$requestSecurityList$$($opt_requestId$$3$$) {
+  this.$ws_$.send(JSON.stringify({MsgType:"x", SecurityReqID:$opt_requestId$$3$$ || parseInt(1E7 * Math.random(), 10), SecurityListRequestType:0, SecurityRequestResult:0}))
 };
 $JSCompiler_prototypeAlias$$.$signUp$ = function $$JSCompiler_prototypeAlias$$$$signUp$$($username$$3$$, $password$$2$$, $email$$1$$, $state$$18$$, $country_code$$, $broker$$1$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"U0", Username:$username$$3$$, Password:$password$$2$$, Email:$email$$1$$, State:$state$$18$$, CountryCode:$country_code$$, BrokerID:$broker$$1$$}))
 };
-$JSCompiler_prototypeAlias$$.$requestOrderList$ = function $$JSCompiler_prototypeAlias$$$$requestOrderList$$($opt_requestId$$3_requestId$$3$$, $opt_page$$2$$, $opt_limit$$3$$, $opt_status$$2$$) {
-  $opt_requestId$$3_requestId$$3$$ = $opt_requestId$$3_requestId$$3$$ || parseInt(1E7 * Math.random(), 10);
-  this.$ws_$.send(JSON.stringify({MsgType:"U4", OrdersReqID:$opt_requestId$$3_requestId$$3$$, Page:$opt_page$$2$$ || 0, PageSize:$opt_limit$$3$$ || 100, StatusList:$opt_status$$2$$ || ["0", "1"]}));
-  return $opt_requestId$$3_requestId$$3$$
+$JSCompiler_prototypeAlias$$.$requestOrderList$ = function $$JSCompiler_prototypeAlias$$$$requestOrderList$$($opt_requestId$$4_requestId$$5$$, $opt_page$$3$$, $opt_limit$$4$$, $opt_status$$3$$) {
+  $opt_requestId$$4_requestId$$5$$ = $opt_requestId$$4_requestId$$5$$ || parseInt(1E7 * Math.random(), 10);
+  this.$ws_$.send(JSON.stringify({MsgType:"U4", OrdersReqID:$opt_requestId$$4_requestId$$5$$, Page:$opt_page$$3$$ || 0, PageSize:$opt_limit$$4$$ || 100, StatusList:$opt_status$$3$$ || ["0", "1"]}));
+  return $opt_requestId$$4_requestId$$5$$
 };
-function $JSCompiler_StaticMethods_sendOrder_$$($JSCompiler_StaticMethods_sendOrder_$self$$, $msg$$19_symbol$$2$$, $qty$$2$$, $price$$2$$, $side$$2$$, $opt_client_id$$, $clientOrderId_opt_clientOrderId$$) {
+function $JSCompiler_StaticMethods_sendOrder_$$($JSCompiler_StaticMethods_sendOrder_$self$$, $msg$$21_symbol$$2$$, $qty$$2$$, $price$$2$$, $side$$2$$, $opt_client_id$$, $clientOrderId_opt_clientOrderId$$) {
   $clientOrderId_opt_clientOrderId$$ = $clientOrderId_opt_clientOrderId$$ || parseInt(1E7 * Math.random(), 10);
   $price$$2$$ = parseInt(1E8 * $price$$2$$, 10);
   $qty$$2$$ = parseInt(1E8 * $qty$$2$$, 10);
-  $msg$$19_symbol$$2$$ = {MsgType:"D", ClOrdID:"" + $clientOrderId_opt_clientOrderId$$, Symbol:$msg$$19_symbol$$2$$, Side:$side$$2$$, OrdType:"2", Price:$price$$2$$, OrderQty:$qty$$2$$};
-  $opt_client_id$$ != $JSCompiler_alias_NULL$$ && ($msg$$19_symbol$$2$$.ClientID = $opt_client_id$$);
-  $JSCompiler_StaticMethods_sendOrder_$self$$.$ws_$.send(JSON.stringify($msg$$19_symbol$$2$$));
+  $msg$$21_symbol$$2$$ = {MsgType:"D", ClOrdID:"" + $clientOrderId_opt_clientOrderId$$, Symbol:$msg$$21_symbol$$2$$, Side:$side$$2$$, OrdType:"2", Price:$price$$2$$, OrderQty:$qty$$2$$};
+  $opt_client_id$$ != $JSCompiler_alias_NULL$$ && ($msg$$21_symbol$$2$$.ClientID = $opt_client_id$$);
+  $JSCompiler_StaticMethods_sendOrder_$self$$.$ws_$.send(JSON.stringify($msg$$21_symbol$$2$$));
   return $clientOrderId_opt_clientOrderId$$
 }
 $JSCompiler_prototypeAlias$$.$cancelOrder$ = function $$JSCompiler_prototypeAlias$$$$cancelOrder$$($opt_clientOrderId$$1$$, $opt_OrderId$$) {
-  var $msg$$20$$ = {MsgType:"F"};
-  $opt_OrderId$$ ? $msg$$20$$.OrderID = $opt_OrderId$$ : $opt_clientOrderId$$1$$ && ($msg$$20$$.OrigClOrdID = $opt_clientOrderId$$1$$);
-  this.$ws_$.send(JSON.stringify($msg$$20$$))
+  var $msg$$22$$ = {MsgType:"F"};
+  $opt_OrderId$$ ? $msg$$22$$.OrderID = $opt_OrderId$$ : $opt_clientOrderId$$1$$ && ($msg$$22$$.OrigClOrdID = $opt_clientOrderId$$1$$);
+  this.$ws_$.send(JSON.stringify($msg$$22$$))
 };
-$JSCompiler_prototypeAlias$$.$sendRawMessage$ = function $$JSCompiler_prototypeAlias$$$$sendRawMessage$$($msg$$21$$) {
-  this.$ws_$.send(JSON.stringify($msg$$21$$))
+$JSCompiler_prototypeAlias$$.$sendRawMessage$ = function $$JSCompiler_prototypeAlias$$$$sendRawMessage$$($msg$$23$$) {
+  this.$ws_$.send(JSON.stringify($msg$$23$$))
 };
 $JSCompiler_prototypeAlias$$.$sendBuyLimitedOrder$ = function $$JSCompiler_prototypeAlias$$$$sendBuyLimitedOrder$$($symbol$$3$$, $qty$$3$$, $price$$3$$, $opt_client_id$$1$$, $opt_clientOrderId$$2$$) {
   return $JSCompiler_StaticMethods_sendOrder_$$(this, $symbol$$3$$, $qty$$3$$, $price$$3$$, "1", $opt_client_id$$1$$, $opt_clientOrderId$$2$$)
@@ -3000,6 +3021,8 @@ $goog$exportProperty$$("forgotPassword", $bitex$api$BitEx$$.prototype.$forgotPas
 $goog$exportProperty$$("requestBalances", $bitex$api$BitEx$$.prototype.$requestBalances$);
 $goog$exportProperty$$("withdrawCryptoCoin", $bitex$api$BitEx$$.prototype.$withdrawCryptoCoin$);
 $goog$exportProperty$$("requestWithdrawList", $bitex$api$BitEx$$.prototype.$requestWithdrawList$);
+$goog$exportProperty$$("requestCustomerList", $bitex$api$BitEx$$.prototype.$requestCustomerList$);
+$goog$exportProperty$$("requestCustomerDetails", $bitex$api$BitEx$$.prototype.$requestCustomerDetails$);
 $goog$exportProperty$$("requestBrokerList", $bitex$api$BitEx$$.prototype.$requestBrokerList$);
 $goog$exportProperty$$("confirmWithdraw", $bitex$api$BitEx$$.prototype.$confirmWithdraw$);
 $goog$exportProperty$$("enableTwoFactor", $bitex$api$BitEx$$.prototype.$enableTwoFactor$);
@@ -3689,13 +3712,13 @@ $goog$exportPath_$$("bitex.app.markets", function($url$$31$$) {
     $goog$dom$classes$add$$(document.body, "ws-connected");
     $bitEx$$.$requestSecurityList$()
   });
-  $bitEx$$.addEventListener("security_list", function($e$$79_msg$$24$$) {
-    $e$$79_msg$$24$$ = $e$$79_msg$$24$$.data;
-    $goog$array$forEach$$($e$$79_msg$$24$$.Currencies, function($currency$$2$$) {
+  $bitEx$$.addEventListener("security_list", function($e$$79_msg$$26$$) {
+    $e$$79_msg$$26$$ = $e$$79_msg$$26$$.data;
+    $goog$array$forEach$$($e$$79_msg$$26$$.Currencies, function($currency$$2$$) {
       $currency_info$$[$currency$$2$$.Code] = {code:$currency$$2$$.Code, $format$:$currency$$2$$.FormatJS, description:$currency$$2$$.Description, $sign$:$currency$$2$$.Sign, $pip$:$currency$$2$$.Pip, $is_crypto$:$currency$$2$$.IsCrypto}
     });
     var $symbols$$1$$ = [];
-    $goog$array$forEach$$($e$$79_msg$$24$$.Instruments, function($el$$46_instrument$$) {
+    $goog$array$forEach$$($e$$79_msg$$26$$.Instruments, function($el$$46_instrument$$) {
       var $symbol$$5$$ = $el$$46_instrument$$.Symbol;
       $symbols$$1$$.push($symbol$$5$$);
       $el$$46_instrument$$ = $goog$dom$createDom$$("option", {value:$symbol$$5$$}, $el$$46_instrument$$.Description);
@@ -3723,16 +3746,16 @@ $goog$exportPath_$$("bitex.app.markets", function($url$$31$$) {
   $bitEx$$.addEventListener("trade_clear", function() {
     $last_trades$$.clear()
   });
-  $bitEx$$.addEventListener("trade", function($e$$83_msg$$25$$) {
-    $e$$83_msg$$25$$ = $e$$83_msg$$25$$.data;
-    var $size$$15$$ = $e$$83_msg$$25$$.MDEntrySize / 1E8, $symbol$$7$$ = $e$$83_msg$$25$$.Symbol, $size_currency$$ = $symbol$$7$$.substr(0, 3);
-    $JSCompiler_StaticMethods_publishTrade$$($last_trades$$, $e$$83_msg$$25$$.MDEntryDate, $e$$83_msg$$25$$.MDEntryTime, $e$$83_msg$$25$$.Side, $format_currency$$($e$$83_msg$$25$$.MDEntryPx / 1E8, $symbol$$7$$.substr(3, 3)), $format_currency$$($size$$15$$, $size_currency$$), $e$$83_msg$$25$$.MDEntryBuyer, $e$$83_msg$$25$$.MDEntrySeller)
+  $bitEx$$.addEventListener("trade", function($e$$83_msg$$27$$) {
+    $e$$83_msg$$27$$ = $e$$83_msg$$27$$.data;
+    var $size$$15$$ = $e$$83_msg$$27$$.MDEntrySize / 1E8, $symbol$$7$$ = $e$$83_msg$$27$$.Symbol, $size_currency$$ = $symbol$$7$$.substr(0, 3);
+    $JSCompiler_StaticMethods_publishTrade$$($last_trades$$, $e$$83_msg$$27$$.MDEntryDate, $e$$83_msg$$27$$.MDEntryTime, $e$$83_msg$$27$$.Side, $format_currency$$($e$$83_msg$$27$$.MDEntryPx / 1E8, $symbol$$7$$.substr(3, 3)), $format_currency$$($size$$15$$, $size_currency$$), $e$$83_msg$$27$$.MDEntryBuyer, $e$$83_msg$$27$$.MDEntrySeller)
   });
   $bitEx$$.addEventListener("md_status", function($e$$84$$) {
     try {
-      var $msg$$26$$ = $e$$84$$.data;
-      delete $msg$$26$$.MDEntryType;
-      $goog$object$forEach$$($msg$$26$$, function($volume$$, $currency$$3$$) {
+      var $msg$$28$$ = $e$$84$$.data;
+      delete $msg$$28$$.MDEntryType;
+      $goog$object$forEach$$($msg$$28$$, function($volume$$, $currency$$3$$) {
         $volume$$ /= 1E8;
         var $volume_key$$ = "volume_" + $currency$$3$$.toLowerCase();
         $model$$.set($volume_key$$, $volume$$);
@@ -3746,28 +3769,28 @@ $goog$exportPath_$$("bitex.app.markets", function($url$$31$$) {
     $order_book_offer$$.clear()
   });
   $bitEx$$.addEventListener("ob_delete_orders_thru", function($e$$86_index$$65$$) {
-    var $msg$$27_side$$3$$ = $e$$86_index$$65$$.data;
-    $e$$86_index$$65$$ = $msg$$27_side$$3$$.MDEntryPositionNo;
-    $msg$$27_side$$3$$ = $msg$$27_side$$3$$.MDEntryType;
-    "0" == $msg$$27_side$$3$$ ? $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_bid$$, $e$$86_index$$65$$) : "1" == $msg$$27_side$$3$$ && $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_offer$$, $e$$86_index$$65$$)
+    var $msg$$29_side$$3$$ = $e$$86_index$$65$$.data;
+    $e$$86_index$$65$$ = $msg$$29_side$$3$$.MDEntryPositionNo;
+    $msg$$29_side$$3$$ = $msg$$29_side$$3$$.MDEntryType;
+    "0" == $msg$$29_side$$3$$ ? $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_bid$$, $e$$86_index$$65$$) : "1" == $msg$$29_side$$3$$ && $JSCompiler_StaticMethods_deleteOrderThru$$($order_book_offer$$, $e$$86_index$$65$$)
   });
   $bitEx$$.addEventListener("ob_delete_order", function($e$$87_index$$66$$) {
-    var $msg$$28_side$$4$$ = $e$$87_index$$66$$.data;
-    $e$$87_index$$66$$ = $msg$$28_side$$4$$.MDEntryPositionNo - 1;
-    $msg$$28_side$$4$$ = $msg$$28_side$$4$$.MDEntryType;
-    "0" == $msg$$28_side$$4$$ ? $JSCompiler_StaticMethods_deleteOrder$$($order_book_bid$$, $e$$87_index$$66$$) : "1" == $msg$$28_side$$4$$ && $JSCompiler_StaticMethods_deleteOrder$$($order_book_offer$$, $e$$87_index$$66$$)
+    var $msg$$30_side$$4$$ = $e$$87_index$$66$$.data;
+    $e$$87_index$$66$$ = $msg$$30_side$$4$$.MDEntryPositionNo - 1;
+    $msg$$30_side$$4$$ = $msg$$30_side$$4$$.MDEntryType;
+    "0" == $msg$$30_side$$4$$ ? $JSCompiler_StaticMethods_deleteOrder$$($order_book_bid$$, $e$$87_index$$66$$) : "1" == $msg$$30_side$$4$$ && $JSCompiler_StaticMethods_deleteOrder$$($order_book_offer$$, $e$$87_index$$66$$)
   });
   $bitEx$$.addEventListener("ob_update_order", function($e$$88_index$$67$$) {
-    var $msg$$29_side$$5$$ = $e$$88_index$$67$$.data;
-    $e$$88_index$$67$$ = $msg$$29_side$$5$$.MDEntryPositionNo - 1;
-    var $qty$$5$$ = $msg$$29_side$$5$$.MDEntrySize / 1E8, $msg$$29_side$$5$$ = $msg$$29_side$$5$$.MDEntryType;
-    "0" == $msg$$29_side$$5$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$88_index$$67$$, $qty$$5$$) : "1" == $msg$$29_side$$5$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$88_index$$67$$, $qty$$5$$)
+    var $msg$$31_side$$5$$ = $e$$88_index$$67$$.data;
+    $e$$88_index$$67$$ = $msg$$31_side$$5$$.MDEntryPositionNo - 1;
+    var $qty$$5$$ = $msg$$31_side$$5$$.MDEntrySize / 1E8, $msg$$31_side$$5$$ = $msg$$31_side$$5$$.MDEntryType;
+    "0" == $msg$$31_side$$5$$ ? $JSCompiler_StaticMethods_updateOrder$$($order_book_bid$$, $e$$88_index$$67$$, $qty$$5$$) : "1" == $msg$$31_side$$5$$ && $JSCompiler_StaticMethods_updateOrder$$($order_book_offer$$, $e$$88_index$$67$$, $qty$$5$$)
   });
   $bitEx$$.addEventListener("ob_new_order", function($e$$89_symbol$$8$$) {
-    var $msg$$30_side$$6$$ = $e$$89_symbol$$8$$.data;
-    $e$$89_symbol$$8$$ = $msg$$30_side$$6$$.Symbol;
-    var $index$$68$$ = $msg$$30_side$$6$$.MDEntryPositionNo - 1, $price$$6$$ = $msg$$30_side$$6$$.MDEntryPx / 1E8, $qty$$6$$ = $msg$$30_side$$6$$.MDEntrySize / 1E8, $username$$4$$ = $msg$$30_side$$6$$.Username, $broker$$2$$ = $msg$$30_side$$6$$.Broker, $orderId$$2$$ = $msg$$30_side$$6$$.OrderID, $msg$$30_side$$6$$ = $msg$$30_side$$6$$.MDEntryType;
-    "0" == $msg$$30_side$$6$$ ? (0 === $index$$68$$ && $model$$.set("formatted_best_bid_brl", $format_currency$$($price$$6$$, $e$$89_symbol$$8$$.substr(3, 3))), $JSCompiler_StaticMethods_insertOrder$$($order_book_bid$$, $index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$, $broker$$2$$)) : "1" == $msg$$30_side$$6$$ && (0 === $index$$68$$ && $model$$.set("formatted_best_offer_brl", $format_currency$$($price$$6$$, $e$$89_symbol$$8$$.substr(3, 3))), $JSCompiler_StaticMethods_insertOrder$$($order_book_offer$$, 
+    var $msg$$32_side$$6$$ = $e$$89_symbol$$8$$.data;
+    $e$$89_symbol$$8$$ = $msg$$32_side$$6$$.Symbol;
+    var $index$$68$$ = $msg$$32_side$$6$$.MDEntryPositionNo - 1, $price$$6$$ = $msg$$32_side$$6$$.MDEntryPx / 1E8, $qty$$6$$ = $msg$$32_side$$6$$.MDEntrySize / 1E8, $username$$4$$ = $msg$$32_side$$6$$.Username, $broker$$2$$ = $msg$$32_side$$6$$.Broker, $orderId$$2$$ = $msg$$32_side$$6$$.OrderID, $msg$$32_side$$6$$ = $msg$$32_side$$6$$.MDEntryType;
+    "0" == $msg$$32_side$$6$$ ? (0 === $index$$68$$ && $model$$.set("formatted_best_bid_brl", $format_currency$$($price$$6$$, $e$$89_symbol$$8$$.substr(3, 3))), $JSCompiler_StaticMethods_insertOrder$$($order_book_bid$$, $index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$, $broker$$2$$)) : "1" == $msg$$32_side$$6$$ && (0 === $index$$68$$ && $model$$.set("formatted_best_offer_brl", $format_currency$$($price$$6$$, $e$$89_symbol$$8$$.substr(3, 3))), $JSCompiler_StaticMethods_insertOrder$$($order_book_offer$$, 
     $index$$68$$, $orderId$$2$$, $price$$6$$, $qty$$6$$, $username$$4$$, $broker$$2$$))
   });
   $bitEx$$.addEventListener("error", function() {

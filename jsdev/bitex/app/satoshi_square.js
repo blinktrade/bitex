@@ -3,6 +3,9 @@ goog.provide('bitex.app.satoshi_square');
 goog.require('bitex.util');
 goog.require('bitex.api.BitEx');
 
+goog.require('goog.soy');
+goog.require('bitex.templates');
+
 goog.require('bitex.ui.OrderBook');
 goog.require('bitex.ui.OrderBook.Side');
 
@@ -19,6 +22,9 @@ goog.require('bitex.ui.OrderBookEvent');
 goog.require('bitex.ui.OrderManager');
 goog.require('bitex.ui.AccountActivity');
 goog.require('bitex.ui.WithdrawList');
+
+goog.require('bitex.ui.Customers');
+
 
 goog.require('goog.events');
 goog.require('goog.dom.forms');
@@ -51,6 +57,7 @@ bitex.app.satoshi_square = function( url ) {
   var account_activity_table = null;
 
   var withdraw_list_table = null;
+  var customers_table = null;
 
   var brokers_by_country = {};
   var currency_info = {};
@@ -89,6 +96,7 @@ bitex.app.satoshi_square = function( url ) {
 
   buy_order_entry.decorate( goog.dom.getElement('id_order_entry_buy') );
   sell_order_entry.decorate( goog.dom.getElement('id_order_entry_sell') );
+
 
   try{
     bitEx.open(url);
@@ -425,8 +433,15 @@ bitex.app.satoshi_square = function( url ) {
       return;
     }
 
+    var broker = model.get('Broker');
+    if (!goog.isDefAndNotNull(broker)){
+      return;
+    }
 
-    var form_src = '/account_verification/?user_id=' + model.get('UserID') + "&username="  + model.get('Username');
+    var verification_form_url =  broker['VerificationForm'];
+    var form_src = goog.string.subs(verification_form_url, model.get('UserID'), model.get('Username'), model.get('Email'));
+
+
 
     var verificationIFrameForm = goog.dom.getElement("JotFormIFrame");
 
@@ -435,6 +450,61 @@ bitex.app.satoshi_square = function( url ) {
     }
   });
 
+
+  // 'customers' view
+  router.addEventListener(bitex.app.UrlRouter.EventType.SET_VIEW, function(e) {
+    var view_name = e.view;
+    if (view_name !== 'customers' || !bitEx.isLogged() ) {
+      return;
+    }
+
+    if (! goog.isDefAndNotNull(customers_table)) {
+      customers_table = new bitex.ui.Customers();
+      customers_table.decorate(goog.dom.getElement('id_customer_table'));
+
+      customers_table.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,function(e) {
+        var page = e.options['Page'];
+        var limit = e.options['Limit'];
+        bitEx.requestCustomerList('customers', undefined, undefined, page, limit, [0,1]);
+      });
+
+      bitEx.addEventListener(bitex.api.BitEx.EventType.CUSTOMER_LIST_RESPONSE,  function(e) {
+        var msg = e.data;
+        customers_table.setResultSet( msg['CustomerListGrp'], msg['Columns'] );
+      });
+      bitEx.requestCustomerList('customers', undefined, undefined, 0, 100, [0,1]);
+
+      customers_table.addEventListener( bitex.ui.Customers.EventType.DETAIL, function(e){
+        var user_id = e.user_id;
+
+        bitEx.requestCustomerDetails(user_id);
+      });
+    }
+
+  });
+
+  var customerDetailDialog;
+  bitEx.addEventListener(bitex.api.BitEx.EventType.CUSTOMER_DETAIL_RESPONSE, function(e){
+    var msg = e.data;
+
+    if (goog.isDefAndNotNull(customerDetailDialog)) {
+      customerDetailDialog.dispose();
+    }
+
+    var dlg_content = bitex.templates.CustomerDetailDialog({ username: msg['Username'] });
+
+    /**
+     * @desc Customer dialog title
+     */
+    var MSG_CUSTOMER_DIALOG_TITLE = goog.getMsg('Customer details');
+
+    customerDetailDialog = new bootstrap.Dialog();
+    customerDetailDialog.setTitle( MSG_CUSTOMER_DIALOG_TITLE );
+    customerDetailDialog.setContent(dlg_content);
+    customerDetailDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+    customerDetailDialog.setVisible(true);
+
+  });
 
   /**
    * @param {string} symbol

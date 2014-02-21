@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#############################################
+# compile soy templates
+#############################################
+java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
+  --shouldProvideRequireSoyNamespaces --codeStyle concat --cssHandlingScheme GOOG  \
+  --outputPathFormat  './bitex/templates/{INPUT_FILE_NAME_NO_EXT}.soy.js' \
+  ./bitex/templates/templates.soy
+
+
 # compile all applications
 
 # enable those flags to debug the compiled code.
