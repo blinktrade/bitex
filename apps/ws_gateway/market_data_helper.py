@@ -272,7 +272,7 @@ class MarketDataPublisher(object):
       self.entry_list_order_depth = []
 
 
-def generate_md_full_refresh( symbol, market_depth, entries  ):
+def generate_md_full_refresh( symbol, market_depth, entries, req_id  ):
   entry_list = []
   om = MarketDataSubscriber.get(symbol)
 
@@ -340,6 +340,7 @@ def generate_md_full_refresh( symbol, market_depth, entries  ):
 
   md = {
     "MsgType":"W",
+    "MDReqID": req_id,
     "MarketDepth": market_depth,
     "Symbol": symbol,
     "MDFullGrp": entry_list

@@ -18,6 +18,24 @@
     <!-- ../bitex/model/model.js -->
     <!-- ../bitex/templates/templates.soy.js -->
     <translation id="4112774560296927039">Username:</translation>
+    <translation id="8476044854846017210">Sua conta</translation>
+    <translation id="5269852189982841932">ID:</translation>
+    <translation id="4112774560296927039">Username:</translation>
+    <translation id="5266381457013872080">Email:</translation>
+    <translation id="8953563663849525614">Estado:</translation>
+    <translation id="2646089907833131171">País:</translation>
+    <translation id="5280057048043671215">Último login:</translation>
+    <translation id="4524398387235517729">É verificado:</translation>
+    <translation id="2321644747725362534">Habilitou autenticação em 2 passos:</translation>
+    <translation id="5490255410712407814">Data de registro:</translation>
+    <translation id="199016394919963544">Quantidade:</translation>
+    <translation id="4670462076425028517">Preço por </translation>
+    <translation id="2836929569038606269">Total:</translation>
+    <translation id="8914746547850879819">Taxa (opicional):</translation>
+    <translation id="403362466876676198">Cód. do Cliente</translation>
+    <translation id="8282725871353943578">COMPRAR</translation>
+    <translation id="798662724377115710">VENDER</translation>
+
     <!-- ../bitex/ui/account_activity.js -->
     <translation id="6843864912009919805">ID</translation>
     <translation id="1159462222642106601">Compra/Venda</translation>

@@ -242,41 +242,41 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
-        var has_cleared_trade = false;
-        var has_cleared_book = false;
-        
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR + '.' + msg['MDReqID']) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR + '.' + msg['MDReqID']) );
+
         for ( var x in msg['MDFullGrp']) {
           var entry = msg['MDFullGrp'][x];
+          entry['MDReqID'] = msg['MDReqID'];
 
           switch (entry['MDEntryType']) {
             case '0': // Bid
             case '1': // Offer
-              if (!has_cleared_book) {
-                has_cleared_book = true;
-                this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR) );
-              }
               entry['Symbol'] = msg['Symbol'];
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, entry) );
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER + '.' + msg['MDReqID'], entry) );
               break;
             case '2': // Trade
-              if (!has_cleared_trade) {
-                has_cleared_trade = true;
-                this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR) );
-              }
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE, entry) );
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE + '.' + msg['MDReqID'], entry) );
               break;
             case '4': // Trading Session Status
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, entry) );
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADING_SESSION_STATUS + '.' + msg['MDReqID'], entry) );
               break;
           }
         }
       }
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.MARKET_DATA_FULL_REFRESH, msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.MARKET_DATA_FULL_REFRESH + '.' + msg['MDReqID'], msg) );
       break;
     case 'X':
       if (msg['MDBkTyp'] == '3') {  // Order Depth
         for ( var x in msg['MDIncGrp']) {
           var entry = msg['MDIncGrp'][x];
+          entry['MDReqID'] = msg['MDReqID'];
 
           switch (entry['MDEntryType']) {
             case '0': // Bid
@@ -284,34 +284,41 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
               switch( entry['MDUpdateAction'] ) {
                 case '0':
                   this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, entry) );
+                  this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER + '.' + msg['MDReqID'], entry) );
                   break;
                 case '1':
                   this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_UPDATE_ORDER, entry) );
+                  this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_UPDATE_ORDER + '.' + msg['MDReqID'], entry) );
                   break;
                 case '2':
                   this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDER, entry) );
+                  this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDER + '.' + msg['MDReqID'], entry) );
                   break;
                 case '3':
                   this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU, entry) );
+                  this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU + '.' + msg['MDReqID'], entry) );
                   break;
               }
               break;
             case '2': // Trade
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE, entry) );
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE + '.' + msg['MDReqID'], entry) );
               break;
             case '4': // Trading Session Status
               this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, entry) );
+              this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADING_SESSION_STATUS + '.' + msg['MDReqID'], entry) );
               break;
-
           }
         }
       } else {
         // TODO:  Top of the book handling.
       }
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.MARKET_DATA_INCREMENTAL_REFRESH, msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.MARKET_DATA_INCREMENTAL_REFRESH + '.' + msg['MDReqID'], msg) );
       break;
     case 'Y':
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.MARKET_DATA_REQUEST_REJECT, msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.MARKET_DATA_REQUEST_REJECT + '.' + msg['MDReqID'], msg) );
       break;
 
     case '8':  //Execution Report
@@ -352,8 +359,9 @@ bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor
  * @param {boolean} enable
  * @param {string=} opt_secret
  * @param {string=} opt_code
+ * @param {number=} opt_clientID
  */
-bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_code){
+bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_code, opt_clientID){
   var msg = {
     'MsgType': 'U16',
     'Enable': enable
@@ -364,6 +372,10 @@ bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_cod
 
   if (goog.isDefAndNotNull(opt_code) && !goog.string.isEmpty(opt_code) ) {
     msg['Code'] = opt_code;
+  }
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID))  {
+    msg['ClientID'] = opt_clientID;
   }
 
   this.ws_.send(JSON.stringify( msg ));
@@ -381,16 +393,23 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
   this.ws_.send(JSON.stringify( msg ));
 };
 
-
-bitex.api.BitEx.prototype.requestBalances = function() {
+/**
+ * @param {number=} opt_clientID
+ */
+bitex.api.BitEx.prototype.requestBalances = function(opt_clientID) {
   var reqId = parseInt(Math.random() * 1000000, 10);
 
   var msg = {
     'MsgType': 'U2',
     'BalanceReqID': reqId
   };
-  this.ws_.send(JSON.stringify( msg ));
 
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID))  {
+    msg['ClientID'] = opt_clientID;
+  }
+
+
+  this.ws_.send(JSON.stringify( msg ));
 };
 
 /**
@@ -455,8 +474,9 @@ bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
  * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
+ * @param {number=} opt_clientID
  */
-bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status){
+bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status, opt_clientID){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
@@ -469,6 +489,11 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
     'PageSize': limit,
     'StatusList': status
   };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
+    msg['ClientID'] = opt_clientID;
+  }
+
   this.ws_.send(JSON.stringify( msg ));
 
   return requestId;
@@ -594,13 +619,15 @@ bitex.api.BitEx.prototype.changePassword = function(password, new_password ){
  * @param {number} market_depth
  * @param {Array.<string>} symbols
  * @param {Array.<string>} entries
+ * @param {string} opt_requestId. Defaults to random generated number
  * @return {number}
  */
-bitex.api.BitEx.prototype.subscribeMarketData = function(market_depth, symbols, entries ){
-  var reqId = parseInt(Math.random() * 1000000, 10);
+bitex.api.BitEx.prototype.subscribeMarketData = function(market_depth, symbols, entries, opt_requestId ){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
   var msg = {
     'MsgType': 'V',
-    'MDReqID': reqId,
+    'MDReqID': requestId,
     'SubscriptionRequestType': '1',
     'MarketDepth': market_depth,
     'MDUpdateType': '1',   // Incremental refresh
@@ -609,7 +636,7 @@ bitex.api.BitEx.prototype.subscribeMarketData = function(market_depth, symbols, 
   };
   this.ws_.send(JSON.stringify( msg ));
 
-  return reqId;
+  return requestId;
 };
 
 /**
@@ -646,8 +673,8 @@ bitex.api.BitEx.prototype.requestSecurityList = function(opt_requestId){
  * @param {string} username
  * @param {string} password
  * @param {string} email
- * @param {number} state
- * @param {number} country_code
+ * @param {string} state
+ * @param {string} country_code
  * @param {number} broker
  */
 bitex.api.BitEx.prototype.signUp = function(username, password, email, state, country_code, broker) {
@@ -744,7 +771,7 @@ bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_c
     'OrderQty': qty
   };
 
-  if (goog.isDefAndNotNull(opt_client_id)) {
+  if (goog.isDefAndNotNull(opt_client_id) && !goog.string.isEmpty(opt_client_id)) {
     msg['ClientID'] = opt_client_id;
   }
 
@@ -755,7 +782,7 @@ bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_c
 
 /**
  * @param {string} opt_clientOrderId
- * @param {string} opt_OrderId
+ * @param {number} opt_OrderId
  */
 bitex.api.BitEx.prototype.cancelOrder = function( opt_clientOrderId, opt_OrderId  ) {
   var msg = {
@@ -803,6 +830,21 @@ bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, op
 bitex.api.BitEx.prototype.sendSellLimitedOrder = function( symbol, qty, price, opt_client_id, opt_clientOrderId  ){
   return this.sendOrder_(symbol, qty, price, '2', opt_client_id, opt_clientOrderId, '2');
 };
+
+/**
+ * Send a sell order
+ * @param {string} symbol
+ * @param {number} qty
+ * @param {number} price
+ * @param {string} side
+ * @param {string=} opt_client_id
+ * @param {number=} opt_clientOrderId. Defaults to random generated number
+ * @return {number}
+ */
+bitex.api.BitEx.prototype.sendLimitedOrder = function( symbol, qty, price, side,  opt_client_id, opt_clientOrderId  ){
+  return this.sendOrder_(symbol, qty, price, side, opt_client_id, opt_clientOrderId, '2');
+};
+
 
 /**
  * Send a test request message, to test the connection

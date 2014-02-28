@@ -6,6 +6,8 @@ goog.require('goog.object');
 goog.require('bitex.ui.DataGrid');
 goog.require('goog.ui.registry');
 
+goog.require('goog.json');
+
 goog.require('goog.dom.TagName');
 
 
@@ -126,8 +128,10 @@ bitex.ui.Customers = function( opt_domHelper) {
          */
         var MSG_CUSTOMER_TABLE_ACTION_DETAILS = goog.getMsg('details');
 
+        var data_row = goog.json.serialize( row_set_obj );
+
         var classes = "btn btn-mini btn-primary btn-deposit";
-        return goog.dom.createDom( 'button', { 'class':classes, 'data-user-id':row_set_obj['ID'] }, MSG_CUSTOMER_TABLE_ACTION_DETAILS );
+        return goog.dom.createDom( 'button', { 'class':classes, 'data-row': data_row, 'data-user-id':row_set_obj['ID'] }, MSG_CUSTOMER_TABLE_ACTION_DETAILS );
       },
       'classes': function() { return goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'last-login'); }
     }
@@ -182,8 +186,10 @@ bitex.ui.Customers.prototype.enterDocument = function() {
 
   handler.listen(this.getElement(), 'click', function(e){
     var user_id = e.target.getAttribute('data-user-id');
+    var data = goog.json.parse(e.target.getAttribute('data-row') );
+
     if (goog.isDefAndNotNull(user_id)) {
-      this.dispatchEvent( new bitex.ui.CustomersEvent (bitex.ui.Customers.EventType.DETAIL, user_id) );
+      this.dispatchEvent( new bitex.ui.CustomersEvent (bitex.ui.Customers.EventType.DETAIL, user_id, data) );
     }
   });
 };
@@ -193,16 +199,22 @@ bitex.ui.Customers.prototype.enterDocument = function() {
  *
  * @param {string} type
  * @param {number} user_id
+ * @param {Object} data
  * @extends {goog.events.Event}
  * @constructor
  */
-bitex.ui.CustomersEvent = function(type, user_id) {
+bitex.ui.CustomersEvent = function(type, user_id, data) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
   this.user_id = user_id;
+
+  /**
+   * @type {object}
+   */
+  this.data = data;
 
 };
 goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);

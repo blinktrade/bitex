@@ -205,6 +205,7 @@ ul.parsley-error-list li {
 
 /* Active view */
 #customers,
+#account_overview,
 #withdraw_requests,
 #deposit_list,
 #order_book_btcbrl,
@@ -229,6 +230,7 @@ ul.parsley-error-list li {
 }
 
 .active-view-customers #customers,
+.active-view-account_overview #account_overview,
 .active-view-withdraw_requests #withdraw_requests,
 .active-view-order_book_btcbrl #order_book_btcbrl,
 .active-view-start #start,

@@ -148,6 +148,7 @@ class TradeApplication(object):
 
         if msg:
           if msg.isMarketDataRequest(): # Market Data Request
+            req_id = msg.get('MDReqID')
             market_depth = msg.get('MarketDepth')
             instruments = msg.get('Instruments')
             entries = msg.get('MDEntryTypes')
@@ -158,7 +159,7 @@ class TradeApplication(object):
             instrument = instruments[0]
 
             om = OrderMatcher.get(instrument)
-            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries )
+            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries, req_id )
             response_message = 'REP,' + json.dumps( response_message , cls=JsonEncoder)
           else:
             response_message = self.session_manager.process_message( msg_header, session_id, msg )

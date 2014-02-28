@@ -1295,6 +1295,17 @@ def db_bootstrap(session):
       session.commit()
 
 
-  #BoletoOptions(id=1, broker_id=1, description=u'Banco Itau', codigo_banco=u'341', carteira=u'127',last_numero_documento=5028,  agencia_cedente=u'4000', conta_cedente=u'44444', cedente=u'BitEx', cedente_documento=u'1000', cedente_cidade=u'Sao Paulo', cedente_uf=u'SP', cedente_endereco=u'Av. XXXXX', cedente_bairro=u'Bela Cintra',cedente_cep=u'11000-000' )
+  if not BoletoOptions.get_boleto_option(session, 1 ):
+    bo = BoletoOptions(id=1, broker_id=9000001,
+                       description=u'Banco Itau', codigo_banco=u'341', carteira=u'127',
+                       last_numero_documento=5028,
+                       agencia_cedente=u'4000', conta_cedente=u'44444',
+                       cedente=u'BitEx', cedente_documento=u'1000', cedente_cidade=u'Sao Paulo',
+                       cedente_uf=u'SP', cedente_endereco=u'Av. XXXXX',
+                       cedente_bairro=u'Bela Cintra',cedente_cep=u'11000-000' )
+    session.add(bo)
+    session.commit()
+
+
 
   #TODO: create a BoletoOption

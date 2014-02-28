@@ -1,12 +1,227 @@
 {namespace bitex.templates}
 
 /**
-  * @param username
+  * @param msg_customer_detail
   */
 {template .CustomerDetailDialog}
   <div class="row">
     <div class="span6">
-      {msg desc="Customer username"}Username:{/msg}{$username}
+      {msg desc="Customer username"}Username:{/msg}{$msg_customer_detail['Username']}
     </div>
+  </div>
+{/template}
+
+/**
+  * @param id
+  */
+{template .GoogleAuthenticationCodeDialogContent}
+  {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg} <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
+{/template}
+
+/**
+  * @param boleto_id
+  */
+{template .BoletoDialog}
+  <a  target="_blank" href="/print_boleto?boleto_id={$boleto_id}" class="btn btn-primary">
+    {msg desc="Print boleto button in boleto dialog"}Print{/msg}</a> or <a href="/print_boleto?download=1&boleto_id={$boleto_id}">{msg desc="Dowload boleto button in boleto dialog"}Download{/msg}</a>
+{/template}
+
+/**
+  * @param currencies
+  */
+{template .YourAccountSummary}
+  <h6>{msg desc="Your account label in the right side bar"}Your account{/msg}</h6>
+  <table class="data">
+    <tbody>
+    {foreach $currency in $currencies}
+     <tr><td><span class="bitex-model" data-model-key="formatted_balance_{$currency}" data-blink-class="balance-info-blink"></span></td></tr>
+    {/foreach}
+    </tbody>
+  </table>
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewHeader}
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Id in account overview header"}ID:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['ID']}</div>
+  </div>
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Username in account overview header"}Username:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['Username']}</div>
+  </div>
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Email in account overview header"}Email:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['Email']}</div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="State in account overview header"}State:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['State']}</div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Country in account overview header"}Country:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['CountryCode']}</div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Last login in account overview header"}Last login:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['LastLogin']}</div>
+  </div>
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Is verified in account overview header"}Is verified:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['Verified']}</div>
+  </div>
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Has two step auth enable in account overview header"}Has two step authentication:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['TwoFactorEnabled']}</div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span5 account-overview-label"> <span>{msg desc="Registration date in account overview header"}Registration date:{/msg}</span></div>
+    <div class="span7 account-overview-value">{$msg_customer_detail['Created']}</div>
+  </div>
+
+{/template}
+
+/**
+  * @param title
+  * @param id
+  * @param columns
+  */
+{template .OrderBook}
+  <div class="text-center"><h4>{$title}</h4></div>
+  <table id="{$id}"  class="table">
+    <thead>
+    <tr>
+      {foreach $column in $columns}
+        <th>{$column}</th>
+      {/foreach}
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+{/template}
+
+/**
+  * @param id
+  * @param symbol
+  * @param side
+  * @param type
+  * @param hide_fee
+  * @param hide_client_id
+  */
+{template .OrderEntry}
+ <div id="{$id}" class="well span6 order-entry">
+      <input type="hidden" name="symbol" class="order-entry-symbol" value="{$symbol}">
+      <input type="hidden" name="side" class="order-entry-side" value="{$side}">
+      <input type="hidden" name="type" class="order-entry-type" value="{$type}">
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>{msg desc="Amount label in Order Entry"}Amount:{/msg}</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
+
+            <input class="input-block-level order-entry-amount" type="text" value="" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>{msg desc="'Price per label' in Order Entry"}Price per {/msg}<span class="order-entry-amount-sign">฿</span>:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
+
+            <input class="input-block-level order-entry-price" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"><span>{msg desc="Total label in Order Entry"}Total:{/msg}</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
+
+            <input class="input-block-level order-entry-total" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid" {if $hide_fee}style="display: none;"{/if} >
+        <div class="span5 order-entry-label"> <span>{msg desc="'Fee (optional):' label in Order Entry"}Fee (optional):{/msg}</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
+            <input class="input-block-level order-entry-fee" type="text" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5">
+          <input class="input-block-level order-entry-client-id" placeholder="{msg desc="'Client ID' label in Order Entry"}Client ID{/msg}" {if $hide_client_id}style="display:none"{/if} />
+        </div>
+        <div class="span5">
+          <button class="btn {if $side == 1}btn-success{else}btn-danger{/if} btn-execution order-entry-action">{if $side == 1}{msg desc="Buy button in Order Entry"}BUY{/msg}{else}{msg desc="Sell button in Order Entry"}SELL{/msg}{/if}</button>
+        </div>
+      </div>
+    </div>
+{/template}
+
+
+/**
+  * @param? title
+  * @param? id
+  * @param? wrapper_height Defaults to 360px
+  * @param? base_class
+  */
+{template .DataGrid}
+  <div {if $id}id="{$id}"{/if}  class="fuelux {if $base_class}{$base_class}{/if}" style="width:100%;">
+    <table class="table table-bordered datagrid datagrid-stretch-header">
+      <thead>
+      {if $title}
+      <tr>
+        <th colspan="4">
+          <span class="datagrid-header-title"><strong>{$title}</strong></span>
+        </th>
+      </tr>
+      {else}
+      <tr style="display: none;">
+        <th colspan="4">
+          <span class="datagrid-header-title"><strong></strong></span>
+        </th>
+      </tr>
+      {/if}
+      </thead>
+    </table>
+    <div class="datagrid-stretch-wrapper" style="height:{if $wrapper_height}{$wrapper_height}{else}360{/if}px;">
+      <table class="table table-bordered datagrid">
+        <tbody></tbody>
+      </table>
+    </div>
+    <table class="table table-bordered datagrid datagrid-stretch-footer">
+      <tfoot>
+      <tr>
+        <th colspan="4">
+          <div class="datagrid-footer-left" style="visibility: visible;">
+            <div class="grid-controls">
+                        <span>
+                          <span class="grid-start"></span> -
+                          <span class="grid-end"></span>
+                        </span>
+            </div>
+          </div>
+          <div class="datagrid-footer-right" style="visibility: visible;">
+            <div class="grid-pager">
+              <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+              <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+            </div>
+          </div>
+        </th>
+      </tr>
+      </tfoot>
+    </table>
   </div>
 {/template}

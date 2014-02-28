@@ -108,7 +108,7 @@ class MarketDataPublisher(object):
     application.publish( 'MD_TRADE_' + symbol , md )
 
   @staticmethod
-  def generate_md_full_refresh( session, symbol, market_depth, om, entries  ):
+  def generate_md_full_refresh( session, symbol, market_depth, om, entries, req_id  ):
     entry_list = []
 
     for entry_type in entries:
@@ -162,6 +162,7 @@ class MarketDataPublisher(object):
 
     md = {
       "MsgType":"W",
+      "MDReqID": req_id,
       "MarketDepth": market_depth,
       "Symbol": symbol,
       "MDFullGrp": entry_list

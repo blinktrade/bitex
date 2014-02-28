@@ -75,6 +75,9 @@ function $goog$isArrayLike$$($val$$4$$) {
 function $goog$isString$$($val$$6$$) {
   return"string" == typeof $val$$6$$
 }
+function $goog$isNumber$$($val$$8$$) {
+  return"number" == typeof $val$$8$$
+}
 function $goog$isFunction$$($val$$9$$) {
   return"function" == $goog$typeOf$$($val$$9$$)
 }
@@ -564,7 +567,7 @@ function $goog$dom$setTextContent$$($element$$23$$, $text$$7$$) {
 var $goog$dom$TAGS_TO_IGNORE_$$ = {SCRIPT:1, STYLE:1, HEAD:1, IFRAME:1, OBJECT:1}, $goog$dom$PREDEFINED_TAG_VALUES_$$ = {IMG:" ", BR:"\n"};
 function $goog$dom$isFocusableTabIndex$$($element$$25_index$$55$$) {
   var $attrNode$$ = $element$$25_index$$55$$.getAttributeNode("tabindex");
-  return $attrNode$$ && $attrNode$$.specified ? ($element$$25_index$$55$$ = $element$$25_index$$55$$.tabIndex, "number" == typeof $element$$25_index$$55$$ && 0 <= $element$$25_index$$55$$ && 32768 > $element$$25_index$$55$$) : $JSCompiler_alias_FALSE$$
+  return $attrNode$$ && $attrNode$$.specified ? ($element$$25_index$$55$$ = $element$$25_index$$55$$.tabIndex, $goog$isNumber$$($element$$25_index$$55$$) && 0 <= $element$$25_index$$55$$ && 32768 > $element$$25_index$$55$$) : $JSCompiler_alias_FALSE$$
 }
 function $goog$dom$setFocusableTabIndex$$($element$$26$$, $enable$$) {
   $enable$$ ? $element$$26$$.tabIndex = 0 : ($element$$26$$.tabIndex = -1, $element$$26$$.removeAttribute("tabIndex"))
@@ -2905,17 +2908,20 @@ $JSCompiler_prototypeAlias$$.login = function $$JSCompiler_prototypeAlias$$$logi
   $opt_second_factor$$ != $JSCompiler_alias_NULL$$ && ($msg$$1_username$$2$$.SecondFactor = $opt_second_factor$$);
   this.$ws_$.send(JSON.stringify($msg$$1_username$$2$$))
 };
-$JSCompiler_prototypeAlias$$.$enableTwoFactor$ = function $$JSCompiler_prototypeAlias$$$$enableTwoFactor$$($enable$$15_msg$$2$$, $opt_secret$$, $opt_code$$) {
+$JSCompiler_prototypeAlias$$.$enableTwoFactor$ = function $$JSCompiler_prototypeAlias$$$$enableTwoFactor$$($enable$$15_msg$$2$$, $opt_secret$$, $opt_code$$, $opt_clientID$$) {
   $enable$$15_msg$$2$$ = {MsgType:"U16", Enable:$enable$$15_msg$$2$$};
   $opt_secret$$ != $JSCompiler_alias_NULL$$ && !/^[\s\xa0]*$/.test($opt_secret$$) && ($enable$$15_msg$$2$$.Secret = $opt_secret$$);
   $opt_code$$ != $JSCompiler_alias_NULL$$ && !/^[\s\xa0]*$/.test($opt_code$$) && ($enable$$15_msg$$2$$.Code = $opt_code$$);
+  $opt_clientID$$ != $JSCompiler_alias_NULL$$ && $goog$isNumber$$($opt_clientID$$) && ($enable$$15_msg$$2$$.ClientID = $opt_clientID$$);
   this.$ws_$.send(JSON.stringify($enable$$15_msg$$2$$))
 };
 $JSCompiler_prototypeAlias$$.$forgotPassword$ = function $$JSCompiler_prototypeAlias$$$$forgotPassword$$($email$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"U10", Email:$email$$}))
 };
-$JSCompiler_prototypeAlias$$.$requestBalances$ = function $$JSCompiler_prototypeAlias$$$$requestBalances$$() {
-  this.$ws_$.send(JSON.stringify({MsgType:"U2", BalanceReqID:parseInt(1E6 * Math.random(), 10)}))
+$JSCompiler_prototypeAlias$$.$requestBalances$ = function $$JSCompiler_prototypeAlias$$$$requestBalances$$($opt_clientID$$1$$) {
+  var $msg$$4$$ = {MsgType:"U2", BalanceReqID:parseInt(1E6 * Math.random(), 10)};
+  $opt_clientID$$1$$ != $JSCompiler_alias_NULL$$ && $goog$isNumber$$($opt_clientID$$1$$) && ($msg$$4$$.ClientID = $opt_clientID$$1$$);
+  this.$ws_$.send(JSON.stringify($msg$$4$$))
 };
 $JSCompiler_prototypeAlias$$.$withdrawCryptoCoin$ = function $$JSCompiler_prototypeAlias$$$$withdrawCryptoCoin$$($amount$$, $address$$, $currency$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"U6", WithdrawReqID:parseInt(1E6 * Math.random(), 10), Currency:$currency$$, Amount:parseInt(1E8 * $amount$$, 10), Wallet:$address$$}))
@@ -2923,9 +2929,11 @@ $JSCompiler_prototypeAlias$$.$withdrawCryptoCoin$ = function $$JSCompiler_protot
 $JSCompiler_prototypeAlias$$.$confirmWithdraw$ = function $$JSCompiler_prototypeAlias$$$$confirmWithdraw$$($confirmation_token$$) {
   this.$ws_$.send(JSON.stringify({MsgType:"U24", WithdrawReqID:parseInt(1E6 * Math.random(), 10), ConfirmationToken:$confirmation_token$$}))
 };
-$JSCompiler_prototypeAlias$$.$requestWithdrawList$ = function $$JSCompiler_prototypeAlias$$$$requestWithdrawList$$($opt_requestId_requestId$$, $opt_page$$, $opt_limit$$1$$, $opt_status$$) {
+$JSCompiler_prototypeAlias$$.$requestWithdrawList$ = function $$JSCompiler_prototypeAlias$$$$requestWithdrawList$$($opt_requestId_requestId$$, $msg$$8_opt_page$$, $opt_limit$$1$$, $opt_status$$, $opt_clientID$$2$$) {
   $opt_requestId_requestId$$ = $opt_requestId_requestId$$ || parseInt(1E7 * Math.random(), 10);
-  this.$ws_$.send(JSON.stringify({MsgType:"U26", WithdrawListReqID:$opt_requestId_requestId$$, Page:$opt_page$$ || 0, PageSize:$opt_limit$$1$$ || 100, StatusList:$opt_status$$ || ["1", "2"]}));
+  $msg$$8_opt_page$$ = {MsgType:"U26", WithdrawListReqID:$opt_requestId_requestId$$, Page:$msg$$8_opt_page$$ || 0, PageSize:$opt_limit$$1$$ || 100, StatusList:$opt_status$$ || ["1", "2"]};
+  $opt_clientID$$2$$ != $JSCompiler_alias_NULL$$ && $goog$isNumber$$($opt_clientID$$2$$) && ($msg$$8_opt_page$$.ClientID = $opt_clientID$$2$$);
+  this.$ws_$.send(JSON.stringify($msg$$8_opt_page$$));
   return $opt_requestId_requestId$$
 };
 $JSCompiler_prototypeAlias$$.$requestBrokerList$ = function $$JSCompiler_prototypeAlias$$$$requestBrokerList$$($opt_requestId$$1_requestId$$1$$, $opt_country$$, $msg$$9_opt_page$$1$$, $opt_limit$$2$$, $opt_status$$1$$) {

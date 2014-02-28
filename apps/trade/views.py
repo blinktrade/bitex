@@ -260,7 +260,21 @@ def processSignup(session, msg):
 
 @login_required
 def processRequestForBalances(session, msg):
-  balances = Balance.get_balances_by_account( application.db_session, session.user.account_id )
+  user = session.user
+  if msg.has('ClientID'):
+    if enable:
+      raise NotAuthorizedError()
+
+    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+
+    if not user:
+      raise NotAuthorizedError()
+
+    if user.broker_id  != session.user.id:
+      raise NotAuthorizedError()
+
+
+  balances = Balance.get_balances_by_account( application.db_session, user.account_id )
   response = { 'MsgType': 'U3', 'BalanceReqID': msg.get('BalanceReqID')  }
   for balance in balances:
     if balance.broker_id in response:
@@ -319,9 +333,17 @@ def processRequestForOpenOrders(session, msg):
 
 def processRequestPasswordRequest(session, msg):
   user  = User.get_user( application.db_session, email = msg.get('Email') )
+  success = 0
   if user:
     user.request_reset_password( application.db_session )
     application.db_session.commit()
+    success = 1
+
+  response = {
+    'MsgType': 'U11',
+    'Success': success
+  }
+  return json.dumps(response, cls=JsonEncoder)
 
 def processPasswordRequest(session, msg):
   if UserPasswordReset.change_user_password( application.db_session, msg.get('Token'), msg.get('NewPassword') ):
@@ -346,13 +368,28 @@ def processEnableDisableTwoFactorAuth(session, msg):
   enable = msg.get('Enable')
   secret = msg.get('Secret')
   code   = msg.get('Code')
-  two_factor_secret = session.user.enable_two_factor(enable, secret, code)
 
-  application.db_session.add(session.user)
+  user = session.user
+
+  if msg.has('ClientID'):
+    if enable:
+      raise NotAuthorizedError()
+
+    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+
+    if not user:
+      raise NotAuthorizedError()
+
+    if user.broker_id  != session.user.id:
+      raise NotAuthorizedError()
+
+
+  two_factor_secret = user.enable_two_factor(enable, secret, code)
+  application.db_session.add(user)
   application.db_session.commit()
 
   response = {'MsgType'         : 'U17',
-              'TwoFactorEnabled': session.user.two_factor_enabled,
+              'TwoFactorEnabled': user.two_factor_enabled,
               'TwoFactorSecret' : two_factor_secret }
   return json.dumps(response, cls=JsonEncoder)
 
@@ -524,8 +561,18 @@ def processWithdrawListRequest(session, msg):
   status_list = msg.get('StatusList', ['1', '2'] )
   offset      = page * page_size
 
+  user = session.user
+  if msg.has('ClientID'):
+    if enable:
+      raise NotAuthorizedError()
+    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+    if not user:
+      raise NotAuthorizedError()
+    if user.broker_id  != session.user.id:
+      raise NotAuthorizedError()
 
-  withdraws = Withdraw.get_list(application.db_session, session.user.id, status_list, page_size, offset  )
+
+  withdraws = Withdraw.get_list(application.db_session, user.id, status_list, page_size, offset  )
 
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Type'             , 'Currency'      , 'Amount' , 'Wallet', 'BankNumber' ,'AccountName',

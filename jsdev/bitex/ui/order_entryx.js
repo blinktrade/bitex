@@ -137,6 +137,9 @@ bitex.ui.OrderEntryX.prototype.decorateInternal = function(element) {
 
 /** @override */
 bitex.ui.OrderEntryX.prototype.enterDocument = function() {
+  goog.base(this, 'enterDocument');
+  console.log('bitex.ui.OrderEntryX.prototype.enterDocument');
+
   var handler = this.getHandler();
   var dom  = this.getDomHelper();
 
@@ -180,7 +183,7 @@ bitex.ui.OrderEntryX.prototype.enterDocument = function() {
  * @private
  */
 bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_ = function(e) {
-  console.log('onBlockNonNumberKeys_');
+  console.log('bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_');
 
   var inputEl = e.target;
   var inputValue = goog.dom.forms.getValue(inputEl);
@@ -290,6 +293,12 @@ bitex.ui.OrderEntryX.prototype.getSymbol = function(){
   return goog.dom.forms.getValue(this.symbolEl_);
 };
 
+/**
+ * @return {string}
+ */
+bitex.ui.OrderEntryX.prototype.getSide = function(){
+  return goog.dom.forms.getValue(this.sideEl_);
+};
 
 /**
  * @param {string} value
@@ -480,6 +489,9 @@ bitex.ui.OrderEntryX.prototype.onChangeAmount_ = function(e) {
   var total = (this.getPrice() * (this.getAmount() + this.getFee() ));
   this.setTotal(total);
   this.lastChangedField_ = "amount";
+
+
+  this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
 
 
@@ -497,6 +509,8 @@ bitex.ui.OrderEntryX.prototype.onChangePrice_ = function(e) {
       this.setAmount(amount);
     }
   }
+
+  this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
 
 
@@ -508,6 +522,8 @@ bitex.ui.OrderEntryX.prototype.onChangeTotal_ = function(e) {
   var amount = (this.getTotal() / this.getPrice()) - this.getFee();
   this.setAmount(amount);
   this.lastChangedField_ = "total";
+
+  this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
 
 
@@ -525,6 +541,8 @@ bitex.ui.OrderEntryX.prototype.onChangeFee_ = function(e) {
       this.setAmount(amount);
     }
   }
+
+  this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
 
 
@@ -532,7 +550,11 @@ bitex.ui.OrderEntryX.prototype.onChangeFee_ = function(e) {
  * @param {goog.events.Event} e
  */
 bitex.ui.OrderEntryX.prototype.onAction_ = function(e) {
-  this.dispatchEvent(bitex.ui.OrderEntryX.EventType.SUBMIT );
+  // TODO: Validate all the fields
+
+  if (this.getTotal() > 0) {
+    this.dispatchEvent(bitex.ui.OrderEntryX.EventType.SUBMIT );
+  }
 };
 
 

@@ -153,7 +153,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.md_subscriptions[req_id] = []
 
     for instrument in  instruments:
-      md = generate_md_full_refresh( instrument, market_depth, entries )
+      md = generate_md_full_refresh( instrument, market_depth, entries, req_id )
       self.write_message( str(json.dumps(md, cls=JsonEncoder )) )
 
       if int(msg.get('SubscriptionRequestType')) == 1: # Snapshot + Updates
