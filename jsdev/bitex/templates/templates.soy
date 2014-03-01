@@ -19,6 +19,19 @@
 {/template}
 
 /**
+  * @param id
+  */
+{template .WithdrawConfirmationDialogContent}
+  <p>
+    {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
+  </p>
+  <input id="{$id}" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+  <p>
+    <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
+  </p>
+{/template}
+
+/**
   * @param boleto_id
   */
 {template .BoletoDialog}
@@ -36,6 +49,28 @@
     {foreach $currency in $currencies}
      <tr><td><span class="bitex-model" data-model-key="formatted_balance_{$currency}" data-blink-class="balance-info-blink"></span></td></tr>
     {/foreach}
+    </tbody>
+  </table>
+{/template}
+
+/**
+  * @param currencies
+  */
+{template .YourAccountBalances}
+  <table class="table table-striped" style="width: 300px">
+    <tbody>
+      {foreach $currency in $currencies}
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for available balance in a currency"}Available {$currency.code }{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model" data-model-key="formatted_balance_{$currency.code_lower}" data-blink-class="balance-info-blink"></span>
+        </td>
+      </tr>
+      {/foreach}
     </tbody>
   </table>
 {/template}

@@ -119,6 +119,7 @@ class JsonMessage(BaseMessage):
       'U3':  'UserBalanceResponse',
       'U4':  'OrdersListRequest',
       'U5':  'OrdersListResponse',
+      'U666':  'WithdrawRequest',
       'U6':  'CryptoCoinWithdrawRequest',
       'U7':  'CryptoCoinWithdrawResponse',
       'U8':  'BRLBankTransferWithdrawRequest',
@@ -295,12 +296,11 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('OrdersReqID')
       self.raise_exception_if_empty('OrdersReqID')
 
-
-    elif self.type == 'U6': # Request for Crypto Coin Withdraw
+    elif self.type == 'U6': # Withdraw Request
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_required_tag_is_missing('Amount')
-      self.raise_exception_if_required_tag_is_missing('Wallet')
       self.raise_exception_if_required_tag_is_missing('Currency')
+      self.raise_exception_if_required_tag_is_missing('Type')
 
       self.raise_exception_if_not_a_integer('WithdrawReqID')
       self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
@@ -308,34 +308,29 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_a_number('Amount')
       self.raise_exception_if_not_greater_than_zero('Amount')
 
-      self.raise_exception_if_empty('Wallet')
-      self.raise_exception_if_empty('Currency')
+      self.raise_exception_if_not_in('Type', ['BBT', 'CRY', 'ACH', 'SWI'] )
 
-    elif self.type == 'U8': # Request for BRL Bank Transfer Withdraw
-      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
-      self.raise_exception_if_required_tag_is_missing('Amount')
-      self.raise_exception_if_required_tag_is_missing('BankNumber')
-      self.raise_exception_if_required_tag_is_missing('BankName')
-      self.raise_exception_if_required_tag_is_missing('AccountName')
-      self.raise_exception_if_required_tag_is_missing('AccountNumber')
-      self.raise_exception_if_required_tag_is_missing('AccountBranch')
-      self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
+      if self.get('Type') == 'CRY':
+        self.raise_exception_if_required_tag_is_missing('Wallet')
+        self.raise_exception_if_empty('Wallet')
+      elif self.get('Type') == 'BBT':
+        self.raise_exception_if_empty('Wallet')
+        self.raise_exception_if_required_tag_is_missing('Amount')
+        self.raise_exception_if_required_tag_is_missing('BankNumber')
+        self.raise_exception_if_required_tag_is_missing('BankName')
+        self.raise_exception_if_required_tag_is_missing('AccountName')
+        self.raise_exception_if_required_tag_is_missing('AccountNumber')
+        self.raise_exception_if_required_tag_is_missing('AccountBranch')
+        self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
 
-      self.raise_exception_if_not_a_integer('WithdrawReqID')
-      self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
+        self.raise_exception_if_empty('BankNumber')
+        self.raise_exception_if_empty('BankName')
+        self.raise_exception_if_empty('AccountName')
+        self.raise_exception_if_empty('AccountNumber')
+        self.raise_exception_if_empty('AccountBranch')
+        self.raise_exception_if_empty('CPFCNPJ')
 
-      self.raise_exception_if_not_a_number('Amount')
-      self.raise_exception_if_not_greater_than_zero('Amount')
-
-      self.raise_exception_if_empty('BankNumber')
-      self.raise_exception_if_empty('BankName')
-      self.raise_exception_if_empty('AccountName')
-      self.raise_exception_if_empty('AccountNumber')
-      self.raise_exception_if_empty('AccountBranch')
-      self.raise_exception_if_empty('CPFCNPJ')
-
-
-    elif self.type == 'U7' or self.type == 'U9': # Response for Withdraw ( Crypto Coin or BRL Bank Transfer )
+    elif self.type == 'U7': # WithdrawResponse
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_not_a_integer('WithdrawReqID')
       self.raise_exception_if_not_greater_than_zero('WithdrawReqID')

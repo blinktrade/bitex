@@ -2,6 +2,7 @@ goog.provide('bitex.api.BitEx');
 goog.provide('bitex.api.BitEx.EventType');
 goog.provide('bitex.api.BitExEvent');
 
+goog.require('goog.i18n.NumberFormat');
 goog.require('goog.events');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
@@ -15,9 +16,23 @@ var WEB_SOCKET_NOT_AVAILABLE_EXCEPTION = "WebSockets are not available";
 bitex.api.BitEx = function(){
   goog.base(this);
 
+  this.currency_info_       = null;
+  this.all_markets_         = null;
 };
 goog.inherits(bitex.api.BitEx, goog.events.EventTarget);
 
+
+/**
+ * @type {Object}
+ * @private
+ */
+bitex.app.BitEx.prototype.currency_info_;
+
+/**
+ * @type {Object}
+ * @private
+ */
+bitex.app.BitEx.prototype.all_markets_;
 
 /**
  * @type {WebSocket}
@@ -61,8 +76,7 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
   /* Withdraws */
-  CRYPTO_COIN_WITHDRAW_RESPONSE: 'crypto_coin_withdraw_response',
-  BRL_BANK_TRANSFER_WITHDRAW_RESPONSE: 'brl_bank_transfer_withdraw_response',
+  WITHDRAW_RESPONSE: 'withdraw_response',
   WITHDRAW_LIST_RESPONSE: 'withdraw_list_response',
 
   /* Trading */
@@ -126,7 +140,54 @@ bitex.api.BitEx.prototype.isLogged = function(){
   return this.logged_;
 };
 
+/**
+ * @param {number} amount
+ * @param {string} currency_code
+ */
+bitex.api.BitEx.prototype.formatCurrency  =   function(amount, currency_code) {
+  if (!goog.isDefAndNotNull(this.currency_info_)) {
+    return amount;
+  }
 
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  var formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
+  return formatter.format(amount);
+};
+
+/**
+ * @param {Object} msg
+ * @private
+ */
+bitex.api.BitEx.prototype.onSecurityList_ =   function(msg) {
+  this.currency_info_ = {};
+  this.all_markets_ = {};
+
+  goog.array.forEach(msg['Currencies'], function( currency) {
+    this.currency_info_[ currency['Code'] ] = {
+      code: currency['Code'],
+      format: currency['FormatJS'],
+      description : currency['Description'],
+      sign : currency['Sign'],
+      pip : currency['Pip'],
+      is_crypto : currency['IsCrypto']
+    };
+  }, this);
+
+  var symbols = [];
+  goog.array.forEach(msg['Instruments'], function(instrument) {
+    var symbol = instrument['Symbol'];
+
+    this.all_markets_[symbol]  = {
+      symbol: symbol,
+      description: instrument['Description']
+    };
+
+    symbols.push( symbol );
+  }, this );
+};
 /**
  * @private
  */
@@ -168,7 +229,6 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ERROR_MESSAGE, msg ) );
       break;
 
-
     case '0':  //Heartbeat
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.HEARTBEAT, msg ) );
       break;
@@ -185,6 +245,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'y': // Security List
+      this.onSecurityList_(msg);
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_LIST, msg));
       break;
 
@@ -201,18 +262,17 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U7': // CryptoCoin Withdraw Response
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CRYPTO_COIN_WITHDRAW_RESPONSE, msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE + '.' + msg['WithdrawReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
       break;
 
-    case 'U9': // BRL Bank Transfer Withdraw Response
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BRL_BANK_TRANSFER_WITHDRAW_RESPONSE, msg ) );
-      break;
 
     case 'U3': // Balance Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BALANCE_RESPONSE, msg ) );
       break;
 
     case 'U5': // Order List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE + '.' + msg['OrdersReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE, msg ) );
       break;
 
@@ -225,6 +285,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U27': // Withdraw List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE + '.' + msg['WithdrawListReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE, msg ) );
       break;
 
@@ -413,47 +474,29 @@ bitex.api.BitEx.prototype.requestBalances = function(opt_clientID) {
 };
 
 /**
- * @param {number} amount 
- * @param {string} address
+ * @param {number} opt_request_id
+ * @param {number} amount
+ * @param {string} type
  * @param {string} currency
+ * @param {Object} data
  */
-bitex.api.BitEx.prototype.withdrawCryptoCoin = function( amount, address, currency  ) {
-  var reqId = parseInt(Math.random() * 1000000, 10);
+bitex.api.BitEx.prototype.requestWithdraw = function( opt_request_id, amount, type, currency, data) {
+
+  var reqId = opt_request_id || parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U6',
     'WithdrawReqID': reqId,
     'Currency': currency,
     'Amount': parseInt(amount * 1e8, 10),
-    'Wallet': address
+    'Type': type
   };
+  goog.object.extend( msg, data );
+
   this.ws_.send(JSON.stringify( msg ));
+
+  return reqId;
 };
 
-/**
- * @param {number} amount
- * @param {string} bank_number
- * @param {string} bank_name
- * @param {string} account_name
- * @param {string} account_number
- * @param {string} account_branch
- * @param {string} cpf_cnpj
- */
-bitex.api.BitEx.prototype.withdrawBRLBankTransfer = function( amount, bank_number, bank_name, account_name,
-                                                              account_number, account_branch, cpf_cnpj) {
-  var reqId = parseInt(Math.random() * 1000000, 10);
-  var msg = {
-    'MsgType'       : 'U8',
-    'WithdrawReqID' : reqId,
-    'Amount'        : parseInt(amount * 1e8, 10),
-    'BankNumber'    : bank_number,
-    'BankName'      : bank_name,
-    'AccountName'   : account_name,
-    'AccountNumber' : account_number,
-    'AccountBranch' : account_branch,
-    'CPFCNPJ'       : cpf_cnpj
-  };
-  this.ws_.send(JSON.stringify( msg ));
-};
 
 /**
  * @param {string} confirmation_token
@@ -889,7 +932,7 @@ goog.exportProperty(BitEx.prototype, 'unSubscribeMarketData', bitex.api.BitEx.pr
 goog.exportProperty(BitEx.prototype, 'signUp', bitex.api.BitEx.prototype.signUp);
 goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype.forgotPassword);
 goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototype.requestBalances);
-goog.exportProperty(BitEx.prototype, 'withdrawCryptoCoin', bitex.api.BitEx.prototype.withdrawCryptoCoin);
+goog.exportProperty(BitEx.prototype, 'requestWithdraw', bitex.api.BitEx.prototype.requestWithdraw);
 goog.exportProperty(BitEx.prototype, 'requestWithdrawList', bitex.api.BitEx.prototype.requestWithdrawList);
 goog.exportProperty(BitEx.prototype, 'requestCustomerList', bitex.api.BitEx.prototype.requestCustomerList);
 goog.exportProperty(BitEx.prototype, 'requestCustomerDetails', bitex.api.BitEx.prototype.requestCustomerDetails);

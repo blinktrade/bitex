@@ -54,8 +54,9 @@ goog.require('bitex.view.SetNewPasswordView');
 goog.require('bitex.view.VerificationView');
 goog.require('bitex.view.DepositView');
 goog.require('bitex.view.OfferBookView');
-
+goog.require('bitex.view.AccountActivityView');
 goog.require('bitex.view.SideBarView');
+goog.require('bitex.view.WithdrawView');
 
 /**
  * @constructor
@@ -291,9 +292,10 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var enableTwoFactorView = new bitex.view.TwoFactorView(this);
 
   var offerBookView       = new bitex.view.OfferBookView(this);
-  var accountActivityView = new bitex.view.NullView(this);
+  var accountActivityView = new bitex.view.AccountActivityView(this);
+
   var tradingView         = new bitex.view.NullView(this);
-  var withdrawView        = new bitex.view.NullView(this);
+  var withdrawView        = new bitex.view.WithdrawView(this);
   var customersView       = new bitex.view.NullView(this);
   var accountOverviewView = new bitex.view.NullView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
@@ -395,7 +397,12 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE, this.onUserMarketDataSubscribe_);
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE, this.onUserMarketDataUnsubscribe_);
 
-  handler.listen(this.model_, bitex.model.Model.EventType.SET + 'Broker', this.onModelSetBroker_ );
+  handler.listen(this.views_, bitex.ui.OrderEntryX.EventType.SUBMIT, this.onUserOrderEntry_ );
+
+  handler.listen(this.views_, bitex.ui.Withdraw.EventType.WITHDRAW, this.onUserWithdrawRequest_ );
+  handler.listen(this.views_, bitex.view.View.EventType.CONFIRM_WITHDRAW, this.onUserConfirmWithdraw_ );
+
+  handler.listen(this.model_, bitex.model.Model.EventType.SET + 'Broker', this.onModelSetBroker_);
 
   try{
     this.conn_.open(this.url_);
@@ -426,10 +433,26 @@ bitex.app.SatoshiSquare.prototype.onUserMarketDataUnsubscribe_ = function(e) {
   this.conn_.unSubscribeMarketData(e.target.getMDSubscriptionId());
 };
 
+/**
+ * @param {string} symbol
+ * @return {string}
+ */
+bitex.app.SatoshiSquare.prototype.getPriceCurrencyFromSymbol = function(symbol) {
+  return symbol.substr(3);
+};
+/**
+ * @param {string} symbol
+ * @return {string}
+ */
+bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol = function(symbol) {
+  return symbol.substr(0,3);
+};
+
+
 bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
   var symbol = e.target.getSymbol();
-  var qtyCurrency = symbol.substr(0,3);
-  var priceCurrency = symbol.substr(3);
+  var qtyCurrency = this.getQtyCurrencyFromSymbol(symbol);
+  var priceCurrency = this.getPriceCurrencyFromSymbol(symbol);
 
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
@@ -530,6 +553,36 @@ bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
       this.getModel().set('formatted_' + balance_key, this.formatCurrency(balance, currency));
     }, this);
   },this);
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onUserWithdrawRequest_ = function(e){
+  var data = e.target.getModel().data;
+  var reqId = parseInt(Math.random() * 1000000, 10);
+
+  var amount = goog.string.toNumber(data['Amount']);
+  var type = data['Type'];
+  var currency = data['Currency'];
+
+
+  delete data['Amount'];
+  delete data['Type'];
+  delete data['Currency'];
+
+  this.conn_.requestWithdraw(reqId, amount, type, currency, data);
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onUserConfirmWithdraw_ = function(e){
+  this.conn_.confirmWithdraw(e.target.getConfirmationToken());
 };
 
 
@@ -828,10 +881,13 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
   this.model_.set('SecurityList', msg);
 };
 
-
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
   var broker = e.data;
-
+  console.log(goog.debug.deepExpose(broker));
   var allowed_markets = {};
   goog.array.forEach( broker['Currencies'].split(',') , function(currency) {
     var market = goog.object.findKey( this.all_markets_, function(market_info, symbol) {
@@ -843,6 +899,8 @@ bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
       allowed_markets[market] = this.all_markets_[market];
     }
   }, this);
+
+  console.log(goog.debug.deepExpose(allowed_markets));
   this.getModel().set('AllowedMarkets',allowed_markets);
 };
 
@@ -1682,7 +1740,7 @@ bitex.app.satoshi_square = function( url ) {
   /**
    * @desc Amount label
    */
-  var MSG_LABEL_AMOUNT = goog.getMsg('Amount');
+  var MSG_LABEL_AMOUNT_OLD = goog.getMsg('Amount');
 
   /**
    * @desc Amount label
@@ -1693,7 +1751,7 @@ bitex.app.satoshi_square = function( url ) {
                                               button_label:MSG_BTN_WITHDRAW,
                                               title: MSG_LABEL_BITCOIN_WITHDRAWAL,
                                               description: 'Fill up the form.',
-                                              controls: [ ['amount', MSG_LABEL_AMOUNT, MSG_LABEL_AMOUNT_BITCOIN_PLACEHOLDER, '฿'],
+                                              controls: [ ['amount', MSG_LABEL_AMOUNT_OLD, MSG_LABEL_AMOUNT_BITCOIN_PLACEHOLDER, '฿'],
                                                 ['wallet', 'Wallet', 'eg. 1933phfhK3ZgFQNLGSDXvqCn32k2buXY8a'] ]  });
 
   /**
@@ -1712,7 +1770,7 @@ bitex.app.satoshi_square = function( url ) {
                               button_label:MSG_BTN_WITHDRAW,
                               title: MSG_LABEL_BRAZILIAN_BANK_WITHDRAWAL,
                               description: 'R$ 10,00 fee for DOC and TED.',
-                              controls: [ ['amount', MSG_LABEL_AMOUNT , MSG_LABEL_AMOUNT_BRAZLIAN_BANK_PLACEHOLDER, 'R$'],
+                              controls: [ ['amount', MSG_LABEL_AMOUNT_OLD , MSG_LABEL_AMOUNT_BRAZLIAN_BANK_PLACEHOLDER, 'R$'],
                                 ['bank_number',     'Bank number'     , 'eg. 341'],
                                 ['bank_name',       'Bank name'       , 'eg. Banco Itáu'],
                                 ['account_branch',  'Account Branch'  , 'eg. 5555'],
@@ -2102,6 +2160,7 @@ bitex.app.satoshi_square = function( url ) {
 
   model.addEventListener( bitex.model.Model.EventType.SET + 'Broker', function(e) {
     var broker = e.data;
+    console.log(goog.debug.deepExpose(broker));
 
     var allowed_markets = {};
     goog.array.forEach( broker['Currencies'].split(',') , function(currency) {
@@ -2114,6 +2173,7 @@ bitex.app.satoshi_square = function( url ) {
        allowed_markets[market] = all_markets[market];
      }
     });
+    console.log(goog.debug.deepExpose(allowed_markets));
     model.set('AllowedMarkets',allowed_markets);
 
     var allowed_markets_array = goog.object.getKeys(allowed_markets);

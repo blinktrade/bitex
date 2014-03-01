@@ -6,6 +6,21 @@
     <!-- ../bitex/app/bitex.js -->
     <!-- ../bitex/app/markets.js -->
     <!-- ../bitex/app/satoshi_square.js -->
+    <translation id="6176879802067236637">COMPRA</translation>
+    <translation id="3061524675391310528">VENDA</translation>
+    <translation id="8422561296832325154">Comprador</translation>
+    <translation id="1288513188612962307">Vendedor</translation>
+    <translation id="159067789700857238">Quantidade</translation>
+    <translation id="866909570315155404">Preço</translation>
+    <translation id="2094326426099786397">Erro ao se conectar ao servidor. Você precisa de um Browser com suporte a WebSockets.</translation>
+    <translation id="7401795103172520504">Sucesso</translation>
+    <translation id="4256847089568016605">Senha alterada</translation>
+    <translation id="262244445152484550">Erro</translation>
+    <translation id="2649556667424514677">Houve um erro durante a alteração da sua senha</translation>
+    <translation id="1762322660829178416">Boleto</translation>
+    <translation id="3932335418542380957">Autenticação em 2 passos</translation>
+    <translation id="234281164262189970">Erro ao se conectar ao servidor. Você precisa de um Browser com suporte a WebSockets.</translation>
+    <translation id="4580764630041215479">Erro</translation>
     <translation id="2400499506154150669">Customer details</translation>
     <translation id="5743734095470344451">Saque</translation>
     <translation id="1665132237497548554">Sacar Bitcoin</translation>
@@ -18,9 +33,16 @@
     <!-- ../bitex/model/model.js -->
     <!-- ../bitex/templates/templates.soy.js -->
     <translation id="4112774560296927039">Username:</translation>
+    <translation id="7011525327340223100">Código do Google Authenticator:</translation>
+    <translation id="707556265285906962">ex. 555555</translation>
+    <translation id="8307629111885527514">Nós enviamos um código de confirmação para o seu email.</translation>
+    <translation id="5002588433270413301">Código de confirmação</translation>
+    <translation id="4772336795492447708">Esta é uma medida para aumentar a segurança de sua conta</translation>
+    <translation id="5999717034897972511">Imprimir</translation>
+    <translation id="6907261760401925072">Download</translation>
     <translation id="8476044854846017210">Sua conta</translation>
+    <translation id="7723325992076527303"><ph name="code"/> disponiveis</translation>
     <translation id="5269852189982841932">ID:</translation>
-    <translation id="4112774560296927039">Username:</translation>
     <translation id="5266381457013872080">Email:</translation>
     <translation id="8953563663849525614">Estado:</translation>
     <translation id="2646089907833131171">País:</translation>
@@ -35,7 +57,6 @@
     <translation id="403362466876676198">Cód. do Cliente</translation>
     <translation id="8282725871353943578">COMPRAR</translation>
     <translation id="798662724377115710">VENDER</translation>
-
     <!-- ../bitex/ui/account_activity.js -->
     <translation id="6843864912009919805">ID</translation>
     <translation id="1159462222642106601">Compra/Venda</translation>
@@ -90,6 +111,50 @@
     <translation id="8376210582968521122">Carteira</translation>
     <translation id="2533475876080710712">Detalhes</translation>
     <!-- ../bitex/util/util.js -->
+    <!-- ../bitex/view/account_activity.js -->
+    <!-- ../bitex/view/deposit.js -->
+    <!-- ../bitex/view/forgot_password.js -->
+    <translation id="1019142662678297310">Email inválido</translation>
+    <!-- ../bitex/view/login.js -->
+    <translation id="5933058039137369322">Nome de usuário inválido</translation>
+    <translation id="8640549489502576540">A senha precisa ter no mínimo 8 letras</translation>
+    <!-- ../bitex/view/null_view.js -->
+    <!-- ../bitex/view/offerbook.js -->
+    <!-- ../bitex/view/set_new_password.js -->
+    <translation id="3757804423543063307">Código de confirmação inválido</translation>
+    <translation id="1924047624752361130">A senha precisa ter no mínimo 8 letras</translation>
+    <translation id="1819752015791513766">As senhas não conferem</translation>
+    <!-- ../bitex/view/side_bar.js -->
+    <!-- ../bitex/view/singup.js -->
+    <translation id="824760302463696685">Nome de usuário inválido</translation>
+    <translation id="6360277786240269656">Email inválido</translation>
+    <translation id="4970940983930735928">A senha precisa ter no mínimo 8 letras</translation>
+    <translation id="376556933125593961">As senhas não conferem</translation>
+    <!-- ../bitex/view/two_factor.js -->
+    <!-- ../bitex/view/verification.js -->
+    <!-- ../bitex/view/view.js -->
+    <!-- ../bitex/view/withdraw.js -->
+    <translation id="8075057508728404340">Saque</translation>
+    <translation id="7563127770852144951">Preencha as informações abaixo.</translation>
+    <translation id="7957443323105238308">Saque em <ph name="currency"/> </translation>
+    <translation id="6485072331885507359">Quantidade</translation>
+    <translation id="1627387668348774370">ex. 0.44550000</translation>
+    <translation id="1136249626486253920">Carteira</translation>
+    <translation id="6775255324748239528">Sua carteira de <ph name="currency"/> aqui.</translation>
+    <translation id="585213474663949097">Saque em <ph name="currency"/></translation>
+    <translation id="5072776444350887530">ex. 2300.00</translation>
+    <translation id="155721093394102393">Número do banco</translation>
+    <translation id="4912713723546384161">Nome do banco</translation>
+    <translation id="4047455922253741067">Código da Agência</translation>
+    <translation id="4340771958128915624">Nome do titular da conta</translation>
+    <translation id="8724168544434715762">Número da conta</translation>
+    <translation id="3031211667020457298">CPF ou CNPJ</translation>
+    <translation id="5655247845346256421">ex. 2331</translation>
+    <translation id="3673205419061402233">ex. Banco Itaú</translation>
+    <translation id="5557292225290424764">ex. 88888</translation>
+    <translation id="8244977167558971746">ex. José da Silva</translation>
+    <translation id="828555752930624995">eg. 88888</translation>
+    <translation id="4601803026700424560">ex. 999.999.999-99</translation>
     <!-- ../closure-bootstrap/javascript/bootstrap/Button.js -->
     <!-- ../closure-bootstrap/javascript/bootstrap/ButtonRenderer.js -->
     <!-- ../closure-bootstrap/javascript/bootstrap/Dialog.js -->

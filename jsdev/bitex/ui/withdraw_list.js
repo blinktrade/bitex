@@ -18,6 +18,22 @@ var MSG_WITHDRAW_TABLE_COLUMN_ID = goog.getMsg('ID');
 var MSG_WITHDRAW_TABLE_COLUMN_STATUS = goog.getMsg('Status');
 
 /**
+ * @desc Column Status of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_STATUS_PENDING = goog.getMsg('Pending');
+
+/**
+ * @desc Column Status of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_STATUS_UNCONFIRMED = goog.getMsg('Unconfirmed');
+
+/**
+ * @desc Column Status of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED = goog.getMsg('Completed');
+
+
+/**
  * @desc Column Currency of the Withdraw List
  */
 var MSG_WITHDRAW_TABLE_COLUMN_CURRENCY = goog.getMsg('Currency');
@@ -61,9 +77,9 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
       'sortable': false,
       'formatter': function(s){
         switch(s){
-          case '0': return 'Não confirmado';
-          case '1': return 'Pendente';
-          case '2': return 'Finalizado';
+          case '0': return MSG_WITHDRAW_TABLE_COLUMN_STATUS_UNCONFIRMED;
+          case '1': return MSG_WITHDRAW_TABLE_COLUMN_STATUS_PENDING;
+          case '2': return MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED;
         }
         return '';
       },
@@ -82,13 +98,6 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
       'property': 'Amount',
       'label': MSG_WITHDRAW_TABLE_COLUMN_AMOUNT,
       'sortable': false,
-      'formatter': function(s, row_set_obj){
-        if (row_set_obj['Type'] == "CRY" ) {
-          return (s/1e8).toFixed(8); // is a crypto coin withdraw ?
-        } else {
-          return (s/1e8).toFixed(2);
-        }
-      },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'amount'); }
     },{
       'property': 'Wallet',
@@ -113,7 +122,7 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
 
         return JSON.stringify(detail_obj);
       },
-      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details'); }
+      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details');}
     }
   ];
 

@@ -166,6 +166,11 @@ bitex.ui.DataGrid.prototype.decorateInternal = function(element) {
   // set the number of columns
   first_th_column_el.setAttribute('colspan', this.columns_.length );
 
+  var column_header_el = goog.dom.getNextElementSibling(goog.dom.getFirstElementChild(thead_element));
+  if (goog.isDefAndNotNull(column_header_el)) {
+    goog.dom.removeNode(column_header_el);
+  }
+
   // Render all columns
   this.th_sizing_el_ = goog.dom.createDom('tr');
 
@@ -361,6 +366,29 @@ bitex.ui.DataGrid.prototype.setColumnValue = function(row_element, column, value
   return undefined;
 };
 
+/**
+ *
+ * @param {string} column
+ * @param {!Function()} formatter
+ * @param {Object=} opt_handler Object in whose scope to call the listener.
+
+ */
+bitex.ui.DataGrid.prototype.setColumnFormatter = function(column, formatter, opt_handler) {
+  var result_set_col_index = {};
+  goog.array.forEach( this.columns_, function(this_col, index_row_set) {
+    result_set_col_index[this_col['property']] = index_row_set;
+  });
+  var index = result_set_col_index[column];
+  if (!goog.isDefAndNotNull(index)) {
+    return;
+  }
+
+  if (goog.isDefAndNotNull(opt_handler)) {
+    this.columns_[index]['formatter'] = goog.bind(formatter, opt_handler);
+  } else {
+    this.columns_[index]['formatter'] = formatter;
+  }
+};
 
 /**
  *

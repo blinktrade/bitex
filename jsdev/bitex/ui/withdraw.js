@@ -12,7 +12,7 @@ goog.require('goog.events.Event');
 
 
 /**
- * @typedef {{ parent_id:String, button_label:String, title:String, description:String, controls:Array.<Array.<string>>  }}
+ * @typedef {{ parent_id:String, currency:String ,type:String, button_label:String, title:String, description:String, controls:Array.<Array.<string>>  }}
  */
 bitex.ui.WithdrawModel;
 
@@ -183,6 +183,9 @@ bitex.ui.Withdraw.prototype.onAction_ = function(e) {
   goog.array.forEach( this.getModel().controls, function(control) {
     data[ control[0] ] = goog.dom.forms.getValue(this.getElementByFragment('id_' + control[0])) ;
   }, this);
+
+  data['Type'] = this.getModel().type;
+  data['Currency'] = this.getModel().currency;
 
   this.getModel().data = data;
 

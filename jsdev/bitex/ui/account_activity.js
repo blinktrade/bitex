@@ -49,7 +49,7 @@ var MSG_ACCOUNT_ACTIVITY_TABLE_COLUMN_VOLUME = goog.getMsg('Total');
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.AccountActivity = function( opt_domHelper) {
+bitex.ui.AccountActivity = function(opt_domHelper) {
   var grid_columns = [
     {
       'property': 'OrderID',
@@ -77,25 +77,21 @@ bitex.ui.AccountActivity = function( opt_domHelper) {
       'property': 'Price',
       'label': MSG_ACCOUNT_ACTIVITY_TABLE_COLUMN_PRICE,
       'sortable': false,
-      'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'price'); }
     },{
       'property': 'CumQty',
       'label': MSG_ACCOUNT_ACTIVITY_TABLE_COLUMN_QTY,
       'sortable': false,
-      'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'cum-qty'); }
     },{
       'property': 'AvgPx',
       'label': MSG_ACCOUNT_ACTIVITY_TABLE_COLUMN_AVG_PX,
       'sortable': false,
-      'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'Volume',
       'label': MSG_ACCOUNT_ACTIVITY_TABLE_COLUMN_VOLUME,
       'sortable': false,
-      'formatter': function(s){return (s/1e8).toFixed(2);},
       'classes': function() { return goog.getCssName(bitex.ui.AccountActivity.CSS_CLASS, 'vol'); }
     }
   ];

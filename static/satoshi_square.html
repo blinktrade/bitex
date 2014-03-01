@@ -35,8 +35,8 @@
   <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
 
   <!-- bitex application -->
-  <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v4" type="text/javascript"></script>
-  <!-- <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v4" type="text/javascript"></script> -->
+  <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v4" type="text/javascript"></script> <!--  -->
+  <!-- <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v4" type="text/javascript"></script>  -->
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
@@ -405,15 +405,17 @@
 
   <div class="content">
     <!--<p>Você tem dois métodos para retirar dinheiro de sua conta BitEx.</p>-->
-    <table class="table table-striped" style="width: 300px">
-      <tbody>
-      <tr><td><strong>Available USD</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
-      <tr><td><strong>Available BTC</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
-      </tbody>
-    </table>
-
-    <div class="accordion" id="withdraw_accordion">
+    <div id="id_user_balances_well">
+      <!--  Dynamic content written by templates/templates.soy.YourAccountBalances
+      <table class="table table-striped" style="width: 300px">
+        <tbody>
+        <tr><td><strong>Available USD</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_usd" data-blink-class="balance-info-blink"></span></td></tr>
+        <tr><td><strong>Available BTC</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_btc" data-blink-class="balance-info-blink"></span></td></tr>
+        </tbody>
+      </table>  -->
     </div>
+
+    <div class="accordion" id="withdraw_accordion"></div>
 
 
     <div id="id_withdraw_list" class="well"></div>

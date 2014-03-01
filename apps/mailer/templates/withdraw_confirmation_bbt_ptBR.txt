@@ -1,6 +1,6 @@
 Olá {{username}}
 
-Código de confirmação: {{token}}
+Código de confirmação: {{confirmation_token}}
 
 Atenção, este código de confirmação é válido para confirmar a seguinte operação de saque:
 Data: {{created}}

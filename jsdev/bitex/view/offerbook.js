@@ -82,7 +82,6 @@ bitex.view.OfferBookView.prototype.exitView = function() {
  * @protected
  */
 bitex.view.OfferBookView.prototype.decorateInternal = function(element) {
-  console.log('bitex.view.OfferBookView.prototype.decorateInternal');
   this.setElementInternal(element);
 
   var buy_order_entry = new bitex.ui.OrderEntryX();
@@ -178,8 +177,6 @@ bitex.view.OfferBookView.prototype.recreateOrderBookComponents_ = function( sele
  * @protected
  */
 bitex.view.OfferBookView.prototype.enterDocument = function() {
-  console.log('bitex.view.OfferBookView.prototype.enterDocument');
-
   goog.base(this, 'enterDocument');
 
   var handler = this.getHandler();
@@ -201,8 +198,13 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
     sell_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
     sell_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
 
-    goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( model.get('AllowedMarkets')[symbol]));
-    goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( model.get('AllowedMarkets')[symbol]));
+    var market = null;
+    if (goog.isDefAndNotNull(model.get('AllowedMarkets'))) {
+      market = model.get('AllowedMarkets')[symbol] ;
+    }
+
+    goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
+    goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
 
     this.recreateOrderBookComponents_(selected_symbol);
   }, this);

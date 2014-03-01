@@ -16,6 +16,9 @@ from sqlalchemy.sql.expression import or_, exists
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
+import json
+
+from bitex.json_encoder import JsonEncoder
 
 from tornado.options import  options
 
@@ -23,6 +26,27 @@ engine = create_engine( options.db_engine, echo=options.db_echo)
 Base = declarative_base()
 
 from trade_application import application
+
+
+from sqlalchemy.ext.declarative import DeclarativeMeta
+
+class AlchemyJSONEncoder(json.JSONEncoder):
+  def default(self, obj):
+    if isinstance(obj.__class__, DeclarativeMeta):
+      # an SQLAlchemy class
+      fields = {}
+      for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+        data = obj.__getattribute__(field)
+        try:
+          json.dumps(data) # this will fail on non-encodable values, like other classes
+          fields[field] = data
+        except TypeError:
+          fields[field] = None
+        # a json-encodable dict
+      return fields
+
+    return json.JSONEncoder.default(self, obj)
+
 
 def generate_two_factor_secret():
   return base64.b32encode(os.urandom(10))
@@ -445,7 +469,7 @@ class Ledger(Base):
     session.add(counter_order_record_credit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.account_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.broker_id, to_symbol, qty )
     order_record_credit = Ledger(currency     = to_symbol,
                                  account_id   = order.account_id,
                                  broker_id    = order.broker_id,
@@ -700,6 +724,9 @@ class Withdraw(Base):
   created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
   reason          = Column(String)
 
+  def as_dict(self):
+    return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
   @staticmethod
   def user_confirm(session, confirmation_token):
     withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).first()
@@ -724,6 +751,53 @@ class Withdraw(Base):
     return session.query(Withdraw).filter_by( user_id = user_id)\
                                   .filter(Withdraw.status.in_( status_list ))\
                                   .order_by(Withdraw.created.desc()).limit( page_size ).offset( offset )
+
+
+  @staticmethod
+  def create(session, user, *args, **kwargs ):
+    import uuid
+    confirmation_token = uuid.uuid4().hex
+
+    withdraw_record = Withdraw(user_id            = user.id,
+                               account_id         = user.id,
+                               username           = user.username,
+                               type               = kwargs.get('Type'         ).upper(),
+                               currency           = kwargs.get('Currency'     ),
+                               amount             = kwargs.get('Amount'       ),
+                               confirmation_token = confirmation_token)
+
+    withdraw_record.wallet              = kwargs.get('Wallet'       ) if 'Wallet'        in kwargs else None
+    withdraw_record.bank_number         = kwargs.get('BankNumber'   ) if 'BankNumber'    in kwargs else None
+    withdraw_record.bank_name           = kwargs.get('BankName'     ) if 'BankName'      in kwargs else None
+    withdraw_record.account_name        = kwargs.get('AccountName'  ) if 'AccountName'   in kwargs else None
+    withdraw_record.account_number      = kwargs.get('AccountNumber') if 'AccountNumber' in kwargs else None
+    withdraw_record.account_branch      = kwargs.get('AccountBranch') if 'AccountBranch' in kwargs else None
+    withdraw_record.cpf_cnpj            = kwargs.get('CPFCNPJ'      ) if 'CPFCNPJ'       in kwargs else None
+    withdraw_record.address             = kwargs.get('Address'      ) if 'Address'       in kwargs else None
+    withdraw_record.city                = kwargs.get('City'         ) if 'City'          in kwargs else None
+    withdraw_record.postal_code         = kwargs.get('PostalCode'   ) if 'PostalCode'    in kwargs else None
+    withdraw_record.region_state        = kwargs.get('RegionState'  ) if 'RegionState'   in kwargs else None
+    withdraw_record.country             = kwargs.get('Country'      ) if 'Country'       in kwargs else None
+    withdraw_record.bank_swift          = kwargs.get('BankSwift'    ) if 'BankSwift'     in kwargs else None
+    withdraw_record.intermediate_swift  = kwargs.get('IntermediateSwift') if 'IntermediateSwift' in kwargs else None
+    session.add(withdraw_record)
+    session.flush()
+
+    formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
+
+    template_name       = "withdraw_confirmation_%s_ptBR.txt" % withdraw_record.type.lower()
+    template_parameters =  withdraw_record.as_dict()
+    template_parameters['amount'] = formatted_amount
+
+    UserEmail.create( session = session,
+                      user_id = user.id,
+                      subject = u"[BitEx] Confirm withdraw operation.",
+                      template=template_name,
+                      params  = json.dumps(template_parameters, cls=JsonEncoder))
+
+    return withdraw_record
+
+
 
 
   @staticmethod
@@ -752,7 +826,7 @@ class Withdraw(Base):
     UserEmail.create( session = session,
                       user_id = user.id,
                       subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_brl_bank_transfer_ptBR.txt",
+                      template= "withdraw_confirmation_bbt_ptBR.txt",
                       params= '{"token":"' + confirmation_token + '", '\
                               '"amount":"' + formatted_amount + '", '\
                               '"username":"' + user.username + '",'\
@@ -787,7 +861,7 @@ class Withdraw(Base):
     UserEmail.create( session = session,
                       user_id = user.id,
                       subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_crypto_coin_ptBR.txt",
+                      template= "withdraw_confirmation_cry_ptBR.txt",
                       params= '{"token":"' + confirmation_token + '", ' \
                                '"amount":"' + formatted_amount + '", '\
                                '"username":"' + user.username + '",'\
