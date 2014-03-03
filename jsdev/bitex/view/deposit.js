@@ -69,7 +69,7 @@ bitex.view.DepositView.prototype.enterDocument = function() {
         var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, boleto_btn_attributes, boleto_option.description);
 
         goog.dom.appendChild(boleto_button, buttonElement);
-      }, this );
+      }, this);
     }, this);
   }, this);
 
@@ -86,7 +86,13 @@ bitex.view.DepositView.prototype.enterDocument = function() {
 
       if (goog.isDefAndNotNull(boleto_id)) {
         if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
-          alert('Por favor, preencha o valor do boleto a ser gerado');
+          /**
+           * @desc message shown to the user when he enter an invalid amount to generate a boleto
+           */
+          var MSG_GENERATE_BOLETO_INVALID_AMOUNT = goog.getMsg('Por favor, preencha o valor do boleto a ser gerado');
+
+          this.getApplication().showDialog(MSG_GENERATE_BOLETO_INVALID_AMOUNT );
+
           return;
         }
 

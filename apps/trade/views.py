@@ -702,11 +702,12 @@ def processCustomerListRequest(session, msg):
   status_list = msg.get('StatusList', [0, 1] )
   country     = msg.get('Country', None)
   state       = msg.get('State', None)
+  client_id   = msg.get('ClientID', None)
   sort_column = msg.get('Sort', None)
   sort_order  = msg.get('SortOrder', 'ASC')
   offset      = page * page_size
 
-  user_list = User.get_list(application.db_session, session.user.id ,status_list, country, state, page_size, offset, sort_column, sort_order)
+  user_list = User.get_list(application.db_session, session.user.id ,status_list, country, state, client_id, page_size, offset, sort_column, sort_order)
 
   result_set = []
   columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,

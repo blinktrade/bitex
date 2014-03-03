@@ -7,6 +7,8 @@ goog.require('goog.ui.Component');
 goog.require('goog.array');
 goog.require('goog.style');
 goog.require('goog.string');
+goog.require('goog.dom.forms');
+goog.require('goog.events.InputHandler');
 
 /**
  * @param {<Object>} options
@@ -26,6 +28,7 @@ bitex.ui.DataGrid = function (options, opt_domHelper) {
 
   this.sort_column_ = "";
   this.sort_direction_ = "up";
+  this.filter_ = null;
 
   this.loading_data_ = goog.dom.createDom('div', ['progress', 'progress-striped', 'active' ],
                                           goog.dom.createDom('div', 'bar' ));
@@ -134,6 +137,24 @@ bitex.ui.DataGrid.prototype.element_next_button_;
 bitex.ui.DataGrid.prototype.loading_data_;
 
 /**
+ * @type {!Element}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.search_input_;
+
+/**
+ * @type {!Element}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.search_btn_;
+
+/**
+ * @type {string}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.filter_;
+
+/**
  * Name of base CSS class
  * @type {string}
  * @private
@@ -200,6 +221,10 @@ bitex.ui.DataGrid.prototype.decorateInternal = function(element) {
   this.element_end_counter_ = goog.dom.getElementByClass( 'grid-end', element );
   this.element_prev_button_ = goog.dom.getElementByClass( 'grid-prevpage', element );
   this.element_next_button_ = goog.dom.getElementByClass( 'grid-nextpage', element );
+
+  var search_div = goog.dom.getElementByClass('datagrid-search', element);
+  this.search_input_ = goog.dom.getFirstElementChild(search_div);
+  this.search_btn_ = goog.dom.getNextElementSibling(this.search_input_);
 };
 
 
@@ -296,6 +321,11 @@ bitex.ui.DataGrid.prototype.render_ = function() {
     options['SortOrder'] = this.sort_direction_;
   }
 
+  var filter = this.getFilter();
+  if (goog.isDefAndNotNull(filter) && !goog.string.isEmpty(filter)) {
+    options['Filter'] = filter;
+  }
+
   // request data
   this.dispatchEvent( new bitex.ui.DataGridEvent(bitex.ui.DataGrid.EventType.REQUEST_DATA, options ) );
 
@@ -318,10 +348,64 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
   handler.listen(this.tr_columns_el_, goog.events.EventType.CLICK, this.handleColumnClick_);
 
 
+  handler.listen(this.search_btn_, goog.events.EventType.CLICK, this.handleSearchBtnClick_ )
+
+  handler.listen( new goog.events.InputHandler(this.search_input_),
+                  goog.events.InputHandler.EventType.INPUT,
+                  this.onChangeFilter_ );
 
   this.render_();
 };
 
+
+/**
+ * @return {string}
+ */
+bitex.ui.DataGrid.prototype.getFilter = function(){
+  return this.filter_;
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.ui.DataGrid.prototype.onChangeFilter_ = function(e) {
+  var filter = goog.dom.forms.getValue(this.search_input_);
+
+  if (goog.string.isEmpty(filter) && goog.isNull(this.filter_)) {
+    goog.dom.classes.addRemove( goog.dom.getFirstElementChild(this.search_btn_), 'icon-remove', 'icon-search'  );
+    return;
+  }
+  if (filter === this.filter_ && goog.isDefAndNotNull(this.filter_)  ) {
+    goog.dom.classes.addRemove( goog.dom.getFirstElementChild(this.search_btn_), 'icon-search', 'icon-remove' );
+  } else{
+    goog.dom.classes.addRemove( goog.dom.getFirstElementChild(this.search_btn_), 'icon-remove', 'icon-search'  );
+  }
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.ui.DataGrid.prototype.handleSearchBtnClick_ = function(e) {
+  var filter = goog.dom.forms.getValue(this.search_input_);
+
+  if (goog.string.isEmpty(filter) && goog.isNull(this.filter_)) {
+    return;
+  }
+
+  if (filter === this.filter_ && goog.isDefAndNotNull(this.filter_)  ) {
+    this.filter_ = null;
+    goog.dom.forms.setValue(this.search_input_, "");
+    goog.dom.classes.addRemove( goog.dom.getFirstElementChild(this.search_btn_), 'icon-remove', 'icon-search' );
+    this.current_page_ = 0;
+    this.render_();
+  } else {
+    this.filter_ = filter;
+    goog.dom.classes.addRemove( goog.dom.getFirstElementChild(this.search_btn_), 'icon-search', 'icon-remove' );
+    this.current_page_ = 0;
+    this.render_();
+  }
+};
 
 
 /**
@@ -526,105 +610,4 @@ bitex.ui.DataGridEvent = function(type, options) {
   this.options = options;
 };
 goog.inherits(bitex.ui.DataGridEvent, goog.events.Event);
-
-
-/*
-<div style="height: 420px;width:100%;margin-bottom:20px;">
-  <table class="table table-bordered datagrid datagrid-stretch-header">
-    <thead>
-      <tr>
-        <th colspan="4">
-          <span class="datagrid-header-title">Geographic Data Sample</span>
-
-          <div class="datagrid-header-left">
-            <div class="input-append search datagrid-search">
-              <input type="text" class="input-medium" placeholder="Search">
-              <button class="btn"><i class="icon-search"></i></button>
-            </div>
-          </div>
-          <div class="datagrid-header-right">
-            <div class="select filter" data-resize="auto">
-              <button data-toggle="dropdown" class="btn dropdown-toggle">
-                <span class="dropdown-label" style="width: 111px;">All</span>
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li data-value="all"><a href="#">All</a></li>
-                <li data-value="lt5m"><a href="#">Population &lt; 5M</a></li>
-                <li data-value="gte5m"><a href="#">Population &gt;= 5M</a></li>
-              </ul>
-            </div>
-          </div>
-        </th>
-      </tr>
-      <tr>
-        <th data-property="toponymName" class="sortable" style="width: 230px;">Name</th>
-        <th data-property="countrycode" class="sortable" style="width: 172px;">Country</th>
-        <th data-property="population" class="sortable" style="width: 230px;">
-          Population
-          <i class="icon-chevron-down datagrid-sort"></i>
-        </th>
-        <th data-property="fcodeName" class="sortable">Type</th>
-      </tr>
-    </thead>
-  </table>
-  <div class="datagrid-stretch-wrapper" style="height: 320px;">
-    <table id="MyGrid" class="table table-bordered datagrid">
-      <tbody>
-        <tr>
-          <td style="width: 230px;">Mexico City</td>
-          <td style="width: 172px;">MX</td>
-          <td style="width: 230px;">12294193</td>
-          <td>capital of a political entity</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <table class="table table-bordered datagrid datagrid-stretch-footer"><tfoot>
-    <tr>
-      <th colspan="4">
-        <div class="datagrid-footer-left" style="visibility: visible;">
-          <div class="grid-controls">
-            <span>
-              <span class="grid-start">1</span> -
-              <span class="grid-end">10</span> of
-              <span class="grid-count">146 items</span>
-            </span>
-            <div class="select grid-pagesize" data-resize="auto">
-              <button data-toggle="dropdown" class="btn dropdown-toggle">
-                <span class="dropdown-label">10</span>
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li data-value="5"><a href="#">5</a></li>
-                <li data-value="10"><a href="#">10</a></li>
-                <li data-value="20"><a href="#">20</a></li>
-                <li data-value="50"><a href="#">50</a></li>
-                <li data-value="100"><a href="#">100</a></li>
-              </ul>
-            </div>
-            <span>Per Page</span>
-          </div>
-        </div>
-        <div class="datagrid-footer-right" style="visibility: visible;">
-          <div class="grid-pager">
-            <button type="button" class="btn grid-prevpage" disabled="disabled"><i class="icon-chevron-left"></i></button>
-            <span>Page</span>
-
-            <div class="input-append dropdown combobox">
-              <input class="span1" type="text">
-                <button class="btn" data-toggle="dropdown"><i class="caret"></i></button>
-                <ul class="dropdown-menu"><li><a>1</a></li><li><a>2</a></li><li><a>3</a></li><li><a>4</a></li><li><a>5</a></li><li><a>6</a></li><li><a>7</a></li><li><a>8</a></li><li><a>9</a></li><li><a>10</a></li><li><a>11</a></li><li><a>12</a></li><li><a>13</a></li><li><a>14</a></li><li><a>15</a></li></ul>
-              </div>
-              <span>of <span class="grid-pages">15</span></span>
-              <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
-            </div>
-          </div>
-        </th>
-      </tr>
-    </tfoot>
-  </table>
-</div>
-*/
-
 

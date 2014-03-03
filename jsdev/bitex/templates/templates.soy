@@ -211,24 +211,28 @@
   * @param? id
   * @param? wrapper_height Defaults to 360px
   * @param? base_class
+  * @param? show_search
+  * @param? search_placeholder
   */
 {template .DataGrid}
   <div {if $id}id="{$id}"{/if}  class="fuelux {if $base_class}{$base_class}{/if}" style="width:100%;">
     <table class="table table-bordered datagrid datagrid-stretch-header">
       <thead>
-      {if $title}
-      <tr>
-        <th colspan="4">
-          <span class="datagrid-header-title"><strong>{$title}</strong></span>
-        </th>
-      </tr>
-      {else}
-      <tr style="display: none;">
-        <th colspan="4">
-          <span class="datagrid-header-title"><strong></strong></span>
-        </th>
-      </tr>
-      {/if}
+        <tr>
+          <th colspan="4" {if not $title and not $show_search}style="display: none;"{/if}>
+            <span class="datagrid-header-title"  {if not $title}style="display: none;"{/if} ><strong>{$title}</strong></span>
+
+            <div class="datagrid-header-left" {if not $show_search}style="display: none;"{/if}>
+                <div class="input-append search datagrid-search">
+                  <input type="text" class="input-medium" placeholder="{$search_placeholder}">
+                  <button type="button" class="btn"><i class="icon-search"></i></button>
+                </div>
+            </div>
+
+            <div class="datagrid-header-right"></div>
+
+          </th>
+        </tr>
       </thead>
     </table>
     <div class="datagrid-stretch-wrapper" style="height:{if $wrapper_height}{$wrapper_height}{else}360{/if}px;">

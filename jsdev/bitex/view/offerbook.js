@@ -206,6 +206,9 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
     goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
     goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
 
+    buy_order_entry.setBrokerMode(model.get('IsBroker'));
+    sell_order_entry.setBrokerMode(model.get('IsBroker'));
+
     this.recreateOrderBookComponents_(selected_symbol);
   }, this);
 };

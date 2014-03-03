@@ -12,7 +12,7 @@ from bitex.errors import OrderNotFound
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
-from sqlalchemy.sql.expression import or_, exists
+from sqlalchemy.sql.expression import and_, or_, exists
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
@@ -203,12 +203,18 @@ class User(Base):
     return None
 
   @staticmethod
-  def get_list(session, broker_id, status_list, country = None, state=None, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
-    query = session.query(User).filter(User.verified.in_( status_list ) ).filter_by(broker_id=broker_id)
+  def get_list(session, broker_id, status_list, country = None, state=None, client_id=None,  page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+    query = session.query(User).filter( User.verified.in_( status_list ) ).filter(User.broker_id==broker_id)
+
     if country:
-      query = query.filter_by( country = country )
+      query = query.filter(User.country_code == country)
     if state:
-      query = query.filter_by( state = state )
+      query = query.filter(User.state == state)
+
+    if client_id:
+      query = query.filter( or_( User.username.like(client_id), User.email.like(client_id) ) )
+
+
     if page_size:
       query = query.limit(page_size)
     if offset:
@@ -1320,8 +1326,7 @@ def db_bootstrap(session):
 
   currencies = [
     [ 'USD' , '$'       , 'Dollar'   ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    #[ 'BRL' , 'R$'      , 'Real'     ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    [ 'BRL' , '$'       , 'Real'     ,  False, 1          , '{:,.2f}', u'$ #,##0;$ #,##0)'  ],
+    [ 'BRL' , 'R$'      , 'Real'     ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
     [ 'EUR' , u'\u20ac' , 'Euro'     ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
     [ 'ARS' , '$'       , 'Peso'     ,  False, 100        , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'  ],
     [ 'GBP' , u'\u00a3' , 'Pound'    ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
@@ -1342,8 +1347,6 @@ def db_bootstrap(session):
     session.commit()
 
   instruments = [
-    ['BTCBRL', 'BRL', "BTC / BRL" ],
-    ['BTCEUR', 'EUR', "BTC / EUR" ],
     ['BTCUSD', 'USD', "BTC / USD" ],
   ]
   for inst in instruments:

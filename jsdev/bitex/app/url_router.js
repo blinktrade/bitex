@@ -108,7 +108,10 @@ bitex.app.UrlRouter.prototype.setViewInternal = function(view_name){
     this.activeViewInfo_.view.exitView();
   }
 
-  var args = new RegExp(urlMapping.re,"g").exec(actual_view_name).splice(1);
+  var view_data = new RegExp(urlMapping.re,"g").exec(actual_view_name);
+  var view_url = view_data[0];
+  var view_id = view_data[1];
+  var args = view_data.splice(2);
 
   this.current_view_ = actual_view_name;
   this.activeViewInfo_ = urlMapping;
@@ -121,13 +124,6 @@ bitex.app.UrlRouter.prototype.setViewInternal = function(view_name){
  * @param {string} view_name
  */
 bitex.app.UrlRouter.prototype.setView = function(view_name) {
-  var res = this.dispatchEvent(
-      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_name ));
-
-  if (!res) {
-    return;
-  }
-
   var urlMapping =  goog.array.find(this.urls_, function( url_object  ) {
     var re = new RegExp(url_object.re,"g");
     if (goog.isDefAndNotNull(re.exec( view_name ))) {
@@ -137,6 +133,20 @@ bitex.app.UrlRouter.prototype.setView = function(view_name) {
 
   if ( view_name[0] === '/' && !goog.isDefAndNotNull(urlMapping)) {
     this.setView( view_name.substr(1) );
+    return;
+  }
+
+  var actual_view_name = goog.string.remove(view_name, this.base_url_ );
+  var view_data = new RegExp(urlMapping.re,"g").exec(actual_view_name);
+  var view_url = view_data[0];
+  var view_id = view_data[1];
+  var view_args = view_data.splice(2);
+
+
+  var res = this.dispatchEvent(
+      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_id, view_args,view_url ));
+
+  if (!res) {
     return;
   }
 
@@ -184,16 +194,29 @@ bitex.app.UrlRouter.prototype.onNavigate_ = function(e){
 /**
  *
  * @param {bitex.app.UrlRouter.EventType} type
- * @param {string} view
+ * @param {string}  view_id
+ * @param {Array.<string>}  view_args
+ * @param {string}  view_url
  * @constructor
  */
-bitex.app.UrlRouterEvent = function(type, view) {
+bitex.app.UrlRouterEvent = function(type,  view_id, view_args,view_url) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
-  this.view = view
+  this.view_id = view_id;
+
+  /**
+   * @type {Array.<string>}
+   */
+  this.view_args = view_args;
+
+  /**
+   * @type {string}
+   */
+  this.view_url = view_url
+
 };
 goog.inherits(bitex.app.UrlRouterEvent, goog.events.Event);
 

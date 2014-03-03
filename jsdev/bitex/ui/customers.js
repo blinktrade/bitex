@@ -1,5 +1,4 @@
 goog.provide('bitex.ui.Customers');
-goog.provide('bitex.ui.CustomersEvent');
 
 goog.require('goog.dom');
 goog.require('goog.object');
@@ -87,12 +86,12 @@ bitex.ui.Customers = function( opt_domHelper) {
     },{
       'property': 'Email',
       'label': MSG_CUSTOMER_TABLE_COLUMN_EMAIL,
-      'sortable': true,
+      'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'email'); }
     },{
       'property': 'Verified',
       'label': MSG_CUSTOMER_TABLE_COLUMN_VERIFIED,
-      'sortable': true,
+      'sortable': false,
       'formatter': function(s){
         if (s) {
           return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES;
@@ -131,11 +130,13 @@ bitex.ui.Customers = function( opt_domHelper) {
         var data_row = goog.json.serialize( row_set_obj );
 
         var classes = "btn btn-mini btn-primary btn-deposit";
-        return goog.dom.createDom( 'button', { 'class':classes, 'data-row': data_row, 'data-user-id':row_set_obj['ID'] }, MSG_CUSTOMER_TABLE_ACTION_DETAILS );
+        return goog.dom.createDom( 'button', { 'class':classes, 'data-row': data_row}, MSG_CUSTOMER_TABLE_ACTION_DETAILS );
       },
       'classes': function() { return goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'last-login'); }
     }
   ];
+
+  this.selected_customer_ = null;
 
   bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
 };
@@ -162,6 +163,11 @@ bitex.ui.Customers.prototype.getCssClass = function() {
 };
 
 /**
+ * @type {Object}
+ */
+bitex.ui.Customers.prototype.selected_customer_;
+
+/**
  * @param {Object} row_set
  * @return {Array.<string>|string|Object}
  */
@@ -176,7 +182,12 @@ bitex.ui.Customers.prototype.getRowClass = function(row_set) {
   return  class_status;
 };
 
-
+/**
+ * @return {Object}
+ */
+bitex.ui.Customers.prototype.getSelectedCustomer = function() {
+  return this.selected_customer_;
+};
 
 /** @inheritDoc */
 bitex.ui.Customers.prototype.enterDocument = function() {
@@ -185,40 +196,13 @@ bitex.ui.Customers.prototype.enterDocument = function() {
   var handler = this.getHandler();
 
   handler.listen(this.getElement(), 'click', function(e){
-    var user_id = e.target.getAttribute('data-user-id');
-    var data = goog.json.parse(e.target.getAttribute('data-row') );
+    this.selected_customer_ = goog.json.parse(e.target.getAttribute('data-row'));
 
-    if (goog.isDefAndNotNull(user_id)) {
-      this.dispatchEvent( new bitex.ui.CustomersEvent (bitex.ui.Customers.EventType.DETAIL, user_id, data) );
+    if (goog.isDefAndNotNull(this.selected_customer_)) {
+      this.dispatchEvent( bitex.ui.Customers.EventType.DETAIL );
     }
   });
 };
-
-
-/**
- *
- * @param {string} type
- * @param {number} user_id
- * @param {Object} data
- * @extends {goog.events.Event}
- * @constructor
- */
-bitex.ui.CustomersEvent = function(type, user_id, data) {
-  goog.events.Event.call(this, type);
-
-  /**
-   * @type {string}
-   */
-  this.user_id = user_id;
-
-  /**
-   * @type {object}
-   */
-  this.data = data;
-
-};
-goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);
-
 
 
 goog.ui.registry.setDecoratorByClassName(

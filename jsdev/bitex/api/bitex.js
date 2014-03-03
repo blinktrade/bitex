@@ -294,6 +294,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'B3': // Customer List Response
+      this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_LIST_RESPONSE + '.' + msg['CustomerListReqID'] , msg) );
       this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_LIST_RESPONSE, msg) );
       break;
 
@@ -575,15 +576,16 @@ bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_countr
 /**
  * Request the Broker Customer's list
  * @param {number=} opt_requestId. Defaults to random generated number
- * @param {string=} opt_country.
- * @param {string=} opt_state.
+ * @param {string=} opt_filter_country.
+ * @param {string=} opt_filter_state.
+ * @param {string=} opt_filter_username_or_email
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
  * @param {string=} opt_sort_column
  * @param {string=} opt_sort_direction. Defaults to ASC
  * @param {Array.<string>=} opt_status. Defaults to ['1'] ( active brokers )
  */
-bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_country, opt_state, opt_page, opt_limit, opt_status, opt_sort_column, opt_sort_direction){
+bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_filter_country, opt_filter_state, opt_filter_username_or_email, opt_page, opt_limit, opt_status, opt_sort_column, opt_sort_direction){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
@@ -596,11 +598,14 @@ bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_coun
     'PageSize': limit,
     'StatusList': status
   };
-  if (goog.isDefAndNotNull(opt_country)) {
-    msg['Country'] = opt_country;
+  if (goog.isDefAndNotNull(opt_filter_country)) {
+    msg['Country'] = opt_filter_country;
   }
-  if (goog.isDefAndNotNull(opt_state)) {
-    msg['State'] = opt_state;
+  if (goog.isDefAndNotNull(opt_filter_state)) {
+    msg['State'] = opt_filter_state;
+  }
+  if (goog.isDefAndNotNull(opt_filter_username_or_email)) {
+    msg['ClientID'] = opt_filter_username_or_email;
   }
   if (goog.isDefAndNotNull(opt_sort_column)) {
     msg['Sort'] = opt_sort_column;
