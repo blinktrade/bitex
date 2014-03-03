@@ -174,12 +174,17 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   });
 
   /**
+   * @desc Title  for the customers table
+   */
+  var MSG_CUSTOMERS_TABLE_TITLE = goog.getMsg('Customers');
+
+  /**
    * @desc placeholder for the search input text in the customers table
    */
   var MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Username or email...');
   goog.soy.renderElement(goog.dom.getElement('id_customers_well'), bitex.templates.DataGrid, {
     id: 'id_customer_table',
-    title: 'Customers',
+    title: MSG_CUSTOMERS_TABLE_TITLE,
     show_search: true,
     search_placeholder: MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER
   });
@@ -192,9 +197,15 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     id: 'account_overview_balances_table_id'
   });
 
+  /**
+   * @desc Title  for the customers table
+   */
+  var MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE = goog.getMsg('Withdraw requests...');
   goog.soy.renderElement(goog.dom.getElement('account_overview_withdraw_requests_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_withdraw_requests_table_id'
+    id: 'account_overview_withdraw_requests_table_id',
+    title: MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE
   });
+
 
   goog.soy.renderElement(goog.dom.getElement('account_overview_trades_id'), bitex.templates.DataGrid, {
     id: 'account_overview_trades_table_id'
@@ -560,6 +571,9 @@ bitex.app.SatoshiSquare.prototype.onBitexGenerateBoletoResponse_ = function(e) {
 bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
   var msg = e.data;
 
+  /**
+   * @desc - execution report title notification message
+   */
   var MSG_ORDER_EXECUTION_TITLE_NOTIFICATION = goog.getMsg("Order {$id} ", {id: msg['OrderID']} );
 
   /**

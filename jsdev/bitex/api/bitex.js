@@ -67,6 +67,8 @@ bitex.api.BitEx.EventType = {
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
 
+  NEWS: 'news',
+
   BOLETO_OPTIONS_RESPONSE:'boleto_options_response',
   GENERATE_BOLETO_RESPONSE : 'generate_boleto_response',
 
@@ -78,6 +80,7 @@ bitex.api.BitEx.EventType = {
   /* Withdraws */
   WITHDRAW_RESPONSE: 'withdraw_response',
   WITHDRAW_LIST_RESPONSE: 'withdraw_list_response',
+  WITHDRAW_REFRESH: 'withdraw_refresh',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -92,6 +95,7 @@ bitex.api.BitEx.EventType = {
   BROKER_LIST_RESPONSE: 'broker_list',
   CUSTOMER_LIST_RESPONSE: 'customer_list',
   CUSTOMER_DETAIL_RESPONSE: 'customer_detail',
+  PROCESS_WITHDRAW_RESPONSE: 'process_withdraw_response',
 
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
@@ -233,6 +237,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.HEARTBEAT, msg ) );
       break;
 
+    case 'B':  //News
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.NEWS, msg ) );
+      break;
+
     case 'BF': // Login response:
       if (msg['UserStatus'] == 1 ) {
         this.logged_ = true;
@@ -261,11 +269,16 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, msg ) );
       break;
 
-    case 'U7': // CryptoCoin Withdraw Response
+    case 'U7': // Withdraw Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE + '.' + msg['WithdrawReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
       break;
 
+    case 'U9': // Withdraw Refresh
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + msg['UserID'], msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + msg['BrokerID'], msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH, msg ) );
+      break;
 
     case 'U3': // Balance Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BALANCE_RESPONSE, msg ) );
@@ -301,6 +314,12 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
     case 'B5': // Customer Detail Response
       this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_DETAIL_RESPONSE, msg) );
       break;
+
+    case 'B7': // Process Withdraw Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_WITHDRAW_RESPONSE + '.' + msg['ProcessWithdrawReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_WITHDRAW_RESPONSE, msg ) );
+      break;
+
 
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
@@ -619,16 +638,43 @@ bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_filt
 };
 
 /**
+ * @param {number=} opt_requestId. Defaults to random generated number
  * @param {number} clientId
  */
-bitex.api.BitEx.prototype.requestCustomerDetails = function(clientId){
-  var requestId = parseInt( 1e7 * Math.random() , 10 );
+bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clientId){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
     'MsgType': 'B4',
     'CustomerReqID': requestId,
     'ClientID': clientId
   };
+  this.ws_.send(JSON.stringify( msg ));
+  return requestId;
+};
+
+
+/**
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {string} action
+ * @param {number} withdrawId
+ * @param {number} reasonId
+ * @param {string=} opt_reason
+ */
+bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, withdrawId, reasonId, opt_reason){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'B6',
+    'ProcessWithdrawReqID': requestId,
+    'WithdrawID': withdrawId,
+    'Action': action,
+    'ReasonID': reasonId
+  };
+  if (goog.isDefAndNotNull(opt_reason)){
+    msg['Reason'] = opt_reason;
+  }
+
   this.ws_.send(JSON.stringify( msg ));
   return requestId;
 };
@@ -940,6 +986,7 @@ goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototyp
 goog.exportProperty(BitEx.prototype, 'requestWithdraw', bitex.api.BitEx.prototype.requestWithdraw);
 goog.exportProperty(BitEx.prototype, 'requestWithdrawList', bitex.api.BitEx.prototype.requestWithdrawList);
 goog.exportProperty(BitEx.prototype, 'requestCustomerList', bitex.api.BitEx.prototype.requestCustomerList);
+goog.exportProperty(BitEx.prototype, 'processWithdraw', bitex.api.BitEx.prototype.processWithdraw);
 goog.exportProperty(BitEx.prototype, 'requestCustomerDetails', bitex.api.BitEx.prototype.requestCustomerDetails);
 goog.exportProperty(BitEx.prototype, 'requestBrokerList', bitex.api.BitEx.prototype.requestBrokerList );
 goog.exportProperty(BitEx.prototype, 'confirmWithdraw', bitex.api.BitEx.prototype.confirmWithdraw);

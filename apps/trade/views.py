@@ -488,6 +488,34 @@ def processWithdrawRequest(session, msg):
   }
   return json.dumps(response, cls=JsonEncoder)
 
+def withdrawRecordWithdrawMessage( withdraw ):
+  withdraw_refresh = dict()
+  withdraw_refresh['WithdrawID']          = withdraw.id
+  withdraw_refresh['UserID']              = withdraw.user_id
+  withdraw_refresh['BrokerID']            = withdraw.broker_id
+  withdraw_refresh['Type']                = withdraw.type
+  withdraw_refresh['Currency']            = withdraw.currency
+  withdraw_refresh['Amount']              = withdraw.amount
+  withdraw_refresh['Wallet']              = withdraw.wallet
+  withdraw_refresh['BankNumber']          = withdraw.bank_number
+  withdraw_refresh['AccountName']         = withdraw.account_name
+  withdraw_refresh['AccountNumber']       = withdraw.account_number
+  withdraw_refresh['AccountBranch']       = withdraw.account_branch
+  withdraw_refresh['CPFCNPJ']             = withdraw.cpf_cnpj
+  withdraw_refresh['Address']             = withdraw.address
+  withdraw_refresh['City']                = withdraw.city
+  withdraw_refresh['PostalCode']          = withdraw.postal_code
+  withdraw_refresh['Country']             = withdraw.country
+  withdraw_refresh['BankSwift']           = withdraw.bank_swift
+  withdraw_refresh['IntermediateSwift']   = withdraw.intermediate_swift
+  withdraw_refresh['RoutingNumber']       = withdraw.routing_number
+  withdraw_refresh['Created']             = withdraw.created
+  withdraw_refresh['Status']              = withdraw.status
+  withdraw_refresh['RegionState']         = withdraw.region_state
+  withdraw_refresh['BankName']            = withdraw.bank_name
+  withdraw_refresh['ReasonID']            = withdraw.reason_id
+  withdraw_refresh['Reason']              = withdraw.reason
+  return withdraw_refresh
 
 @login_required
 def processWithdrawConfirmationRequest(session, msg):
@@ -501,31 +529,18 @@ def processWithdrawConfirmationRequest(session, msg):
 
   application.db_session.commit()
 
-  response = {
-    'MsgType':            'U25',
-    'WithdrawReqID':      reqId,
-    'ConfirmationToken':  withdraw_data.confirmation_token,
-    'WithdrawID':         withdraw_data.id,
-    'Currency':           withdraw_data.currency,
-    'Amount':             withdraw_data.amount,
-    'Wallet':             withdraw_data.wallet,
-    'BankNumber':         withdraw_data.bank_number,
-    'BankName':           withdraw_data.bank_name,
-    'AccountName':        withdraw_data.account_name,
-    'AccountNumber':      withdraw_data.account_number,
-    'AccountBranch':      withdraw_data.account_branch,
-    'CPFCNPJ':            withdraw_data.cpf_cnpj,
-    'Address':            withdraw_data.address,
-    'City':               withdraw_data.city,
-    'PostalCode':         withdraw_data.postal_code,
-    'RegionState':        withdraw_data.region_state,
-    'Country':            withdraw_data.country,
-    'BankSwift':          withdraw_data.bank_swift,
-    'IntermediateSwift':  withdraw_data.intermediate_swift,
-    'RoutingNumber':      withdraw_data.routing_number,
-    'Created':            withdraw_data.created
-  }
-  return json.dumps(response, cls=JsonEncoder)
+  withdraw_refresh = withdrawRecordWithdrawMessage(withdraw_data)
+  withdraw_refresh['MsgType'] = 'U9'
+  application.publish( withdraw_data.account_id, withdraw_refresh  )
+  application.publish( withdraw_data.broker_id,  withdraw_refresh  )
+
+
+  response_u25 = withdrawRecordWithdrawMessage(withdraw_data)
+  response_u25['MsgType'] = 'U25'
+  response_u25['WithdrawReqID'] = reqId
+  response_u25['ConfirmationToken'] = withdraw_data.confirmation_token,
+
+  return json.dumps(response_u25, cls=JsonEncoder)
 
 
 @login_required
@@ -537,12 +552,10 @@ def processWithdrawListRequest(session, msg):
 
   user = session.user
   if msg.has('ClientID'):
-    if enable:
-      raise NotAuthorizedError()
     user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
-    if not user:
-      raise NotAuthorizedError()
     if user.broker_id  != session.user.id:
+      raise NotAuthorizedError()
+    if not user:
       raise NotAuthorizedError()
 
 
@@ -551,7 +564,8 @@ def processWithdrawListRequest(session, msg):
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Type'             , 'Currency'      , 'Amount' , 'Wallet', 'BankNumber' ,'AccountName',
               'AccountNumber', 'AccountBranch'    , 'CPFCNPJ'       , 'Address', 'City'  , 'PostalCode', 'Country'   ,
-              'BankSwift'    , 'IntermediateSwift', 'RoutingNumber' , 'Created', 'Status', 'RegionState','BankName' ]
+              'BankSwift'    , 'IntermediateSwift', 'RoutingNumber' , 'Created', 'Status', 'RegionState','BankName'  ,
+              'ReasonID'     , 'Reason'    ]
 
   for withdraw in withdraws:
     withdraw_list.append( [
@@ -575,7 +589,9 @@ def processWithdrawListRequest(session, msg):
       withdraw.created,
       withdraw.status,
       withdraw.region_state,
-      withdraw.bank_name
+      withdraw.bank_name,
+      withdraw.reason_id,
+      withdraw.reason
     ])
 
   response_msg = {
@@ -761,5 +777,35 @@ def processCustomerDetailRequest(session, msg):
     'MsgType'           : 'B5',
     'CustomerReqID'     : msg.get('CustomerReqID'),
     'Username'          : client.username
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+
+@login_required
+@broker_user_required
+def processProcessWithdraw(session, msg):
+  withdraw = Withdraw.get_withdraw(application.db_session, msg.get('WithdrawID'))
+
+  if withdraw.broker_id != session.user.id:
+    raise  NotAuthorizedError()
+
+  if msg.get('Action') == 'CANCEL':
+    withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
+
+  application.db_session.commit()
+
+  withdraw_refresh = withdrawRecordWithdrawMessage(withdraw)
+  withdraw_refresh['MsgType'] = 'U9'
+
+  application.publish( withdraw.account_id, withdraw_refresh  )
+  application.publish( withdraw.broker_id,  withdraw_refresh  )
+
+  response_msg = {
+    'MsgType'             : 'B7',
+    'ProcessWithdrawReqID': msg.get('ProcessWithdrawReqID'),
+    'WithdrawID'          : msg.get('WithdrawID'),
+    'Status'              : withdraw.status,
+    'ReasonID'            : withdraw.reason_id,
+    'Reason'              : withdraw.reason
   }
   return json.dumps(response_msg, cls=JsonEncoder)

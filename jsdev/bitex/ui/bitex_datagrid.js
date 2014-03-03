@@ -4,11 +4,15 @@ goog.provide('bitex.ui.DataGridEvent');
 
 goog.require('goog.ui.Component');
 
+goog.require('goog.object');
 goog.require('goog.array');
 goog.require('goog.style');
 goog.require('goog.string');
 goog.require('goog.dom.forms');
 goog.require('goog.events.InputHandler');
+goog.require('goog.dom.classes');
+goog.require('goog.Timer');
+
 
 /**
  * @param {<Object>} options
@@ -22,9 +26,12 @@ bitex.ui.DataGrid = function (options, opt_domHelper) {
 
 
   this.columns_ = options['columns'];
+  this.row_id_fn_ = options['rowIDFn'] || goog.nullFunction;
   this.row_class_fn_ = options['rowClassFn'] || goog.nullFunction;
   this.current_page_ = options['currentPage'] || 0;
   this.limit_ = options['limit'] || 100;
+  this.blink_delay_ =  options['blinkDelay'] || 700;
+
 
   this.sort_column_ = "";
   this.sort_direction_ = "up";
@@ -51,6 +58,12 @@ bitex.ui.DataGrid.prototype.columns_;
  * @private
  */
 bitex.ui.DataGrid.prototype.row_class_fn_;
+
+/**
+ * @type {*}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.row_id_fn_;
 
 
 
@@ -93,6 +106,12 @@ bitex.ui.DataGrid.prototype.current_page_;
  * @private
  */
 bitex.ui.DataGrid.prototype.limit_;
+
+/**
+ * @type {number}
+ * @private
+ */
+bitex.ui.DataGrid.prototype.blink_delay_
 
 /**
  * @type {string}
@@ -327,12 +346,10 @@ bitex.ui.DataGrid.prototype.render_ = function() {
   }
 
   // request data
-  this.dispatchEvent( new bitex.ui.DataGridEvent(bitex.ui.DataGrid.EventType.REQUEST_DATA, options ) );
-
+  this.dispatchEvent( new bitex.ui.DataGridEvent(bitex.ui.DataGrid.EventType.REQUEST_DATA, options));
 
   goog.dom.removeChildren(this.table_data_body_el_);
-  goog.dom.appendChild(this.table_data_body_el_,this.loading_data_ );
-
+  goog.dom.appendChild(this.table_data_body_el_,this.loading_data_);
 };
 
 
@@ -348,7 +365,7 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
   handler.listen(this.tr_columns_el_, goog.events.EventType.CLICK, this.handleColumnClick_);
 
 
-  handler.listen(this.search_btn_, goog.events.EventType.CLICK, this.handleSearchBtnClick_ )
+  handler.listen(this.search_btn_, goog.events.EventType.CLICK, this.handleSearchBtnClick_ );
 
   handler.listen( new goog.events.InputHandler(this.search_input_),
                   goog.events.InputHandler.EventType.INPUT,
@@ -475,7 +492,87 @@ bitex.ui.DataGrid.prototype.setColumnFormatter = function(column, formatter, opt
 };
 
 /**
- *
+ * @param {Object} record
+ * @param {number=} opt_index
+ */
+bitex.ui.DataGrid.prototype.insertOrUpdateRecord = function(record, opt_index) {
+  var result_set_col_index = {};
+  var columns = goog.object.getKeys(record);
+  var row_set = goog.object.getValues(record);
+  goog.array.forEach( this.columns_, function(this_col, index_row_set) {
+    var index = goog.array.findIndex( columns, function( col ) {
+      return col == this_col['property'];
+    });
+    result_set_col_index[index] = index_row_set;
+  });
+
+
+  var row_id = this.row_id_fn_(record);
+  var tr = null;
+  var is_new_record = false;
+  if (goog.isDefAndNotNull(row_id)) {
+    tr = goog.dom.getElement(row_id);
+  }
+
+  if (!goog.isDefAndNotNull(tr)) {
+    tr = goog.dom.createDom( 'tr', this.row_class_fn_(record) );
+    tr.id = row_id;
+    is_new_record = true;
+  } else {
+    tr.className = this.row_class_fn_(record);
+  }
+
+  var td_elements = {};
+  goog.array.forEach( row_set, function(value, result_set_index) {
+    var index = result_set_col_index[result_set_index];
+
+    if (goog.isDefAndNotNull( index ) ) {
+      var formatter = this.columns_[index]['formatter'] || function(){return '' + value };
+      var classes = this.columns_[index]['classes'] || goog.nullFunction;
+
+
+      var td = goog.dom.createDom( 'td', classes(value), formatter(value, record ) );
+      td_elements[this.columns_[ index]['property'] ]  = td;
+    } else {
+
+    }
+  }, this);
+
+  if (!is_new_record) {
+    goog.dom.removeChildren(tr);
+  }
+  goog.array.forEach( this.columns_, function(col) {
+    var td = td_elements[col['property']];
+    if (!goog.isDefAndNotNull(td)) {
+      td = goog.dom.createDom( 'td', undefined, '' );
+    }
+    goog.dom.appendChild( tr, td );
+  });
+
+  if (is_new_record) {
+    if (goog.isNumber(opt_index)) {
+      goog.dom.insertChildAt(this.table_data_body_el_,tr, opt_index);
+    } else {
+      goog.dom.appendChild(this.table_data_body_el_,tr );
+    }
+  }
+
+  var first_row = goog.dom.getFirstElementChild(this.table_data_body_el_);
+
+  // adjust sizes
+  if ( goog.isDefAndNotNull(first_row) ){
+    this.adjustSizes_(first_row);
+  }
+
+  var blink_class = 'warning';
+  goog.dom.classes.add( tr,  blink_class );
+  goog.Timer.callOnce( function(){
+    goog.dom.classes.remove( tr,  blink_class );
+  }, this.blink_delay_ , this);
+
+};
+
+/**
  * @param {Array.<Array.<*> >} resultSet
  * @param {Array.<string >} columns
  * @return {Array.<Element>}
@@ -501,6 +598,13 @@ bitex.ui.DataGrid.prototype.resultSetToElements = function(resultSet, columns) {
     }, this);
 
     var tr = goog.dom.createDom( 'tr', this.row_class_fn_(row_set_obj) );
+
+    var row_id = this.row_id_fn_(row_set_obj);
+    if (goog.isDefAndNotNull(row_id)) {
+      tr.id = row_id;
+    }
+
+
     var td_elements = {};
 
     var rowSetObj = {};

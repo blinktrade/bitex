@@ -13,5 +13,5 @@ Este procedimento é necessário para aumentar a segurança do sistema, pois cas
 o invasor não poderá realizar a operação de saque de bitcoins se ele não possuir acesso a sua conta de email.
 
 Grato,
-Equipe BitEx
-Cuidando da segurança dos seus bitcoins
+BitEx
+Segurança e Transparência

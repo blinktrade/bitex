@@ -99,6 +99,7 @@ class JsonMessage(BaseMessage):
       # User messages based on the Fix Protocol
       '0':   'Heartbeat',
       '1':   'TestRequest',
+      'B':   'News',
       'C':   'Email',
       'V':   'MarketDataRequest',
       'W':   'MarketDataFullRefresh',
@@ -119,11 +120,10 @@ class JsonMessage(BaseMessage):
       'U3':  'UserBalanceResponse',
       'U4':  'OrdersListRequest',
       'U5':  'OrdersListResponse',
-      'U666':  'WithdrawRequest',
-      'U6':  'CryptoCoinWithdrawRequest',
-      'U7':  'CryptoCoinWithdrawResponse',
-      'U8':  'BRLBankTransferWithdrawRequest',
-      'U9':  'BRLBankTransferWithdrawResponse',
+      'U6':  'WithdrawRequest',
+      'U7':  'WithdrawResponse',
+      'U9':  'WithdrawRefresh',
+
       'U10': 'ResetPasswordRequest',
       'U11': 'ResetPasswordResponse',
       'U12': 'ResetPasswordRequest',
@@ -150,6 +150,9 @@ class JsonMessage(BaseMessage):
       'B3':  'CustomerListResponse',
       'B4':  'CustomerRequest',
       'B5':  'CustomerResponse',
+
+      'B6':  'ProcessWithdraw',
+      'B7':  'ProcessWithdrawResponse',
 
       # System messages
       'S0':  'BitcoinNewAddressRequest',
@@ -265,6 +268,18 @@ class JsonMessage(BaseMessage):
 
       #TODO: Validate all fields of New Order Single Message
 
+    elif self.type == 'B': # News
+      self.raise_exception_if_required_tag_is_missing('Headline')
+      self.raise_exception_if_required_tag_is_missing('LinesOfText')
+      self.raise_exception_if_required_tag_is_missing('Text')
+
+      self.raise_exception_if_empty('Headline')
+      self.raise_exception_if_not_a_integer('LinesOfText')
+      self.raise_exception_if_not_greater_than_zero('LinesOfText')
+      self.raise_exception_if_empty('Text')
+
+
+
     elif self.type == 'C': # Email
       self.raise_exception_if_required_tag_is_missing('EmailThreadID')
       self.raise_exception_if_required_tag_is_missing('Subject')
@@ -338,6 +353,11 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('WithdrawID')
       self.raise_exception_if_not_a_integer('WithdrawID')
 
+    elif self.type == 'U8': #WithdrawRefresh
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+
+
     elif self.type == 'U24': # WithdrawConfirmationRequest
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_not_a_integer('WithdrawReqID')
@@ -390,6 +410,31 @@ class JsonMessage(BaseMessage):
       pass
     elif self.type == 'B5': # Customer Response
       pass
+
+    elif self.type == 'B6': # Process Withdraw
+      self.raise_exception_if_required_tag_is_missing('ProcessWithdrawReqID')
+      self.raise_exception_if_not_a_integer('ProcessWithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('ProcessWithdrawReqID')
+
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawID')
+
+      self.raise_exception_if_required_tag_is_missing('Action')
+      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROCESS', 'COMPLETE'])
+
+
+    elif self.type == 'B7': # Process Withdraw
+      self.raise_exception_if_required_tag_is_missing('ProcessWithdrawReqID')
+      self.raise_exception_if_not_a_integer('ProcessWithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('ProcessWithdrawReqID')
+
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawID')
+
+      self.raise_exception_if_required_tag_is_missing('Status')
+
 
     elif self.type == 'S0': # Bitcoin New Address
       self.raise_exception_if_required_tag_is_missing('BtcAddress')

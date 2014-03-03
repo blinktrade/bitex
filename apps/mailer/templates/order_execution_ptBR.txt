@@ -1,8 +1,6 @@
 Olá {{name}}
 
-Houve nova atividade em sua conta Bitex.
-
-Detalhes:
+Sua ordem foi executada.
 
 Número da Ordem: {{order_id}}
 Número da execução: {{trade_id}}

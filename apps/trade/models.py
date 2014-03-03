@@ -696,6 +696,7 @@ class Withdraw(Base):
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
   account_id      = Column(Integer,       ForeignKey('users.id'))
+  broker_id       = Column(Integer,       ForeignKey('users.id'))
   username        = Column(String,        nullable=False)
   currency        = Column(String,        nullable=False)
   amount          = Column(Integer,       nullable=False)
@@ -728,6 +729,7 @@ class Withdraw(Base):
   confirmation_token = Column(String,     index=True, unique=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
   created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
+  reason_id       = Column(Integer)
   reason          = Column(String)
 
   def as_dict(self):
@@ -752,6 +754,34 @@ class Withdraw(Base):
 
     return  withdraw_data
 
+  def cancel(self, session, reason_id = None, reason=None):
+    self.status = '8' # CANCELLED
+    self.reason_id = reason_id
+    self.reason = reason
+
+    session.add(self)
+    session.flush()
+
+    formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
+
+    template_name       = "withdraw_cancelled_%s_ptBR.txt" % self.type.lower()
+    template_parameters =  self.as_dict()
+    template_parameters['amount'] = formatted_amount
+
+    UserEmail.create( session = session,
+                      user_id = self.user_id ,
+                      subject = u"[BitEx] Withdraw cancelled.",
+                      template=template_name,
+                      params  = json.dumps(template_parameters, cls=JsonEncoder))
+
+    return self
+
+
+  @staticmethod
+  def get_withdraw(session, withdraw_id):
+    return session.query(Withdraw).filter_by(id=withdraw_id).first()
+
+
   @staticmethod
   def get_list(session, user_id, status_list, page_size, offset):
     return session.query(Withdraw).filter_by( user_id = user_id)\
@@ -767,6 +797,7 @@ class Withdraw(Base):
     withdraw_record = Withdraw(user_id            = user.id,
                                account_id         = user.id,
                                username           = user.username,
+                               broker_id          = user.broker_id,
                                type               = kwargs.get('Type'         ).upper(),
                                currency           = kwargs.get('Currency'     ),
                                amount             = kwargs.get('Amount'       ),
@@ -803,92 +834,19 @@ class Withdraw(Base):
 
     return withdraw_record
 
-
-
-
-  @staticmethod
-  def create_brl_bank_transfer_withdraw(session, user, amount, bank_number,
-                                        bank_name, account_name, account_number, account_branch, cpf_cnpj):
-    import uuid
-    confirmation_token = uuid.uuid4().hex
-    withdraw_record = Withdraw(user_id        = user.id,
-                               account_id     = user.id,
-                               username       = user.username,
-                               currency       = 'BRL',
-                               type           = 'BBT',  # BBT - Brazil Bank Transfer
-                               amount         = amount,
-                               bank_number    = bank_number,
-                               bank_name      = bank_name,
-                               account_name   = account_name,
-                               account_number = account_number,
-                               account_branch = account_branch,
-                               cpf_cnpj       = cpf_cnpj,
-                               confirmation_token = confirmation_token)
-    session.add(withdraw_record)
-    session.flush()
-
-    formatted_amount = Currency.format_number( session, 'BRL', amount / 1.e8 )
-
-    UserEmail.create( session = session,
-                      user_id = user.id,
-                      subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_bbt_ptBR.txt",
-                      params= '{"token":"' + confirmation_token + '", '\
-                              '"amount":"' + formatted_amount + '", '\
-                              '"username":"' + user.username + '",'\
-                              '"currency":"BRL",'\
-                              '"created":"' + str(withdraw_record.created) + '",'\
-                              '"bank_number":"' + bank_number + '",'\
-                              '"bank_name":"' + bank_name + '",'\
-                              '"account_name":"' + account_name + '",'\
-                              '"account_number":"' + account_number + '",'\
-                              '"account_branch":"' + account_branch + '",'\
-                              '"cpf_cnpj":"' + cpf_cnpj + '"}')
-    return withdraw_record
-
-  @staticmethod
-  def create_crypto_coin_withdraw( session, user, currency, amount, wallet ):
-    import uuid
-    confirmation_token = uuid.uuid4().hex
-    withdraw_record = Withdraw(user_id    = user.id,
-                               account_id = user.id,
-                               username   = user.username,
-                               currency   = currency,
-                               type       = 'CRY',  # CRY - Crypto Coin Transfer
-                               amount     = amount,
-                               wallet     = wallet,
-                               confirmation_token = confirmation_token)
-
-    session.add(withdraw_record)
-    session.flush()
-
-    formatted_amount = Currency.format_number( session, currency, amount / 1.e8 )
-
-    UserEmail.create( session = session,
-                      user_id = user.id,
-                      subject = u"[BitEx] Confirme a operação de saque.",
-                      template= "withdraw_confirmation_cry_ptBR.txt",
-                      params= '{"token":"' + confirmation_token + '", ' \
-                               '"amount":"' + formatted_amount + '", '\
-                               '"username":"' + user.username + '",'\
-                               '"currency":"' + currency + '",'\
-                               '"created":"' + str(withdraw_record.created) + '",'\
-                               '"wallet":"' + wallet + '"}')
-    return withdraw_record
-
   def __repr__(self):
     return u"<Withdraw(id=%r, user_id=%r, account_id=%r, username=%r, currency=%r, type=%r, amount='%r', " \
-           u"wallet=%r, "\
+           u"wallet=%r, broker_id=%r, "\
            u"bank_number=%r, bank_name=%r, account_name=%r, account_number=%r, account_branch=%r, cpf_cnpj=%r, "\
            u"address=%r, city=%r, postal_code=%r, region_state=%r, country=%r, bank_swift=%r, intermediate_swift=%r, " \
            u"routing_number=%r,"\
-           u"confirmation_token=%r, status=%r, created=%r, reason=%r)>" % (
+           u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r)>" % (
       self.id, self.user_id, self.account_id, self.username, self.currency, self.type,self.amount,
-      self.wallet,
+      self.wallet, self.broker_id,
       self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
       self.address, self.city, self.postal_code, self.region_state, self.country, self.bank_swift, self.intermediate_swift,
       self.routing_number,
-      self.confirmation_token, self.status, self.created, self.reason)
+      self.confirmation_token, self.status, self.created, self.reason_id, self.reason)
 
 
 class Order(Base):

@@ -30,8 +30,17 @@ var MSG_WITHDRAW_TABLE_COLUMN_STATUS_UNCONFIRMED = goog.getMsg('Unconfirmed');
 /**
  * @desc Column Status of the Withdraw List
  */
+var MSG_WITHDRAW_TABLE_COLUMN_STATUS_PROGRESS = goog.getMsg('In progress...');
+
+/**
+ * @desc Column Status of the Withdraw List
+ */
 var MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED = goog.getMsg('Completed');
 
+/**
+ * @desc Column Status of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_STATUS_CANCELLED = goog.getMsg('Cancelled');
 
 /**
  * @desc Column Currency of the Withdraw List
@@ -49,9 +58,9 @@ var MSG_WITHDRAW_TABLE_COLUMN_AMOUNT = goog.getMsg('Amount');
 var MSG_WITHDRAW_TABLE_COLUMN_CREATED = goog.getMsg('Date/Hour');
 
 /**
- * @desc Column Wallet of the Withdraw List
+ * @desc Column Actions of the Withdraw List
  */
-var MSG_WITHDRAW_TABLE_COLUMN_WALLET = goog.getMsg('Wallet');
+var MSG_WITHDRAW_TABLE_COLUMN_ACTIONS = goog.getMsg('Actions');
 
 /**
  * @desc Column Detail of the Withdraw List
@@ -60,35 +69,42 @@ var MSG_WITHDRAW_TABLE_COLUMN_DETAIL = goog.getMsg('Details');
 
 
 /**
+ * @param {boolean} opt_broker_mode
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.WithdrawList = function( opt_domHelper) {
+bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
+  var broker_mode = false;
+  if (opt_broker_mode === true) {
+    broker_mode = true;
+  }
+
   var grid_columns = [
     {
-      'property': 'WithdrawID',
-      'label': MSG_WITHDRAW_TABLE_COLUMN_ID,
+      'property': 'Created',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_CREATED,
       'sortable': false,
-      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'withdraw-id'); }
+      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'created'); }
     },{
       'property': 'Status',
       'label': MSG_WITHDRAW_TABLE_COLUMN_STATUS,
       'sortable': false,
       'formatter': function(s){
-        switch(s){
-          case '0': return MSG_WITHDRAW_TABLE_COLUMN_STATUS_UNCONFIRMED;
-          case '1': return MSG_WITHDRAW_TABLE_COLUMN_STATUS_PENDING;
-          case '2': return MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED;
-        }
-        return '';
+        var status = function(s) {
+          switch(s){
+            case '0': return [''          , MSG_WITHDRAW_TABLE_COLUMN_STATUS_UNCONFIRMED];
+            case '1': return ['warning'   , MSG_WITHDRAW_TABLE_COLUMN_STATUS_PENDING];
+            case '2': return ['info'      , MSG_WITHDRAW_TABLE_COLUMN_STATUS_PROGRESS];
+            case '4': return ['sucess'    , MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED];
+            case '8': return ['important' , MSG_WITHDRAW_TABLE_COLUMN_STATUS_CANCELLED];
+          }
+          return ['',''];
+        };
+        var label_class_text = status(s);
+        return goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ],  label_class_text[1] );
       },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'status'); }
-    },{
-      'property': 'Created',
-      'label': MSG_WITHDRAW_TABLE_COLUMN_CREATED,
-      'sortable': false,
-      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'created'); }
     },{
       'property': 'Currency',
       'label': MSG_WITHDRAW_TABLE_COLUMN_CURRENCY,
@@ -103,8 +119,11 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
       'property': 'Wallet',
       'label': MSG_WITHDRAW_TABLE_COLUMN_DETAIL,
       'sortable': false,
-      'formatter': function(s, row_set_obj){
+      'formatter': function(s, record){
+        var row_set_obj = goog.object.clone(record);
         delete row_set_obj['WithdrawID'];
+        delete row_set_obj['BrokerID'];
+        delete row_set_obj['UserID'];
         delete row_set_obj['Status'];
         delete row_set_obj['Amount'];
         delete row_set_obj['Currency'];
@@ -126,10 +145,74 @@ bitex.ui.WithdrawList = function( opt_domHelper) {
     }
   ];
 
-  bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+  if (broker_mode ){
+    grid_columns.push({
+      'property' : 'WithdrawID',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_ACTIONS,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'actions');},
+      'formatter': function(s, row_set_obj){
+        var data_row = goog.json.serialize( row_set_obj );
+
+        /**
+         * @desc Withdraw cancel button label in the  broker's withdraw list
+         */
+        var MSG_WITHDRAW_TABLE_COLUMN_ACTION_CANCEL = goog.getMsg('Cancel');
+
+        var btn_cancel = goog.dom.createDom( 'button',
+                                             { 'class':'btn btn-mini btn-danger btn-withdraw-cancel', 'data-row': data_row},
+                                             MSG_WITHDRAW_TABLE_COLUMN_ACTION_CANCEL );
+
+        /**
+         * @desc Withdraw progress button label in the  broker's withdraw list
+         */
+        var MSG_WITHDRAW_TABLE_COLUMN_ACTION_PROGRESS = goog.getMsg('Set in progress');
+
+        var btn_progress = goog.dom.createDom( 'button',
+                                               { 'class':'btn btn-mini btn-primary btn-withdraw-progress', 'data-row': data_row},
+                                               MSG_WITHDRAW_TABLE_COLUMN_ACTION_PROGRESS );
+
+
+        /**
+         * @desc Withdraw progress button label in the  broker's withdraw list
+         */
+        var MSG_WITHDRAW_TABLE_COLUMN_ACTION_COMPLETE = goog.getMsg('Set as complete');
+
+        var btn_complete = goog.dom.createDom( 'button',
+                                               { 'class':'btn btn-mini btn-success btn-withdraw-complete', 'data-row': data_row},
+                                               MSG_WITHDRAW_TABLE_COLUMN_ACTION_COMPLETE );
+
+        switch(row_set_obj['Status']){
+          case '0': return btn_cancel;
+          case '1': return [btn_cancel, btn_progress];
+          case '2': return [btn_cancel, btn_complete];
+          case '4': return "";
+          case '8': return "";
+        }
+      }
+    });
+  }
+
+  this.selected_withdraw_ = null;
+
+  bitex.ui.DataGrid.call(this,  { 'rowIDFn':this.getRowId, 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
 };
 goog.inherits(bitex.ui.WithdrawList, bitex.ui.DataGrid);
 
+/**
+ * Events fired by Withdraw
+ * @enum {string}
+ */
+bitex.ui.WithdrawList.EventType = {
+  CANCEL: 'withdraw_cancel',
+  PROGRESS: 'withdraw_progress',
+  COMPLETE: 'withdraw_complete'
+};
+
+/**
+ * @type {Object}
+ */
+bitex.ui.WithdrawList.prototype.selected_withdraw_;
 
 /**
  * @type {string}
@@ -141,6 +224,62 @@ bitex.ui.WithdrawList.prototype.getCssClass = function() {
   return bitex.ui.WithdrawList.CSS_CLASS;
 };
 
+
+/** @inheritDoc */
+bitex.ui.WithdrawList.prototype.enterDocument = function() {
+  goog.base(this, 'enterDocument');
+
+  var handler = this.getHandler();
+  handler.listen(this.getElement(), goog.events.EventType.CLICK, this.handleClick_);
+};
+
+/**
+ * @return {Object}
+ */
+bitex.ui.WithdrawList.prototype.getWithdrawData = function() {
+  return this.selected_withdraw_;
+};
+
+/**
+ * @return {number}
+ */
+bitex.ui.WithdrawList.prototype.getWithdrawID = function() {
+  if (goog.isDefAndNotNull(this.selected_withdraw_)){
+    return this.selected_withdraw_['WithdrawID'];
+  }
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.ui.WithdrawList.prototype.handleClick_ = function(e) {
+  this.selected_withdraw_ = goog.json.parse(e.target.getAttribute('data-row'));
+  if (!goog.isDefAndNotNull(this.selected_withdraw_)) {
+    return;
+  }
+
+  if (goog.dom.classes.has(e.target, 'btn-withdraw-complete' )) {
+    this.dispatchEvent(bitex.ui.WithdrawList.EventType.COMPLETE);
+  } else if (goog.dom.classes.has(e.target, 'btn-withdraw-progress' )) {
+    this.dispatchEvent(bitex.ui.WithdrawList.EventType.PROGRESS);
+  } else if (goog.dom.classes.has(e.target, 'btn-withdraw-cancel' )) {
+    this.dispatchEvent(bitex.ui.WithdrawList.EventType.CANCEL);
+  }
+
+  this.selected_withdraw_ = null;
+};
+
+
+/**
+ * @param {Object} row_set
+ * @return {string}
+ */
+bitex.ui.WithdrawList.prototype.getRowId = function(row_set) {
+  var id = row_set['WithdrawID'];
+  return 'withdraw_row_id_' + id;
+};
+
 /**
  * @param {Object} row_set
  * @return {Array.<string>|string|Object}
@@ -150,11 +289,20 @@ bitex.ui.WithdrawList.prototype.getRowClass = function(row_set) {
 
   var class_status;
   switch(side) {
+    case '0':
+      class_status = goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'unconfirmed');
+      break;
     case '1':
       class_status = goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'pending');
       break;
     case '2':
+      class_status = goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'processing');
+      break;
+    case '4':
       class_status = goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'complete');
+      break;
+    case '8':
+      class_status = goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'cancelled');
       break;
   }
   return  class_status;

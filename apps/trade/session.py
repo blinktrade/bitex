@@ -85,6 +85,10 @@ class Session(object):
     elif msg.type == 'B4':  # Customer Detail Request
       return processCustomerDetailRequest(self, msg)
 
+    elif msg.type == 'B6':  # Process Withdraw
+      return processProcessWithdraw(self, msg)
+
+
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)
     raise InvalidMessageError()

@@ -71,13 +71,12 @@ bitex.view.WithdrawView.prototype.enterDocument = function() {
                   this.onBitexWithdrawResponse_);
 };
 
-
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
 bitex.view.WithdrawView.prototype.onBitexWithdrawResponse_ = function(e) {
-  var dlg_content = bitex.templates.WithdrawConfirmationDialogContent({
-    id: "id_withdraw_confirmation",
-    startStrong: '<strong>',
-    endStrong: '</strong>'
-  }) ;
+  var dlg_content = bitex.templates.WithdrawConfirmationDialogContent({id: "id_withdraw_confirmation"}) ;
 
   /**
    * @desc withdraw confirmation dialog title
@@ -369,7 +368,7 @@ bitex.view.WithdrawView.prototype.onWithdrawListTableRequestData_ = function(e) 
   var limit = e.options['Limit'];
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2'] );
+  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8']  );
 };
 
 
