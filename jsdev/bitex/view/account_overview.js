@@ -4,7 +4,9 @@ goog.require('bitex.view.View');
 
 goog.require('bitex.ui.WithdrawList');
 goog.require('bitex.templates');
-
+goog.require('goog.style');
+goog.require('goog.string');
+goog.require('goog.array');
 goog.require('goog.soy');
 
 /**
@@ -17,6 +19,7 @@ bitex.view.AccountOverview = function(app, opt_domHelper) {
   bitex.view.View.call(this, app, opt_domHelper);
 
   this.request_id_ = null;
+  this.withdraw_action_ = null;
 };
 goog.inherits(bitex.view.AccountOverview, bitex.view.View);
 
@@ -60,6 +63,12 @@ bitex.view.AccountOverview.prototype.decorateInternal = function(element) {
  * @type {number}
  */
 bitex.view.AccountOverview.prototype.request_id_;
+
+/**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.withdraw_action_;
+
 
 /**
  * @override
@@ -108,6 +117,9 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
                      bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + customer['ID'],
                      this.onWithdrawRefresh_);
 
+    handler.unlisten(this.getApplication().getBitexConnection(),
+                     bitex.api.BitEx.EventType.BALANCE_RESPONSE,
+                     this.onBalanceResponse_);
 
     this.withdraw_list_table_ .dispose();
   }
@@ -168,11 +180,37 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
                  this.onWithdrawRefresh_);
 
 
+  handler.listen(this.getApplication().getBitexConnection(),
+                 bitex.api.BitEx.EventType.BALANCE_RESPONSE,
+                 this.onBalanceResponse_);
+
   this.withdraw_list_table_.decorate(goog.dom.getElement('account_overview_withdraw_requests_table_id'));
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
 
-
+  this.getApplication().getBitexConnection().requestBalances( customer['ID'] );
 };
+
+/**
+ * @return {Object}
+ */
+bitex.view.AccountOverview.prototype.getWithdrawData = function() {
+  return this.withdraw_list_table_.getWithdrawData();
+};
+
+/**
+ * @return {Object}
+ */
+bitex.view.AccountOverview.prototype.getWithdrawAction = function() {
+  return this.withdraw_action_;
+};
+
+/**
+ * @return {number}
+ */
+bitex.view.AccountOverview.prototype.getRequestId = function() {
+  return this.request_id_;
+};
+
 
 
 /**
@@ -180,18 +218,8 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
  * @private
  */
 bitex.view.AccountOverview.prototype.onUserCancelWithdraw_ = function(e) {
-  var withdraw_data = e.target.getWithdrawData();
-
-  /**
-   * @desc Withdraw user notification
-   */
-  var MSG_WITHDRAW_NOTIFICATION_USER_CANCEL_TITLE = goog.getMsg('Cancelling withdraw [{$id}]', {id: withdraw_data['WithdrawID']});
-
-  var formatted_value = this.getApplication().formatCurrency(withdraw_data['Amount']/1e8, withdraw_data['Currency'] );
-
-  this.getApplication().showNotification('danger', MSG_WITHDRAW_NOTIFICATION_USER_CANCEL_TITLE, formatted_value);
-
-  this.getApplication().getBitexConnection().processWithdraw(this.request_id_,'CANCEL', withdraw_data['WithdrawID'], -10);
+  this.withdraw_action_ = 'CANCEL';
+  this.dispatchEvent(bitex.view.View.EventType.PROCESS_WITHDRAW);
 };
 
 /**
@@ -199,16 +227,9 @@ bitex.view.AccountOverview.prototype.onUserCancelWithdraw_ = function(e) {
  * @private
  */
 bitex.view.AccountOverview.prototype.onUserSetWithdrawInProgress_ = function(e) {
-  var withdraw_data = e.target.getWithdrawData();
+  this.withdraw_action_ = 'PROGRESS';
+  this.dispatchEvent(bitex.view.View.EventType.PROCESS_WITHDRAW);
 
-  /**
-   * @desc Withdraw user notification
-   */
-  var MSG_WITHDRAW_NOTIFICATION_USER_PROGRESS_TITLE = goog.getMsg('Setting Withdraw [{$id}] in progress', {id: withdraw_data['WithdrawID']});
-
-  var formatted_value = this.getApplication().formatCurrency(withdraw_data['Amount']/1e8, withdraw_data['Currency'] );
-
-  this.getApplication().showNotification('info', MSG_WITHDRAW_NOTIFICATION_USER_PROGRESS_TITLE, formatted_value);
 };
 
 /**
@@ -216,17 +237,8 @@ bitex.view.AccountOverview.prototype.onUserSetWithdrawInProgress_ = function(e) 
  * @private
  */
 bitex.view.AccountOverview.prototype.onUserSetWithdrawComplete_ = function(e) {
-  var withdraw_data = e.target.getWithdrawData();
-
-  /**
-   * @desc Withdraw user notification
-   */
-  var MSG_WITHDRAW_NOTIFICATION_USER_COMPLETE_TITLE = goog.getMsg('Setting Withdraw [{$id}] as completed', {id: withdraw_data['WithdrawID']});
-
-  var formatted_value = this.getApplication().formatCurrency(withdraw_data['Amount']/1e8, withdraw_data['Currency'] );
-
-  this.getApplication().showNotification('success', MSG_WITHDRAW_NOTIFICATION_USER_COMPLETE_TITLE, formatted_value);
-
+  this.withdraw_action_ = 'COMPLETE';
+  this.dispatchEvent(bitex.view.View.EventType.PROCESS_WITHDRAW);
 };
 
 
@@ -272,8 +284,40 @@ bitex.view.AccountOverview.prototype.onWithdrawListReponse_ = function(e) {
  */
 bitex.view.AccountOverview.prototype.onWithdrawProcessResponse_ = function(e) {
   var msg = e.data;
-  console.log(goog.debug.deepExpose(msg));
+  //console.log(goog.debug.deepExpose(msg));
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.AccountOverview.prototype.onBalanceResponse_ = function(e) {
+  var msg = e.data;
+  var model = this.getApplication().getModel();
+
+  delete msg['MsgType'];
+  delete msg['BalanceReqID'];
+
+  var user_balances = msg[model.get('UserID') ];
+
+  var currencies = [];
+  goog.object.forEach(user_balances, function( balance, currency ) {
+    balance = balance / 1e8;
+    var formatted_balance = this.getApplication().formatCurrency(balance, currency);
+
+    currencies.push({ code: currency, model_key: currency + '.' + msg['ClientID'], balance: formatted_balance });
+
+    var balance_key = 'balance_' +  currency + '.' + msg['ClientID'];
+    model.set( balance_key , balance );
+    model.set('formatted_' + balance_key, formatted_balance);
+  }, this);
+
+  goog.dom.removeChildren(goog.dom.getElement('account_overview_balances_id'));
+  goog.soy.renderElement(goog.dom.getElement('account_overview_balances_id'), bitex.templates.YourAccountBalances, {
+    currencies: currencies
+  });
+};
+
 
 /**
  * @param {goog.events.Event} e
@@ -281,7 +325,6 @@ bitex.view.AccountOverview.prototype.onWithdrawProcessResponse_ = function(e) {
  */
 bitex.view.AccountOverview.prototype.onWithdrawRefresh_ = function(e) {
   var msg = e.data;
-  delete msg['MsgType'];
   this.withdraw_list_table_.insertOrUpdateRecord(msg, 0);
 };
 

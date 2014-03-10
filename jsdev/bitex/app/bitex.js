@@ -12,8 +12,8 @@ goog.require('bitex.ui.OrderEntryX');
 goog.require('bitex.ui.OrderEntryX.EventType');
 
 
-goog.require('bitex.ui.Withdraw');
-goog.require('bitex.ui.Withdraw.EventType');
+//goog.require('bitex.ui.Withdraw');
+//goog.require('bitex.ui.Withdraw.EventType');
 
 goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
@@ -389,8 +389,8 @@ bitex.app.bitex = function( url ) {
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
-    // Request Boleto Options
-    bitEx.requestBoletoOptions();
+    // Request Deposit Options
+    bitEx.requestDepositOptions();
 
     // set view to Trading
     router.setView('trading');
@@ -881,60 +881,60 @@ bitex.app.bitex = function( url ) {
 
   });
 
-  var boleto_buttons = goog.dom.getElementsByClass('boleto-options-group');
-  goog.array.forEach( boleto_buttons, function( boleto_button ) {
-    goog.events.listen( boleto_button, 'click', function(e) {
+  var deposit_buttons = goog.dom.getElementsByClass('deposit-options-group');
+  goog.array.forEach( deposit_buttons, function( deposit_button ) {
+    goog.events.listen( deposit_button, 'click', function(e) {
       e.stopPropagation();
       e.preventDefault();
 
       var element = e.target;
 
-      var value = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_value") );
-      var boleto_id = element.getAttribute('data-boleto-id');
+      var value = goog.dom.forms.getValue( goog.dom.getElement("id_deposit_value") );
+      var deposit_id = element.getAttribute('data-deposit-id');
 
-      if (goog.isDefAndNotNull(boleto_id)) {
+      if (goog.isDefAndNotNull(deposit_id)) {
         if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
-          alert('Por favor, preencha o valor do boleto a ser gerado');
+          alert('Por favor, preencha o valor do deposit a ser gerado');
           return;
         }
 
-        bitEx.generateBoleto(boleto_id,value);
+        bitEx.generateDeposit(deposit_id,value);
       }
     });
   });
 
-  bitEx.addEventListener( bitex.api.BitEx.EventType.BOLETO_OPTIONS_RESPONSE, function(e) {
+  bitEx.addEventListener( bitex.api.BitEx.EventType.DEPOSIT_OPTIONS_RESPONSE, function(e) {
     var msg = e.data;
 
-    //boleto-options-group
-    var boleto_options_group_elements = goog.dom.getElementsByClass('boleto-options-group');
-    goog.array.forEach( boleto_options_group_elements, function( boleto_options_group_element ) {
-      goog.dom.removeChildren(boleto_options_group_element);
-      goog.array.forEach( msg['BoletoOptionGrp'], function(boleto_option) {
-        var boleto_id = boleto_option['BoletoId'];
-        var description = boleto_option['Description'];
+    //deposit-options-group
+    var deposit_options_group_elements = goog.dom.getElementsByClass('deposit-options-group');
+    goog.array.forEach( deposit_options_group_elements, function( deposit_options_group_element ) {
+      goog.dom.removeChildren(deposit_options_group_element);
+      goog.array.forEach( msg['DepositOptionGrp'], function(deposit_option) {
+        var deposit_option_id = deposit_option['DepositOptionGrp'];
+        var description = deposit_option['Description'];
 
-        var boleto_btn_attributes = {
-          "data-boleto-id": boleto_id,
-          "class" : "btn btn-primary btn-boleto"
+        var deposit_btn_attributes = {
+          "data-deposit-id": deposit_option_id,
+          "class" : "btn btn-primary btn-deposit"
         };
-        var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, boleto_btn_attributes, description  );
+        var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, deposit_btn_attributes, description  );
 
-        goog.dom.appendChild(boleto_options_group_element, buttonElement);
+        goog.dom.appendChild(deposit_options_group_element, buttonElement);
       });
 
     });
 
   });
 
-  bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, function(e) {
+  bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_DEPOSIT_RESPONSE, function(e) {
     var msg = e.data;
 
     var dlg = new bootstrap.Dialog();
-    dlg.setTitle('Boleto');
-    dlg.setContent('<a  target="_blank" href="/print_boleto?boleto_id=' +  msg['BoletoId']
-             + '" class="btn btn-primary">Imprimir boleto</a> ou fazer <a href="/print_boleto?download=1&boleto_id='
-             +  msg['BoletoId'] + '">download do boleto</a> em seu computador');
+    dlg.setTitle('Deposit');
+    dlg.setContent('<a  target="_blank" href="/print_deposit?deposit_id=' +  msg['DepositID']
+             + '" class="btn btn-primary">Imprimir deposit</a> ou fazer <a href="/print_deposit?download=1&deposit_id='
+             +  msg['DepositID'] + '">download do deposit</a> em seu computador');
 
     dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
     dlg.setVisible(true);

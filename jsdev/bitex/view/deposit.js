@@ -17,13 +17,6 @@ bitex.view.DepositView = function(app, opt_domHelper) {
 goog.inherits(bitex.view.DepositView, bitex.view.View);
 
 
-/**
- * The events fired
- * @enum {string} The event types
- */
-bitex.view.DepositView.EventType = {
-  GEN_BOLETO: 'gen_boleto'
-};
 
 /**
  * @type {number}
@@ -33,7 +26,13 @@ bitex.view.DepositView.prototype.amount_;
 /**
  * @type {number}
  */
-bitex.view.DepositView.prototype.boleto_id_;
+bitex.view.DepositView.prototype.method_;
+
+/**
+ * @type {string}
+ */
+bitex.view.DepositView.prototype.currency_;
+
 
 /**
  * @return {number}
@@ -43,10 +42,17 @@ bitex.view.DepositView.prototype.getAmount = function() {
 };
 
 /**
+ * @return {number}
+ */
+bitex.view.DepositView.prototype.getDepositMethodID = function() {
+  return this.method_;
+};
+
+/**
  * @return {string}
  */
-bitex.view.DepositView.prototype.getBoletoId = function() {
-  return this.boleto_id_;
+bitex.view.DepositView.prototype.getCurrency = function() {
+  return this.currency_;
 };
 
 
@@ -56,50 +62,31 @@ bitex.view.DepositView.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
 
-  var boleto_buttons = goog.dom.getElementsByClass('boleto-options-group');
-  goog.array.forEach(boleto_buttons, function(boleto_button) {
-    handler.listen( model, bitex.model.Model.EventType.SET + "BoletoOptions", function(e) {
-      var boleto_options = model.get('BoletoOptions');
+  handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
+    goog.dom.removeChildren( goog.dom.getElement("id_deposit_balances_container"));
 
-      goog.array.forEach(boleto_options, function(boleto_option){
-        var boleto_btn_attributes = {
-          "data-boleto-id": boleto_option.id,
-          "class" : "btn btn-primary btn-boleto"
-        };
-        var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, boleto_btn_attributes, boleto_option.description);
+    var broker_currencies = model.get('BrokerCurrencies');
+    goog.soy.renderElement(goog.dom.getElement('id_deposit_balances_container'), bitex.templates.AccountBalances, {
+      currencies: broker_currencies,
+      action: 'deposit'
+    });
 
-        goog.dom.appendChild(boleto_button, buttonElement);
-      }, this);
-    }, this);
+    model.updateDom();
+  });
+
+  handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
+    if (e.target.getAttribute('data-action') === 'deposit' ) {
+      this.currency_ = e.target.getAttribute('data-currency');
+      this.dispatchEvent(bitex.view.View.EventType.DEPOSIT_REQUEST);
+    }
   }, this);
 
-
-  goog.array.forEach( boleto_buttons, function( boleto_button ) {
-    handler.listen( boleto_button, 'click', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      var element = e.target;
-
-      var value = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_value") );
-      var boleto_id = element.getAttribute('data-boleto-id');
-
-      if (goog.isDefAndNotNull(boleto_id)) {
-        if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
-          /**
-           * @desc message shown to the user when he enter an invalid amount to generate a boleto
-           */
-          var MSG_GENERATE_BOLETO_INVALID_AMOUNT = goog.getMsg('Por favor, preencha o valor do boleto a ser gerado');
-
-          this.getApplication().showDialog(MSG_GENERATE_BOLETO_INVALID_AMOUNT );
-
-          return;
-        }
-
-        this.amount_ = parseInt(value, 10);
-        this.boleto_id_ = boleto_id;
-        this.dispatchEvent(bitex.view.DepositView.EventType.GEN_BOLETO);
-      }
-    }, this);
-  }, this);
 };
+
+bitex.view.WithdrawView.prototype.showCurrencyDepositDialog = function(currency){
+  var model = this.getApplication().getModel();
+
+
+
+};
+

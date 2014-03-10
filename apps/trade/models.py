@@ -27,6 +27,7 @@ Base = declarative_base()
 
 from trade_application import application
 
+from tornado import template
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
@@ -400,7 +401,8 @@ class Balance(Base):
 
     balance_update_msg = dict()
     balance_update_msg['MsgType'] = 'U3'
-    balance_update_msg[currency] = balance_obj.balance
+    balance_update_msg['ClientID'] = account_id
+    balance_update_msg[broker_id] = { currency: balance_obj.balance }
     application.publish( account_id,  balance_update_msg  )
 
     return balance_obj.balance
@@ -507,6 +509,7 @@ class Broker(Base):
   short_name            = Column(String(30),    primary_key=True)
   business_name         = Column(String(30),    nullable=False)
   address               = Column(String(255),   nullable=False)
+  city                  = Column(String(30),    nullable=False)
   state                 = Column(String(30),    nullable=False)
   zip_code              = Column(String(12),    nullable=False)
   country_code          = Column(String(2),     nullable=False)
@@ -518,22 +521,20 @@ class Broker(Base):
 
   verification_jotform  = Column(String(50),    nullable=False)
 
+  withdraw_structure    = Column(Text,          nullable=False)
+
   currencies            = Column(String(255),   nullable=False)
+  crypto_currencies     = Column(Text,          nullable=False)
   tos_url               = Column(String(255),   nullable=False)
 
-  boleto_fee            = Column(Integer,       nullable=False, default=0)
-  withdraw_brl_bank_fee = Column(Integer,       nullable=False, default=0)
-  withdraw_wallet_fee   = Column(Integer,       nullable=False, default=0)
-  withdraw_swift_fee    = Column(Integer,       nullable=False, default=0)
-  withdraw_ach_fee      = Column(Integer,       nullable=False, default=0)
-
+  fee_structure         = Column(Text,          nullable=False)
   transaction_fee_buy   = Column(Integer,       nullable=False, default=0)
   transaction_fee_sell  = Column(Integer,       nullable=False, default=0)
 
+
+
   status                = Column(String(1),     nullable=False, default='0', index=True)
   ranking               = Column(Integer,       nullable=False, default=0, index=True)
-
-
 
 
   @staticmethod
@@ -554,15 +555,15 @@ class Broker(Base):
 
   def __repr__(self):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
-           u"address=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
-           u"verification_jotform=%r, currencies=%r, tos_url=%r, " \
-           u"boleto_fee=%r ,withdraw_brl_bank_fee=%r,withdraw_wallet_fee=%r,withdraw_swift_fee=%r,withdraw_ach_fee=%r," \
+           u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
+           u"verification_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
+           u"fee_structure=%r, withdraw_structure=%r," \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r )>"% (
       self.id, self.short_name, self.business_name,
-      self.address, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
-      self.verification_jotform, self.currencies, self.tos_url,
-      self.boleto_fee, self.withdraw_brl_bank_fee, self.withdraw_wallet_fee, self.withdraw_swift_fee, self.withdraw_ach_fee,
+      self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
+      self.verification_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
+      self.fee_structure , self.withdraw_structure,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking )
 
@@ -701,30 +702,8 @@ class Withdraw(Base):
   currency        = Column(String,        nullable=False)
   amount          = Column(Integer,       nullable=False)
 
-  type            = Column(String,        nullable=False)
-
-  # withdraw to digital currencies
-  wallet          = Column(String)
-
-  # withdraw to Brazilian banks
-  bank_number     = Column(String) # Brazilian banks have a number
-  bank_name       = Column(String)
-  account_name    = Column(String)
-  account_number  = Column(String)
-  account_branch  = Column(String)  # Agencia
-  cpf_cnpj        = Column(String)
-
-  # withdraw to international banks
-  address         = Column(String)
-  city            = Column(String)
-  postal_code     = Column(String)
-  region_state    = Column(String)
-  country         = Column(String)
-  bank_swift      = Column(String)
-  intermediate_swift = Column(String)
-
-  # for US Banks
-  routing_number  = Column(String)
+  method          = Column(String,        nullable=False)
+  data            = Column(Text,          nullable=False)
 
   confirmation_token = Column(String,     index=True, unique=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
@@ -733,7 +712,11 @@ class Withdraw(Base):
   reason          = Column(String)
 
   def as_dict(self):
-    return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    import json
+    obj = { c.name: getattr(self, c.name) for c in self.__table__.columns if c.name != 'data' }
+    obj.update(json.loads(self.data))
+    return obj
+
 
   @staticmethod
   def user_confirm(session, confirmation_token):
@@ -744,13 +727,6 @@ class Withdraw(Base):
     withdraw_data.status = '1'
     session.add(withdraw_data)
     session.flush()
-
-    ##### Doing the withdraw manually during launch
-    # TODO: Check if the user has enough balance to complete the operation
-    # TODO: Check if the user has exceed the 24 hours withdraw limit
-    # TODO: update the user balance
-    # TODO: execute the transfer
-    # TODO: change the withdraw status to confirmed by the user
 
     return  withdraw_data
 
@@ -764,8 +740,8 @@ class Withdraw(Base):
 
     formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
 
-    template_name       = "withdraw_cancelled_%s_ptBR.txt" % self.type.lower()
-    template_parameters =  self.as_dict()
+    template_name       = "withdraw_cancelled_%s_ptBR.txt" % self.method.lower()
+    template_parameters = self.as_dict()
     template_parameters['amount'] = formatted_amount
 
     UserEmail.create( session = session,
@@ -773,7 +749,6 @@ class Withdraw(Base):
                       subject = u"[BitEx] Withdraw cancelled.",
                       template=template_name,
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
-
     return self
 
 
@@ -790,7 +765,7 @@ class Withdraw(Base):
 
 
   @staticmethod
-  def create(session, user, *args, **kwargs ):
+  def create(session, user,  currency, amount, method, data):
     import uuid
     confirmation_token = uuid.uuid4().hex
 
@@ -798,31 +773,18 @@ class Withdraw(Base):
                                account_id         = user.id,
                                username           = user.username,
                                broker_id          = user.broker_id,
-                               type               = kwargs.get('Type'         ).upper(),
-                               currency           = kwargs.get('Currency'     ),
-                               amount             = kwargs.get('Amount'       ),
-                               confirmation_token = confirmation_token)
+                               method             = method,
+                               currency           = currency,
+                               amount             = amount,
+                               confirmation_token = confirmation_token,
+                               data               = data)
 
-    withdraw_record.wallet              = kwargs.get('Wallet'       ) if 'Wallet'        in kwargs else None
-    withdraw_record.bank_number         = kwargs.get('BankNumber'   ) if 'BankNumber'    in kwargs else None
-    withdraw_record.bank_name           = kwargs.get('BankName'     ) if 'BankName'      in kwargs else None
-    withdraw_record.account_name        = kwargs.get('AccountName'  ) if 'AccountName'   in kwargs else None
-    withdraw_record.account_number      = kwargs.get('AccountNumber') if 'AccountNumber' in kwargs else None
-    withdraw_record.account_branch      = kwargs.get('AccountBranch') if 'AccountBranch' in kwargs else None
-    withdraw_record.cpf_cnpj            = kwargs.get('CPFCNPJ'      ) if 'CPFCNPJ'       in kwargs else None
-    withdraw_record.address             = kwargs.get('Address'      ) if 'Address'       in kwargs else None
-    withdraw_record.city                = kwargs.get('City'         ) if 'City'          in kwargs else None
-    withdraw_record.postal_code         = kwargs.get('PostalCode'   ) if 'PostalCode'    in kwargs else None
-    withdraw_record.region_state        = kwargs.get('RegionState'  ) if 'RegionState'   in kwargs else None
-    withdraw_record.country             = kwargs.get('Country'      ) if 'Country'       in kwargs else None
-    withdraw_record.bank_swift          = kwargs.get('BankSwift'    ) if 'BankSwift'     in kwargs else None
-    withdraw_record.intermediate_swift  = kwargs.get('IntermediateSwift') if 'IntermediateSwift' in kwargs else None
     session.add(withdraw_record)
     session.flush()
 
     formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
 
-    template_name       = "withdraw_confirmation_%s_ptBR.txt" % withdraw_record.type.lower()
+    template_name       = "withdraw_confirmation_%s_ptBR.txt" % withdraw_record.method.lower()
     template_parameters =  withdraw_record.as_dict()
     template_parameters['amount'] = formatted_amount
 
@@ -835,17 +797,11 @@ class Withdraw(Base):
     return withdraw_record
 
   def __repr__(self):
-    return u"<Withdraw(id=%r, user_id=%r, account_id=%r, username=%r, currency=%r, type=%r, amount='%r', " \
-           u"wallet=%r, broker_id=%r, "\
-           u"bank_number=%r, bank_name=%r, account_name=%r, account_number=%r, account_branch=%r, cpf_cnpj=%r, "\
-           u"address=%r, city=%r, postal_code=%r, region_state=%r, country=%r, bank_swift=%r, intermediate_swift=%r, " \
-           u"routing_number=%r,"\
+    return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount='%r', " \
+           u"data=%r,  "\
            u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r)>" % (
-      self.id, self.user_id, self.account_id, self.username, self.currency, self.type,self.amount,
-      self.wallet, self.broker_id,
-      self.bank_number, self.bank_name, self.account_name, self.account_number, self.account_branch, self.cpf_cnpj,
-      self.address, self.city, self.postal_code, self.region_state, self.country, self.bank_swift, self.intermediate_swift,
-      self.routing_number,
+      self.id, self.user_id, self.account_id, self.broker_id, self.username, self.currency, self.method,self.amount,
+      self.data,
       self.confirmation_token, self.status, self.created, self.reason_id, self.reason)
 
 
@@ -1067,182 +1023,108 @@ class Trade(Base):
     trades = session.query(Trade).filter_by(symbol=symbol).order_by(Trade.created.desc() ).limit(100)
     return trades
 
-class Boleto(Base):
-  __tablename__        = 'boleto'
+class Deposit(Base):
+  __tablename__        = 'deposit'
 
-  id                   = Column(Integer,   primary_key=True)
+  id                   = Column(String(25), primary_key=True)
+  user_id              = Column(Integer,    ForeignKey('users.id'))
   broker_id            = Column(Integer,    ForeignKey('users.id'))
+  deposit_option_id    = Column(Integer,    ForeignKey('deposit_options.id'))
+  username             = Column(String,     nullable=False)
+  broker_deposit_ctrl_num= Column(Integer,    nullable=False, index=True)
 
-  # Informações Gerais
-  codigo_banco        = Column(String(3),  nullable=False)
-
-  carteira            = Column(String(5),  nullable=False)
-  aceite              = Column(String(1),  nullable=False, default='N')
-  valor_documento     = Column(Numeric(9,2), nullable=False)
-  valor               = Column(Numeric(9,2), nullable=True)
-
-  data_vencimento     = Column(Date,   nullable=False, index=True)
-  data_documento      = Column(Date,   nullable=False, index=True, default=datetime.date.today)
-  data_processamento  = Column(Date,   nullable=True, index=True)
-  numero_documento    = Column(String(11), nullable=False)
-
-  # Informações do Cedente
-  agencia_cedente     = Column(String(4),  nullable=False)
-  conta_cedente       = Column(String(7),  nullable=False)
-  cedente             = Column(String(255),nullable=False)
-  cedente_documento   = Column(String(50), nullable=False)
-  cedente_cidade      = Column(String(255),nullable=False)
-
-  cedente_uf          = Column(String(2),  nullable=False)
-  cedente_endereco    = Column(String(255),nullable=False)
-  cedente_bairro      = Column(String(255),nullable=False)
-  cedente_cep         = Column(String(9),  nullable=False)
-
-
-  # Informações do Sacado
-  sacado_nome        = Column(String(255),nullable=False)
-  sacado_documento   = Column(String(255),nullable=True)
-  sacado_cidade      = Column(String(255),nullable=True)
-  sacado_uf          = Column(String(2),  nullable=True)
-  sacado_endereco    = Column(String(255),nullable=True)
-  sacado_bairro      = Column(String(255),nullable=True)
-  sacado_cep         = Column(String(9),  nullable=True)
-
-  # Informações Opcionais
-  quantidade         = Column(String(10), nullable=True)
-  especie_documento  = Column(String(255),nullable=True)
-  especie            = Column(String(2),  nullable=False, default='R$')
-  moeda              = Column(String(2),  nullable=False, default='9')
-  demonstrativo      = Column(Text,  nullable=True)
-  local_pagamento    = Column(String(255),nullable=True, default=u"Pagável em qualquer banco, lotérica ou agência " \
-                                                                 u"dos correios até a data de vencimento")
-  instrucoes         = Column(Text,nullable=False, default=u"Não receber após 30 dias.")
+  type                 = Column(String(3),  nullable=False)
+  currency             = Column(String(3),  nullable=False)
+  value                = Column(Integer,    nullable=False)
+  paid_value           = Column(Integer,    nullable=False, default=0)
+  status               = Column(String(1),  nullable=False, default='0', index=True)
+  data                 = Column(Text,       nullable=False)
+  created              = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
 
   def __repr__(self):
-    return u"<Boleto(id=%r, broker_id=%r, " \
-           u"codigo_banco=%r,carteira=%r,aceite=%r,valor_documento=%r, valor=%r, " \
-           u"data_vencimento=%r,data_documento=%r, data_processamento=%r, numero_documento=%r," \
-           u"agencia_cedente=%r,  conta_cedente=%r, cedente=%r, cedente_documento=%r ,cedente_cidade=%r," \
-           u"cedente_uf=%r , cedente_endereco=%r, cedente_bairro=%r, cedente_cep=%r, " \
-           u"sacado_nome=%r,sacado_documento=%r,sacado_cidade=%r,sacado_uf=%r,sacado_endereco=%r,sacado_bairro=%r,sacado_cep=%r," \
-           u"quantidade=%r,especie_documento=%r,especie=%r,moeda=%r,demonstrativo=%r,local_pagamento=%r," \
-           u"instrucoes=%r )>" % (
-      self.id, self.broker_id,
-      self.codigo_banco, self.carteira, self.aceite, self.valor_documento, self.valor,
-      self.data_vencimento, self.data_documento, self.data_processamento, self.numero_documento,
-      self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
-      self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep,
-      self.sacado_nome, self.sacado_documento, self.sacado_cidade, self.sacado_uf, self.sacado_endereco, self.sacado_bairro, self.cedente_cep,
-      self.quantidade, self.especie_documento, self.especie, self.moeda, self.demonstrativo, self.local_pagamento,
-      self.instrucoes)
+    return u"<Deposit(id=%r, user_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, broker_deposit_ctrl_num=%r, type=%r, currency=%r, value=%r, created=%r, data=%r)>" % (
+      self.id,  self.user_id, self.username, self.broker_id, self.deposit_option_id, self.broker_deposit_ctrl_num, self.type, self.currency, self.value, self.created, self.data )
 
   def __unicode__(self):
-    return self.numero_documento
+    return u"<Deposit(id=%r, user_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, broker_deposit_ctrl_num=%r, type=%r, currency=%r, value=%r, created=%r )>" % (
+      self.id,  self.user_id,  self.username, self.broker_id, self.deposit_option_id, self.broker_deposit_ctrl_num, self.type, self.currency, self.value, self.created )
 
   @staticmethod
-  def get_boleto(session, boleto_id):
-    return session.query(Boleto).filter_by(id=boleto_id).first()
+  def get_deposit(session, deposit_id):
+    return session.query(Deposit).filter_by(id=deposit_id).first()
 
   @staticmethod
-  def process_boleto_payment(session, broker_id, boleto_id, currency, amount ):
-    boleto = session.query(Boleto).filter_by(id= boleto_id ).filter_by(broker_id=broker_id).first()
+  def process_deposit_payment(session, broker_id, broker_deposit_ctrl_num, currency, amount ):
+    deposit = session.query(Deposit).filter_by(broker_id=broker_id).filter_by(broker_deposit_ctrl_num=broker_deposit_ctrl_num).first()
 
-    #TODO: implement boleto payment.
+    #TODO: implement deposit payment.
     pass
 
-  def print_pdf_pagina(self, pdf_file):
-    from pyboleto import bank
-
-    ClasseBanco = bank.get_class_for_codigo(self.codigo_banco)
-
-    boleto_dados = ClasseBanco()
-
-    for field in self.__table__.columns:
-      val = getattr(self, field.name)
-      if val:
-        setattr(boleto_dados, field.name, val)
-
-    setattr(boleto_dados, 'nosso_numero', getattr(self, 'numero_documento'))
-
-    pdf_file.drawBoleto(boleto_dados)
 
 
-class BoletoOptions(Base):
-  __tablename__         = 'boleto_options'
-
+class DepositOptions(Base):
+  __tablename__         = 'deposit_options'
   id                    = Column(Integer,    primary_key=True)
   broker_id             = Column(Integer,    ForeignKey('users.id'), index=True)
-
   description           = Column(String(255),nullable=False)
-
-  codigo_banco          = Column(String(3),  nullable=False)
-  carteira              = Column(String(5),  nullable=False)
-
-  last_numero_documento = Column(Integer,    nullable=False)
-
-  agencia_cedente       = Column(String(4),  nullable=False)
-  conta_cedente         = Column(String(7),  nullable=False)
-  cedente               = Column(String(255),nullable=False)
-  cedente_documento     = Column(String(50), nullable=False)
-  cedente_cidade        = Column(String(255),nullable=False)
-  cedente_uf            = Column(String(2),  nullable=False)
-  cedente_endereco      = Column(String(255),nullable=False)
-  cedente_bairro        = Column(String(255),nullable=False)
-  cedente_cep           = Column(String(9),  nullable=False)
+  disclaimer            = Column(String(255),nullable=False)
+  type                  = Column(String(3),  nullable=False)
+  broker_deposit_ctrl_num      = Column(Integer,    nullable=False)
+  currency              = Column(String(3),  nullable=False)
+  parameters            = Column(Text,       nullable=False)
 
   def __repr__(self):
-    return u"<BoletoOptions(id=%r, broker_id=%r, description=%r, codigo_banco=%r, carteira=%r,last_numero_documento=%r,  "\
-           u"agencia_cedente=%r, conta_cedente=%r, cedente=%r, cedente_documento=%r, cedente_cidade=%r, " \
-           u"cedente_uf=%r, cedente_endereco=%r, cedente_bairro=%r,cedente_cep=%r )>"\
-    % (self.id, self.broker_id, self.description, self.codigo_banco, self.carteira, self.last_numero_documento,
-       self.agencia_cedente, self.conta_cedente, self.cedente, self.cedente_documento, self.cedente_cidade,
-      self.cedente_uf, self.cedente_endereco, self.cedente_bairro, self.cedente_cep)
+    return u"<DepositOptions(id=%r, broker_id=%r, description=%r, disclaimer=%r ,type=%r, broker_deposit_ctrl_num=%r, currency=%r,parameters=%r)>"\
+    % (self.id, self.broker_id, self.description, self.disclaimer, self.type, self.broker_deposit_ctrl_num, self.currency, self.parameters)
 
   @staticmethod
-  def get_boleto_option(session, boleto_option_id):
-    return session.query(BoletoOptions).filter_by(id=boleto_option_id).first()
+  def get_deposit_option(session, deposit_option_id):
+    return session.query(DepositOptions).filter_by(id=deposit_option_id).first()
 
   @staticmethod
   def get_list(session, broker_id):
-    return  session.query(BoletoOptions).filter_by(broker_id=broker_id)
+    return  session.query(DepositOptions).filter_by(broker_id=broker_id)
 
-  def generate_boleto(self,session, user, value):
-    self.last_numero_documento +=  1
+  def generate_deposit(self,session, user, value):
+    self.broker_deposit_ctrl_num += 1
+    import uuid
+    deposit_id = uuid.uuid4().hex
 
-    boleto = Boleto()
-    boleto.broker_id          = self.broker_id
-    boleto.codigo_banco       = self.codigo_banco
-    boleto.carteira           = self.carteira
-    boleto.numero_documento   = str(self.last_numero_documento)
-    boleto.valor_documento    = value
-    boleto.valor              = value
-    boleto.data_vencimento    = datetime.date.today() + datetime.timedelta(days=5)
-    boleto.data_documento     = datetime.date.today()
+    deposit = Deposit(
+      id                 = deposit_id,
+      user_id            = user.id,
+      username           = user.username,
+      broker_id          = self.broker_id,
+      deposit_option_id   = self.id,
+      type               = self.type,
+      currency           = self.currency,
+      broker_deposit_ctrl_num   = self.broker_deposit_ctrl_num,
+      value              = value
+    )
 
-    boleto.agencia_cedente    = self.agencia_cedente
-    boleto.conta_cedente      = self.conta_cedente
-    boleto.cedente            = self.cedente
-    boleto.cedente_documento  = self.cedente_documento
-    boleto.cedente_cidade     = self.cedente_cidade
-    boleto.cedente_uf         = self.cedente_uf
-    boleto.cedente_endereco   = self.cedente_endereco
-    boleto.cedente_bairro     = self.cedente_bairro
-    boleto.cedente_cep        = self.cedente_cep
+    t = template.Template(self.parameters)
 
-    boleto.sacado_nome        = user.username
-    boleto.sacado_documento   = user.id
+    template_parameters = { 'id':deposit_id,
+                            'broker_deposit_ctrl_num': self.broker_deposit_ctrl_num,
+                            'user' : user,
+                            'current_date': datetime.date.today(),
+                            'value' : value/1e8,
+                            'currency': self.currency,
+                            'broker_id': self.broker_id }
+    deposit.data = t.generate( **template_parameters )
 
     session.add(self)
-    session.add(boleto)
+    session.add(deposit)
     session.flush()
 
-    return boleto
+    return deposit
 
 
 
 Base.metadata.create_all(engine)
 
 def db_bootstrap(session):
+  import  json
   if not User.get_user(session, 'admin'):
     e = User(id=0, username='admin', email='admin@bitex.com.br',  broker_id=None, password='abc12345',
              country_code='', state='',
@@ -1261,23 +1143,85 @@ def db_bootstrap(session):
 
   if not Broker.get_broker(session, 0):
     e = Broker(id=0, short_name=u'None', business_name=u'None',
-               address=u'', state=u'', zip_code=u'', country='', country_code='',
+               address=u'', state=u'', zip_code=u'', city='', country='', country_code='',
                phone_number_1='+1 (917) 753-1359', phone_number_2=None, skype='blinktrade', email=None,
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
-               currencies='BTC', tos_url=u'http://bitex.com.br/tos/bitex/',
-               boleto_fee=None ,withdraw_brl_bank_fee=None,withdraw_wallet_fee=None,withdraw_swift_fee=None,
-               withdraw_ach_fee=None,transaction_fee_buy=None,transaction_fee_sell=None, status=u'1', ranking=0)
+               currencies='XXX',
+               withdraw_structure=json.dumps({ }),
+               crypto_currencies=json.dumps([
+                 {
+                   "CurrencyCode": "BTC",
+                   "CurrencyDescription":"Bitcoin",
+                   "Wallets": [
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                   ]
+                 }
+               ]),
+               tos_url=u'http://bitex.com.br/tos/bitex/',
+               fee_structure="[]",
+               transaction_fee_buy=0,transaction_fee_sell=0, status=u'1', ranking=0)
     session.add(e)
     session.commit()
 
   if not Broker.get_broker(session, 9000001):
     e = Broker(id=9000001, short_name=u'NyBitcoinCenter', business_name=u'Bitcoin Center NYC',
-               address=u'40 Broad Street', state=u'NY', zip_code=u'10004', country_code='US', country='United States',
-               phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='nycbitcoincenter', email='NYCBitcoinCenter@gmail.com',
+               address=u'40 Broad Street', city='New York', state='NY', zip_code='10004', country_code='US', country='United States',
+               phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='joann.f.', email='NYCBitcoinCenter@gmail.com',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
-               currencies='USD', tos_url=u'http://nycbitcoincenter.com/tos/bitex/',
-               boleto_fee=None ,withdraw_brl_bank_fee=None,withdraw_wallet_fee=None,withdraw_swift_fee=None,
-               withdraw_ach_fee=None,transaction_fee_buy=None,transaction_fee_sell=None, status=u'1', ranking=1)
+               currencies='USD',
+               withdraw_structure=json.dumps( {
+                 'BTC': [
+                     {
+                     'method':'bitcoin',
+                     'description':'Saque em Bitcoins',
+                     'disclaimer': 'Processamento instantâneo para valores menores do que 0.1 BTC. Acima deste valor, processamento manual ao final do dia',
+                     'fields': [
+                         {'name': 'Wallet'  ,  'type':'text'  , 'value':""       , 'label':'Wallet', 'placeholder':'' }
+                     ]
+                   }
+                 ],
+                 'USD': [
+                     {
+                     'method':'ted_doc',
+                     'description':'Saque via TED ou DOC',
+                     'disclaimer':'Processamento no final dia somente. Taxa de 1% + R$ 8,00 ( exceto Itaú )',
+                     'fields': [
+                         {'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                         {'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                         {'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                         {'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                         {'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'}
+                     ]
+                   }, {
+                     'method':'paypal',
+                     'description':'Saque direto via paypal',
+                     'disclaimer':'Realizado na hora. Taxa de 2.3% do paypal',
+                     'fields': [
+                         {'name': 'Email'  ,  'type':'text'  , 'value':""       , 'label':'Email', 'placeholder':'' }
+                     ]
+                   }
+                 ]
+               }),
+               crypto_currencies=json.dumps([
+                 {
+                   "CurrencyCode": "BTC",
+                   "CurrencyDescription":"Bitcoin",
+                   "Wallets": [
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                   ]
+                 }
+               ]),
+               tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
+               fee_structure=json.dumps([
+                 { "Operation" : "Deposito via TED",             "Fee":"0,3%"             , "Terms":"20 minutos após confirmação" },
+                 { "Operation" : "Deposito via DOC",             "Fee":"0,3%"             , "Terms":"1 dia útil" },
+                 { "Operation" : "Depósito via Deposit bancário", "Fee":"R$ 4,00"          , "Terms":"1 dia útil se pago no mesmo banco emissor caso contrário 3 dias úteis" },
+                 { "Operation" : "Saque via TED",                "Fee":"0,3% + R$8,00"    , "Terms":"Realizados ao final do dia" },
+                 { "Operation" : "Saque via  Transf. Banco Itaú","Fee":"0,3"              , "Terms":"Realizados ao final do dia" },
+               ]),
+               transaction_fee_buy=0,transaction_fee_sell=0, status='1', ranking=1)
     session.add(e)
     session.commit()
 
@@ -1330,17 +1274,84 @@ def db_bootstrap(session):
       session.commit()
 
 
-  if not BoletoOptions.get_boleto_option(session, 1 ):
-    bo = BoletoOptions(id=1, broker_id=9000001,
-                       description=u'Banco Itau', codigo_banco=u'341', carteira=u'127',
-                       last_numero_documento=5028,
-                       agencia_cedente=u'4000', conta_cedente=u'44444',
-                       cedente=u'BitEx', cedente_documento=u'1000', cedente_cidade=u'Sao Paulo',
-                       cedente_uf=u'SP', cedente_endereco=u'Av. XXXXX',
-                       cedente_bairro=u'Bela Cintra',cedente_cep=u'11000-000' )
+  if not DepositOptions.get_deposit_option(session, 1 ):
+    bo = DepositOptions(id=1,
+                       broker_id=9000001,
+                       description=u'Deposit Bancário - Banco Itau',
+                       disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
+                       type='BBS',
+                       broker_deposit_ctrl_num=50034,
+                       currency='USD',
+                       parameters= json.dumps( {
+                         'download_filename': 'deposit_itau_{{id}}.pdf',
+                         'codigo_banco': '341',
+                         'carteira':'127',
+                         'aceite': 'N',
+                         'valor_documento': '{{value}}',
+                         'valor': '{{value}}',
+                         'data_vencimento': '{{current_date}}',
+                         'data_documento': '{{current_date}}',
+                         'data_processamento': '{{current_date}}',
+                         'numero_documento': '{{broker_deposit_ctrl_num}}',
+                         'nosso_numero': '{{broker_deposit_ctrl_num}}',
+
+                         'agencia_cedente' : '4000',
+                         'conta_cedente' : '4444',
+                         'cedente': 'Bitex',
+                         'cedente_documento': '1000',
+                         'cedente_cidade': u'São Paulo',
+                         'cedente_uf': 'SP',
+                         'cedente_endereco': u'endereço',
+                         'cedente_bairro': 'bairro',
+                         'cedente_cep': '00000-000',
+
+                         'sacado_nome': '{{user.username}}',
+                         'sacado_documento': '{{user.id}}',
+                         'sacado_cidade': '',
+                         'sacado_uf':'',
+                         'sacado_endereco':'',
+                         'sacado_bairro':'',
+                         'sacado_cep':'',
+                         'sacado': ['username: {{user.username}}', 'user_id: {{user.id}}' ],
+
+                         'quantidade':'',
+                         'especie_documento':'',
+                         'especie': 'R$',
+                         'moeda': '9',
+                         'demonstrativo':'',
+
+                         'local_pagamento': u"Pagável em qualquer banco, lotérica ou agência dos correios até a data de vencimento",
+                         'instrucoes': u'Não receber após 30 dias.'
+                       } ) )
     session.add(bo)
     session.commit()
 
+  if not DepositOptions.get_deposit_option(session, 2 ):
+    bo = DepositOptions(id=2,
+                       broker_id=9000001,
+                       description=u'Depósito Bancário - Banco Itaú',
+                       disclaimer=u'Entre 10 minutos até 4 horas após a confirmação de recebimento.',
+                       type='BTI',
+                       broker_deposit_ctrl_num=90001,
+                       currency='USD',
+                       parameters= json.dumps( {
+                         'download_filename': 'instrucao_deposito_itau_{{id}}.html',
+                         'html_template':'brazilian_bank_transfer.html',
+                         'bank_number': '341',
+                         'bank_name': u'Banco Itaú',
+                         'currency':'R$',
+                         'value': '{{value}}',
+                         'current_date': '{{current_date}}',
+                         'control_number': '{{broker_deposit_ctrl_num}}',
+                         'account_branch' : '4000',
+                         'account_number' : '4444',
+                         'account_name': 'Bitex',
+                         'account_id': '444.555.888/0001-99',
+                         'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
+                         'instructions': u'Após realizar o deposito, por favor enviar comprovante por email para: comprovante@bitex.com.br<br/> '
+                                         u'IMPORTANTE: O título do email deve ser: COMPROVANTE DE DEPOSITO {{broker_deposit_ctrl_num}}, '
+                                         u'e no corpo do email anexe uma foto do comprovante ou print screen do seu internet banking contendo o comprovante da operação. '
+                       } ) )
+    session.add(bo)
+    session.commit()
 
-
-  #TODO: create a BoletoOption

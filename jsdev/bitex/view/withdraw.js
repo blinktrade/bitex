@@ -4,8 +4,9 @@ goog.require('bitex.view.View');
 
 goog.require('bitex.ui.WithdrawList');
 goog.require('bitex.templates');
-
+goog.require('bitex.util');
 goog.require('goog.soy');
+goog.require('goog.string');
 
 /**
  * @param {*} app
@@ -39,10 +40,6 @@ bitex.view.WithdrawView.prototype.exitView = function() {
  */
 bitex.view.WithdrawView.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
-
-  var withdraws_component = new goog.ui.Component();
-  this.addChild(withdraws_component);
-  withdraws_component.decorate(goog.dom.getElement('withdraw_accordion'));
 };
 
 /**
@@ -55,6 +52,25 @@ bitex.view.WithdrawView.prototype.request_id_;
  */
 bitex.view.WithdrawView.prototype.confirmation_token_;
 
+/**
+ * @type {number}
+ */
+bitex.view.WithdrawView.prototype.amount_;
+
+/**
+ * @type {string}
+ */
+bitex.view.WithdrawView.prototype.currency_;
+
+/**
+ * @type {string}
+ */
+bitex.view.WithdrawView.prototype.method_;
+
+/**
+ * @type {Object}
+ */
+bitex.view.WithdrawView.prototype.data_;
 
 /**
  * @override
@@ -64,11 +80,91 @@ bitex.view.WithdrawView.prototype.enterDocument = function() {
   var model = this.getApplication().getModel();
   var handler = this.getHandler();
 
-  handler.listen( model, bitex.model.Model.EventType.SET + 'Broker', this.onModelSetBroker_);
 
   handler.listen( this.getApplication().getBitexConnection(),
                   bitex.api.BitEx.EventType.WITHDRAW_RESPONSE,
                   this.onBitexWithdrawResponse_);
+
+
+  handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
+    goog.dom.removeChildren( goog.dom.getElement("id_user_balances_well"));
+
+    var broker_currencies = model.get('BrokerCurrencies');
+    goog.soy.renderElement(goog.dom.getElement('id_user_balances_well'), bitex.templates.AccountBalances, {
+      currencies: broker_currencies,
+      action: 'withdraw'
+    });
+
+    model.updateDom();
+  });
+
+
+  handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
+    if (e.target.getAttribute('data-action') === 'withdraw' ) {
+      var user_currency = e.target.getAttribute('data-currency');
+      this.showCurrencyWithdrawDialog(user_currency);
+    }
+  }, this);
+
+};
+
+
+bitex.view.WithdrawView.prototype.getRequestId = function() {
+  return this.request_id_;
+};
+
+bitex.view.WithdrawView.prototype.getAmount = function() {
+  return this.amount_;
+};
+
+bitex.view.WithdrawView.prototype.getCurrency = function() {
+  return this.currency_;
+};
+
+bitex.view.WithdrawView.prototype.getMethod = function() {
+  return this.method_;
+};
+
+bitex.view.WithdrawView.prototype.getWithdrawData = function() {
+  return this.data_;
+};
+
+
+bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency){
+  var model = this.getApplication().getModel();
+  var withdraw_methods = model.get('Broker')['WithdrawStructure'][currency];
+
+  var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
+    currency: currency,
+    currency_sign: this.getApplication().getCurrencySign(currency),
+    methods: withdraw_methods
+  });
+
+
+  /**
+   * @desc Crypto Currency Withdraw accordion title
+   */
+  var MSG_CURRENCY_WITHDRAW_DIALOG_TITLE =
+      goog.getMsg('{$currency} withdrawal', {currency :  this.getApplication().getCurrencyDescription(currency) });
+
+
+  var dlg =  this.getApplication().showDialog(dialogContent,
+                                              MSG_CURRENCY_WITHDRAW_DIALOG_TITLE,
+                                              bootstrap.Dialog.ButtonSet.createOkCancel());
+  var handler = this.getHandler();
+
+  handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+    if (e.key == 'ok') {
+      var withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+
+      this.amount_ = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];
+      this.method_ = withdraw_data['Method']; delete withdraw_data['Method'];
+      this.currency_ = withdraw_data['Currency']; delete withdraw_data['Currency'];
+      this.data_ = withdraw_data;
+
+      this.dispatchEvent( bitex.view.View.EventType.REQUEST_WITHDRAW);
+    }
+  }, this);
 };
 
 /**
@@ -85,7 +181,7 @@ bitex.view.WithdrawView.prototype.onBitexWithdrawResponse_ = function(e) {
 
   var withdrawConfirmationDialog = this.getApplication().showDialog(dlg_content,
                                                                     MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE,
-                                                                    goog.ui.Dialog.ButtonSet.createOkCancel());
+                                                                    bootstrap.Dialog.ButtonSet.createOkCancel());
 
 
   var handler = this.getHandler();
@@ -107,7 +203,7 @@ bitex.view.WithdrawView.prototype.getConfirmationToken = function() {
  */
 bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
   var handler = this.getHandler();
-
+  var model = this.getApplication().getModel();
 
   if (goog.isDefAndNotNull(this.withdraw_list_table_)) {
 
@@ -120,6 +216,10 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
                      this.onWithdrawListReponse_);
 
 
+    handler.unlisten(this.getApplication().getBitexConnection(),
+                     bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + model.get('UserID'),
+                     this.onWithdrawRefresh_);
+
     this.withdraw_list_table_.dispose();
   }
 
@@ -128,207 +228,13 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
 };
 
 
-/**
- * @param {bitex.api.BitExEvent} e
- * @private
- */
-bitex.view.WithdrawView.prototype.onModelSetBroker_ = function(e) {
-  var broker = e.data;
-  var model = this.getApplication().getModel();
-  var security_list = model.get('SecurityList');
-
-  var broker_government_currencies_codes = broker['Currencies'].split(',');
-
-  var government_currencies = [];
-  var crypto_currencies = [];
-  var currency_balances_template_params = [];
-  goog.array.forEach(security_list['Currencies'], function( currency) {
-    if (currency['IsCrypto'] ) {
-      crypto_currencies.push(currency);
-      currency_balances_template_params.push({ code: currency['Code'], code_lower: currency['Code'].toLowerCase() });
-    }
-
-    if ( goog.array.contains(broker_government_currencies_codes , currency['Code'] )) {
-      government_currencies.push(currency);
-      currency_balances_template_params.push({ code: currency['Code'], code_lower: currency['Code'].toLowerCase() });
-    }
-
-  }, this);
-
-  goog.dom.removeChildren(goog.dom.getElement('id_user_balances_well'));
-  goog.soy.renderElement(goog.dom.getElement('id_user_balances_well'), bitex.templates.YourAccountBalances, {
-    currencies: currency_balances_template_params
-  });
-
-
-  var withdraws_component = this.getChildAt(0);
-  withdraws_component.removeChildren(true);
-
-  /**
-   * @desc Withdraw Button label in the withdraw view
-   */
-  var MSG_BUTTON_WITHDRAW_LABEL = goog.getMsg('Withdraw');
-
-  /**
-   * @desc Withdraw accordion description in the withdraw view
-   */
-  var MSG_WITHDRAW_ACCORDION_DESCRIPTION = goog.getMsg('Fill up the form.');
-
-
-  /**
-   * @desc Amount label
-   */
-  var MSG_LABEL_AMOUNT = goog.getMsg('Amount');
-
-
-  goog.array.forEach(crypto_currencies, function(currency) {
-
-
-    /**
-     * @desc Crypto Currency Withdraw accordion title
-     */
-    var MSG_CRYPTO_CURRENCY_WITHDRAW_TITLE =
-        goog.getMsg('{$currency} withdrawal', {currency : currency['Description']});
-
-    /**
-     * @desc Amount label
-     */
-    var MSG_AMOUNT_CRYPTO_CURRENCY_PLACEHOLDER = goog.getMsg('eg. 0.44550000');
-
-    /**
-     * @desc Wallet label on crypto currency withdrawal
-     */
-    var MSG_LABEL_WALLET_CRYPTO_CURRENCY = goog.getMsg('Wallet');
-
-    /**
-     * @desc Crypto Currency Withdraw accordion title
-     */
-    var MSG_WALLET_CRYPTO_CURRENCY_PLACEHOLDER = goog.getMsg('Your {$currency} wallet here.', {currency: currency['Description']});
-
-    var crypto_currency_withdraw = new bitex.ui.Withdraw( {
-        type: 'CRY',
-        currency: currency['Code'],
-        parent_id   : 'withdraw_accordion',
-        button_label: MSG_BUTTON_WITHDRAW_LABEL,
-        title       : MSG_CRYPTO_CURRENCY_WITHDRAW_TITLE,
-        description : MSG_WITHDRAW_ACCORDION_DESCRIPTION,
-        controls   : [ ['Amount', MSG_LABEL_AMOUNT, MSG_AMOUNT_CRYPTO_CURRENCY_PLACEHOLDER, currency['Sign'] ],
-                       ['Wallet', MSG_LABEL_WALLET_CRYPTO_CURRENCY , MSG_WALLET_CRYPTO_CURRENCY_PLACEHOLDER] ]
-    });
-
-    withdraws_component.addChild(crypto_currency_withdraw, true);
-
-  }, this);
-
-  goog.array.forEach(government_currencies, function(currency) {
-
-    /**
-     * @desc Government Currency Withdraw accordion title
-     */
-    var MSG_GOVT_CURRENCY_WITHDRAW_TITLE =
-        goog.getMsg('{$currency} withdrawal', {currency : currency['Description']});
-
-
-    /**
-     * @desc Amount label
-     */
-    var MSG_AMOUNT_GOVT_CURRENCY_PLACEHOLDER = goog.getMsg('eg. 2300.00');
-
-    /**
-     * @desc Bank number in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NUMBER = goog.getMsg('Bank number');
-
-    /**
-     * @desc Bank name in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NAME = goog.getMsg('Bank name');
-
-
-    /**
-     * @desc Account Branch in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_BRANCH = goog.getMsg('Account Branch');
-
-    /**
-     * @desc Account name in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NAME = goog.getMsg('Account name');
-
-    /**
-     * @desc Account number in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NUMBER = goog.getMsg('Account number');
-
-    /**
-     * @desc ID in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ID = goog.getMsg("ID");
-
-
-    /**
-     * @desc Bank number placeholder in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NUMBER_PH = goog.getMsg('eg. 2331');
-
-    /**
-     * @desc Bank name placeholder in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NAME_PH = goog.getMsg('eg. Bank of America');
-
-
-    /**
-     * @desc Account Branch placeholder in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_BRANCH_PH = goog.getMsg('eg. 88888');
-
-    /**
-     * @desc Account name placeholder in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NAME_PH = goog.getMsg('eg. John Doe');
-
-
-    /**
-     * @desc Account number placeholder in bank withdrawal form
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NUMBER_PH = goog.getMsg('eg. 88888');
-
-    /**
-     * @desc ID placeholder in bank withdrawal form placeholder
-     */
-    var MSG_GOVT_CURRENCY_BANK_TRANSFER_ID_PH = goog.getMsg("eg. A34455");
-
-
-    var government_currency_withdraw = new bitex.ui.Withdraw({
-      parent_id:'withdraw_accordion',
-      type: 'BBT',
-      currency: currency['Code'],
-      button_label:MSG_BUTTON_WITHDRAW_LABEL,
-      title: MSG_GOVT_CURRENCY_WITHDRAW_TITLE,
-      description: MSG_WITHDRAW_ACCORDION_DESCRIPTION,
-      controls: [ ['Amount', MSG_LABEL_AMOUNT , MSG_AMOUNT_GOVT_CURRENCY_PLACEHOLDER, currency['Sign']],
-        ['BankNumber',     MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NUMBER   , MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NUMBER_PH],
-        ['BankName',       MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NAME     , MSG_GOVT_CURRENCY_BANK_TRANSFER_BANK_NAME_PH],
-        ['AccountBranch',  MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_BRANCH, MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_BRANCH_PH],
-        ['AccountName',    MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NAME  , MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NAME_PH],
-        ['AccountNumber',  MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NUMBER, MSG_GOVT_CURRENCY_BANK_TRANSFER_ACCOUNT_NUMBER_PH],
-        ['CPFCNPJ',         MSG_GOVT_CURRENCY_BANK_TRANSFER_ID            , MSG_GOVT_CURRENCY_BANK_TRANSFER_ID_PH]
-      ]
-    });
-
-    withdraws_component.addChild(government_currency_withdraw, true);
-  }, this);
-
-
-  console.log(goog.debug.deepExpose(government_currencies));
-};
-
 
 /**
  * @private
  */
 bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   var handler = this.getHandler();
+  var model = this.getApplication().getModel();
 
   this.destroyComponents_();
 
@@ -345,6 +251,11 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
                  bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE + '.' + this.request_id_,
                  this.onWithdrawListReponse_);
 
+  handler.listen(this.getApplication().getBitexConnection(),
+                 bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + model.get('UserID'),
+                 this.onWithdrawRefresh_);
+
+
   this.withdraw_list_table_.decorate(el);
 
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
@@ -360,7 +271,6 @@ bitex.view.WithdrawView.prototype.priceFormatter_ = function(value, rowSet) {
 };
 
 /**
- *
  * @param {goog.events.Event} e
  */
 bitex.view.WithdrawView.prototype.onWithdrawListTableRequestData_ = function(e) {
@@ -372,8 +282,20 @@ bitex.view.WithdrawView.prototype.onWithdrawListTableRequestData_ = function(e) 
 };
 
 
+
 /**
- *
+ * @param {goog.events.Event} e
+ */
+bitex.view.WithdrawView.prototype.onWithdrawRefresh_ = function(e) {
+  var msg = e.data;
+
+  if (!goog.isDefAndNotNull(this.withdraw_list_table_) ) {
+    return;
+  }
+  this.withdraw_list_table_.insertOrUpdateRecord(msg, 0);
+};
+
+/**
  * @param {goog.events.Event} e
  */
 bitex.view.WithdrawView.prototype.onWithdrawListReponse_ = function(e) {

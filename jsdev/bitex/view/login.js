@@ -91,8 +91,9 @@ bitex.view.LoginView.prototype.onLoginClick_ = function( username_el, password_e
     /**
      * @desc Invalid Username Alert error message when pushing the login button
      */
-    var MSG_LOGIN_VIEW_VINVALID_USERNAME = goog.getMsg('Invalid username');
-    alert(MSG_LOGIN_VIEW_INVALID_USERNAME);
+    var MSG_LOGIN_VIEW_INVALID_USERNAME = goog.getMsg('Invalid username');
+    this.getApplication().showDialog( MSG_LOGIN_VIEW_INVALID_USERNAME );
+
     this.username_el_.focus();
     return;
   }
@@ -101,7 +102,7 @@ bitex.view.LoginView.prototype.onLoginClick_ = function( username_el, password_e
      * @desc Invalid Password Alert error message when pushing the login button
      */
     var MSG_LOGIN_VIEW_INVALID_PASSWORD = goog.getMsg('Password must have at least 8 characters');
-    alert(MSG_LOGIN_VIEW_INVALID_PASSWORD);
+    this.getApplication().showDialog( MSG_LOGIN_VIEW_INVALID_PASSWORD );
     this.password_el_.focus();
     return;
   }

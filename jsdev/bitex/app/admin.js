@@ -177,7 +177,7 @@ bitex.app.admin = function() {
     }]});
 
 
-  var boletoListDataGrid = new bitex.ui.DataGrid({'columns' : [
+  var depositListDataGrid = new bitex.ui.DataGrid({'columns' : [
     {
       'property': 'numero_documento',
       'label': 'Número do documento',
@@ -199,7 +199,7 @@ bitex.app.admin = function() {
       'sortable': true,
       'formatter': function(value){
         return goog.dom.createDom('span',
-                                  { 'class':'boleto-valor-documento', 'data-boleto-value' :value },
+                                  { 'class':'deposit-valor-documento', 'data-deposit-value' :value },
                                   value.toFixed(2) );
       }
     },{
@@ -211,9 +211,9 @@ bitex.app.admin = function() {
       'property': 'id',
       'label': 'Actions',
       'sortable': true,
-      'formatter': function(boleto_id){
-        var classes = "btn btn-mini btn-primary btn-boleto";
-        return goog.dom.createDom( 'button', { 'class':classes, 'data-boleto-id':boleto_id }, 'Marcar como pago' );
+      'formatter': function(deposit_id){
+        var classes = "btn btn-mini btn-primary btn-deposit";
+        return goog.dom.createDom( 'button', { 'class':classes, 'data-deposit-id':deposit_id }, 'Marcar como pago' );
       }
     }]});
 
@@ -259,8 +259,8 @@ bitex.app.admin = function() {
     bitEx.sendRawMessage( options );
   };
 
-  boletoListDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
-                                     goog.partial( onRequestTableData, 'boleto' ) );
+  depositListDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
+                                     goog.partial( onRequestTableData, 'deposit' ) );
 
   userListDataGrid.addEventListener( bitex.ui.DataGrid.EventType.REQUEST_DATA,
                                      goog.partial( onRequestTableData, 'users' ) );
@@ -276,8 +276,8 @@ bitex.app.admin = function() {
     switch(msg['MsgType']) {
       case 'A1':
         switch( msg['Table'] ) {
-          case 'boleto':
-            boletoListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
+          case 'deposit':
+            depositListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
             break;
           case 'users':
             userListDataGrid.setResultSet( msg['ResultSet'], msg['Columns'] );
@@ -290,8 +290,8 @@ bitex.app.admin = function() {
             break;
         }
         break;
-      case 'B1': // Boleto Payment Confirmation List
-        boletoListDataGrid.reload();
+      case 'B1': // Deposit Payment Confirmation List
+        depositListDataGrid.reload();
         break;
     }
   });
@@ -318,13 +318,13 @@ bitex.app.admin = function() {
     bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
     if (userListDataGrid.wasDecorated()) {
-      boletoListDataGrid.reload();
+      depositListDataGrid.reload();
       userListDataGrid.reload();
       withdrawBtcDataGrid.reload();
       depositDataGrid.reload();
     } else {
 
-      boletoListDataGrid.decorate(goog.dom.getElement('boleto_list_data_grid'));
+      depositListDataGrid.decorate(goog.dom.getElement('deposit_list_data_grid'));
       userListDataGrid.decorate(goog.dom.getElement('user_list_data_grid'));
       withdrawBtcDataGrid.decorate(goog.dom.getElement('withdraw_requests_data_grid'));
       depositDataGrid.decorate(goog.dom.getElement('deposit_list_data_grid'));
@@ -332,44 +332,44 @@ bitex.app.admin = function() {
     }
 
 
-    goog.events.listen( boletoListDataGrid.getElement(), 'click' , function(e){
-      if (goog.dom.classes.has(e.target, 'btn-boleto')) {
-        var boleto_id = e.target.getAttribute('data-boleto-id');
+    goog.events.listen( depositListDataGrid.getElement(), 'click' , function(e){
+      if (goog.dom.classes.has(e.target, 'btn-deposit')) {
+        var deposit_id = e.target.getAttribute('data-deposit-id');
 
-        var boleto_value = 0;
+        var deposit_value = 0;
         var row_element = goog.dom.getParentElement(goog.dom.getParentElement(e.target));
 
-        var boleto_value_span_element = goog.dom.getElementByClass('boleto-valor-documento', row_element);
-        if (goog.isDefAndNotNull(boleto_value_span_element)) {
-          boleto_value = boleto_value_span_element.getAttribute('data-boleto-value');
+        var deposit_value_span_element = goog.dom.getElementByClass('deposit-valor-documento', row_element);
+        if (goog.isDefAndNotNull(deposit_value_span_element)) {
+          deposit_value = deposit_value_span_element.getAttribute('data-deposit-value');
         }
 
-        var boletoPaymentDialog = new bootstrap.Dialog();
-        boletoPaymentDialog.setTitle('Pagamento do boleto');
-        boletoPaymentDialog.setContent('Valo pago: <input id="id_boleto_payment" placeholder="" size="10" value="' + boleto_value + '">');
-        boletoPaymentDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
-        boletoPaymentDialog.setVisible(true);
+        var depositPaymentDialog = new bootstrap.Dialog();
+        depositPaymentDialog.setTitle('Pagamento do deposit');
+        depositPaymentDialog.setContent('Valo pago: <input id="id_deposit_payment" placeholder="" size="10" value="' + deposit_value + '">');
+        depositPaymentDialog.setButtonSet( bootstrap.Dialog.ButtonSet.createOkCancel());
+        depositPaymentDialog.setVisible(true);
 
-        goog.events.listenOnce(boletoPaymentDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+        goog.events.listenOnce(depositPaymentDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
           if (e.key == 'ok') {
-            var boleto_payment = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_payment") );
-            if (goog.string.isEmptySafe(boleto_payment)) {
+            var deposit_payment = goog.dom.forms.getValue( goog.dom.getElement("id_deposit_payment") );
+            if (goog.string.isEmptySafe(deposit_payment)) {
               e.stopPropagation();
               e.preventDefault();
               return;
             }
 
-            boleto_payment = parseInt(parseFloat(boleto_payment) * 1e8, 10 ) ;
+            deposit_payment = parseInt(parseFloat(deposit_payment) * 1e8, 10 ) ;
             var depositMsg = {
-              'MsgType' : 'B0',  // Boleto Payment Confirmation Request
-              'BoletoID': goog.string.toNumber(boleto_id),
+              'MsgType' : 'B0',  // Deposit Payment Confirmation Request
+              'DepositID': goog.string.toNumber(deposit_id),
               'Currency': 'BRL',
-              'Amount': boleto_payment
+              'Amount': deposit_payment
             };
             bitEx.sendRawMessage(depositMsg);
 
           }
-          boletoPaymentDialog.dispose();
+          depositPaymentDialog.dispose();
         });
 
       }
@@ -456,7 +456,7 @@ bitex.app.admin = function() {
       secondFactorDialog = new bootstrap.Dialog();
       secondFactorDialog.setTitle('Autenticação em 2 passos');
       secondFactorDialog.setContent('Código de autenticação do Google Authenticator: <input id="id_second_factor" placeholder="ex. 555555" size="10">');
-      secondFactorDialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOkCancel());
+      secondFactorDialog.setButtonSet( bootstrap.Dialog.ButtonSet.createOkCancel());
       secondFactorDialog.setVisible(true);
 
       goog.events.listenOnce(secondFactorDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
@@ -478,7 +478,7 @@ bitex.app.admin = function() {
       var error_dialog = new bootstrap.Dialog();
       error_dialog.setTitle('Erro');
       error_dialog.setContent(msg['UserStatusText']);
-      error_dialog.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+      error_dialog.setButtonSet( bootstrap.Dialog.ButtonSet.createOk());
       error_dialog.setVisible(true);
     }
   });

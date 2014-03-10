@@ -204,6 +204,7 @@ ul.parsley-error-list li {
 
 
 /* Active view */
+#my_broker,
 #customers,
 #account_overview,
 #withdraw_requests,
@@ -229,6 +230,7 @@ ul.parsley-error-list li {
   display: none;
 }
 
+.active-view-my_broker #my_broker,
 .active-view-customers #customers,
 .active-view-account_overview #account_overview,
 .active-view-withdraw_requests #withdraw_requests,

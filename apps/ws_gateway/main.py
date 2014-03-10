@@ -58,8 +58,8 @@ tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway
 tornado.options.parse_command_line()
 
 from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
-from boleto_hander import BoletoHandler
-
+from deposit_hander import DepositHandler
+import datetime
 
 class WebSocketHandler(websocket.WebSocketHandler):
   def __init__(self, application, request, **kwargs):
@@ -175,7 +175,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
   def __init__(self, opt):
     handlers = [
       (r'/', WebSocketHandler),
-      (r'/print_boleto(.*)', BoletoHandler),
+      (r'/get_deposit(.*)', DepositHandler),
     ]
     settings = dict(
       cookie_secret='cookie_secret'
@@ -200,6 +200,12 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
     self.connections = {}
 
+    self.heart_beat_timer =  tornado.ioloop.PeriodicCallback(self.send_heartbeat_to_trade, 30000 )
+    self.heart_beat_timer.start()
+
+  def send_heartbeat_to_trade(self):
+    self.application_trade_client.sendJSON( {'MsgType':'1', 'TestReqID':'0'} )
+
   def register_connection(self, ws_client):
     if ws_client.trade_client.connection_id in self.connections:
       return False
@@ -213,6 +219,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
     return False
 
   def clean_up(self):
+    self.heart_beat_timer.stop()
     self.application_trade_client.close()
 
     for client_connection_id in self.connections:

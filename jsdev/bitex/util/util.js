@@ -12,6 +12,48 @@ bitex.util.decimalPlaces = function(num) {
           - (match[2] ? +match[2] : 0));
 };
 
+/**
+ * @param {Element} element
+ * @return {Object}
+ */
+bitex.util.getFormAsJSON = function(element){
+  var json_res = {};
+  for (var el, i = 0; el = element.elements[i]; i++) {
+    if (el.disabled || el.tagName.toLowerCase() == 'fieldset') {
+      continue;
+    }
+
+    var name = el.name;
+    var type = el.type.toLowerCase();
+    switch (type) {
+      case 'file':
+      case 'submit':
+      case 'reset':
+      case 'button':
+        // don't submit these
+        break;
+
+      case 'select-multiple':
+        var values = goog.dom.forms.getValue(el);
+        if (values != null) {
+          json_res[name] = [];
+          for (var value, j = 0; value = values[j]; j++) {
+            json_res[name].push(value);
+          }
+        }
+        break;
+      default:
+        var form_value = goog.dom.forms.getValue(el);
+        if (form_value != null) {
+          json_res[name] = form_value;
+        }
+    }
+  }
+  return json_res;
+};
+
+
+
 bitex.util.getCountries = function() {
   return {
     "AF": "Afghanistan",

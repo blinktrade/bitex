@@ -272,7 +272,7 @@ bitex.app.markets = function( url ) {
     var dlg = new bootstrap.Dialog();
     dlg.setTitle('Erro');
     dlg.setContent('Your browser does not support WebSockets.');
-    dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
+    dlg.setButtonSet( bootstrap.Dialog.ButtonSet.createOk());
     dlg.setVisible(true);
   });
 };

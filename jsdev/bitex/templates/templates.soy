@@ -13,6 +13,150 @@
 
 
 
+
+/**
+  * @param msg_broker
+  */
+{template .BrokerView}
+  <div class="section-title">
+    <h3>{msg desc="Title for the Broker view"}My broker{/msg}</h3>
+  </div>
+
+  <div class="content">
+    <address>
+      <strong>{$msg_broker['BusinessName']}</strong><br/>
+      {$msg_broker['Address']}<br/>
+      {$msg_broker['City']}, {$msg_broker['State']} {$msg_broker['ZipCode']} - {$msg_broker['Country']}<br/>
+      <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, $msg_broker['PhoneNumber2']{/if}<br/>
+      Skype: {$msg_broker['Skype']}<br/>
+      <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
+    </address>
+
+    <h4>
+      {msg desc="Fee section subtitle on Broker view"}Fees{/msg}
+    </h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>{msg desc="Operation column on Broker fees table"}Operation{/msg}</th>
+          <th>{msg desc="Fees column on Broker fees table"}Fee{/msg}</th>
+          <th>{msg desc="Terms column on Broker fees table"}Terms{/msg}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {if $msg_broker['TransactionFeeBuy'] == $msg_broker['TransactionFeeSell']}
+          <tr>
+            <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
+            <td>{$msg_broker['TransactionFeeBuy']}</td>
+            <td>{msg desc="label in broker fees table"}Instantaneous{/msg}</td>
+          </tr>
+        {else}
+          <tr>
+            <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
+            <td>{$msg_broker['TransactionFeeBuy']}</td>
+            <td>{msg desc="label in broker fees table"}Instantaneous{/msg}</td>
+          </tr>
+          <tr>
+            <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
+            <td>{$msg_broker['TransactionFeeSell']}</td>
+            <td>{msg desc="label in broker fees table"}Instantaneous{/msg}</td>
+          </tr>
+        {/if}
+        {foreach $fee in $msg_broker['FeeStructure']}
+          <tr>
+            <td>{$fee['Operation']}</td>
+            <td>{$fee['Fee']}</td>
+            <td>{$fee['Terms']}</td>
+          </tr>
+        {/foreach}
+      </tbody>
+    </table>
+
+
+    <h4>
+      {msg desc="Wallet section subtitle on Broker view"}Wallets{/msg}
+    </h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>{msg desc="Coin  column on Broker wallet table"}Coin{/msg}</th>
+          <th>{msg desc="type  column on Broker wallet table"}Type{/msg}</th>
+          <th>{msg desc="address column type on Broker wallet table"}Address{/msg}</th>
+          <th>{msg desc="multisig column type on Broker wallet table"}Multi signature{/msg}</th>
+          <th>{msg desc="managed by column on Broker wallet table"}Managed by{/msg}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {foreach $crypto_currencies in $msg_broker['CryptoCurrencies']}
+          {foreach $wallets in $crypto_currencies['Wallets'] }
+            <tr>
+              <td>{$crypto_currencies['CurrencyDescription']}</td>
+              <td>{$wallets['type'] }</td>
+              <td>
+              {if $crypto_currencies['CurrencyCode'] == 'BTC' }
+                <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+              {else}
+                {$wallets['address'] }
+              {/if}
+              </td>
+              <td>
+                {if $wallets['multisig']}
+                  {msg desc="Multisig true"}Yes{/msg}
+                {else}
+                  {msg desc="Multisig false"}No{/msg}
+                {/if}
+              </td>
+              <td>{$wallets['managed_by'] }</td>
+            </tr>
+          {/foreach}
+        {/foreach}
+      </tbody>
+    </table>
+
+    <h4>
+      {msg desc="Terms of service section subtitle on Broker view"}Terms of service{/msg}
+    </h4>
+    <iframe style="width:100%;height:400px;" src="{$msg_broker['TosUrl']}"></iframe>
+
+  </div>
+
+
+
+{/template}
+
+/**
+  * @param reason_id
+  * @param custom_reason_id
+  */
+{template .CancelWithdrawDialogContent}
+<p>{msg desc="Cancel withdraw dialog message"}Enter a reason for cancelling the user withdraw{/msg}</p>
+<form class="form-horizontal">
+  <fieldset>
+    <div class="control-group">
+      <label class="control-label" for="{$reason_id}" >{msg desc="Cancel withdraw reason label"}Reason:{/msg}</label>
+      <div class="controls">
+        <select id="{$reason_id}">
+          <option value=0>{msg desc="reason for cancelling withdraw"}Other{/msg}</option>
+          <option value=-1 selected>{msg desc="reason for cancelling withdraw"}Insufficient funds{/msg}</option>
+          <option value=-2>{msg desc="reason for cancelling withdraw"}Account not verified{/msg}</option>
+          <option value=-3>{msg desc="reason for cancelling withdraw"}Suspicion of fraud{/msg}</option>
+          <option value=-4>{msg desc="reason for cancelling withdraw"}Withdrawing to a different account than yours{/msg}</option>
+          <option value=-5>{msg desc="reason for cancelling withdraw"}Invalid wallet{/msg}</option>
+          <option value=-6>{msg desc="reason for cancelling withdraw"}Invalid bank account{/msg}</option>
+          <option value=-7>{msg desc="reason for cancelling withdraw"}Amount exceeded your daily withdraw limit{/msg}</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <textarea id="{$custom_reason_id}" rows="2" style="display:none;"></textarea>
+      </div>
+    </div>
+  </fieldset>
+</form>
+
+{/template}
+
 /**
   * @param id
   */
@@ -34,11 +178,13 @@
 {/template}
 
 /**
-  * @param boleto_id
+  * @param deposit_id
   */
-{template .BoletoDialog}
-  <a  target="_blank" href="/print_boleto?boleto_id={$boleto_id}" class="btn btn-primary">
-    {msg desc="Print boleto button in boleto dialog"}Print{/msg}</a> or <a href="/print_boleto?download=1&boleto_id={$boleto_id}">{msg desc="Dowload boleto button in boleto dialog"}Download{/msg}</a>
+{template .DepositDialog}
+  <a  target="_blank" href="/get_deposit?deposit_id={$deposit_id}" class="btn btn-primary">
+    {msg desc="Print deposit button in deposit dialog"}Print{/msg}</a>
+  or
+  <a href="/get_deposit?download=1&deposit_id={$deposit_id}">{msg desc="Download deposit button in deposit dialog"}Download{/msg}</a>
 {/template}
 
 /**
@@ -57,9 +203,115 @@
 
 /**
   * @param currencies
+  * @param? action
+  */
+{template .AccountBalances}
+  <table class="table table-striped" style="width: 350px">
+    <tbody>
+      {foreach $currency in $currencies}
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for available balance in a currency"}Available {$currency}{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model" data-model-key="formatted_balance_{$currency}" data-blink-class="balance-info-blink"></span>
+        </td>
+        {if $action == 'deposit'}
+          <td>
+            <button class="btn btn-mini" data-action="deposit"  data-currency="{$currency}">
+              <i data-action="deposit"  data-currency="{$currency}" class="icon-plus"/>
+             {msg desc="Deposit button label"} Deposit{/msg}
+            </button>
+          </td>
+        {/if}
+        {if $action == 'withdraw'}
+          <td>
+            <button class="btn btn-mini" data-action="withdraw" data-currency="{$currency}">
+              <i data-action="withdraw" data-currency="{$currency}" class="icon-minus"/>
+             {msg desc="Deposit button label"} Withdraw{/msg}
+            </button>
+          </td>
+        {/if}
+      </tr>
+      {/foreach}
+    </tbody>
+  </table>
+{/template}
+
+/**
+  * @param currency
+  * @param currency_sign
+  * @param methods
+  */
+{template .DepositWithdrawDialogContent}
+  <form class="form-horizontal">
+    <input type="hidden" name="Currency" value="{$currency}">
+
+    <div class="control-group">
+      <label class="control-label">Amount</label>
+      <div class="controls">
+        <div class="input-prepend">
+          <span class="add-on">{$currency_sign}</span>
+          <input type="text" class="input-small" size="16" name="Amount">
+        </div>
+      </div>
+    </div>
+
+    {if length($methods) > 1}
+      <div class="control-group">
+        <label class="control-label">Method</label>
+        <div class="controls">
+          <select name="Method" class="withdraw-method-selector">
+            {foreach $method in $methods }
+             <option {if isFirst($method)}selected{/if} value="{$method['method']}" >{$method['description']}</option>
+            {/foreach}
+          </select>
+        </div>
+      </div>
+    {else}
+      {foreach $method in $methods }
+        <input type="hidden" name="Method" value="{$method['method']}">
+      {/foreach}
+    {/if}
+
+    <div class="withdraw-methods">
+     {foreach $method in $methods }
+        <div class="withdraw-method" data-withdraw-method="{$method['method']}" style="{if not isFirst($method)}display:none;{/if}" >
+          <div class="control-group" style="margin-bottom: 5px;">
+            <div class="controls">
+              <label>{$method['disclaimer']}</label>
+            </div>
+          </div>
+
+          {foreach $field in $method['fields'] }
+            <div class="control-group">
+              <label class="control-label">{$field['label']}</label>
+              <div class="controls">
+                <input class="withdraw-field" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+              </div>
+            </div>
+          {/foreach}
+        </div>
+     {/foreach}
+    </div>
+
+    <div class="control-group dlg-response-group">
+      <label class="control-label dlg-response-group-label"></label>
+      <div class="controls" class="dlg-response-group-value" >
+      </div>
+    </div>
+
+  </form>
+{/template}
+
+
+/**
+  * @param currencies
   */
 {template .YourAccountBalances}
-  <table class="table table-striped" style="width: 300px">
+  <table class="table table-striped" style="width: 350px">
     <tbody>
       {foreach $currency in $currencies}
       <tr>
@@ -69,7 +321,7 @@
           </strong>
         </td>
         <td>
-          <span class="bitex-model" data-model-key="formatted_balance_{$currency.code_lower}" data-blink-class="balance-info-blink"></span>
+          <span class="bitex-model" data-model-key="formatted_balance_{$currency.model_key}" data-blink-class="balance-info-blink">{if $currency.balance}{$currency.balance}{else}-{/if}</span>
         </td>
       </tr>
       {/foreach}
@@ -81,48 +333,47 @@
   * @param msg_customer_detail
   */
 {template .AccountOverviewHeader}
-  <h4>Details</h4>
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Id in account overview header"}ID:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['ID']}</div>
-  </div>
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Username in account overview header"}Username:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['Username']}</div>
-  </div>
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Email in account overview header"}Email:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['Email']}</div>
-  </div>
-
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="State in account overview header"}State:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['State']}</div>
-  </div>
-
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Country in account overview header"}Country:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['CountryCode']}</div>
-  </div>
-
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Last login in account overview header"}Last login:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['LastLogin']}</div>
-  </div>
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Is verified in account overview header"}Is verified:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['Verified']}</div>
-  </div>
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Has two step auth enable in account overview header"}Has two step authentication:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['TwoFactorEnabled']}</div>
-  </div>
-
-  <div class="row-fluid">
-    <div class="span5 account-overview-label"> <span>{msg desc="Registration date in account overview header"}Registration date:{/msg}</span></div>
-    <div class="span7 account-overview-value">{$msg_customer_detail['Created']}</div>
-  </div>
-
+  <h4>{msg desc="Details sub title for the account overview view"}Details{/msg}</h4>
+  <table class="table table-striped" style="width: 350px">
+    <tbody>
+      <tr>
+        <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
+        <td>{$msg_customer_detail['ID']}</td>
+      </tr>
+      <tr>
+        <td><strong>{msg desc="label on  overview header"}Username{/msg}</strong></td>
+        <td>{$msg_customer_detail['Username']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Email{/msg}</strong></td>
+         <td>{$msg_customer_detail['Email']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}State{/msg}</strong></td>
+         <td>{$msg_customer_detail['State']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Country{/msg}</strong></td>
+         <td>{$msg_customer_detail['CountryCode']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Last login{/msg}</strong></td>
+         <td>{$msg_customer_detail['LastLogin']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
+         <td>{$msg_customer_detail['Verified']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Has two step authentication{/msg}</strong></td>
+         <td>{$msg_customer_detail['TwoFactorEnabled']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Registration date{/msg}</strong></td>
+         <td>{$msg_customer_detail['Created']}</td>
+      </tr>
+    </tbody>
+  </table>
 {/template}
 
 /**

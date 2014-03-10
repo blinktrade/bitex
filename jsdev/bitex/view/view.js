@@ -1,8 +1,10 @@
 goog.provide('bitex.view.View');
 goog.provide('bitex.view.View.EventType');
 
+goog.require('bitex.model.Model');
+
 goog.require('goog.dom');
-goog.require('goog.object')
+goog.require('goog.object');
 goog.require('goog.ui.Component');
 goog.require('goog.ui.registry');
 goog.require('goog.ui.INLINE_BLOCK_CLASSNAME');
@@ -32,7 +34,11 @@ bitex.view.View.EventType = {
   MARKET_DATA_SUBSCRIBE: 'md_subscribe',
   MARKET_DATA_UNSUBSCRIBE: 'md_unsubscribe',
   CANCEL_ORDER: 'cancel_order',
-  CONFIRM_WITHDRAW: 'confirm_withdraw'
+  REQUEST_WITHDRAW: 'request_withdraw',
+  CONFIRM_WITHDRAW: 'confirm_withdraw',
+  PROCESS_WITHDRAW: 'process_withdraw',
+
+  DEPOSIT_REQUEST: 'request_deposit'
 };
 
 

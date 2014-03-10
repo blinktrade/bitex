@@ -7,7 +7,7 @@ from bitex.json_encoder import  JsonEncoder
 
 import json
 
-from models import  User, Order, UserPasswordReset, Boleto, BoletoOptions, \
+from models import  User, Order, UserPasswordReset, Deposit, DepositOptions, \
   NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance
 
 from execution import OrderMatcher
@@ -73,8 +73,9 @@ def processLogin(session, msg):
       'ShortName'          : broker.short_name           ,
       'BusinessName'       : broker.business_name        ,
       'Address'            : broker.address              ,
-      'ZipCode'            : broker.state                ,
-      'State'              : broker.zip_code             ,
+      'ZipCode'            : broker.zip_code             ,
+      'City'               : broker.city                 ,
+      'State'              : broker.state                ,
       'Country'            : broker.country              ,
       'PhoneNumber1'       : broker.phone_number_1       ,
       'PhoneNumber2'       : broker.phone_number_2       ,
@@ -83,15 +84,13 @@ def processLogin(session, msg):
       'Currencies'         : broker.currencies           ,
       'VerificationForm'   : broker.verification_jotform ,
       'TosUrl'             : broker.tos_url              ,
-      'BoletoFee'          : broker.boleto_fee           ,
-      'WithdrawBRLBankFee' : broker.withdraw_brl_bank_fee,
-      'WithdrawWalletFee'  : broker.withdraw_wallet_fee  ,
-      'WithdrawSwiftFee'   : broker.withdraw_swift_fee   ,
-      'WithdrawAchFee'     : broker.withdraw_ach_fee     ,
+      'FeeStructure'       : json.loads(broker.fee_structure),
+      'WithdrawStructure'  : json.loads(broker.withdraw_structure),
       'TransactionFeeBuy'  : broker.transaction_fee_buy  ,
       'TransactionFeeSell' : broker.transaction_fee_sell ,
       'Status'             : broker.status               ,
-      'ranking'            : broker.ranking
+      'ranking'            : broker.ranking              ,
+      'CryptoCurrencies'   : json.loads(broker.crypto_currencies)
     }
   return json.dumps(login_response, cls=JsonEncoder)
 
@@ -262,9 +261,6 @@ def processSignup(session, msg):
 def processRequestForBalances(session, msg):
   user = session.user
   if msg.has('ClientID'):
-    if enable:
-      raise NotAuthorizedError()
-
     user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
 
     if not user:
@@ -275,7 +271,7 @@ def processRequestForBalances(session, msg):
 
 
   balances = Balance.get_balances_by_account( application.db_session, user.account_id )
-  response = { 'MsgType': 'U3', 'BalanceReqID': msg.get('BalanceReqID')  }
+  response = { 'MsgType': 'U3', 'ClientID': user.id, 'BalanceReqID': msg.get('BalanceReqID')  }
   for balance in balances:
     if balance.broker_id in response:
       response[balance.broker_id][balance.currency ] = balance.balance
@@ -394,90 +390,79 @@ def processEnableDisableTwoFactorAuth(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
-def processRequestBoletoOptions(session, msg):
-  boleto_options = BoletoOptions.get_list(application.db_session,session.user.broker_id )
+def processRequestDepositOptions(session, msg):
+  deposit_options = DepositOptions.get_list(application.db_session,session.user.broker_id )
 
-  boleto_options_group = []
+  deposit_options_group = []
 
-  for boleto_option in boleto_options:
-    boleto_options_group.append( {
-      'BoletoId': boleto_option.id,
-      'Description': boleto_option.description
+  for deposit_option in deposit_options:
+    deposit_options_group.append( {
+      'DepositOptionID': deposit_option.id,
+      'Description': deposit_option.description,
+      'Disclaimer': deposit_option.disclaimer,
+      'Type': deposit_option.type,
+      'Currency': deposit_option.currency
     } )
 
   response = {
     'MsgType':'U21',
-    'BoletoOptionReqId': msg.get('BoletoOptionReqId'),
-    'BoletoOptionGrp': boleto_options_group
+    'DepositOptionReqID': msg.get('DepositOptionReqID'),
+    'DepositOptionGrp': deposit_options_group
   }
 
   return json.dumps(response, cls=JsonEncoder)
 
-def processRequestBoleto(session, msg):
-  boleto_id = msg.get('BoletoId')
+def processRequestDeposit(session, msg):
+  deposit_id = msg.get('DepositID')
 
-  boleto = Boleto.get_boleto(application.db_session, boleto_id)
-  if not boleto:
+  deposit = Deposit.get_deposit(application.db_session, deposit_id)
+  if not deposit:
     return
 
   response = {
     'MsgType'           :'U23',
-    'codigo_banco'      : boleto.codigo_banco        ,
-    'carteira'          : boleto.carteira            ,
-    'aceite'            : boleto.aceite              ,
-    'valor_documento'   : boleto.valor_documento     ,
-    'valor'             : boleto.valor               ,
-    'data_vencimento'   : boleto.data_vencimento     ,
-    'data_documento'    : boleto.data_documento      ,
-    'data_processamento': boleto.data_processamento  ,
-    'numero_documento'  : boleto.numero_documento    ,
-    'agencia_cedente'   : boleto.agencia_cedente     ,
-    'conta_cedente'     : boleto.conta_cedente       ,
-    'cedente'           : boleto.cedente             ,
-    'cedente_documento' : boleto.cedente_documento   ,
-    'cedente_cidade '   : boleto.cedente_cidade      ,
-    'cedente_uf'        : boleto.cedente_uf          ,
-    'cedente_endereco'  : boleto.cedente_endereco    ,
-    'cedente_bairro'    : boleto.cedente_bairro      ,
-    'cedente_cep'       : boleto.cedente_cep         ,
-    'sacado_nome'       : boleto.sacado_nome         ,
-    'sacado_documento'  : boleto.sacado_documento    ,
-    'sacado_cidade'     : boleto.sacado_cidade       ,
-    'sacado_uf'         : boleto.sacado_uf           ,
-    'sacado_endereco'   : boleto.sacado_endereco     ,
-    'sacado_bairro'     : boleto.sacado_bairro       ,
-    'sacado_cep'        : boleto.sacado_cep          ,
-    'quantidade'        : boleto.quantidade          ,
-    'especie_documento' : boleto.especie_documento   ,
-    'especie'           : boleto.especie             ,
-    'moeda'             : boleto.moeda               ,
-    'demonstrativo'     : boleto.demonstrativo       ,
-    'local_pagamento'   : boleto.local_pagamento     ,
-    'instrucoes'        : boleto.instrucoes
+    'DepositReqID'       : msg.get('DepositReqID'),
+    'DepositID'          : deposit.id,
+    'ClientID'          : deposit.user_id,
+    'BrokerID'          : deposit.broker_id,
+    'BrokerDepositCtrlNum': deposit.broker_deposit_ctrl_num,
+    'Type'              : deposit.type,
+    'Currency'          : deposit.currency,
+    'Value'             : deposit.value,
+    'PaidValue'         : deposit.paid_value,
+    'Status'            : deposit.status,
+    'DataLen'           : len(deposit.data),
+    'Data'              : deposit.data,
+    'Created'           : deposit.created
   }
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
-def processGenerateBoleto(session, msg):
-  boleto_option_id = msg.get('BoletoId')
+def processGenerateDeposit(session, msg):
+  deposit_option_id = msg.get('DepositOptionID')
   value            = msg.get('Value')
 
-  boleto_option = BoletoOptions.get_boleto_option(application.db_session, boleto_option_id)
-  if not boleto_option:
-    response = {'MsgType':'U19', 'BoletoId': 0 }
+  deposit_option = DepositOptions.get_deposit_option(application.db_session, deposit_option_id)
+  if not deposit_option:
+    response = {'MsgType':'U19', 'DepositID': 0 }
     return json.dumps(response, cls=JsonEncoder)
 
-  boleto = boleto_option.generate_boleto(  application.db_session, session.user, value )
+  deposit = deposit_option.generate_deposit(  application.db_session, session.user, value )
   application.db_session.commit()
 
-  response = {'MsgType':'U19', 'BoletoId': boleto.id }
+  response = {'MsgType':'U19', 'DepositID': deposit.id }
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
 def processWithdrawRequest(session, msg):
   reqId        = msg.get('WithdrawReqID')
 
-  withdraw_record = Withdraw.create(application.db_session, session.user, **msg.toJSON())
+  withdraw_record = Withdraw.create(application.db_session,
+                                    session.user,
+                                    msg.get('Currency'),
+                                    msg.get('Amount'),
+                                    msg.get('Method'),
+                                    msg.get('Data'))
 
   application.db_session.commit()
 
@@ -493,26 +478,12 @@ def withdrawRecordWithdrawMessage( withdraw ):
   withdraw_refresh['WithdrawID']          = withdraw.id
   withdraw_refresh['UserID']              = withdraw.user_id
   withdraw_refresh['BrokerID']            = withdraw.broker_id
-  withdraw_refresh['Type']                = withdraw.type
+  withdraw_refresh['Method']              = withdraw.method
   withdraw_refresh['Currency']            = withdraw.currency
   withdraw_refresh['Amount']              = withdraw.amount
-  withdraw_refresh['Wallet']              = withdraw.wallet
-  withdraw_refresh['BankNumber']          = withdraw.bank_number
-  withdraw_refresh['AccountName']         = withdraw.account_name
-  withdraw_refresh['AccountNumber']       = withdraw.account_number
-  withdraw_refresh['AccountBranch']       = withdraw.account_branch
-  withdraw_refresh['CPFCNPJ']             = withdraw.cpf_cnpj
-  withdraw_refresh['Address']             = withdraw.address
-  withdraw_refresh['City']                = withdraw.city
-  withdraw_refresh['PostalCode']          = withdraw.postal_code
-  withdraw_refresh['Country']             = withdraw.country
-  withdraw_refresh['BankSwift']           = withdraw.bank_swift
-  withdraw_refresh['IntermediateSwift']   = withdraw.intermediate_swift
-  withdraw_refresh['RoutingNumber']       = withdraw.routing_number
+  withdraw_refresh['Data']                = json.loads(withdraw.data)
   withdraw_refresh['Created']             = withdraw.created
   withdraw_refresh['Status']              = withdraw.status
-  withdraw_refresh['RegionState']         = withdraw.region_state
-  withdraw_refresh['BankName']            = withdraw.bank_name
   withdraw_refresh['ReasonID']            = withdraw.reason_id
   withdraw_refresh['Reason']              = withdraw.reason
   return withdraw_refresh
@@ -562,34 +533,18 @@ def processWithdrawListRequest(session, msg):
   withdraws = Withdraw.get_list(application.db_session, user.id, status_list, page_size, offset  )
 
   withdraw_list = []
-  columns = [ 'WithdrawID'   , 'Type'             , 'Currency'      , 'Amount' , 'Wallet', 'BankNumber' ,'AccountName',
-              'AccountNumber', 'AccountBranch'    , 'CPFCNPJ'       , 'Address', 'City'  , 'PostalCode', 'Country'   ,
-              'BankSwift'    , 'IntermediateSwift', 'RoutingNumber' , 'Created', 'Status', 'RegionState','BankName'  ,
-              'ReasonID'     , 'Reason'    ]
+  columns = [ 'WithdrawID'   , 'Method'   , 'Currency'     , 'Amount' , 'Data',
+              'Created'      , 'Status'   , 'ReasonID'     , 'Reason'    ]
 
   for withdraw in withdraws:
     withdraw_list.append( [
       withdraw.id,
-      withdraw.type,
+      withdraw.method,
       withdraw.currency,
       withdraw.amount,
-      withdraw.wallet,
-      withdraw.bank_number,
-      withdraw.account_name,
-      withdraw.account_number,
-      withdraw.account_branch,
-      withdraw.cpf_cnpj,
-      withdraw.address,
-      withdraw.city,
-      withdraw.postal_code,
-      withdraw.country,
-      withdraw.bank_swift,
-      withdraw.intermediate_swift,
-      withdraw.routing_number,
+      json.loads(withdraw.data),
       withdraw.created,
       withdraw.status,
-      withdraw.region_state,
-      withdraw.bank_name,
       withdraw.reason_id,
       withdraw.reason
     ])
@@ -614,11 +569,11 @@ def processBrokerListRequest(session, msg):
   brokers = Broker.get_list(application.db_session, status_list, country, page_size, offset)
 
   broker_list = []
-  columns = [ 'BrokerID'        , 'ShortName'      , 'BusinessName'      , 'Address'            , 'State'            ,
-              'ZipCode'         , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'            ,
-              'Currencies'      , 'TosUrl'         , 'BoletoFee'         , 'WithdrawBRLBankFee' , 'WithdrawWalletFee',
-              'WithdrawSwiftFee', 'WithdrawAchFee' , 'TransactionFeeBuy' , 'TransactionFeeSell' , 'Status'           ,
-              'ranking'         , 'Email'          , 'CountryCode']
+  columns = [ 'BrokerID'        , 'ShortName'      , 'BusinessName'      , 'Address'            , 'City', 'State'     ,
+              'ZipCode'         , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'             ,
+              'Currencies'      , 'TosUrl'         , 'FeeStructure'      , 'TransactionFeeBuy'  , 'TransactionFeeSell',
+              'Status'          , 'ranking'        , 'Email'             , 'CountryCode'        , 'CryptoCurrencies'  ,
+              'WithdrawStructure']
 
   for broker in brokers:
     broker_list.append( [
@@ -626,6 +581,7 @@ def processBrokerListRequest(session, msg):
       broker.short_name           ,
       broker.business_name        ,
       broker.address              ,
+      broker.city                 ,
       broker.state                ,
       broker.zip_code             ,
       broker.country              ,
@@ -634,17 +590,15 @@ def processBrokerListRequest(session, msg):
       broker.skype                ,
       broker.currencies           ,
       broker.tos_url              ,
-      broker.boleto_fee           ,
-      broker.withdraw_brl_bank_fee,
-      broker.withdraw_wallet_fee  ,
-      broker.withdraw_swift_fee   ,
-      broker.withdraw_ach_fee     ,
+      json.loads(broker.fee_structure),
       broker.transaction_fee_buy  ,
       broker.transaction_fee_sell ,
       broker.status               ,
       broker.ranking              ,
       broker.email                ,
-      broker.country_code
+      broker.country_code         ,
+      json.loads(broker.crypto_currencies),
+      json.loads(broker.withdraw_structure)
     ])
 
   response_msg = {
@@ -696,16 +650,16 @@ def processRequestDatabaseQuery(session, msg):
 
 @login_required
 @broker_user_required
-def processBoletoPaymentConfirmation(session, msg):
-  boleto_id   = msg.get('BoletoID')
+def processDepositPaymentConfirmation(session, msg):
+  deposit_id   = msg.get('DepositID')
   currency    = msg.get('Currency')
   amount      = msg.get('Amount')
 
-  Boleto.process_boleto_payment(application.db_session, session.user.id, boleto_id, currency, amount)
+  Deposit.process_deposit_payment(application.db_session, session.user.id, deposit_id, currency, amount)
 
   result = {
     'MsgType' : 'B1',
-    'BoletoID': boleto_id
+    'DepositID': deposit_id
   }
   return json.dumps(result, cls=JsonEncoder)
 

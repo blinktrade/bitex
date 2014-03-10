@@ -111,7 +111,7 @@ bitex.ui.DataGrid.prototype.limit_;
  * @type {number}
  * @private
  */
-bitex.ui.DataGrid.prototype.blink_delay_
+bitex.ui.DataGrid.prototype.blink_delay_;
 
 /**
  * @type {string}
@@ -597,22 +597,20 @@ bitex.ui.DataGrid.prototype.resultSetToElements = function(resultSet, columns) {
       }
     }, this);
 
-    var tr = goog.dom.createDom( 'tr', this.row_class_fn_(row_set_obj) );
+    var rowSetObj = {};
+    for ( var x in columns) {
+      rowSetObj[columns[x]] = row_set[x];
+    }
 
-    var row_id = this.row_id_fn_(row_set_obj);
+    var tr = goog.dom.createDom( 'tr', this.row_class_fn_(rowSetObj) );
+
+    var row_id = this.row_id_fn_(rowSetObj);
     if (goog.isDefAndNotNull(row_id)) {
       tr.id = row_id;
     }
 
 
     var td_elements = {};
-
-    var rowSetObj = {};
-    for ( var x in columns) {
-      rowSetObj[columns[x]] = row_set[x];
-    }
-
-
     goog.array.forEach( row_set, function(value, result_set_index) {
       var index = result_set_col_index[result_set_index];
 

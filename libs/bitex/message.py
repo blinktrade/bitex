@@ -130,12 +130,12 @@ class JsonMessage(BaseMessage):
       'U13': 'ResetPasswordResponse',
       'U16': 'EnableDisableTwoFactorAuthenticationRequest',
       'U17': 'EnableDisableTwoFactorAuthenticationResponse',
-      'U18': 'GenerateBoletoRequest',
-      'U19': 'GenerateBoletoResponse',
-      'U20': 'BoletoOptionsRequest',
-      'U21': 'BoletoOptionsResponse',
-      'U22': 'BoletoRequest',
-      'U23': 'BoletoResponse',
+      'U18': 'GenerateDepositRequest',
+      'U19': 'GenerateDepositResponse',
+      'U20': 'DepositOptionsRequest',
+      'U21': 'DepositOptionsResponse',
+      'U22': 'DepositRequest',
+      'U23': 'DepositResponse',
       'U24': 'WithdrawConfirmationRequest',
       'U25': 'WithdrawConfirmationResponse',
       'U26': 'WithdrawListRequest',
@@ -144,8 +144,8 @@ class JsonMessage(BaseMessage):
       'U29': 'BrokerListResponse',
 
       # Broker messages
-      'B0':  'BoletoPaymentConfirmationRequest',
-      'B1':  'BoletoPaymentConfirmationResponse',
+      'B0':  'ProcessDeposit',
+      'B1':  'ProcessDepositResponse',
       'B2':  'CustomerListRequest',
       'B3':  'CustomerListResponse',
       'B4':  'CustomerRequest',
@@ -246,16 +246,18 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U16':  #Enable Disable Two Factor Authentication
       self.raise_exception_if_required_tag_is_missing('Enable')
 
-    elif self.type == 'U18': # Generate Boleto
-      self.raise_exception_if_required_tag_is_missing('BoletoId')
+    elif self.type == 'U18': # Generate Deposit
+      self.raise_exception_if_required_tag_is_missing('DepositOptionID')
       self.raise_exception_if_required_tag_is_missing('Value')
 
-    elif self.type == 'U20': # Request Boleto Options
-      self.raise_exception_if_required_tag_is_missing('BoletoOptionReqId')
+    elif self.type == 'U20': # Request Deposit Options
+      self.raise_exception_if_required_tag_is_missing('DepositOptionReqID')
 
 
-    elif self.type == 'U22': # Request Boleto
-      self.raise_exception_if_required_tag_is_missing('BoletoId')
+    elif self.type == 'U22': # Request Deposit
+      self.raise_exception_if_required_tag_is_missing('DepositReqID')
+      self.raise_exception_if_required_tag_is_missing('DepositID')
+      self.raise_exception_if_empty('DepositID')
 
 
     elif self.type == 'D':  #New Order Single
@@ -315,7 +317,7 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_required_tag_is_missing('Amount')
       self.raise_exception_if_required_tag_is_missing('Currency')
-      self.raise_exception_if_required_tag_is_missing('Type')
+      self.raise_exception_if_required_tag_is_missing('Method')
 
       self.raise_exception_if_not_a_integer('WithdrawReqID')
       self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
@@ -323,13 +325,12 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_a_number('Amount')
       self.raise_exception_if_not_greater_than_zero('Amount')
 
-      self.raise_exception_if_not_in('Type', ['BBT', 'CRY', 'ACH', 'SWI'] )
+      self.raise_exception_if_empty('Method')
 
       if self.get('Type') == 'CRY':
         self.raise_exception_if_required_tag_is_missing('Wallet')
         self.raise_exception_if_empty('Wallet')
       elif self.get('Type') == 'BBT':
-        self.raise_exception_if_empty('Wallet')
         self.raise_exception_if_required_tag_is_missing('Amount')
         self.raise_exception_if_required_tag_is_missing('BankNumber')
         self.raise_exception_if_required_tag_is_missing('BankName')
@@ -385,13 +386,13 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
       self.raise_exception_if_empty('BrokerListReqID')
 
-    elif self.type == 'B0': # Boleto Payment Confirmation
-      self.raise_exception_if_required_tag_is_missing('BoletoID')
+    elif self.type == 'B0': # Deposit Payment Confirmation
+      self.raise_exception_if_required_tag_is_missing('DepositID')
       self.raise_exception_if_required_tag_is_missing('Currency')
       self.raise_exception_if_required_tag_is_missing('Amount')
 
-      self.raise_exception_if_not_a_integer('BoletoID')
-      self.raise_exception_if_not_greater_than_zero('BoletoID')
+      self.raise_exception_if_not_a_integer('DepositID')
+      self.raise_exception_if_not_greater_than_zero('DepositID')
 
       self.raise_exception_if_empty('Currency')
 

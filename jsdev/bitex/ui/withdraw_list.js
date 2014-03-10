@@ -53,6 +53,11 @@ var MSG_WITHDRAW_TABLE_COLUMN_CURRENCY = goog.getMsg('Currency');
 var MSG_WITHDRAW_TABLE_COLUMN_AMOUNT = goog.getMsg('Amount');
 
 /**
+ * @desc Column Method of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_METHOD = goog.getMsg('Method');
+
+/**
  * @desc Column Created of the Withdraw List
  */
 var MSG_WITHDRAW_TABLE_COLUMN_CREATED = goog.getMsg('Date/Hour');
@@ -116,19 +121,24 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'amount'); }
     },{
-      'property': 'Wallet',
+      'property':'Method',
+      'label': MSG_WITHDRAW_TABLE_COLUMN_METHOD,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'method'); }
+    },{
+      'property': 'Data',
       'label': MSG_WITHDRAW_TABLE_COLUMN_DETAIL,
       'sortable': false,
       'formatter': function(s, record){
         var row_set_obj = goog.object.clone(record);
-        delete row_set_obj['WithdrawID'];
+        delete row_set_obj['MsgType'];
         delete row_set_obj['BrokerID'];
         delete row_set_obj['UserID'];
         delete row_set_obj['Status'];
         delete row_set_obj['Amount'];
         delete row_set_obj['Currency'];
         delete row_set_obj['Created'];
-        delete row_set_obj['Type'];
+        delete row_set_obj['Method'];
         delete row_set_obj['WithdrawID'];
 
         // remove the nulls
@@ -138,7 +148,6 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
             detail_obj[key] = row_set_obj[key];
           }
         }
-
         return JSON.stringify(detail_obj);
       },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details');}
@@ -276,8 +285,7 @@ bitex.ui.WithdrawList.prototype.handleClick_ = function(e) {
  * @return {string}
  */
 bitex.ui.WithdrawList.prototype.getRowId = function(row_set) {
-  var id = row_set['WithdrawID'];
-  return 'withdraw_row_id_' + id;
+  return this.makeId(row_set['WithdrawID'] );
 };
 
 /**

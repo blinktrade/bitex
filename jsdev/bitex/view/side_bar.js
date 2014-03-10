@@ -29,6 +29,19 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
 
+  handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
+    goog.dom.removeChildren( goog.dom.getElement("id_account_summary_content"));
+
+    if (!model.get('IsBroker')) {
+      var broker_currencies = model.get('BrokerCurrencies');
+
+      goog.soy.renderElement(goog.dom.getElement('id_account_summary_content'), bitex.templates.YourAccountSummary, {
+        currencies: broker_currencies
+      });
+    }
+  });
+
+
   handler.listen( model,  bitex.model.Model.EventType.SET + 'SecurityList', function(e){
     var msg = model.get('SecurityList');
 

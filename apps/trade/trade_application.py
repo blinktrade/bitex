@@ -73,7 +73,7 @@ class TradeApplication(object):
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','END')
 
-    from models import User, Boleto, BoletoOptions, Order, Withdraw, Broker, Currency, Instrument
+    from models import User, Deposit, DepositOptions, Order, Withdraw, Broker, Currency, Instrument
 
 
     currencies = self.db_session.query(Currency)
@@ -93,13 +93,13 @@ class TradeApplication(object):
     for broker in brokers:
       self.log('DB_ENTITY', 'BROKER', broker)
 
-    boleto_options = self.db_session.query(BoletoOptions)
-    for boleto_option in boleto_options:
-      self.log('DB_ENTITY', 'BOLETO_OPTION',  boleto_option)
+    deposit_options = self.db_session.query(DepositOptions)
+    for deposit_option in deposit_options:
+      self.log('DB_ENTITY', 'DEPOSIT_OPTION',  deposit_option)
 
-    boletos = self.db_session.query(Boleto)
-    for boleto in boletos:
-      self.log('DB_ENTITY', 'BOLETO',  repr(boleto))
+    deposits = self.db_session.query(Deposit)
+    for deposit in deposits:
+      self.log('DB_ENTITY', 'DEPOSIT',  repr(deposit))
 
     orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
