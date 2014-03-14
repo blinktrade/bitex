@@ -62,7 +62,7 @@ class Session(object):
       return processRequestDeposit(self, msg)
 
     elif msg.type == 'U20': # Request Deposit Options
-      return processRequestDepositOptions(self, msg)
+      return processRequestDepositMethods(self, msg)
 
     elif msg.type == 'U24': # Withdraw Confirmation Request
       return processWithdrawConfirmationRequest(self, msg)

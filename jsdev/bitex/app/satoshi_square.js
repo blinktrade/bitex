@@ -411,7 +411,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.BALANCE_RESPONSE, this.onBitexBalanceResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK, this.onBitexPasswordChangedOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_OPTIONS_RESPONSE, this.onBitexDepositOptionsResponse_ );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
@@ -525,18 +525,18 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 
 };
 
-bitex.app.SatoshiSquare.prototype.onBitexDepositOptionsResponse_ = function(e) {
+bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
 
-  var deposit_options = [];
-  goog.array.forEach( msg['DepositOptionGrp'], function(deposit_option) {
-    var deposit_option_id = deposit_option['DepositOptionID'];
-    var description = deposit_option['Description'];
-    var disclaimer = deposit_option['Disclaimer'];
-    var type = deposit_option['Type'];
-    var currency = deposit_option['Currency'];
+  var deposit_methods = [];
+  goog.array.forEach( msg['DepositMethodGrp'], function(deposit_method) {
+    var deposit_method_id = deposit_method['DepositMethodID'];
+    var description = deposit_method['Description'];
+    var disclaimer = deposit_method['Disclaimer'];
+    var type = deposit_method['Type'];
+    var currency = deposit_method['Currency'];
 
-    deposit_options.push( { id:deposit_option_id,
+    deposit_methods.push( { id:deposit_method_id,
                            description:description,
                            disclaimer:disclaimer,
                            type: type,
@@ -544,7 +544,7 @@ bitex.app.SatoshiSquare.prototype.onBitexDepositOptionsResponse_ = function(e) {
                          } );
   });
 
-  this.getModel().set('DepositOptions', deposit_options);
+  this.getModel().set('DepositMethods', deposit_methods);
 };
 
 bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
@@ -856,14 +856,14 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
   }
 
   var deposit_methods = [];
-  var deposit_options = this.getModel().get('DepositOptions');
+  var deposit_methods = this.getModel().get('DepositMethods');
 
-  goog.array.forEach(deposit_options, function(deposit_option){
-    if (deposit_option.currency == currency) {
+  goog.array.forEach(deposit_methods, function(deposit_method){
+    if (deposit_method.currency == currency) {
       deposit_methods.push( {
-                              'method': deposit_option.id,
-                              'description': deposit_option.description,
-                              'disclaimer': deposit_option.disclaimer,
+                              'method': deposit_method.id,
+                              'description': deposit_method.description,
+                              'disclaimer': deposit_method.disclaimer,
                               'fields': []
                             } );
     }
@@ -891,7 +891,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
       var deposit_data = bitex.util.getFormAsJSON(deposit_form_el);
 
       var amount = goog.string.toNumber(deposit_data['Amount']);
-      var deposit_option_id = goog.string.toNumber(deposit_data['Method']);
+      var deposit_method_id = goog.string.toNumber(deposit_data['Method']);
 
       if (!goog.isNumber(amount) ||  isNaN(amount)) {
         return;
@@ -901,7 +901,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
         dlg.dispose();
       } else {
         var request_id = parseInt( 1e7 * Math.random() , 10 );
-        this.conn_.requestDeposit( request_id, deposit_option_id , amount);
+        this.conn_.requestDeposit( request_id, deposit_method_id , amount);
 
         goog.soy.renderElement(deposit_form_el,
                                bitex.templates.WaitingForDepositResponseDialogContent);
@@ -1040,7 +1040,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.conn_.requestBalances();
 
   // Request Deposit Options
-  this.conn_.requestDepositOptions();
+  this.conn_.requestDepositMethods();
 
   // set view to Trading
   this.router_.setView('offerbook');

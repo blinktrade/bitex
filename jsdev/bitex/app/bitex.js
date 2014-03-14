@@ -390,7 +390,7 @@ bitex.app.bitex = function( url ) {
     bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
     // Request Deposit Options
-    bitEx.requestDepositOptions();
+    bitEx.requestDepositMethods();
 
     // set view to Trading
     router.setView('trading');
@@ -881,7 +881,7 @@ bitex.app.bitex = function( url ) {
 
   });
 
-  var deposit_buttons = goog.dom.getElementsByClass('deposit-options-group');
+  var deposit_buttons = goog.dom.getElementsByClass('deposit-methods-group');
   goog.array.forEach( deposit_buttons, function( deposit_button ) {
     goog.events.listen( deposit_button, 'click', function(e) {
       e.stopPropagation();
@@ -903,24 +903,24 @@ bitex.app.bitex = function( url ) {
     });
   });
 
-  bitEx.addEventListener( bitex.api.BitEx.EventType.DEPOSIT_OPTIONS_RESPONSE, function(e) {
+  bitEx.addEventListener( bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, function(e) {
     var msg = e.data;
 
-    //deposit-options-group
-    var deposit_options_group_elements = goog.dom.getElementsByClass('deposit-options-group');
-    goog.array.forEach( deposit_options_group_elements, function( deposit_options_group_element ) {
-      goog.dom.removeChildren(deposit_options_group_element);
-      goog.array.forEach( msg['DepositOptionGrp'], function(deposit_option) {
-        var deposit_option_id = deposit_option['DepositOptionGrp'];
-        var description = deposit_option['Description'];
+    //deposit-methods-group
+    var deposit_methods_group_elements = goog.dom.getElementsByClass('deposit-methods-group');
+    goog.array.forEach( deposit_methods_group_elements, function( deposit_methods_group_element ) {
+      goog.dom.removeChildren(deposit_methods_group_element);
+      goog.array.forEach( msg['DepositMethodGrp'], function(deposit_method) {
+        var deposit_method_id = deposit_method['DepositMethodGrp'];
+        var description = deposit_method['Description'];
 
         var deposit_btn_attributes = {
-          "data-deposit-id": deposit_option_id,
+          "data-deposit-id": deposit_method_id,
           "class" : "btn btn-primary btn-deposit"
         };
         var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, deposit_btn_attributes, description  );
 
-        goog.dom.appendChild(deposit_options_group_element, buttonElement);
+        goog.dom.appendChild(deposit_methods_group_element, buttonElement);
       });
 
     });

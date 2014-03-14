@@ -121,7 +121,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
       return
 
     if req_msg.isDepositRequest():
-      if not req_msg.get('DepositOptionID') and not req_msg.get('DepositID'):
+      if not req_msg.get('DepositMethodID') and not req_msg.get('DepositID'):
 
         currency = req_msg.get('Currency')
 

@@ -75,7 +75,7 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
   /* Deposits */
-  DEPOSIT_OPTIONS_RESPONSE:'deposit_options_response',
+  DEPOSIT_METHODS_RESPONSE:'deposit_methods_response',
   DEPOSIT_RESPONSE : 'deposit_response',
   DEPOSIT_REFRESH: 'deposit_refresh',
   PROCESS_DEPOSIT_RESPONSE: 'process_deposit',
@@ -307,7 +307,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U21': // Request Deposit Options Response
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_OPTIONS_RESPONSE, msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, msg ) );
       break;
 
     case 'U27': // Withdraw List Response
@@ -922,7 +922,7 @@ bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositO
     'DepositReqID': requestId
   };
   if (goog.isDefAndNotNull(opt_depositOptionId)) {
-    msg['DepositOptionID'] = opt_depositOptionId;
+    msg['DepositMethodID'] = opt_depositOptionId;
   }
   if (goog.isDefAndNotNull(opt_value)) {
     msg['Value'] = parseInt(opt_value * 1e8, 10) ;
@@ -941,11 +941,11 @@ bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositO
  * Request Deposit Options
  * @param {number=} opt_requestId. Defaults to random generated number
  */
-bitex.api.BitEx.prototype.requestDepositOptions = function( opt_requestId ) {
+bitex.api.BitEx.prototype.requestDepositMethods = function( opt_requestId ) {
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var msg = {
     'MsgType': 'U20',
-    'DepositOptionReqID': requestId
+    'DepositMethodReqID': requestId
   };
   this.ws_.send(JSON.stringify( msg ));
 };
@@ -1102,7 +1102,7 @@ goog.exportProperty(BitEx.prototype, 'forgotPassword', bitex.api.BitEx.prototype
 goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototype.requestBalances);
 
 goog.exportProperty(BitEx.prototype, 'requestSecurityList', bitex.api.BitEx.prototype.requestSecurityList);
-goog.exportProperty(BitEx.prototype, 'requestDepositOptions', bitex.api.BitEx.prototype.requestDepositOptions);
+goog.exportProperty(BitEx.prototype, 'requestDepositMethods', bitex.api.BitEx.prototype.requestDepositMethods);
 
 
 goog.exportProperty(BitEx.prototype, 'requestDeposit', bitex.api.BitEx.prototype.requestDeposit);

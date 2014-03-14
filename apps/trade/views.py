@@ -7,7 +7,7 @@ from bitex.json_encoder import  JsonEncoder
 
 import json
 
-from models import  User, Order, UserPasswordReset, Deposit, DepositOptions, \
+from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
   NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance
 
 from execution import OrderMatcher
@@ -390,14 +390,14 @@ def processEnableDisableTwoFactorAuth(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
-def processRequestDepositOptions(session, msg):
-  deposit_options = DepositOptions.get_list(application.db_session,session.user.broker_id )
+def processRequestDepositMethods(session, msg):
+  deposit_options = DepositMethods.get_list(application.db_session,session.user.broker_id )
 
   deposit_options_group = []
 
   for deposit_option in deposit_options:
     deposit_options_group.append( {
-      'DepositOptionID': deposit_option.id,
+      'DepositMethodID': deposit_option.id,
       'Description': deposit_option.description,
       'Disclaimer': deposit_option.disclaimer,
       'Type': deposit_option.type,
@@ -406,8 +406,8 @@ def processRequestDepositOptions(session, msg):
 
   response = {
     'MsgType':'U21',
-    'DepositOptionReqID': msg.get('DepositOptionReqID'),
-    'DepositOptionGrp': deposit_options_group
+    'DepositMethodReqID': msg.get('DepositMethodReqID'),
+    'DepositMethodGrp': deposit_options_group
   }
 
   return json.dumps(response, cls=JsonEncoder)
@@ -438,7 +438,7 @@ def processRequestDeposit(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 def processRequestDeposit(session, msg):
-  deposit_option_id = msg.get('DepositOptionID')
+  deposit_option_id = msg.get('DepositMethodID')
   deposit_id        = msg.get('DepositID')
   currency          = msg.get('Currency')
   input_address     = msg.get('InputAddress')
@@ -450,7 +450,7 @@ def processRequestDeposit(session, msg):
       raise NotAuthorizedError()
 
     value             = msg.get('Value')
-    deposit_option = DepositOptions.get_deposit_option(application.db_session, deposit_option_id)
+    deposit_option = DepositMethods.get_deposit_method(application.db_session, deposit_option_id)
     if not deposit_option:
       response = {'MsgType':'U19', 'DepositID': 0 }
       return json.dumps(response, cls=JsonEncoder)
@@ -486,8 +486,8 @@ def depositRecordToDepositMessage( deposit ):
   deposit_message['AccountID']           = deposit.account_id
   deposit_message['BrokerID']            = deposit.broker_id
   deposit_message['Username']            = deposit.username
-  deposit_message['DepositOptionID']     = deposit.deposit_option_id
-  deposit_message['DepositOptionName']   = deposit.deposit_option_name
+  deposit_message['DepositMethodID']     = deposit.deposit_option_id
+  deposit_message['DepositMethodName']   = deposit.deposit_option_name
   deposit_message['ControlNumber']       = deposit.broker_deposit_ctrl_num
   deposit_message['Type']                = deposit.type
   deposit_message['Currency']            = deposit.currency
@@ -866,7 +866,7 @@ def processDepositListRequest(session, msg):
 
 
   deposit_list = []
-  columns = [ 'DepositID'    , 'DepositOptionID', 'DepositOptionName' ,
+  columns = [ 'DepositID'    , 'DepositMethodID', 'DepositMethodName' ,
               'Type'         , 'Currency'       , 'Value'             ,
               'PaidValue'    , 'Data'           , 'Created'           ,
               'Status'       , 'ReasonID'       , 'Reason'             ]

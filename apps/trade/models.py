@@ -1156,7 +1156,7 @@ class Deposit(Base):
     session.flush()
 
 
-class DepositOptions(Base):
+class DepositMethods(Base):
   __tablename__             = 'deposit_options'
   id                        = Column(Integer,    primary_key=True)
   broker_id                 = Column(Integer,    ForeignKey('users.id'), index=True)
@@ -1169,16 +1169,16 @@ class DepositOptions(Base):
   parameters                = Column(Text,       nullable=False)
 
   def __repr__(self):
-    return u"<DepositOptions(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ,type=%r, broker_deposit_ctrl_num=%r, currency=%r,parameters=%r)>"\
+    return u"<DepositMethods(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ,type=%r, broker_deposit_ctrl_num=%r, currency=%r,parameters=%r)>"\
     % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type, self.broker_deposit_ctrl_num, self.currency, self.parameters)
 
   @staticmethod
-  def get_deposit_option(session, deposit_option_id):
-    return session.query(DepositOptions).filter_by(id=deposit_option_id).first()
+  def get_deposit_method(session, deposit_option_id):
+    return session.query(DepositMethods).filter_by(id=deposit_option_id).first()
 
   @staticmethod
   def get_list(session, broker_id):
-    return  session.query(DepositOptions).filter_by(broker_id=broker_id)
+    return  session.query(DepositMethods).filter_by(broker_id=broker_id)
 
   def generate_deposit(self,session, user, value):
     self.broker_deposit_ctrl_num += 1
@@ -1373,8 +1373,8 @@ def db_bootstrap(session):
       session.commit()
 
 
-  if not DepositOptions.get_deposit_option(session, 1 ):
-    bo = DepositOptions(id=1,
+  if not DepositMethods.get_deposit_method(session, 1 ):
+    bo = DepositMethods(id=1,
                        name="boleto_itau",
                        broker_id=9000001,
                        description=u'Boleto Bancário - Banco Itau',
@@ -1426,8 +1426,8 @@ def db_bootstrap(session):
     session.add(bo)
     session.commit()
 
-  if not DepositOptions.get_deposit_option(session, 2 ):
-    bo = DepositOptions(id=2,
+  if not DepositMethods.get_deposit_method(session, 2 ):
+    bo = DepositMethods(id=2,
                        broker_id=9000001,
                        name="deposito_itau",
                        description=u'Depósito Bancário - Banco Itaú',

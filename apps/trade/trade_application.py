@@ -73,7 +73,7 @@ class TradeApplication(object):
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','END')
 
-    from models import User, Deposit, DepositOptions, Order, Withdraw, Broker, Currency, Instrument
+    from models import User, Deposit, DepositMethods, Order, Withdraw, Broker, Currency, Instrument
 
 
     currencies = self.db_session.query(Currency)
@@ -93,7 +93,7 @@ class TradeApplication(object):
     for broker in brokers:
       self.log('DB_ENTITY', 'BROKER', broker)
 
-    deposit_options = self.db_session.query(DepositOptions)
+    deposit_options = self.db_session.query(DepositMethods)
     for deposit_option in deposit_options:
       self.log('DB_ENTITY', 'DEPOSIT_OPTION',  deposit_option)
 

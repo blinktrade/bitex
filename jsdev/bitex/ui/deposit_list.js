@@ -132,7 +132,7 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'paid-value'); }
     },{
-      'property':'DepositOptionName',
+      'property':'DepositMethodName',
       'label': MSG_DEPOSIT_TABLE_COLUMN_METHOD,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'method'); }
@@ -153,8 +153,8 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
         delete row_set_obj['Created'];
         delete row_set_obj['Method'];
         delete row_set_obj['DepositID'];
-        delete row_set_obj['DepositOptionID'];
-        delete row_set_obj['DepositOptionName'];
+        delete row_set_obj['DepositMethodID'];
+        delete row_set_obj['DepositMethodName'];
 
 
         // remove the nulls
