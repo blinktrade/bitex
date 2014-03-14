@@ -568,23 +568,6 @@ class Broker(Base):
       self.status, self.ranking )
 
 
-class Deposit(Base):
-  __tablename__   = 'deposits'
-  id              = Column(Integer,       primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('deposits', order_by=id))
-  account_id      = Column(Integer,       nullable=False)
-  currency        = Column(String(3),     nullable=False)
-  amount          = Column(Integer,       nullable=False)
-  status          = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
-  origin          = Column(String(255),   nullable=False)
-
-  def __repr__(self):
-    return u"<Deposit(id=%r, user_id=%r, account_id=%r, currency=%r, amount='%r', status=%r, created=%r, origin=%r)>" % (
-      self.id, self.user_id, self.account_id, self.currency, self.amount, self.status, self.created, self.origin )
-
-
 class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
   id              = Column(Integer,       primary_key=True)
@@ -1023,59 +1006,171 @@ class Trade(Base):
     trades = session.query(Trade).filter_by(symbol=symbol).order_by(Trade.created.desc() ).limit(100)
     return trades
 
+
 class Deposit(Base):
-  __tablename__        = 'deposit'
+  __tablename__           = 'deposit'
 
-  id                   = Column(String(25), primary_key=True)
-  user_id              = Column(Integer,    ForeignKey('users.id'))
-  broker_id            = Column(Integer,    ForeignKey('users.id'))
-  deposit_option_id    = Column(Integer,    ForeignKey('deposit_options.id'))
-  username             = Column(String,     nullable=False)
-  broker_deposit_ctrl_num= Column(Integer,    nullable=False, index=True)
+  id                      = Column(String(25), primary_key=True)
+  user_id                 = Column(Integer,    ForeignKey('users.id'))
+  account_id              = Column(Integer,    ForeignKey('users.id'))
+  broker_id               = Column(Integer,    ForeignKey('users.id'))
+  deposit_option_id       = Column(Integer,    ForeignKey('deposit_options.id'))
+  deposit_option_name     = Column(String(15), nullable=False)
+  username                = Column(String,     nullable=False)
+  broker_deposit_ctrl_num = Column(Integer,    index=True)
+  secret                  = Column(String(10), index=True )
 
-  type                 = Column(String(3),  nullable=False)
-  currency             = Column(String(3),  nullable=False)
-  value                = Column(Integer,    nullable=False)
-  paid_value           = Column(Integer,    nullable=False, default=0)
-  status               = Column(String(1),  nullable=False, default='0', index=True)
-  data                 = Column(Text,       nullable=False)
-  created              = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
+  type                    = Column(String(3),  nullable=False, index=True)
+  currency                = Column(String(3),  nullable=False, index=True)
+  value                   = Column(Integer,    nullable=False, default=0, index=True)
+  paid_value              = Column(Integer,    nullable=False, default=0, index=True)
+  status                  = Column(String(1),  nullable=False, default='0', index=True) # 0-Pending, 1-Unconfirmed, 2-In-progress, 4-Complete, 8-Cancelled
+  data                    = Column(Text,       nullable=False, index=True)
+  created                 = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
+
+  reason_id               = Column(Integer)
+  reason                  = Column(String)
 
   def __repr__(self):
-    return u"<Deposit(id=%r, user_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, broker_deposit_ctrl_num=%r, type=%r, currency=%r, value=%r, created=%r, data=%r)>" % (
-      self.id,  self.user_id, self.username, self.broker_id, self.deposit_option_id, self.broker_deposit_ctrl_num, self.type, self.currency, self.value, self.created, self.data )
-
-  def __unicode__(self):
-    return u"<Deposit(id=%r, user_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, broker_deposit_ctrl_num=%r, type=%r, currency=%r, value=%r, created=%r )>" % (
-      self.id,  self.user_id,  self.username, self.broker_id, self.deposit_option_id, self.broker_deposit_ctrl_num, self.type, self.currency, self.value, self.created )
+    return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
+           u"secret=%r,  type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, data=%r)>" % (
+      self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id, self.deposit_option_name, self.broker_deposit_ctrl_num,
+      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.data )
 
   @staticmethod
-  def get_deposit(session, deposit_id):
-    return session.query(Deposit).filter_by(id=deposit_id).first()
+  def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret ):
+    import uuid
+    deposit_id = uuid.uuid4().hex
+
+    deposit = Deposit(
+      id                      = deposit_id,
+      deposit_option_name     = 'deposit_' + currency.lower(),
+      user_id                 = user.id,
+      account_id              = user.id,
+      username                = user.username,
+      broker_id               = user.broker_id,
+      type                    = 'CRY',
+      currency                = currency,
+      secret                  = secret,
+      data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } )
+    )
+
+    session.add(deposit)
+
+    session.flush()
+
+    return deposit
 
   @staticmethod
-  def process_deposit_payment(session, broker_id, broker_deposit_ctrl_num, currency, amount ):
-    deposit = session.query(Deposit).filter_by(broker_id=broker_id).filter_by(broker_deposit_ctrl_num=broker_deposit_ctrl_num).first()
+  def get_list(session, broker_id, account_id, status_list, page_size, offset, filter=None):
+    query = session.query(Deposit).filter( Deposit.status.in_( status_list ) ).filter(Deposit.broker_id==broker_id)
 
-    #TODO: implement deposit payment.
-    pass
+    if account_id:
+      query = query.filter( Deposit.account_id == account_id  )
 
+    if filter:
+      if filter.is_digit():
+        query = query.filter( or_( Deposit.data.like('%' + filter + '%s' ),
+                                   Deposit.currency == filter,
+                                   Deposit.deposit_option_name == filter,
+                                   Deposit.value == int(filter) * 1e8,
+                                   Deposit.paid_value == int(filter) * 1e8,
+                                   Deposit.broker_deposit_ctrl_num == int(filter),
+                                   ))
+      else:
+        query = query.filter( or_( Deposit.data.like('%' + filter + '%s'),
+                                   Deposit.currency == filter,
+                                   Deposit.deposit_option_name == filter ) )
+
+    query = query.order_by(Deposit.created.desc())
+
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+
+
+    return query
+
+
+  @staticmethod
+  def get_deposit(session, deposit_id=None, secret=None, broker_id=None, broker_control_number=None ):
+    q = session.query(Deposit)
+    if deposit_id:
+      q = q.filter_by(id=deposit_id)
+    if secret:
+      q = q.filter_by(secret=secret)
+    if broker_id:
+      q = q.filter_by(broker_id=broker_id)
+    if broker_control_number:
+      q = q.filter_by(broker_deposit_ctrl_num=broker_control_number)
+    return q.first()
+
+  def cancel(self, session, reason_id, reason=None):
+    self.status = '8'
+    self.reason_id = reason_id
+    self.reason = reason
+    session.add(deposit)
+    session.flush()
+
+  def process_confirmation(self, session, amount, data=None ):
+    if data:
+      current_data = json.loads(self.data)
+      data = json.loads(data)
+      current_data.update( data )
+      self.data = json.dumps(current_data)
+
+    self.paid_value = amount
+    if self.type == 'CRY':
+      broker = Broker.get_broker( session, self.broker_id  )
+      broker_crypto_currencies = json.loads(broker.crypto_currencies)
+      crypto_currency_param = None
+      for crypto_currency_param in broker_crypto_currencies:
+        if crypto_currency_param["CurrencyCode"] == self.currency:
+          break
+
+      if not crypto_currency_param:
+        return
+
+      for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
+        if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
+          self.confirm(session, amount)
+          return
+
+    session.add(self)
+    session.flush()
+
+  def confirm(self, session, amount, data=None):
+    if data:
+      current_data = json.loads(self.data)
+      data = json.loads(data)
+      current_data.update( data )
+      self.data = json.dumps(current_data)
+
+    self.paid_value = amount
+    self.status = '4'
+
+    # TODO: adjust ledger
+
+    session.add(self)
+    session.flush()
 
 
 class DepositOptions(Base):
-  __tablename__         = 'deposit_options'
-  id                    = Column(Integer,    primary_key=True)
-  broker_id             = Column(Integer,    ForeignKey('users.id'), index=True)
-  description           = Column(String(255),nullable=False)
-  disclaimer            = Column(String(255),nullable=False)
-  type                  = Column(String(3),  nullable=False)
-  broker_deposit_ctrl_num      = Column(Integer,    nullable=False)
-  currency              = Column(String(3),  nullable=False)
-  parameters            = Column(Text,       nullable=False)
+  __tablename__             = 'deposit_options'
+  id                        = Column(Integer,    primary_key=True)
+  broker_id                 = Column(Integer,    ForeignKey('users.id'), index=True)
+  name                      = Column(String(15), nullable=False)
+  description               = Column(String(255),nullable=False)
+  disclaimer                = Column(String(255),nullable=False)
+  type                      = Column(String(3),  nullable=False)
+  broker_deposit_ctrl_num   = Column(Integer,    nullable=False)
+  currency                  = Column(String(3),  nullable=False)
+  parameters                = Column(Text,       nullable=False)
 
   def __repr__(self):
-    return u"<DepositOptions(id=%r, broker_id=%r, description=%r, disclaimer=%r ,type=%r, broker_deposit_ctrl_num=%r, currency=%r,parameters=%r)>"\
-    % (self.id, self.broker_id, self.description, self.disclaimer, self.type, self.broker_deposit_ctrl_num, self.currency, self.parameters)
+    return u"<DepositOptions(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ,type=%r, broker_deposit_ctrl_num=%r, currency=%r,parameters=%r)>"\
+    % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type, self.broker_deposit_ctrl_num, self.currency, self.parameters)
 
   @staticmethod
   def get_deposit_option(session, deposit_option_id):
@@ -1091,15 +1186,17 @@ class DepositOptions(Base):
     deposit_id = uuid.uuid4().hex
 
     deposit = Deposit(
-      id                 = deposit_id,
-      user_id            = user.id,
-      username           = user.username,
-      broker_id          = self.broker_id,
-      deposit_option_id   = self.id,
-      type               = self.type,
-      currency           = self.currency,
-      broker_deposit_ctrl_num   = self.broker_deposit_ctrl_num,
-      value              = value
+      id                      = deposit_id,
+      user_id                 = user.id,
+      account_id              = user.id,
+      username                = user.username,
+      broker_id               = self.broker_id,
+      deposit_option_id       = self.id,
+      deposit_option_name     = self.name,
+      type                    = self.type,
+      currency                = self.currency,
+      broker_deposit_ctrl_num = self.broker_deposit_ctrl_num,
+      value                   = value
     )
 
     t = template.Template(self.parameters)
@@ -1152,6 +1249,7 @@ def db_bootstrap(session):
                  {
                    "CurrencyCode": "BTC",
                    "CurrencyDescription":"Bitcoin",
+                   "Confirmations":[ [0, 21000000e8, 6 ] ],
                    "Wallets": [
                        { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
                        { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
@@ -1207,6 +1305,7 @@ def db_bootstrap(session):
                  {
                    "CurrencyCode": "BTC",
                    "CurrencyDescription":"Bitcoin",
+                   "Confirmations":[ [0, 1e8, 1], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                    "Wallets": [
                        { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
                        { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
@@ -1276,8 +1375,9 @@ def db_bootstrap(session):
 
   if not DepositOptions.get_deposit_option(session, 1 ):
     bo = DepositOptions(id=1,
+                       name="boleto_itau",
                        broker_id=9000001,
-                       description=u'Deposit Bancário - Banco Itau',
+                       description=u'Boleto Bancário - Banco Itau',
                        disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                        type='BBS',
                        broker_deposit_ctrl_num=50034,
@@ -1329,6 +1429,7 @@ def db_bootstrap(session):
   if not DepositOptions.get_deposit_option(session, 2 ):
     bo = DepositOptions(id=2,
                        broker_id=9000001,
+                       name="deposito_itau",
                        description=u'Depósito Bancário - Banco Itaú',
                        disclaimer=u'Entre 10 minutos até 4 horas após a confirmação de recebimento.',
                        type='BTI',

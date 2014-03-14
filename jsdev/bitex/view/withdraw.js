@@ -23,7 +23,7 @@ bitex.view.WithdrawView = function(app, opt_domHelper) {
 goog.inherits(bitex.view.WithdrawView, bitex.view.View);
 
 /**
- * @type {bitex.ui.AccountActivity}
+ * @type {bitex.ui.WithdrawList}
  */
 bitex.view.WithdrawView.prototype.withdraw_list_table_;
 
@@ -212,7 +212,7 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
                      this.onWithdrawListTableRequestData_);
 
     handler.unlisten(this.getApplication().getBitexConnection(),
-                     bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE,
+                     bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE,
                      this.onWithdrawListReponse_);
 
 

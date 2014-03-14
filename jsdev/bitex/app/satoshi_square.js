@@ -161,6 +161,7 @@ bitex.app.SatoshiSquare.prototype.views_;
 bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   // Create all datagrids
   goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
+  goog.dom.removeChildren( goog.dom.getElement('id_deposit_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
   goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
   goog.dom.removeChildren( goog.dom.getElement('account_overview_balances_id'));
@@ -173,6 +174,19 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     id: 'id_withdraw_list_table',
     title: 'Withdrawal history'
   });
+
+  /**
+   * @desc placeholder for the search input text in the customers table
+   */
+  var MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
+
+  goog.soy.renderElement(goog.dom.getElement('id_deposit_list'), bitex.templates.DataGrid, {
+    id: 'id_deposit_list_table',
+    title: 'Deposits',
+    show_search: true,
+    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
+  });
+
 
   /**
    * @desc Title  for the customers table
@@ -398,7 +412,6 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK, this.onBitexPasswordChangedOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_OPTIONS_RESPONSE, this.onBitexDepositOptionsResponse_ );
-  //handler.listen( this.conn_ , bitex.api.BitEx.EventType.GENERATE_DEPOSIT_RESPONSE, this.onBitexGenerateDepositResponse_);
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
@@ -623,18 +636,6 @@ bitex.app.SatoshiSquare.prototype.onBitexWithdrawIncrementalUpdate_ = function(e
   }
 };
 
-bitex.app.SatoshiSquare.prototype.onBitexGenerateDepositResponse_ = function(e) {
-  var msg = e.data;
-
-  /**
-   * @desc Deposit dialog title
-   */
-  var MSG_BITEX_DEPOSIT_DIALOG_TITLE = goog.getMsg('Deposit');
-
-  this.showDialog(bitex.templates.DepositDialog({deposit_id:msg['DepositID']  }), MSG_BITEX_DEPOSIT_DIALOG_TITLE );
-};
-
-
 bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
   var msg = e.data;
 
@@ -808,8 +809,49 @@ bitex.app.SatoshiSquare.prototype.onUserCancelOrder_ = function(e){
  */
 bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
   var currency = e.target.getCurrency();
+  var handler = this.getHandler();
+
+
+  /**
+   * @desc Crypto Currency Withdraw accordion title
+   */
+  var MSG_CURRENCY_DEPOSIT_DIALOG_TITLE =
+      goog.getMsg('{$currency} deposit', {currency :  this.getCurrencyDescription(currency) });
+
 
   if (this.isCryptoCurrency(currency)) {
+
+    var confirmDialogContent = bitex.templates.ConfirmDepositCryptoCurrencyContentDialog({
+      currency_description: this.getCurrencyDescription(currency)
+    });
+
+    var dlgConfirm =  this.showDialog(confirmDialogContent,
+                                      MSG_CURRENCY_DEPOSIT_DIALOG_TITLE,
+                                      bootstrap.Dialog.ButtonSet.createYesNoCancel());
+
+    handler.listen(dlgConfirm, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'yes') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var request_id = parseInt( 1e7 * Math.random() , 10 );
+        this.conn_.requestDeposit( request_id, undefined , undefined, undefined, currency);
+
+        goog.soy.renderElement(goog.dom.getFirstElementChild(dlgConfirm.getContentElement()),
+                               bitex.templates.WaitingForDepositResponseDialogContent);
+
+        dlgConfirm.setButtonSet( bootstrap.Dialog.ButtonSet.createCancel() );
+
+
+        handler.listenOnce( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + request_id, function(e){
+          var msg = e.data;
+          goog.soy.renderElement(goog.dom.getFirstElementChild(dlgConfirm.getContentElement()),
+                                 bitex.templates.DepositCryptoCurrencyContentDialog,
+                                 {deposit_message:msg} );
+        });
+
+      }
+    });
     return;
   }
 
@@ -833,51 +875,47 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
     methods: deposit_methods
   });
 
-  /**
-   * @desc Crypto Currency Withdraw accordion title
-   */
-  var MSG_CURRENCY_DEPOSIT_DIALOG_TITLE =
-      goog.getMsg('{$currency} deposit', {currency :  this.getCurrencyDescription(currency) });
 
   var dlg =  this.showDialog(dialogContent,
                               MSG_CURRENCY_DEPOSIT_DIALOG_TITLE,
                               bootstrap.Dialog.ButtonSet.createOkCancel());
 
-  var handler = this.getHandler();
-
-  var response_div_el = goog.dom.getElementByClass('dlg-response-group', dlg.getContentElement());
-  goog.dom.removeChildren(response_div_el);
 
   handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
     if (e.key == 'ok') {
       e.preventDefault();
       e.stopPropagation();
 
-      var deposit_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+      var deposit_form_el = goog.dom.getFirstElementChild(dlg.getContentElement());
+
+      var deposit_data = bitex.util.getFormAsJSON(deposit_form_el);
 
       var amount = goog.string.toNumber(deposit_data['Amount']);
       var deposit_option_id = goog.string.toNumber(deposit_data['Method']);
 
-      if (!goog.isNumber(amount)) {
+      if (!goog.isNumber(amount) ||  isNaN(amount)) {
         return;
       }
 
-      var has_children = (goog.dom.getChildren(response_div_el).length > 0);
-      if (has_children) {
+      if (deposit_form_el.getAttribute('data-deposit-status') != 'prepare')  {
         dlg.dispose();
-
       } else {
-        this.conn_.generateDeposit(deposit_option_id , amount);
+        var request_id = parseInt( 1e7 * Math.random() , 10 );
+        this.conn_.requestDeposit( request_id, deposit_option_id , amount);
 
-        handler.listenOnce( this.conn_ , bitex.api.BitEx.EventType.GENERATE_DEPOSIT_RESPONSE, function(e){
+        goog.soy.renderElement(deposit_form_el,
+                               bitex.templates.WaitingForDepositResponseDialogContent);
+
+
+        handler.listenOnce( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + request_id, function(e){
           var msg = e.data;
-          goog.soy.renderElement(response_div_el, bitex.templates.DepositDialog, {deposit_id:msg['DepositID'] } );
+          goog.soy.renderElement(deposit_form_el,
+                                 bitex.templates.DepositSlipContentDialog,
+                                 {deposit_id:msg['DepositID'] } );
         });
       }
     }
   });
-
-
 };
 
 

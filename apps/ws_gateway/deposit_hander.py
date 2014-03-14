@@ -67,19 +67,13 @@ class DepositHandler(tornado.web.RequestHandler):
     if not deposit_id:
       raise tornado.httpclient.HTTPError( 404 )
 
-
     deposit_response_msg = self.application.application_trade_client.sendString(
-      json.dumps({ 'MsgType': 'U22', 'DepositReqID': '1', 'DepositID': deposit_id }))
+      json.dumps({ 'MsgType': 'U18', 'DepositReqID': 1, 'DepositID': deposit_id }))
 
     if not deposit_response_msg.isDepositResponse():
       raise tornado.httpclient.HTTPError( 404 )
 
     deposit = deposit_response_msg.get('Data')
-    if not deposit:
-      self.write('Error')
-      return
-
-    deposit = json.loads(deposit)
     if not deposit:
       self.write('Error')
       return

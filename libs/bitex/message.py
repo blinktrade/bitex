@@ -38,6 +38,9 @@ class BaseMessage(object):
   def get(self, attr, default):
     raise  NotImplementedError()
 
+  def set(self, attr, value):
+    raise NotImplementedError()
+
   def is_valid(self):
     raise  NotImplementedError()
 
@@ -130,18 +133,25 @@ class JsonMessage(BaseMessage):
       'U13': 'ResetPasswordResponse',
       'U16': 'EnableDisableTwoFactorAuthenticationRequest',
       'U17': 'EnableDisableTwoFactorAuthenticationResponse',
-      'U18': 'GenerateDepositRequest',
-      'U19': 'GenerateDepositResponse',
+
+      'U18': 'DepositRequest',
+      'U19': 'DepositResponse',
+      'U23': 'DepositRefresh',
+
       'U20': 'DepositOptionsRequest',
       'U21': 'DepositOptionsResponse',
-      'U22': 'DepositRequest',
-      'U23': 'DepositResponse',
+
+
       'U24': 'WithdrawConfirmationRequest',
       'U25': 'WithdrawConfirmationResponse',
       'U26': 'WithdrawListRequest',
       'U27': 'WithdrawListResponse',
       'U28': 'BrokerListRequest',
       'U29': 'BrokerListResponse',
+
+      'U30': 'DepositListRequest',
+      'U31': 'DepositListResponse',
+
 
       # Broker messages
       'B0':  'ProcessDeposit',
@@ -153,12 +163,6 @@ class JsonMessage(BaseMessage):
 
       'B6':  'ProcessWithdraw',
       'B7':  'ProcessWithdrawResponse',
-
-      # System messages
-      'S0':  'BitcoinNewAddressRequest',
-      'S1':  'BitcoinNewAddressResponse',
-      'S2':  'NumberOfFreeBitcoinNewAddressRequest',
-      'S3':  'NumberOfFreeBitcoinNewAddressResponse',
 
       # Administrative messages
       'A0':  'DbQueryRequest',
@@ -246,18 +250,19 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U16':  #Enable Disable Two Factor Authentication
       self.raise_exception_if_required_tag_is_missing('Enable')
 
-    elif self.type == 'U18': # Generate Deposit
-      self.raise_exception_if_required_tag_is_missing('DepositOptionID')
-      self.raise_exception_if_required_tag_is_missing('Value')
+    elif self.type == 'U18': # Deposit Request
+      self.raise_exception_if_required_tag_is_missing('DepositReqID')
+
+      if "DepositOptionID" not in self.message and "DepositID" not in self.message  and 'Currency' not in self.message:
+        raise InvalidMessageMissingTagException(self.raw_message, self.message, "DepositID,DepositOptionID,Currency")
+
+    elif self.type == 'U19': # Deposit Response
+      self.raise_exception_if_required_tag_is_missing('DepositReqID')
+      self.raise_exception_if_required_tag_is_missing('DepositID')
+
 
     elif self.type == 'U20': # Request Deposit Options
       self.raise_exception_if_required_tag_is_missing('DepositOptionReqID')
-
-
-    elif self.type == 'U22': # Request Deposit
-      self.raise_exception_if_required_tag_is_missing('DepositReqID')
-      self.raise_exception_if_required_tag_is_missing('DepositID')
-      self.raise_exception_if_empty('DepositID')
 
 
     elif self.type == 'D':  #New Order Single
@@ -386,18 +391,21 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
       self.raise_exception_if_empty('BrokerListReqID')
 
+    elif self.type == 'U30': # DepositList Request
+      self.raise_exception_if_required_tag_is_missing('DepositListReqID')
+      self.raise_exception_if_empty('DepositListReqID')
+
+    elif self.type == 'U31': # DepositList Response
+      self.raise_exception_if_required_tag_is_missing('DepositListReqID')
+      self.raise_exception_if_empty('DepositListReqID')
+
     elif self.type == 'B0': # Deposit Payment Confirmation
-      self.raise_exception_if_required_tag_is_missing('DepositID')
-      self.raise_exception_if_required_tag_is_missing('Currency')
-      self.raise_exception_if_required_tag_is_missing('Amount')
+      self.raise_exception_if_required_tag_is_missing('ProcessDepositReqID')
+      self.raise_exception_if_empty('ProcessDepositReqID')
 
-      self.raise_exception_if_not_a_integer('DepositID')
-      self.raise_exception_if_not_greater_than_zero('DepositID')
+      self.raise_exception_if_required_tag_is_missing('Action')
+      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROCESS', 'COMPLETE'])
 
-      self.raise_exception_if_empty('Currency')
-
-      self.raise_exception_if_not_a_integer('Amount')
-      self.raise_exception_if_not_greater_than_zero('Amount')
 
     elif self.type == 'B2': # Customer List Request
       self.raise_exception_if_required_tag_is_missing('CustomerListReqID')
@@ -437,10 +445,6 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('Status')
 
 
-    elif self.type == 'S0': # Bitcoin New Address
-      self.raise_exception_if_required_tag_is_missing('BtcAddress')
-
-
   def has(self, attr):
     return attr in self.message
 
@@ -449,4 +453,7 @@ class JsonMessage(BaseMessage):
       return  default
     return self.message[attr]
 
-
+  def set(self, attr, value):
+    self.message[attr] = value
+    self.raw_message = json.dumps(  dict(self.message.items()  +  {'MsgType' : self.type}.items() ) )
+    return self

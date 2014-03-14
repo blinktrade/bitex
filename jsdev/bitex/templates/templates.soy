@@ -177,15 +177,6 @@
   </p>
 {/template}
 
-/**
-  * @param deposit_id
-  */
-{template .DepositDialog}
-  <a  target="_blank" href="/get_deposit?deposit_id={$deposit_id}" class="btn btn-primary">
-    {msg desc="Print deposit button in deposit dialog"}Print{/msg}</a>
-  or
-  <a href="/get_deposit?download=1&deposit_id={$deposit_id}">{msg desc="Download deposit button in deposit dialog"}Download{/msg}</a>
-{/template}
 
 /**
   * @param currencies
@@ -240,13 +231,89 @@
   </table>
 {/template}
 
+
+
+/**
+  */
+{template .WaitingForDepositResponseDialogContent}
+  <div class="row-fluid" data-deposit-status="processing">
+    <h5 class="text-center">
+       {msg desc="processing deposit request waiting dialog msg"}Processing deposit request...{/msg}
+    </h5>
+  </div>
+  <div class="row-fluid">
+    <div class="span6 offset3">
+      <div class="progress progress-striped active">
+        <div class="bar" style="width: 100%;"></div>
+      </div>
+    </div>
+  </div>
+{/template}
+
+/**
+  * @param deposit_message
+  */
+{template .DepositCryptoCurrencyContentDialog}
+  <div class="row-fluid" data-deposit-status="prepare">
+    <h4 class="text-center">
+      {$deposit_message['Data']['InputAddress'] }
+    </h4>
+    <div class="text-center">
+      <img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl={$deposit_message['Data']['InputAddress'] }"/>
+    </div>
+    <p class="text-center">
+      {msg desc="deposit processor dialog msg"} Powered by {/msg}
+      <a href="https://blockchain.info/api/api_receive/" target="_blank">blockchain.info/api/api_receive</a>
+    </p>
+  </div>
+{/template}
+
+/**
+  * @param currency_description
+  */
+{template .ConfirmDepositCryptoCurrencyContentDialog}
+  <div class="row-fluid" data-deposit-status="confirm">
+    <h3 class="text-center">
+      {msg desc="deposit done dialog msg"} IMPORTANT! {/msg}
+    </h3>
+    <h4 class="text-center">
+      {msg desc="deposit done dialog msg"} We will generate a unique {$currency_description} address that will be valid only for this transaction.{/msg}
+    </h4>
+    <h3 class="text-center">
+      {msg desc="deposit done dialog msg"} Did you understand? {/msg}
+    </h3>
+    <br/>
+    <br/>
+  </div>
+{/template}
+
+/**
+  * @param deposit_id
+  */
+{template .DepositSlipContentDialog}
+  <div class="row-fluid" data-deposit-status="done">
+    <h5 class="text-center">
+       {msg desc="deposit done dialog msg"}done{/msg}
+    </h5>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span6 offset3">
+         <a  target="_blank" href="/get_deposit?deposit_id={$deposit_id}" class="btn btn-primary">
+           {msg desc="Print deposit button in deposit dialog"}Print{/msg}
+           </a>  or  <a href="/get_deposit?download=1&deposit_id={$deposit_id}">{msg desc="Download deposit button in deposit dialog"}Download{/msg}</a>
+    </div>
+  </div>
+{/template}
+
+
 /**
   * @param currency
   * @param currency_sign
   * @param methods
   */
 {template .DepositWithdrawDialogContent}
-  <form class="form-horizontal">
+  <form class="form-horizontal" data-deposit-status="prepare">
     <input type="hidden" name="Currency" value="{$currency}">
 
     <div class="control-group">

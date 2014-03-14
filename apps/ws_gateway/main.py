@@ -35,7 +35,10 @@ from tornado.options import define, options
 
 from tornado import  websocket
 
+import urllib
+import urllib2
 import json
+import uuid
 from json import loads
 from bitex.json_encoder import  JsonEncoder
 
@@ -47,10 +50,10 @@ from zmq.eventloop.zmqstream import  ZMQStream
 
 from market_data_helper import  MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh
 
+define("callback_url", default="https://www.bitex.com.br/process_deposit?s=" )
 define("port", default=8443, help="port" )
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
-
 define("trade_in",  default="tcp://127.0.0.1:5755", help="trade zmq queue" )
 define("trade_pub", default="tcp://127.0.0.1:5756", help="trade zmq publish queue" )
 
@@ -59,6 +62,7 @@ tornado.options.parse_command_line()
 
 from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
 from deposit_hander import DepositHandler
+from process_deposit_handler import ProcessDepositHandler
 import datetime
 
 class WebSocketHandler(websocket.WebSocketHandler):
@@ -69,6 +73,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
     self.trade_client = TradeClient(self.application.zmq_context, self.application.trade_in_socket, options.trade_pub)
     self.md_subscriptions = {}
+
+    self.user_response = None
 
   def on_trade_publish(self, message):
     self.write_message(str(message[1]))
@@ -114,10 +120,48 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.close()
       return
 
+    if req_msg.isDepositRequest():
+      if not req_msg.get('DepositOptionID') and not req_msg.get('DepositID'):
+
+        currency = req_msg.get('Currency')
+
+        secret = uuid.uuid4().hex
+        hot_wallet =  self.get_broker_wallet( 'hot', currency )
+        callback_url = options.callback_url  + secret
+        if not hot_wallet:
+          return
+
+        parameters = urllib.urlencode({
+          'method': 'create',
+          'address': hot_wallet,
+          'callback': callback_url
+        }  )
+
+        url_payment_processor = None
+        if currency == 'BTC':
+          url_payment_processor = 'https://blockchain.info/api/receive'
+
+        if not url_payment_processor:
+          # TODO: Return NOT SUPPORTED COIN error to the user
+          return
+
+        response = urllib2.urlopen(url_payment_processor + '?' + parameters)
+        if not response:
+          return
+
+        data = json.load(response)
+        req_msg.set('InputAddress', data['input_address'])
+        req_msg.set('Destination',  data['destination'])
+        req_msg.set('Secret', secret)
+
+
     try:
       resp_message = self.trade_client.sendMessage( req_msg )
       if resp_message:
         self.write_message(resp_message.raw_message)
+
+      if resp_message and resp_message.isUserResponse():
+        self.user_response = resp_message
 
       if not self.trade_client.isConnected():
         self.application.unregister_connection(self)
@@ -128,6 +172,29 @@ class WebSocketHandler(websocket.WebSocketHandler):
       self.application.unregister_connection(self)
       self.trade_client.close()
       self.close()
+
+  def is_user_logged(self):
+    if not self.user_response:
+      return  False
+    return self.user_response.get('UserStatus') == 1
+
+  def get_broker_wallet(self, type, currency):
+    if not self.user_response:
+      return
+
+    broker = self.user_response.get('Broker')
+    if not broker:
+      return
+
+    if 'CryptoCurrencies' not in broker:
+      return
+
+    broker_crypto_currencies =  broker['CryptoCurrencies']
+    for crypto_currency in broker_crypto_currencies:
+      if crypto_currency['CurrencyCode'] == currency:
+        for wallet in crypto_currency['Wallets']:
+          if wallet['type']  == type:
+            return wallet['address']
 
 
   def on_close(self):
@@ -176,6 +243,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
     handlers = [
       (r'/', WebSocketHandler),
       (r'/get_deposit(.*)', DepositHandler),
+      (r'/process_deposit(.*)', ProcessDepositHandler)
     ]
     settings = dict(
       cookie_secret='cookie_secret'

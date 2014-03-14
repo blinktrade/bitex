@@ -58,14 +58,11 @@ class Session(object):
     elif msg.type == 'U16':  #Enable Disable Two Factor Authentication
       return processEnableDisableTwoFactorAuth(self, msg)
 
-    elif msg.type == 'U18': #Generate Deposit
-      return processGenerateDeposit(self, msg)
+    elif msg.type == 'U18': #Request Deposit
+      return processRequestDeposit(self, msg)
 
     elif msg.type == 'U20': # Request Deposit Options
       return processRequestDepositOptions(self, msg)
-
-    elif msg.type == 'U22': # Request Deposit
-      return processRequestDeposit(self, msg)
 
     elif msg.type == 'U24': # Withdraw Confirmation Request
       return processWithdrawConfirmationRequest(self, msg)
@@ -76,8 +73,11 @@ class Session(object):
     elif msg.type == 'U28': # Request broker lists
       return processBrokerListRequest(self, msg)
 
+    elif msg.type == 'U30': # Deposit List Request
+      return  processDepositListRequest(self, msg)
+
     elif msg.type == 'B0':  # Deposit Payment Confirmation
-      return processDepositPaymentConfirmation(self, msg)
+      return processProcessDeposit(self, msg)
 
     elif msg.type == 'B2':  # Customer List Request
       return processCustomerListRequest(self, msg)

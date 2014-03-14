@@ -437,21 +437,68 @@ def processRequestDeposit(session, msg):
   }
   return json.dumps(response, cls=JsonEncoder)
 
-@login_required
-def processGenerateDeposit(session, msg):
+def processRequestDeposit(session, msg):
   deposit_option_id = msg.get('DepositOptionID')
-  value            = msg.get('Value')
+  deposit_id        = msg.get('DepositID')
+  currency          = msg.get('Currency')
+  input_address     = msg.get('InputAddress')
+  destination       = msg.get('Destination')
+  secret            = msg.get('Secret')
 
-  deposit_option = DepositOptions.get_deposit_option(application.db_session, deposit_option_id)
-  if not deposit_option:
+  if deposit_option_id:
+    if session.user is None :
+      raise NotAuthorizedError()
+
+    value             = msg.get('Value')
+    deposit_option = DepositOptions.get_deposit_option(application.db_session, deposit_option_id)
+    if not deposit_option:
+      response = {'MsgType':'U19', 'DepositID': 0 }
+      return json.dumps(response, cls=JsonEncoder)
+
+    deposit = deposit_option.generate_deposit(  application.db_session, session.user, value )
+    application.db_session.commit()
+  elif currency:
+    deposit = Deposit.create_crypto_currency_deposit(application.db_session, session.user, currency, input_address, destination, secret)
+    application.db_session.commit()
+
+  else:
+    deposit = Deposit.get_deposit(application.db_session, deposit_id)
+
+  if not deposit:
     response = {'MsgType':'U19', 'DepositID': 0 }
     return json.dumps(response, cls=JsonEncoder)
 
-  deposit = deposit_option.generate_deposit(  application.db_session, session.user, value )
-  application.db_session.commit()
 
-  response = {'MsgType':'U19', 'DepositID': deposit.id }
-  return json.dumps(response, cls=JsonEncoder)
+  deposit_refresh = depositRecordToDepositMessage(deposit)
+  deposit_refresh['MsgType'] = 'U23'
+  deposit_refresh['DepositReqID'] = msg.get('DepositReqID'),
+  application.publish( deposit.account_id, deposit_refresh  )
+  application.publish( deposit.broker_id,  deposit_refresh  )
+
+  deposit_refresh['MsgType'] = 'U19'
+  return json.dumps(deposit_refresh, cls=JsonEncoder)
+
+
+def depositRecordToDepositMessage( deposit ):
+  deposit_message = dict()
+  deposit_message['DepositID']           = deposit.id
+  deposit_message['UserID']              = deposit.user_id
+  deposit_message['AccountID']           = deposit.account_id
+  deposit_message['BrokerID']            = deposit.broker_id
+  deposit_message['Username']            = deposit.username
+  deposit_message['DepositOptionID']     = deposit.deposit_option_id
+  deposit_message['DepositOptionName']   = deposit.deposit_option_name
+  deposit_message['ControlNumber']       = deposit.broker_deposit_ctrl_num
+  deposit_message['Type']                = deposit.type
+  deposit_message['Currency']            = deposit.currency
+  deposit_message['Value']               = deposit.value
+  deposit_message['PaidValue']           = deposit.paid_value
+  deposit_message['Data']                = json.loads(deposit.data)
+  deposit_message['Created']             = deposit.created
+  deposit_message['Status']              = deposit.status
+  deposit_message['ReasonID']            = deposit.reason_id
+  deposit_message['Reason']              = deposit.reason
+  return deposit_message
 
 @login_required
 def processWithdrawRequest(session, msg):
@@ -473,20 +520,20 @@ def processWithdrawRequest(session, msg):
   }
   return json.dumps(response, cls=JsonEncoder)
 
-def withdrawRecordWithdrawMessage( withdraw ):
-  withdraw_refresh = dict()
-  withdraw_refresh['WithdrawID']          = withdraw.id
-  withdraw_refresh['UserID']              = withdraw.user_id
-  withdraw_refresh['BrokerID']            = withdraw.broker_id
-  withdraw_refresh['Method']              = withdraw.method
-  withdraw_refresh['Currency']            = withdraw.currency
-  withdraw_refresh['Amount']              = withdraw.amount
-  withdraw_refresh['Data']                = json.loads(withdraw.data)
-  withdraw_refresh['Created']             = withdraw.created
-  withdraw_refresh['Status']              = withdraw.status
-  withdraw_refresh['ReasonID']            = withdraw.reason_id
-  withdraw_refresh['Reason']              = withdraw.reason
-  return withdraw_refresh
+def withdrawRecordToWithdrawMessage( withdraw ):
+  withdraw_message = dict()
+  withdraw_message['WithdrawID']          = withdraw.id
+  withdraw_message['UserID']              = withdraw.user_id
+  withdraw_message['BrokerID']            = withdraw.broker_id
+  withdraw_message['Method']              = withdraw.method
+  withdraw_message['Currency']            = withdraw.currency
+  withdraw_message['Amount']              = withdraw.amount
+  withdraw_message['Data']                = json.loads(withdraw.data)
+  withdraw_message['Created']             = withdraw.created
+  withdraw_message['Status']              = withdraw.status
+  withdraw_message['ReasonID']            = withdraw.reason_id
+  withdraw_message['Reason']              = withdraw.reason
+  return withdraw_message
 
 @login_required
 def processWithdrawConfirmationRequest(session, msg):
@@ -500,13 +547,13 @@ def processWithdrawConfirmationRequest(session, msg):
 
   application.db_session.commit()
 
-  withdraw_refresh = withdrawRecordWithdrawMessage(withdraw_data)
+  withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw_data)
   withdraw_refresh['MsgType'] = 'U9'
   application.publish( withdraw_data.account_id, withdraw_refresh  )
   application.publish( withdraw_data.broker_id,  withdraw_refresh  )
 
 
-  response_u25 = withdrawRecordWithdrawMessage(withdraw_data)
+  response_u25 = withdrawRecordToWithdrawMessage(withdraw_data)
   response_u25['MsgType'] = 'U25'
   response_u25['WithdrawReqID'] = reqId
   response_u25['ConfirmationToken'] = withdraw_data.confirmation_token,
@@ -648,21 +695,6 @@ def processRequestDatabaseQuery(session, msg):
   }
   return json.dumps(result, cls=JsonEncoder)
 
-@login_required
-@broker_user_required
-def processDepositPaymentConfirmation(session, msg):
-  deposit_id   = msg.get('DepositID')
-  currency    = msg.get('Currency')
-  amount      = msg.get('Amount')
-
-  Deposit.process_deposit_payment(application.db_session, session.user.id, deposit_id, currency, amount)
-
-  result = {
-    'MsgType' : 'B1',
-    'DepositID': deposit_id
-  }
-  return json.dumps(result, cls=JsonEncoder)
-
 
 @login_required
 @broker_user_required
@@ -745,10 +777,16 @@ def processProcessWithdraw(session, msg):
 
   if msg.get('Action') == 'CANCEL':
     withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
+  elif msg.get('Action') == 'PROCESS':
+    #TODO: Set the withdraw in process
+    pass
+  elif msg.get('Action') == 'COMPLETE':
+    #TODO: Set the withdraw in process
+    pass
 
   application.db_session.commit()
 
-  withdraw_refresh = withdrawRecordWithdrawMessage(withdraw)
+  withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw)
   withdraw_refresh['MsgType'] = 'U9'
 
   application.publish( withdraw.account_id, withdraw_refresh  )
@@ -761,5 +799,100 @@ def processProcessWithdraw(session, msg):
     'Status'              : withdraw.status,
     'ReasonID'            : withdraw.reason_id,
     'Reason'              : withdraw.reason
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+def processProcessDeposit(session, msg):
+  secret       = msg.get('Secret')
+
+  if not secret:
+    if session.user is None or session.user.is_broker == False:
+      raise NotAuthorizedError()
+
+    deposit_id   = msg.get('DepositID')
+    deposit = Deposit.get_deposit(application.db_session, deposit_id=deposit_id)
+  else:
+    deposit = Deposit.get_deposit( application.db_session, secret=secret)
+
+  if not deposit:
+    return  json.dumps( { 'MsgType' : 'B1',
+                          'ProcessDepositReqID':msg.get('ProcessDepositReqID') ,
+                          'ReasonID':'-1'} , cls=JsonEncoder)
+
+  if msg.get('Action') == 'CANCEL':
+    deposit.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
+  if msg.get('Action') == 'CONFIRM':
+    amount      = msg.get('Amount')
+    data        = msg.get('Data')
+
+    deposit.process_confirmation(application.db_session, amount, data)
+
+
+  application.db_session.commit()
+
+  result = depositRecordToDepositMessage(deposit)
+  result['MsgType'] =  'B1'
+  result['ProcessDepositReqID'] = msg.get('ProcessDepositReqID')
+  return json.dumps(result, cls=JsonEncoder)
+
+
+
+@login_required
+def processDepositListRequest(session, msg):
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  status_list = msg.get('StatusList', ['0', '1', '2', '4', '8'] )
+  filter      = msg.get('Filter')
+
+
+  offset      = page * page_size
+
+  user = session.user
+  if msg.has('ClientID'):
+    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+    if user.broker_id  != session.user.id:
+      raise NotAuthorizedError()
+    if not user:
+      raise NotAuthorizedError()
+
+  if session.user.is_broker:
+    if msg.has('ClientID'):
+      deposits = Deposit.get_list(application.db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
+    else:
+      deposits = Deposit.get_list(application.db_session, user.id, None, status_list, page_size, offset, filter  )
+  else:
+    deposits = Deposit.get_list(application.db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
+
+
+
+  deposit_list = []
+  columns = [ 'DepositID'    , 'DepositOptionID', 'DepositOptionName' ,
+              'Type'         , 'Currency'       , 'Value'             ,
+              'PaidValue'    , 'Data'           , 'Created'           ,
+              'Status'       , 'ReasonID'       , 'Reason'             ]
+
+  for deposit in deposits:
+    deposit_list.append( [
+      deposit.id,
+      deposit.deposit_option_id,
+      deposit.deposit_option_name,
+      deposit.type,
+      deposit.currency,
+      deposit.value,
+      deposit.paid_value,
+      json.loads(deposit.data),
+      deposit.created,
+      deposit.status,
+      deposit.reason_id,
+      deposit.reason
+    ])
+
+  response_msg = {
+    'MsgType'           : 'U31', # DepositListResponse
+    'DepositListReqID'  : msg.get('DepositListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'DepositListGrp'    : deposit_list
   }
   return json.dumps(response_msg, cls=JsonEncoder)

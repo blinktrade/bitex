@@ -69,18 +69,23 @@ bitex.api.BitEx.EventType = {
 
   NEWS: 'news',
 
-  DEPOSIT_OPTIONS_RESPONSE:'deposit_options_response',
-  GENERATE_DEPOSIT_RESPONSE : 'generate_deposit_response',
-
+  /* Passwords */
   TWO_FACTOR_SECRET: 'two_factor_secret',
-
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
+
+  /* Deposits */
+  DEPOSIT_OPTIONS_RESPONSE:'deposit_options_response',
+  DEPOSIT_RESPONSE : 'deposit_response',
+  DEPOSIT_REFRESH: 'deposit_refresh',
+  PROCESS_DEPOSIT_RESPONSE: 'process_deposit',
+  DEPOSIT_LIST_RESPONSE: 'deposit_list',
 
   /* Withdraws */
   WITHDRAW_RESPONSE: 'withdraw_response',
   WITHDRAW_LIST_RESPONSE: 'withdraw_list_response',
   WITHDRAW_REFRESH: 'withdraw_refresh',
+  PROCESS_WITHDRAW_RESPONSE: 'process_withdraw',
 
   /* Trading */
   BALANCE_RESPONSE: 'balance_response',
@@ -95,7 +100,6 @@ bitex.api.BitEx.EventType = {
   BROKER_LIST_RESPONSE: 'broker_list',
   CUSTOMER_LIST_RESPONSE: 'customer_list',
   CUSTOMER_DETAIL_RESPONSE: 'customer_detail',
-  PROCESS_WITHDRAW_RESPONSE: 'process_withdraw_response',
 
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
@@ -265,9 +269,18 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       }
       break;
 
-    case 'U19': // Generate deposit response
-     this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.GENERATE_DEPOSIT_RESPONSE, msg ) );
+    case 'U19': // Deposit Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + msg['DepositReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_RESPONSE, msg ) );
       break;
+
+    case 'U23': // Deposit Refresh
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH + '.' + msg['UserID'], msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH + '.' + msg['BrokerID'], msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH, msg ) );
+      break;
+
+
 
     case 'U7': // Withdraw Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE + '.' + msg['WithdrawReqID'], msg) );
@@ -276,7 +289,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U9': // Withdraw Refresh
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + msg['UserID'], msg ) );
-      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + msg['UserID'], msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + msg['BrokerID'], msg ) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_REFRESH, msg ) );
       break;
 
@@ -304,6 +317,16 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U29': // Broker List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'U31': // Withdraw List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE + '.' + msg['DepositListReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'B1': // Process Deposit Reponse
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_DEPOSIT_RESPONSE + '.' + msg['ProcessDepositReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_DEPOSIT_RESPONSE, msg ) );
       break;
 
     case 'B3': // Customer List Response
@@ -563,6 +586,46 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
 };
 
 /**
+ * Request deposit list
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
+ * @param {number=} opt_clientID
+ * @param {string=} opt_filter
+ */
+bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page, opt_limit, opt_status, opt_clientID, opt_filter){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+  var status = opt_status || ['1', '2'];
+
+  var msg = {
+    'MsgType': 'U30',
+    'DepositListReqID': requestId,
+    'Page': page,
+    'PageSize': limit,
+    'StatusList': status
+  };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
+    msg['ClientID'] = opt_clientID;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+    msg['Filter'] = opt_filter;
+  }
+
+
+  this.ws_.send(JSON.stringify( msg ));
+
+  return requestId;
+};
+
+
+
+
+/**
  * Request the Broker's list
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {string=} opt_country.
@@ -678,6 +741,41 @@ bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, with
   this.ws_.send(JSON.stringify( msg ));
   return requestId;
 };
+
+
+/**
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {string} action
+ * @param {string=} opt_secret
+ * @param {number=} opt_depositId
+ * @param {number=} opt_reasonId
+ * @param {string=} opt_reason
+ */
+bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_secret, opt_depositId, opt_reasonId, opt_reason){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'B0',
+    'ProcessDepositReqID': requestId,
+    'Action': action
+  };
+  if (goog.isDefAndNotNull(opt_secret)){
+    msg['Secret'] = opt_secret;
+  }
+  if (goog.isDefAndNotNull(opt_depositId)){
+    msg['DepositID'] = opt_depositId;
+  }
+  if (goog.isDefAndNotNull(opt_reasonId)){
+    msg['ReasonID'] = opt_reasonId;
+  }
+  if (goog.isDefAndNotNull(opt_reason)){
+    msg['Reason'] = opt_reason;
+  }
+
+  this.ws_.send(JSON.stringify(msg));
+  return requestId;
+};
+
 
 
 
@@ -811,15 +909,31 @@ bitex.api.BitEx.prototype.requestOrderList = function(opt_requestId, opt_page, o
 
 /**
  * Generate a deposit for the client
- * @param {string} depositOptionId
- * @param {number} value
+ * @param {string=} opt_depositOptionId
+ * @param {number=} opt_value
+ * @param {number=} opt_depositID
+ * @param {string=} opt_currency
  */
-bitex.api.BitEx.prototype.generateDeposit = function( depositOptionId, value ) {
+bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositOptionId, opt_value, opt_depositID, opt_currency ) {
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
   var msg = {
     'MsgType': 'U18',
-    'DepositOptionID': depositOptionId,
-    'Value': parseInt(value * 1e8, 10)
+    'DepositReqID': requestId
   };
+  if (goog.isDefAndNotNull(opt_depositOptionId)) {
+    msg['DepositOptionID'] = opt_depositOptionId;
+  }
+  if (goog.isDefAndNotNull(opt_value)) {
+    msg['Value'] = parseInt(opt_value * 1e8, 10) ;
+  }
+  if (goog.isDefAndNotNull(opt_depositID)) {
+    msg['DepositID'] = opt_depositID;
+  }
+  if (goog.isDefAndNotNull(opt_currency)) {
+    msg['Currency'] = opt_currency;
+  }
+
   this.ws_.send(JSON.stringify( msg ));
 };
 
@@ -989,6 +1103,12 @@ goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototyp
 
 goog.exportProperty(BitEx.prototype, 'requestSecurityList', bitex.api.BitEx.prototype.requestSecurityList);
 goog.exportProperty(BitEx.prototype, 'requestDepositOptions', bitex.api.BitEx.prototype.requestDepositOptions);
+
+
+goog.exportProperty(BitEx.prototype, 'requestDeposit', bitex.api.BitEx.prototype.requestDeposit);
+goog.exportProperty(BitEx.prototype, 'processDeposit', bitex.api.BitEx.prototype.processDeposit);
+goog.exportProperty(BitEx.prototype, 'requestDepositList', bitex.api.BitEx.prototype.requestDepositList);
+
 
 goog.exportProperty(BitEx.prototype, 'requestWithdraw', bitex.api.BitEx.prototype.requestWithdraw);
 goog.exportProperty(BitEx.prototype, 'processWithdraw', bitex.api.BitEx.prototype.processWithdraw);
