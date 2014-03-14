@@ -138,8 +138,8 @@ class JsonMessage(BaseMessage):
       'U19': 'DepositResponse',
       'U23': 'DepositRefresh',
 
-      'U20': 'DepositOptionsRequest',
-      'U21': 'DepositOptionsResponse',
+      'U20': 'DepositMethodsRequest',
+      'U21': 'DepositMethodsResponse',
 
 
       'U24': 'WithdrawConfirmationRequest',
@@ -253,16 +253,16 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U18': # Deposit Request
       self.raise_exception_if_required_tag_is_missing('DepositReqID')
 
-      if "DepositOptionID" not in self.message and "DepositID" not in self.message  and 'Currency' not in self.message:
-        raise InvalidMessageMissingTagException(self.raw_message, self.message, "DepositID,DepositOptionID,Currency")
+      if "DepositMethodID" not in self.message and "DepositID" not in self.message  and 'Currency' not in self.message:
+        raise InvalidMessageMissingTagException(self.raw_message, self.message, "DepositID,DepositMethodID,Currency")
 
     elif self.type == 'U19': # Deposit Response
       self.raise_exception_if_required_tag_is_missing('DepositReqID')
       self.raise_exception_if_required_tag_is_missing('DepositID')
 
 
-    elif self.type == 'U20': # Request Deposit Options
-      self.raise_exception_if_required_tag_is_missing('DepositOptionReqID')
+    elif self.type == 'U20': # Request Deposit Methods
+      self.raise_exception_if_required_tag_is_missing('DepositMethodReqID')
 
 
     elif self.type == 'D':  #New Order Single
