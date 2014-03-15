@@ -5787,7 +5787,8 @@ $goog$inherits$$($goog$net$WebSocket$ErrorEvent$$, $goog$events$Event$$);
 // Input 114
 function $bitex$api$BitEx$$() {
   $goog$Disposable$$.call(this);
-  this.$all_markets_$ = this.$currency_info_$ = $JSCompiler_alias_NULL$$
+  this.$all_markets_$ = this.$currency_info_$ = $JSCompiler_alias_NULL$$;
+  this.$ws_$ = new $goog$net$WebSocket$$($JSCompiler_alias_TRUE$$)
 }
 $goog$inherits$$($bitex$api$BitEx$$, $goog$events$EventTarget$$);
 $bitex$api$BitEx$$.prototype.$ws_$ = $JSCompiler_alias_NULL$$;
@@ -5799,7 +5800,6 @@ $bitex$api$BitEx$EventType$ORDER_BOOK_DELETE_ORDER$$ = "ob_delete_order", $bitex
 $JSCompiler_prototypeAlias$$ = $bitex$api$BitEx$$.prototype;
 $JSCompiler_prototypeAlias$$.open = function $$JSCompiler_prototypeAlias$$$open$($url$$31$$, $opt_protocol$$2$$) {
   this.$url_$ = $url$$31$$;
-  this.$ws_$ = new $goog$net$WebSocket$$($JSCompiler_alias_TRUE$$);
   var $handler$$68$$ = this.$getHandler$();
   $JSCompiler_StaticMethods_listen$$($handler$$68$$, this.$ws_$, $goog$net$WebSocket$EventType$CLOSED$$, this.$onClose_$);
   $JSCompiler_StaticMethods_listen$$($handler$$68$$, this.$ws_$, $goog$net$WebSocket$EventType$MESSAGE$$, this.$onMessage_$);

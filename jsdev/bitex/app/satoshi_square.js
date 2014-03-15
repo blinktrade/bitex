@@ -1035,7 +1035,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginButtonClick_ = function(e){
   var username = e.target.getUsername();
   var password = e.target.getPassword();
   this.model_.set('Password',         e.target.getPassword() );
-  
+
   this.conn_.login(username, password);
 };
 

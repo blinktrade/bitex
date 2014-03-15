@@ -17,6 +17,9 @@ bitex.api.BitEx = function(){
 
   this.currency_info_       = null;
   this.all_markets_         = null;
+
+
+  this.ws_ = new goog.net.WebSocket(true);
 };
 goog.inherits(bitex.api.BitEx, goog.events.EventTarget);
 
@@ -149,8 +152,6 @@ bitex.api.BitEx.EventType = {
  */
 bitex.api.BitEx.prototype.open = function(url, opt_protocol) {
   this.url_ = url;
-
-  this.ws_ = new goog.net.WebSocket(true);
 
   var handler = this.getHandler();
   handler.listen( this.ws_, goog.net.WebSocket.EventType.CLOSED, this.onClose_ );
