@@ -88,7 +88,7 @@ bitex.view.SignupView.prototype.getCountry = function() {
 };
 
 bitex.view.SignupView.prototype.getBroker = function() {
-  return goog.dom.forms.getValue( goog.dom.getElement("id_signup_broker") );
+  return goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement("id_signup_broker")));
 };
 
 

@@ -6842,14 +6842,13 @@ $JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAl
     }, this)
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginButtonClick_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginButtonClick_$$($e$$182_password$$5$$) {
-  var $username$$8$$ = $e$$182_password$$5$$.target.$getUsername$();
-  $e$$182_password$$5$$ = $e$$182_password$$5$$.target.$getPassword$();
-  this.$conn_$.login($username$$8$$, $e$$182_password$$5$$)
+$JSCompiler_prototypeAlias$$.$onUserLoginButtonClick_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginButtonClick_$$($e$$182$$) {
+  var $username$$8$$ = $e$$182$$.target.$getUsername$(), $password$$5$$ = $e$$182$$.target.$getPassword$();
+  this.$model_$.set("Password", $e$$182$$.target.$getPassword$());
+  this.$conn_$.login($username$$8$$, $password$$5$$)
 };
 $JSCompiler_prototypeAlias$$.$onUserLoginOk_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginOk_$$($e$$183_msg$$67$$) {
   $e$$183_msg$$67$$ = $e$$183_msg$$67$$.data;
-  this.$model_$.set("Password", this.$loginView_$.$getPassword$());
   $goog$dom$classes$add$$(document.body, "bitex-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-not-logged");
   this.$model_$.set("UserID", $e$$183_msg$$67$$.UserID);
@@ -6875,7 +6874,8 @@ $JSCompiler_prototypeAlias$$.$onUserLoginError_$ = function $$JSCompiler_prototy
   })) : $JSCompiler_StaticMethods_showDialog$$(this, $dlg__e$$184_msg$$68$$.UserStatusText)
 };
 $JSCompiler_prototypeAlias$$.$onUserSignupButton_$ = function $$JSCompiler_prototypeAlias$$$$onUserSignupButton_$$($e$$186$$) {
-  this.$conn_$.$signUp$($e$$186$$.target.$getUsername$(), $e$$186$$.target.$getPassword$(), $e$$186$$.target.$getEmail$(), $e$$186$$.target.$getState$(), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_country")), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_broker")))
+  this.$model_$.set("Password", $e$$186$$.target.$getPassword$());
+  this.$conn_$.$signUp$($e$$186$$.target.$getUsername$(), $e$$186$$.target.$getPassword$(), $e$$186$$.target.$getEmail$(), $e$$186$$.target.$getState$(), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_country")), $goog$string$toNumber$$($goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_broker"))))
 };
 $JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototypeAlias$$$$onBeforeSetView_$$($e$$187_view_id$$4$$) {
   $e$$187_view_id$$4$$ = $e$$187_view_id$$4$$.$view_id$;

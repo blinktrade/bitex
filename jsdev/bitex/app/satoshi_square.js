@@ -1034,7 +1034,8 @@ bitex.app.SatoshiSquare.prototype.onBodyChange_ =function(e){
 bitex.app.SatoshiSquare.prototype.onUserLoginButtonClick_ = function(e){
   var username = e.target.getUsername();
   var password = e.target.getPassword();
-
+  this.model_.set('Password',         e.target.getPassword() );
+  
   this.conn_.login(username, password);
 };
 
@@ -1044,8 +1045,6 @@ bitex.app.SatoshiSquare.prototype.onUserLoginButtonClick_ = function(e){
  */
 bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   var msg = e.data;
-
-  this.model_.set('Password',         this.loginView_.getPassword() );
 
   goog.dom.classes.add( document.body, 'bitex-logged'  );
   goog.dom.classes.remove( document.body, 'bitex-not-logged' );
@@ -1115,6 +1114,9 @@ bitex.app.SatoshiSquare.prototype.onUserLoginError_ = function(e) {
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onUserSignupButton_ = function(e) {
+
+  this.model_.set('Password',         e.target.getPassword() );
+
   this.conn_.signUp( e.target.getUsername(),
                      e.target.getPassword(),
                      e.target.getEmail(),
