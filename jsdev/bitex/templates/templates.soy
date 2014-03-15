@@ -11,6 +11,17 @@
   </div>
 {/template}
 
+/**
+  * @param error_message
+  * @param error_code
+  */
+{template .ErrorDialogContent}
+  <p class="lead">{$error_message}</p>
+  <dl class="dl-horizontal">
+     <dt>{msg desc="Error code label on error dialog content"}Error code{/msg}</dt>
+     <dd>{$error_code}</dd>
+  </dl>
+{/template}
 
 
 

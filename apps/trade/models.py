@@ -1069,7 +1069,7 @@ class Deposit(Base):
       query = query.filter( Deposit.account_id == account_id  )
 
     if filter:
-      if filter.is_digit():
+      if filter.isdigit():
         query = query.filter( or_( Deposit.data.like('%' + filter + '%s' ),
                                    Deposit.currency == filter,
                                    Deposit.deposit_option_name == filter,

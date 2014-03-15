@@ -30,6 +30,8 @@ goog.inherits(bitex.view.View, goog.ui.Component);
  * @enum {string} The event types
  */
 bitex.view.View.EventType = {
+  CONNECT_BITEX: 'connect_bitex',
+
   MARKET_DATA_REQUEST: 'md_request',
   MARKET_DATA_SUBSCRIBE: 'md_subscribe',
   MARKET_DATA_UNSUBSCRIBE: 'md_unsubscribe',

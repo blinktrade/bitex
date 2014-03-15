@@ -2,12 +2,11 @@ goog.provide('bitex.api.BitEx');
 goog.provide('bitex.api.BitEx.EventType');
 goog.provide('bitex.api.BitExEvent');
 
+goog.require('goog.net.WebSocket');
 goog.require('goog.i18n.NumberFormat');
 goog.require('goog.events');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
-
-var WEB_SOCKET_NOT_AVAILABLE_EXCEPTION = "WebSockets are not available";
 
 /**
  * @constructor
@@ -35,10 +34,17 @@ bitex.app.BitEx.prototype.currency_info_;
 bitex.app.BitEx.prototype.all_markets_;
 
 /**
- * @type {WebSocket}
+ * @type {goog.net.WebSocket}
  * @private
  */
 bitex.api.BitEx.prototype.ws_ = null;
+
+/**
+ * @type {string}
+ * @private
+ */
+bitex.api.BitEx.prototype.url_ = null;
+
 
 /**
  * @type {boolean}
@@ -52,9 +58,24 @@ bitex.api.BitEx.prototype.connected_ = false;
  */
 bitex.api.BitEx.prototype.logged_ = false;
 
+/**
+ * Event handler.
+ * @type {goog.events.EventHandler}
+ * @private
+ */
+bitex.api.BitEx.prototype.handler_;
+
 
 /**
- * The events fired by the web socket.
+ * Errors thrown by the api
+ * @enum {string}
+ */
+bitex.api.BitEx.ErrorType = {
+  CONNECTION_IS_CLOSED: 'connection_is_closed'
+};
+
+/**
+ * The events fired by api
  * @enum {string} The event types for the web socket.
  */
 bitex.api.BitEx.EventType = {
@@ -117,21 +138,27 @@ bitex.api.BitEx.EventType = {
 };
 
 /**
- * Open a connection with BitEx server * @param {string} url */
-bitex.api.BitEx.prototype.open = function(url) {
+ * Open a connection with BitEx server
+ *
+ * @param {string} url The URL to which to connect.
+ * @param {string=} opt_protocol The subprotocol to use.  The connection will
+ *     only be established if the server reports that it has selected this
+ *     subprotocol. The subprotocol name must all be a non-empty ASCII string
+ *     with no control characters and no spaces in them (i.e. only characters
+ *     in the range U+0021 to U+007E).
+ */
+bitex.api.BitEx.prototype.open = function(url, opt_protocol) {
+  this.url_ = url;
 
-  if ("WebSocket" in window) {
-    this.ws_ = new WebSocket(url);
-  } else if ("MozWebSocket" in window) {
-    this.ws_ = new MozWebSocket(url);
-  } else {
-    throw WEB_SOCKET_NOT_AVAILABLE_EXCEPTION;
-  }
+  this.ws_ = new goog.net.WebSocket(true);
 
-  this.ws_.onopen = goog.bind(this.onOpen_, this);
-  this.ws_.onclose = goog.bind(this.onClose_, this);
-  this.ws_.onmessage = goog.bind(this.onMessage_, this);
-  this.ws_.onerror = goog.bind(this.onError_, this);
+  var handler = this.getHandler();
+  handler.listen( this.ws_, goog.net.WebSocket.EventType.CLOSED, this.onClose_ );
+  handler.listen( this.ws_, goog.net.WebSocket.EventType.MESSAGE, this.onMessage_ );
+  handler.listen( this.ws_, goog.net.WebSocket.EventType.ERROR, this.onError_ );
+  handler.listen( this.ws_, goog.net.WebSocket.EventType.OPENED, this.onOpen_ );
+
+  this.ws_.open(url, opt_protocol);
 };
 
 /**
@@ -147,6 +174,16 @@ bitex.api.BitEx.prototype.isConnected = function(){
 bitex.api.BitEx.prototype.isLogged = function(){
   return this.logged_;
 };
+
+/**
+ * @return {goog.events.EventHandler}
+ */
+bitex.api.BitEx.prototype.getHandler = function() {
+  return this.handler_ ||
+      (this.handler_ = new goog.events.EventHandler(this));
+
+};
+
 
 /**
  * @param {number} amount
@@ -196,6 +233,7 @@ bitex.api.BitEx.prototype.onSecurityList_ =   function(msg) {
     symbols.push( symbol );
   }, this );
 };
+
 /**
  * @private
  */
@@ -205,30 +243,32 @@ bitex.api.BitEx.prototype.onOpen_ = function() {
   this.logged_ = false;
 };
 
+
 /**
  * @private
  */
-bitex.api.BitEx.prototype.onClose_ = function() {
+bitex.api.BitEx.prototype.onClose_ = function(e) {
   this.dispatchEvent(bitex.api.BitEx.EventType.CLOSED);
   this.connected_ = false;
   this.logged_ = false;
 };
 
 /**
+ * @param {goog.net.WebSocket.ErrorEvent} e
  * @private
  */
-bitex.api.BitEx.prototype.onError_ = function() {
+bitex.api.BitEx.prototype.onError_ = function(e) {
   this.dispatchEvent(bitex.api.BitEx.EventType.ERROR);
   this.connected_ = false;
   this.logged_ = false;
 };
 
 /**
- * @param {*} e
+ * @param {goog.net.WebSocket.MessageEvent} e
  * @private
  */
 bitex.api.BitEx.prototype.onMessage_ = function(e) {
-  var msg = JSON.parse(e.data);
+  var msg = JSON.parse(e.message);
 
   this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.RAW_MESSAGE, msg ) );
 
@@ -437,7 +477,8 @@ bitex.api.BitEx.prototype.close = function(){
   this.logged_ = false;
 
   this.ws_.close();
-  this.ws_ = null; // dereference the WebSocket
+  this.ws_.dispose();
+  this.ws_ = null;
 };
 
 /**
@@ -456,7 +497,7 @@ bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor
   if (goog.isDefAndNotNull(opt_second_factor)) {
     msg['SecondFactor'] = opt_second_factor;
   }
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -482,7 +523,7 @@ bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_cod
     msg['ClientID'] = opt_clientID;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 
@@ -494,7 +535,7 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
     'MsgType': 'U10',
     'Email': email
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -513,7 +554,7 @@ bitex.api.BitEx.prototype.requestBalances = function(opt_clientID) {
   }
 
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -535,7 +576,7 @@ bitex.api.BitEx.prototype.requestWithdraw = function( opt_request_id, amount, me
     'Data': goog.json.serialize(data)
   };
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return reqId;
 };
@@ -551,7 +592,7 @@ bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
     'WithdrawReqID': reqId,
     'ConfirmationToken': confirmation_token
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -580,7 +621,7 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
     msg['ClientID'] = opt_clientID;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return requestId;
 };
@@ -617,7 +658,7 @@ bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page,
   }
 
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return requestId;
 };
@@ -650,7 +691,7 @@ bitex.api.BitEx.prototype.requestBrokerList = function(opt_requestId, opt_countr
     msg['Country'] = opt_country;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return requestId;
 };
@@ -696,7 +737,7 @@ bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_filt
     msg['SortOrder'] = opt_sort_direction;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
   return requestId;
 };
 
@@ -712,7 +753,7 @@ bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clien
     'CustomerReqID': requestId,
     'ClientID': clientId
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
   return requestId;
 };
 
@@ -738,7 +779,7 @@ bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, with
     msg['Reason'] = opt_reason;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
   return requestId;
 };
 
@@ -772,7 +813,7 @@ bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_s
     msg['Reason'] = opt_reason;
   }
 
-  this.ws_.send(JSON.stringify(msg));
+  this.sendMessage(msg);
   return requestId;
 };
 
@@ -789,7 +830,7 @@ bitex.api.BitEx.prototype.resetPassword = function(token, new_password){
     'Token': token,
     'NewPassword': new_password
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 
@@ -804,7 +845,7 @@ bitex.api.BitEx.prototype.changePassword = function(password, new_password ){
     'Password': password,
     'NewPassword': new_password
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -826,7 +867,7 @@ bitex.api.BitEx.prototype.subscribeMarketData = function(market_depth, symbols, 
     'MDEntryTypes': entries,
     'Instruments': symbols
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return requestId;
 };
@@ -841,7 +882,7 @@ bitex.api.BitEx.prototype.unSubscribeMarketData = function(market_data_id){
     'MarketDepth' : 0,
     'SubscriptionRequestType': '2'
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 
@@ -857,7 +898,7 @@ bitex.api.BitEx.prototype.requestSecurityList = function(opt_requestId){
     'SecurityListRequestType': 0, // Symbol
     'SecurityRequestResult': 0
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 
@@ -879,7 +920,7 @@ bitex.api.BitEx.prototype.signUp = function(username, password, email, state, co
     'CountryCode': country_code,
     'BrokerID': broker
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -902,7 +943,7 @@ bitex.api.BitEx.prototype.requestOrderList = function(opt_requestId, opt_page, o
     'PageSize': limit,
     'StatusList': status
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return requestId;
 };
@@ -934,7 +975,7 @@ bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositO
     msg['Currency'] = opt_currency;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 /**
@@ -947,7 +988,7 @@ bitex.api.BitEx.prototype.requestDepositMethods = function( opt_requestId ) {
     'MsgType': 'U20',
     'DepositMethodReqID': requestId
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 };
 
 
@@ -983,7 +1024,7 @@ bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_c
     msg['ClientID'] = opt_client_id;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage(msg);
 
   return clientOrderId;
 };
@@ -1003,15 +1044,58 @@ bitex.api.BitEx.prototype.cancelOrder = function( opt_clientOrderId, opt_OrderId
     msg['OrigClOrdID'] = opt_clientOrderId;
   }
 
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage( msg );
+};
+
+/**
+ * @param {string} msg
+ */
+bitex.api.BitEx.prototype.sendRawMessage  = function(msg) {
+  /**
+   * @desc error message when sending raw message
+   */
+  var MSG_SEND_MSG_ERROR_TITLE = goog.getMsg('Error');
+
+
+  /**
+   * @desc not connected error when sending a message
+   */
+  var MSG_SEND_MSG_ERROR_NOT_CONNECTED_CONTENT = goog.getMsg('Not connected to the server');
+
+  if (!this.ws_.isOpen()) {
+    var error_msg = {
+      'MsgType': 'ERROR',
+      'Description': MSG_SEND_MSG_ERROR_TITLE,
+      'Detail': MSG_SEND_MSG_ERROR_NOT_CONNECTED_CONTENT
+    };
+    this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ERROR_MESSAGE, error_msg ) );
+    return;
+  }
+
+  /**
+   * @desc exception message when sending raw message
+   */
+  var MSG_SEND_MSG_EXCEPTION_TITLE = goog.getMsg('Exception');
+
+  try {
+    this.ws_.send(msg);
+  } catch( s ) {
+    var excep_msg = {
+      'MsgType': 'ERROR',
+      'Description': MSG_SEND_MSG_EXCEPTION_TITLE,
+      'Detail': s.toLocaleString()
+    };
+    this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ERROR_MESSAGE, excep_msg ) );
+  }
 };
 
 /**
  * @param {Object} msg
  */
-bitex.api.BitEx.prototype.sendRawMessage  = function(msg) {
-  this.ws_.send(JSON.stringify( msg ));
+bitex.api.BitEx.prototype.sendMessage  = function(msg) {
+  this.sendRawMessage(JSON.stringify( msg ));
 };
+
 
 /**
  * Send a buy order
@@ -1062,7 +1146,7 @@ bitex.api.BitEx.prototype.testRequest = function(){
     'MsgType': '1',
     'TestReqID': Math.random()
   };
-  this.ws_.send(JSON.stringify( msg ));
+  this.sendMessage( msg );
 };
 
 /**

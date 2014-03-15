@@ -64,6 +64,7 @@ goog.require('bitex.view.WithdrawView');
 goog.require('bitex.view.CustomersView');
 goog.require('bitex.view.AccountOverview');
 goog.require('bitex.view.BrokerView');
+goog.require('bitex.view.ToolBarView');
 
 /**
  * @constructor
@@ -73,10 +74,17 @@ bitex.app.SatoshiSquare = function() {
   goog.events.EventTarget.call(this);
   this.dialog_ = null;
 
-  this.router_  = new bitex.app.UrlRouter( this, '', 'start');
-  this.model_   = new bitex.model.Model(document.body);
-  this.conn_    = new bitex.api.BitEx();
-  this.views_   = new goog.ui.Component();
+
+  try {
+    this.router_  = new bitex.app.UrlRouter( this, '', 'start');
+    this.model_   = new bitex.model.Model(document.body);
+    this.conn_    = new bitex.api.BitEx();
+    this.views_   = new goog.ui.Component();
+  } catch ( error) {
+
+
+    this.showDialog(error);
+  }
 
 
   this.currency_info_       = {};
@@ -138,7 +146,7 @@ bitex.app.SatoshiSquare.prototype.brokers_by_country_;
  * @type {goog.events.EventHandler}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.googUiComponentHandler_;
+bitex.app.SatoshiSquare.prototype.handler_;
 
 /**
  * @type {goog.ui.Dialog}
@@ -333,6 +341,9 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var brokerView          = new bitex.view.BrokerView(this);
   var tradingView         = new bitex.view.NullView(this);
 
+  var toolBarView         = new bitex.view.ToolBarView(this);
+
+  this.views_.addChild( toolBarView         );
   this.views_.addChild( sideBarView         );
   this.views_.addChild( startView           );
   this.views_.addChild( setNewPasswordView  );
@@ -368,6 +379,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   verificationView.decorate(goog.dom.getElement('verification'));
   enableTwoFactorView.decorate(goog.dom.getElement('enable_two_factor'));
   sideBarView.decorate(goog.dom.getElement('id_sidebar'));
+  toolBarView.decorate(goog.dom.getElement('id_toolbar') );
   brokerView.decorate(goog.dom.getElement('my_broker'));
 
   this.views_.decorate(document.body);
@@ -398,9 +410,10 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var handler = this.getHandler();
   handler.listen( this.router_ , bitex.app.UrlRouter.EventType.SET_VIEW, this.onBeforeSetView_ );
 
-  handler.listen( this.conn_,bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_ );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_ );
   handler.listen( this.conn_, bitex.api.BitEx.EventType.CLOSED, this.onConnectionClose_);
   handler.listen( this.conn_, bitex.api.BitEx.EventType.ERROR ,  this.onConnectionError_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.ERROR_MESSAGE, this.onConnectionErrorMessage_);
 
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, this.onBrokerListResponse_);
@@ -419,6 +432,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
+
 
 
   // Listen to the views
@@ -445,8 +459,17 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
 
   handler.listen(this.model_, bitex.model.Model.EventType.SET + 'Broker', this.onModelSetBroker_);
 
+  handler.listen(this.views_, bitex.view.View.EventType.CONNECT_BITEX, this.onUserConnectBitEx_);
 
 
+  this.connectBitEx();
+};
+
+/**
+ * Connect to the bitex Server
+ */
+bitex.app.SatoshiSquare.prototype.connectBitEx = function(){
+  console.log('connectBitEx');
 
   try{
     this.conn_.open(this.url_);
@@ -455,8 +478,13 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
      * @desc Connection error message when trying to open websockets connection for the first time
      */
     var MSG_CONNECTION_ERROR = goog.getMsg('Error connecting to the server. Your browser MUST SUPPORT WebSockets.');
-    this.showDialog(MSG_CONNECTION_ERROR );
-    return;
+
+    var error_dialog = bitex.templates.ErrorDialogContent({
+                                                            error_message: MSG_CONNECTION_ERROR,
+                                                            error_code: 'WebSocket: ' + e
+                                                          });
+
+    var dlg = this.showDialog(error_dialog, undefined, bootstrap.Dialog.ButtonSet.createYesNoCancel());
   }
 };
 
@@ -856,9 +884,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
   }
 
   var deposit_methods = [];
-  var deposit_methods = this.getModel().get('DepositMethods');
-
-  goog.array.forEach(deposit_methods, function(deposit_method){
+  goog.array.forEach(this.getModel().get('DepositMethods'), function(deposit_method){
     if (deposit_method.currency == currency) {
       deposit_methods.push( {
                               'method': deposit_method.id,
@@ -1019,6 +1045,8 @@ bitex.app.SatoshiSquare.prototype.onUserLoginButtonClick_ = function(e){
 bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   var msg = e.data;
 
+  this.model_.set('Password',         this.loginView_.getPassword() );
+
   goog.dom.classes.add( document.body, 'bitex-logged'  );
   goog.dom.classes.remove( document.body, 'bitex-not-logged' );
 
@@ -1027,9 +1055,6 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.model_.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
   this.model_.set('IsBroker',         msg['IsBroker'] );
   this.model_.set('Broker',           msg['Broker']);
-
-
-
 
   if (msg['IsBroker'] ) {
     goog.dom.classes.add( document.body, 'bitex-broker'  );
@@ -1042,7 +1067,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   // Request Deposit Options
   this.conn_.requestDepositMethods();
 
-  // set view to Trading
+
   this.router_.setView('offerbook');
 };
 
@@ -1135,6 +1160,8 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
   });
 
   document.body.scrollTop = 0;
+
+
 
   // set the current view
   goog.dom.classes.add( document.body, 'active-view-' + view_id );
@@ -1294,7 +1321,14 @@ bitex.app.SatoshiSquare.prototype.onBrokerListResponse_ =  function(e){
   this.model_.set('BrokerList', msg);
 };
 
-
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
+bitex.app.SatoshiSquare.prototype.onUserConnectBitEx_ = function(e){
+  console.log('onUserConnectBitEx_');
+  this.connectBitEx();
+};
 
 /**
  * @param {goog.events.Event} e
@@ -1306,9 +1340,26 @@ bitex.app.SatoshiSquare.prototype.onConnectionOpen_ = function(e){
   goog.dom.classes.remove( document.body, 'bitex-broker' );
   goog.dom.classes.remove( document.body, 'bitex-non-broker' );
 
-  this.conn_.requestSecurityList();
+  if (! goog.isDefAndNotNull(this.model_.get('SecurityList') )) {
+    this.conn_.requestSecurityList();
+  }
 
-  this.conn_.requestBrokerList();
+  if (! goog.isDefAndNotNull(this.model_.get('BrokerList') )) {
+    this.conn_.requestBrokerList();
+  }
+
+  console.log('onConnectionOpen_');
+
+  // auto login in case of the user reconnecting
+  var username = this.getModel().get('Username');
+  var password = this.getModel().get('Password');
+  if (goog.isDefAndNotNull(username) && goog.isDefAndNotNull(password)) {
+    if (!goog.string.isEmpty(username) && !goog.string.isEmpty(password) ) {
+      if (password.length >= 8 ) {
+        this.conn_.login(username, password);
+      }
+    }
+  }
 };
 
 /**
@@ -1316,13 +1367,14 @@ bitex.app.SatoshiSquare.prototype.onConnectionOpen_ = function(e){
  * @protected
  */
 bitex.app.SatoshiSquare.prototype.onConnectionClose_ = function(e){
+  console.log('onConnectionClose_');
+
   goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
   goog.dom.classes.remove( document.body, 'bitex-non-broker' );
-  this.router_.setView('start');
 
-  // TODO:  TRY TO REOPEN THE CONNECTION, OR RELOAD THE PAGE.
+  this.router_.setView('start');
 };
 
 /**
@@ -1336,16 +1388,39 @@ bitex.app.SatoshiSquare.prototype.onConnectionError_ = function(e){
   goog.dom.classes.remove( document.body, 'bitex-non-broker' );
 
   /**
-   * @desc Connection error dialog general content
+   * @desc notification title on Connection close
    */
-  var MSG_CONNECTION_ERROR_DIALOG_GENERAL_CONTENT = goog.getMsg('Error connecting to the server. Your browser MUST SUPPORT WebSockets.');
+  var MSG_CONNECTION_ERROR_NOTIFICATION_ERROR_TITLE = goog.getMsg('Error');
 
-  this.showDialog(MSG_CONNECTION_ERROR_DIALOG_GENERAL_CONTENT);
+
+  /**
+   * @desc notification content on Connection close
+   */
+  var MSG_CONNECTION_ERROR_NOTIFICATION_ERROR_CONTENT = goog.getMsg('detected with the connection.');
+
+  this.showNotification('error',
+                        MSG_CONNECTION_ERROR_NOTIFICATION_ERROR_TITLE,
+                        MSG_CONNECTION_ERROR_NOTIFICATION_ERROR_CONTENT);
 
   this.router_.setView('start');
-
-  // TODO:  TRY TO REOPEN THE CONNECTION, OR RELOAD THE PAGE.
 };
+
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @protected
+ */
+bitex.app.SatoshiSquare.prototype.onConnectionErrorMessage_ = function(e){
+  var msg = e.data;
+
+  /**
+   * @desc notification content on Connection close
+   */
+  var MSG_CONNECTION_ERROR_MESSAGE_NOTIFICATION_TITLE = goog.getMsg('Message from server:');
+
+  this.showNotification('error',MSG_CONNECTION_ERROR_MESSAGE_NOTIFICATION_TITLE, msg['Description'] + ' - ' + msg['Detail'], 0);
+};
+
+
 
 /**
  * @param {string} content

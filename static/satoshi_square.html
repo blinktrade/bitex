@@ -38,7 +38,7 @@
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
-<div class="navbar navbar-inverse navbar-fixed-top">
+<div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="/start"><img src="/images/bitcoin-center.png" style="
@@ -48,10 +48,12 @@
         "></a>
 
       <ul class="nav navbar-nav pull-right">
+
         <li><a href="/markets.html">Markets</a></li>
         <li class="bitex-display-if-logged"><a href="" data-switch-view="trading">BTCUSD <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_usd" data-blink-class="md-blink"></span> / <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_usd" data-blink-class="md-blink"></span></a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
+        <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn btn-success btn-small">connect <i class="icon-white icon-repeat"></i></button></li>
       </ul>
     </div>
   </div>
@@ -471,8 +473,8 @@
 </footer>
 
 <script>
-  bitex.app.satoshi_square('wss://pinhopro.no-ip.org/trade/');
-  //bitex.app.satoshi_square('wss://localhost/trade/');
+  //bitex.app.satoshi_square('wss://pinhopro.no-ip.org/trade/');
+  bitex.app.satoshi_square('wss://localhost/trade/');
   //bitex.app.satoshi_square('wss://192.168.1.50/trade/');
 </script>
 

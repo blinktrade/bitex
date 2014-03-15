@@ -168,7 +168,12 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.trade_client.close()
         self.close()
     except TradeClientException, e:
-      self.write_message('{"MsgType":"ERR OR", "Description":"Error establishing connection with trade", "Detail": "' + str(e) + '"}' )
+      exception_message = {
+        'MsgType': 'ERROR',
+        'Description': 'Invalid message',
+        'Detail': str(e)
+      }
+      self.write_message( json.dumps(exception_message) )
       self.application.unregister_connection(self)
       self.trade_client.close()
       self.close()
