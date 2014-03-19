@@ -15,11 +15,7 @@ bitex.view.NullView = function(app, opt_domHelper) {
 goog.inherits(bitex.view.NullView, bitex.view.View);
 
 
-bitex.view.NullView.prototype.enterView = function() {
-  console.log('enterView:' + this.getId());
-};
+bitex.view.NullView.prototype.enterView = function() {};
 
-bitex.view.NullView.prototype.exitView = function() {
-  console.log('exitView:' + this.getId() );
-};
+bitex.view.NullView.prototype.exitView = function() {};
 

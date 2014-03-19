@@ -40,7 +40,12 @@ bitex.view.View.EventType = {
   CONFIRM_WITHDRAW: 'confirm_withdraw',
   PROCESS_WITHDRAW: 'process_withdraw',
 
-  DEPOSIT_REQUEST: 'request_deposit'
+  DEPOSIT_REQUEST: 'request_deposit',
+  PROCESS_DEPOSIT: 'process_deposit',
+
+  SHOW_QR: 'show_qr',
+  UPLOAD_RECEIPT: 'upload_receipt'
+
 };
 
 

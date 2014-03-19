@@ -67,7 +67,6 @@ bitex.app.markets = function( url ) {
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.ERROR_MESSAGE, function(e) {
     var msg = e.data;
-    console.log( goog.debug.deepExpose(msg) );
   });
 
   try{
@@ -117,7 +116,6 @@ bitex.app.markets = function( url ) {
 
   goog.events.listen(goog.dom.getElement('id_instrument_1'), goog.events.EventType.CHANGE  , function(e) {
     var symbol = goog.dom.forms.getValue(goog.dom.getElement('id_instrument_1') ) ;
-    console.log('selected ' + symbol);
 
     // Subscribe to MarketData
     if (subscription_1) {

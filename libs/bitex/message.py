@@ -141,7 +141,6 @@ class JsonMessage(BaseMessage):
       'U20': 'DepositMethodsRequest',
       'U21': 'DepositMethodsResponse',
 
-
       'U24': 'WithdrawConfirmationRequest',
       'U25': 'WithdrawConfirmationResponse',
       'U26': 'WithdrawListRequest',

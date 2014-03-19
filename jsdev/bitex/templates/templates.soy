@@ -139,6 +139,31 @@
   * @param reason_id
   * @param custom_reason_id
   */
+{template .CancelDepositDialogContent}
+<p>{msg desc="Cancel deposit dialog message"}Enter a reason for cancelling the deposit{/msg}</p>
+<form class="form-horizontal">
+  <fieldset>
+    <div class="control-group">
+      <label class="control-label" for="{$reason_id}" >{msg desc="Cancel deposit reason label"}Reason:{/msg}</label>
+      <div class="controls">
+        <select id="{$reason_id}">
+          <option value=0 selected>{msg desc="reason for cancelling deposit"}Other{/msg}</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <textarea id="{$custom_reason_id}" rows="2" style=""></textarea>
+      </div>
+    </div>
+  </fieldset>
+{/template}
+
+
+/**
+  * @param reason_id
+  * @param custom_reason_id
+  */
 {template .CancelWithdrawDialogContent}
 <p>{msg desc="Cancel withdraw dialog message"}Enter a reason for cancelling the user withdraw{/msg}</p>
 <form class="form-horizontal">
@@ -274,7 +299,7 @@
     </div>
     <p class="text-center">
       {msg desc="deposit processor dialog msg"} Powered by {/msg}
-      <a href="https://blockchain.info/api/api_receive/" target="_blank">blockchain.info/api/api_receive</a>
+      <a href="https://blockchain.info/api/api_receive/" target="_blank">https://blockchain.info/api/api_receive</a>
     </p>
   </div>
 {/template}

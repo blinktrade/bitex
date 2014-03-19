@@ -202,8 +202,6 @@ bitex.view.SignupView.prototype.onChangeState_ = function(e){
  * @private
  */
 bitex.view.SignupView.prototype.onSelectCountry_ = function(selected_country) {
-  console.log( 'selected country:' + selected_country);
-
   var signup_country_el = goog.dom.getElement('id_signup_country');
   var signup_state_el = goog.dom.getElement('id_signup_state');
 

@@ -68,6 +68,12 @@ bitex.view.DepositView.prototype.data_;
 
 
 /**
+ * @type {string}
+ */
+bitex.view.DepositView.prototype.action_;
+
+
+/**
  * @return {number}
  */
 bitex.view.DepositView.prototype.getAmount = function() {
@@ -91,6 +97,11 @@ bitex.view.DepositView.prototype.getCurrency = function() {
 
 bitex.view.DepositView.prototype.getRequestId = function() {
   return this.request_id_;
+};
+
+
+bitex.view.DepositView.prototype.getDepositAction = function() {
+  return this.action_;
 };
 
 bitex.view.DepositView.prototype.getDepositData = function() {
@@ -149,6 +160,10 @@ bitex.view.DepositView.prototype.destroyComponents_ = function( ) {
                      bitex.api.BitEx.EventType.DEPOSIT_REFRESH + '.' + model.get('UserID'),
                      this.onDepositRefresh_);
 
+    handler.unlisten(this.deposit_list_table_.getElement(),
+                     goog.events.EventType.CLICK,
+                     this.onDepositListTableClick_);
+
     this.deposit_list_table_.dispose();
   }
 
@@ -188,17 +203,80 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
 
   this.deposit_list_table_.decorate(el);
 
-  this.deposit_list_table_.setColumnFormatter('Value', this.priceFormatter_, this);
-  this.deposit_list_table_.setColumnFormatter('PaidValue', this.priceFormatter_, this);
+  this.deposit_list_table_.setColumnFormatter('Value', this.valuePriceFormatter_, this);
+
+  handler.listen(this.deposit_list_table_.getElement(),
+                 goog.events.EventType.CLICK,
+                 this.onDepositListTableClick_);
+};
+
+
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.DepositView.prototype.onDepositListTableClick_ = function(e) {
+  console.log('onDepositListTableClick_');
+  var element = e.target;
+  if (element.tagName  === goog.dom.TagName.I ) {
+    element = goog.dom.getParentElement(element);
+  }
+
+  var data_action = element.getAttribute('data-action');
+  if (goog.isDefAndNotNull(data_action)) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.action_ = data_action;
+    this.data_ = goog.json.parse(element.getAttribute('data-row'));
+
+    switch( data_action ) {
+      case 'SHOW_QR':
+        this.dispatchEvent(bitex.view.View.EventType.SHOW_QR);
+        break;
+      case 'UPLOAD':
+        this.dispatchEvent(bitex.view.View.EventType.UPLOAD_RECEIPT);
+        break;
+      case 'CANCEL':
+      case 'PROGRESS':
+      case 'COMPLETE':
+        this.dispatchEvent(bitex.view.View.EventType.PROCESS_DEPOSIT);
+        break;
+    }
+  }
 };
 
 /**
  * @param {*} value
  * @param {Object} rowSet
  */
-bitex.view.DepositView.prototype.priceFormatter_ = function(value, rowSet) {
+bitex.view.DepositView.prototype.valuePriceFormatter_ = function(value, rowSet) {
+  var paid_value  = rowSet['PaidValue'];
   var priceCurrency = rowSet['Currency'];
-  return this.getApplication().formatCurrency(value/1e8, priceCurrency);
+  var currency_description = this.getApplication().getCurrencyDescription(priceCurrency );
+  var formatted_value =  this.getApplication().formatCurrency(value/1e8, priceCurrency);
+
+  if (value === 0 ) {
+    if (paid_value  === 0){
+      return '-';
+    } else {
+      value = paid_value;
+    }
+  } else if ( paid_value >0 && paid_value != value ) {
+    var formatted_paid_value =  this.getApplication().formatCurrency(paid_value/1e8, priceCurrency);
+
+    /**
+     * @desc value abbrev title when paid value differs from declared value
+     */
+    var MSG_DEPOSIT_DIFFERENT_DECLARED_PAID_VALUE = goog.getMsg('declared / paid in {$currencyDesc}' , {
+      currencyDesc:currency_description});
+
+    return goog.dom.createDom('abbr', {'title': MSG_DEPOSIT_DIFFERENT_DECLARED_PAID_VALUE  },
+                              formatted_value + ' / ' + formatted_paid_value  );
+
+  } else {
+    return goog.dom.createDom('abbr', {'title': currency_description }, formatted_value  );
+  }
 };
 
 /**

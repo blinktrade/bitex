@@ -129,26 +129,76 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
       'property': 'Data',
       'label': MSG_WITHDRAW_TABLE_COLUMN_DETAIL,
       'sortable': false,
-      'formatter': function(s, record){
-        var row_set_obj = goog.object.clone(record);
-        delete row_set_obj['MsgType'];
-        delete row_set_obj['BrokerID'];
-        delete row_set_obj['UserID'];
-        delete row_set_obj['Status'];
-        delete row_set_obj['Amount'];
-        delete row_set_obj['Currency'];
-        delete row_set_obj['Created'];
-        delete row_set_obj['Method'];
-        delete row_set_obj['WithdrawID'];
+      'formatter': function(data, rowSet){
+        var element = goog.dom.createDom( 'table' );
 
-        // remove the nulls
-        var detail_obj = {};
-        for (var key in row_set_obj) {
-          if (goog.isDefAndNotNull(row_set_obj[key] )) {
-            detail_obj[key] = row_set_obj[key];
+        var reason_id = rowSet['ReasonID'];
+        var reason    = rowSet['Reason'];
+
+        if (goog.isDefAndNotNull(reason_id)) {
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_INSUFFICIENT_FUNDS = goog.getMsg('Insufficient funds');
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_ACCOUNT_NOT_VERIFIED = goog.getMsg('Account not verified');
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_SUSPICION_OF_FRAUD = goog.getMsg('Suspicion of fraud');
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_DIFFERENT_ACCOUNT = goog.getMsg('Withdrawing to a different account than yours');
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_INVALID_WALLET = goog.getMsg('Invalid wallet');
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_INVALID_BANK_ACCOUNT = goog.getMsg('Invalid bank account');
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_REASON_OVER_LIMIT = goog.getMsg('Amount exceeded your daily withdraw limit');
+
+
+          switch(reason_id) {
+            case 0:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,reason ))) ;
+              break;
+            case -1:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_INSUFFICIENT_FUNDS ))) ;
+              break;
+
+            case -2:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_ACCOUNT_NOT_VERIFIED ))) ;
+              break;
+
+            case -3:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_SUSPICION_OF_FRAUD ))) ;
+              break;
+            case -4:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_DIFFERENT_ACCOUNT ))) ;
+              break;
+            case -5:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_INVALID_WALLET ))) ;
+              break;
+            case -6:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_INVALID_BANK_ACCOUNT ))) ;
+              break;
+            case -7:
+              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+                                                               goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_OVER_LIMIT ))) ;
+              break;
           }
         }
-        return JSON.stringify(detail_obj);
+
+        goog.object.forEach(data, function(value, key) {
+          var row_element =  goog.dom.createDom('tr', undefined,
+                                                goog.dom.createDom('td', undefined, key ),
+                                                goog.dom.createDom('td', undefined, value ));
+          goog.dom.appendChild(element, row_element);
+        }, this);
+
+        return element;
+
       },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details');}
     }

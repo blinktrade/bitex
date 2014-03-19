@@ -87,6 +87,7 @@ bitex.api.BitEx.EventType = {
   OPENED: 'opened',
 
   RAW_MESSAGE: 'raw_message',
+  SENT_RAW_MESSAGE: 'sent_raw_message',
   ERROR_MESSAGE: 'error_message',
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
@@ -271,10 +272,13 @@ bitex.api.BitEx.prototype.onError_ = function(e) {
 bitex.api.BitEx.prototype.onMessage_ = function(e) {
   var msg = JSON.parse(e.message);
 
-  this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.RAW_MESSAGE, msg ) );
+  this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.RAW_MESSAGE, e.message ) );
 
   switch( msg['MsgType'] ) {
     case 'ERROR':
+      if (goog.isDefAndNotNull(msg['ReqID'])) {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ERROR_MESSAGE + '.' + msg['ReqID'] , msg ) );
+      }
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ERROR_MESSAGE, msg ) );
       break;
 
@@ -1080,6 +1084,8 @@ bitex.api.BitEx.prototype.sendRawMessage  = function(msg) {
 
   try {
     this.ws_.send(msg);
+
+    this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, msg ) );
   } catch( s ) {
     var excep_msg = {
       'MsgType': 'ERROR',

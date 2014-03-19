@@ -133,7 +133,6 @@ bitex.view.CustomersView.prototype.recreateComponents_ = function() {
  */
 bitex.view.CustomersView.prototype.onUserDetailsClick_ = function(e) {
   var data = e.target.getSelectedCustomer();
-  console.log('onUserDetailsClick_ ' + goog.debug.deepExpose(data) );
   this.getApplication().getModel().set('SelectedCustomer', data );
   this.getApplication().setView( 'account_overview/' + data['Username'] + '/');
 };

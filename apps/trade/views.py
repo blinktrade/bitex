@@ -445,6 +445,7 @@ def processRequestDeposit(session, msg):
   destination       = msg.get('Destination')
   secret            = msg.get('Secret')
 
+  should_broadcast = False
   if deposit_option_id:
     if session.user is None :
       raise NotAuthorizedError()
@@ -452,31 +453,36 @@ def processRequestDeposit(session, msg):
     value             = msg.get('Value')
     deposit_option = DepositMethods.get_deposit_method(application.db_session, deposit_option_id)
     if not deposit_option:
-      response = {'MsgType':'U19', 'DepositID': 0 }
+      response = {'MsgType':'U19', 'DepositID': -1 }
       return json.dumps(response, cls=JsonEncoder)
 
     deposit = deposit_option.generate_deposit(  application.db_session, session.user, value )
     application.db_session.commit()
+    should_broadcast = True
   elif currency:
     deposit = Deposit.create_crypto_currency_deposit(application.db_session, session.user, currency, input_address, destination, secret)
     application.db_session.commit()
+    should_broadcast = True
 
   else:
     deposit = Deposit.get_deposit(application.db_session, deposit_id)
 
   if not deposit:
-    response = {'MsgType':'U19', 'DepositID': 0 }
+    response = {'MsgType':'U19', 'DepositID': -1 }
     return json.dumps(response, cls=JsonEncoder)
 
+  if should_broadcast:
+    deposit_refresh = depositRecordToDepositMessage(deposit)
+    deposit_refresh['MsgType'] = 'U23'
+    deposit_refresh['DepositReqID'] = msg.get('DepositReqID')
+    application.publish( deposit.account_id, deposit_refresh  )
+    application.publish( deposit.broker_id,  deposit_refresh  )
 
-  deposit_refresh = depositRecordToDepositMessage(deposit)
-  deposit_refresh['MsgType'] = 'U23'
-  deposit_refresh['DepositReqID'] = msg.get('DepositReqID'),
-  application.publish( deposit.account_id, deposit_refresh  )
-  application.publish( deposit.broker_id,  deposit_refresh  )
 
-  deposit_refresh['MsgType'] = 'U19'
-  return json.dumps(deposit_refresh, cls=JsonEncoder)
+  response_msg = depositRecordToDepositMessage(deposit)
+  response_msg['MsgType'] = 'U19'
+  response_msg['DepositReqID'] = msg.get('DepositReqID')
+  return json.dumps(response_msg, cls=JsonEncoder)
 
 
 def depositRecordToDepositMessage( deposit ):
@@ -869,6 +875,7 @@ def processDepositListRequest(session, msg):
   columns = [ 'DepositID'    , 'DepositMethodID', 'DepositMethodName' ,
               'Type'         , 'Currency'       , 'Value'             ,
               'PaidValue'    , 'Data'           , 'Created'           ,
+              'ControlNumber',
               'Status'       , 'ReasonID'       , 'Reason'             ]
 
   for deposit in deposits:
@@ -882,6 +889,7 @@ def processDepositListRequest(session, msg):
       deposit.paid_value,
       json.loads(deposit.data),
       deposit.created,
+      deposit.broker_deposit_ctrl_num,
       deposit.status,
       deposit.reason_id,
       deposit.reason

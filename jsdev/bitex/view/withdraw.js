@@ -261,6 +261,7 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
 };
 
+
 /**
  * @param {*} value
  * @param {Object} rowSet

@@ -73,7 +73,7 @@ goog.require('bitex.view.ToolBarView');
 bitex.app.SatoshiSquare = function() {
   goog.events.EventTarget.call(this);
   this.dialog_ = null;
-
+  this.error_message_alert_timeout_ = 5000;
 
   try {
     this.router_  = new bitex.app.UrlRouter( this, '', 'start');
@@ -81,8 +81,6 @@ bitex.app.SatoshiSquare = function() {
     this.conn_    = new bitex.api.BitEx();
     this.views_   = new goog.ui.Component();
   } catch ( error) {
-
-
     this.showDialog(error);
   }
 
@@ -162,6 +160,11 @@ bitex.app.SatoshiSquare.prototype.loginView_;
  * @type {goog.ui.Component}
  */
 bitex.app.SatoshiSquare.prototype.views_;
+
+/**
+ * @type {number}
+ */
+bitex.app.SatoshiSquare.prototype.error_message_alert_timeout_;
 
 /**
  * @protected
@@ -430,6 +433,9 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.EXECUTION_REPORT, this.onBitexExecutionReport_);
 
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'receive' ) );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'send' )  );
+
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
 
@@ -455,22 +461,37 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(this.views_, bitex.view.View.EventType.REQUEST_WITHDRAW, this.onUserWithdrawRequest_ );
   handler.listen(this.views_, bitex.view.View.EventType.CONFIRM_WITHDRAW, this.onUserConfirmWithdraw_ );
   handler.listen(this.views_, bitex.view.View.EventType.PROCESS_WITHDRAW, this.onBrokerProcessWithdraw_ );
+
   handler.listen(this.views_, bitex.view.View.EventType.DEPOSIT_REQUEST, this.onUserDepositRequest_ );
+  handler.listen(this.views_, bitex.view.View.EventType.PROCESS_DEPOSIT, this.onProcessDeposit_ );
 
   handler.listen(this.model_, bitex.model.Model.EventType.SET + 'Broker', this.onModelSetBroker_);
 
   handler.listen(this.views_, bitex.view.View.EventType.CONNECT_BITEX, this.onUserConnectBitEx_);
+
+  handler.listen(this.views_, bitex.view.View.EventType.SHOW_QR, this.onUserShowQr_);
 
 
   this.connectBitEx();
 };
 
 /**
+ * logger
+ * @param {string} action
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onBitexRawMessageLogger_ = function(action, e) {
+  var raw_msg = e.data;
+  try {
+    console.log(action + ':' + raw_msg);
+  } catch(e) {}
+};
+
+/**
  * Connect to the bitex Server
  */
 bitex.app.SatoshiSquare.prototype.connectBitEx = function(){
-  console.log('connectBitEx');
-
   try{
     this.conn_.open(this.url_);
   } catch( e ) {
@@ -502,7 +523,6 @@ bitex.app.SatoshiSquare.prototype.setView = function(view_id){
 
 
 bitex.app.SatoshiSquare.prototype.onUserMarketDataSubscribe_ = function(e) {
-  console.log('onUserMarketDataSubscribe: ' + e.target.getMDSubscriptionId() + ',' + e.target.getMDInstruments() );
   this.conn_.subscribeMarketData(e.target.getMDMarketDepth(),
                                  e.target.getMDInstruments(),
                                  e.target.getMDEntries(),
@@ -510,7 +530,6 @@ bitex.app.SatoshiSquare.prototype.onUserMarketDataSubscribe_ = function(e) {
 };
 
 bitex.app.SatoshiSquare.prototype.onUserMarketDataUnsubscribe_ = function(e) {
-  console.log('onUserMarketDataUnsubscribe ' + e.target.getMDSubscriptionId() + ',' + e.target.getMDInstruments() );
   this.conn_.unSubscribeMarketData(e.target.getMDSubscriptionId());
 };
 
@@ -664,6 +683,8 @@ bitex.app.SatoshiSquare.prototype.onBitexWithdrawIncrementalUpdate_ = function(e
   }
 };
 
+
+
 bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
   var msg = e.data;
 
@@ -814,6 +835,40 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onUserOrderEntry_ = function(e){
+  /**
+   * @desc notification for send order request
+   */
+  var MSG_SEND_ORDER_NOTIFICATION_TITLE = goog.getMsg('Sending order...');
+
+  /**
+   * @desc notification for send order request
+   */
+  var MSG_SEND_ORDER_NOTIFICATION_SIDE_BUY = goog.getMsg('BUY');
+
+
+  /**
+   * @desc notification for send order request
+   */
+  var MSG_SEND_ORDER_NOTIFICATION_SIDE_SELL = goog.getMsg('SELL');
+
+  var side_msg =  MSG_SEND_ORDER_NOTIFICATION_SIDE_BUY;
+
+  if (e.target.getSide() == '2') {
+    side_msg = MSG_SEND_ORDER_NOTIFICATION_SIDE_SELL;
+  }
+
+  /**
+   * @desc notification for send order request
+   */
+  var MSG_SEND_ORDER_NOTIFICATION_CONTENT = goog.getMsg('{$side} {$amount} {$symbol}  @ {$price}', {
+    side: side_msg,
+    amount: e.target.getAmount(),
+    symbol: e.target.getSymbol(),
+    price: e.target.getPrice()
+  });
+
+  this.showNotification( 'info', MSG_SEND_ORDER_NOTIFICATION_TITLE,MSG_SEND_ORDER_NOTIFICATION_CONTENT );
+
   this.conn_.sendLimitedOrder(e.target.getSymbol(),
                               e.target.getAmount(),
                               e.target.getPrice(),
@@ -826,8 +881,96 @@ bitex.app.SatoshiSquare.prototype.onUserOrderEntry_ = function(e){
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onUserCancelOrder_ = function(e){
-  console.log('cancelling order ...');
+  /**
+   * @desc notification for order cancel request
+   */
+  var MSG_CANCEL_ORDER_NOTIFICATION_TITLE = goog.getMsg('Cancelling order...');
+
+  if (goog.isDefAndNotNull(e.target.getClientOrderId())) {
+    this.showNotification('info', MSG_CANCEL_ORDER_NOTIFICATION_TITLE, ':' + e.target.getClientOrderId() );
+  } else {
+    this.showNotification('info', MSG_CANCEL_ORDER_NOTIFICATION_TITLE, ':' + e.target.getOrderId() );
+  }
   this.conn_.cancelOrder(e.target.getClientOrderId(), e.target.getOrderId());
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onUserShowQr_ = function(e){
+  var depositData = e.target.getDepositData();
+
+  /**
+   * @desc Crypto Currency Withdraw accordion title
+   */
+  var MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE =
+      goog.getMsg('{$currency} deposit', {currency :  this.getCurrencyDescription(depositData['Currency']) });
+
+  var dlg =  this.showDialog(bitex.templates.DepositCryptoCurrencyContentDialog({deposit_message:depositData}),
+                             MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE,
+                             bootstrap.Dialog.ButtonSet.createCancel());
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
+  var deposit_data = e.target.getDepositData();
+  var request_id = e.target.getRequestId();
+  var action = e.target.getDepositAction();
+
+  if (action === 'CANCEL') {
+
+    /**
+     * @desc Cancel Deposit dialog title
+     */
+    var MSG_DEPOSIT_CANCEL_DIALOG_TITLE = goog.getMsg('Cancel deposit');
+
+    var cancel_reason_dialog_content = bitex.templates.CancelDepositDialogContent({
+      reason_id:'id_select_reason',
+      custom_reason_id:'id_custom_reason_text'
+    });
+
+    var cancelWithdrawDlg =  this.showDialog( cancel_reason_dialog_content,
+                                              MSG_DEPOSIT_CANCEL_DIALOG_TITLE,
+                                              bootstrap.Dialog.ButtonSet.createOkCancel() );
+
+    var handler = this.getHandler();
+
+    var select_reason_el = goog.dom.getElement('id_select_reason');
+    var reason_el = goog.dom.getElement('id_custom_reason_text');
+    handler.listen(select_reason_el, goog.events.EventType.CHANGE, function(e){
+      var reason_id = goog.string.toNumber(goog.dom.forms.getValue( select_reason_el ));
+      goog.style.showElement ( reason_el, (reason_id === 0 )) ;
+    });
+
+    handler.listen(cancelWithdrawDlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'ok') {
+        var reason_id = goog.string.toNumber(goog.dom.forms.getValue( select_reason_el ));
+        var reason;
+
+        if (reason_id === 0 ) {
+          reason = goog.string.trim(goog.dom.forms.getValue(reason_el));
+
+          if (goog.string.isEmpty(reason)) {
+            e.stopPropagation();
+            e.preventDefault();
+            goog.dom.getElement('id_custom_reason_text').focus();
+            return;
+          }
+        }
+
+        this.getBitexConnection().processDeposit (request_id,
+                                                  action,
+                                                  undefined,
+                                                  deposit_data['DepositID'],
+                                                  reason_id,
+                                                  reason);
+      }
+    }, this);
+  }
 };
 
 
@@ -870,6 +1013,10 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
 
         dlgConfirm.setButtonSet( bootstrap.Dialog.ButtonSet.createCancel() );
 
+
+        handler.listenOnce( this.conn_ , bitex.api.BitEx.EventType.ERROR_MESSAGE + '.' + request_id, function(e){
+          dlgConfirm.dispose();
+        });
 
         handler.listenOnce( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + request_id, function(e){
           var msg = e.data;
@@ -1295,8 +1442,6 @@ bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
 
 
   this.getModel().set('BrokerCurrencies',broker_currencies);
-
-  console.log(goog.debug.deepExpose(allowed_markets));
   this.getModel().set('AllowedMarkets',allowed_markets);
 };
 
@@ -1328,7 +1473,6 @@ bitex.app.SatoshiSquare.prototype.onBrokerListResponse_ =  function(e){
  * @protected
  */
 bitex.app.SatoshiSquare.prototype.onUserConnectBitEx_ = function(e){
-  console.log('onUserConnectBitEx_');
   this.connectBitEx();
 };
 
@@ -1350,8 +1494,6 @@ bitex.app.SatoshiSquare.prototype.onConnectionOpen_ = function(e){
     this.conn_.requestBrokerList();
   }
 
-  console.log('onConnectionOpen_');
-
   // auto login in case of the user reconnecting
   var username = this.getModel().get('Username');
   var password = this.getModel().get('Password');
@@ -1369,8 +1511,6 @@ bitex.app.SatoshiSquare.prototype.onConnectionOpen_ = function(e){
  * @protected
  */
 bitex.app.SatoshiSquare.prototype.onConnectionClose_ = function(e){
-  console.log('onConnectionClose_');
-
   goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
@@ -1419,7 +1559,10 @@ bitex.app.SatoshiSquare.prototype.onConnectionErrorMessage_ = function(e){
    */
   var MSG_CONNECTION_ERROR_MESSAGE_NOTIFICATION_TITLE = goog.getMsg('Message from server:');
 
-  this.showNotification('error',MSG_CONNECTION_ERROR_MESSAGE_NOTIFICATION_TITLE, msg['Description'] + ' - ' + msg['Detail'], 0);
+  this.showNotification('error',
+                        MSG_CONNECTION_ERROR_MESSAGE_NOTIFICATION_TITLE,
+                        msg['Description'] + ' - ' + msg['Detail'],
+                        this.error_message_alert_timeout_);
 };
 
 

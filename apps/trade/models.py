@@ -138,7 +138,7 @@ class User(Base):
   broker_id       = Column(Integer, ForeignKey('users.id'))
   broker          = relationship("User", remote_side=[id])
 
-  state           = Column(String(30),    nullable=False)
+  state           = Column(String(30))
   country_code    = Column(String(2),     nullable=False)
 
   password_algo   = Column(String(8), nullable=False)
@@ -1107,10 +1107,15 @@ class Deposit(Base):
     return q.first()
 
   def cancel(self, session, reason_id, reason=None):
+    if self.status == '4':
+      # TODO: revert the deposit
+      # TODO: Update ledger
+      pass
+
     self.status = '8'
     self.reason_id = reason_id
     self.reason = reason
-    session.add(deposit)
+    session.add(self)
     session.flush()
 
   def process_confirmation(self, session, amount, data=None ):

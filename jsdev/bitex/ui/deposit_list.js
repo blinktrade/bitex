@@ -61,7 +61,7 @@ var MSG_DEPOSIT_TABLE_COLUMN_PAID_VALUE = goog.getMsg('Paid Value');
 /**
  * @desc Column Method of the Deposit List
  */
-var MSG_DEPOSIT_TABLE_COLUMN_METHOD = goog.getMsg('Method');
+var MSG_DEPOSIT_TABLE_COLUMN_CTRL_NUMBER = goog.getMsg('Control Number');
 
 /**
  * @desc Column Created of the Deposit List
@@ -117,105 +117,234 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
       },
       'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'status'); }
     },{
-      'property': 'Currency',
-      'label': MSG_DEPOSIT_TABLE_COLUMN_CURRENCY,
-      'sortable': false,
-      'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'currency'); }
-    },{
       'property': 'Value',
       'label': MSG_DEPOSIT_TABLE_COLUMN_VALUE,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'value'); }
     },{
-      'property': 'PaidValue',
-      'label': MSG_DEPOSIT_TABLE_COLUMN_PAID_VALUE,
+      'property':'ControlNumber',
+      'label': MSG_DEPOSIT_TABLE_COLUMN_CTRL_NUMBER,
       'sortable': false,
-      'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'paid-value'); }
-    },{
-      'property':'DepositMethodName',
-      'label': MSG_DEPOSIT_TABLE_COLUMN_METHOD,
-      'sortable': false,
+      'formatter': function(value, rowSet) {
+        switch (rowSet['Type'] ) {
+          case 'CRY':
+            return '-';
+          default:
+            return '' + value;
+        }
+      },
       'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'method'); }
     },{
       'property': 'Data',
       'label': MSG_DEPOSIT_TABLE_COLUMN_DETAIL,
       'sortable': false,
-      'formatter': function(s, record){
-        var row_set_obj = goog.object.clone(record);
-        delete row_set_obj['MsgType'];
-        delete row_set_obj['BrokerID'];
-        delete row_set_obj['UserID'];
-        delete row_set_obj['Status'];
-        delete row_set_obj['Value'];
-        delete row_set_obj['PaidValue'];
-        delete row_set_obj['Type'];
-        delete row_set_obj['Currency'];
-        delete row_set_obj['Created'];
-        delete row_set_obj['Method'];
-        delete row_set_obj['DepositID'];
-        delete row_set_obj['DepositMethodID'];
-        delete row_set_obj['DepositMethodName'];
+      'formatter': function(value, rowSet){
+        var data_row = goog.json.serialize( rowSet );
 
+        /**
+         * @desc Deposit delete button label in the  broker's deposit list
+         */
+        var MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_VIEW  = goog.getMsg('view');
 
-        // remove the nulls
-        var detail_obj = {};
-        for (var key in row_set_obj) {
-          if (goog.isDefAndNotNull(row_set_obj[key] )) {
-            detail_obj[key] = row_set_obj[key];
-          }
+        /**
+         * @desc Deposit delete button label in the  broker's deposit list
+         */
+        var MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_QR  = goog.getMsg('qr');
+
+        /**
+         * @desc Deposit delete button label in the  broker's deposit list
+         */
+        var MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_TRANSACTION  = goog.getMsg('blockchain');
+
+        var btn_view = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-info btn-deposit-view',
+          'href': '/get_deposit?deposit_id=' + rowSet['DepositID'],
+          'target':'_blank'
+        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_VIEW,' ' ,goog.dom.createDom( 'i', ['icon-white', 'icon-eye-open']));
+
+        var btn_qr = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-info btn-deposit-view-qr',
+          'href':'#',
+          'data-action':'SHOW_QR',
+          'data-row': data_row
+        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_QR,' ' , goog.dom.createDom( 'i', ['icon-white', 'icon-qrcode']));
+
+        var blockchain_address = "#";
+        if (rowSet['Currency'] == 'BTC') {
+          blockchain_address = 'https://blockchain.info/address/'  + rowSet['Data']['InputAddress'];
         }
-        return JSON.stringify(detail_obj);
+
+        var btn_transaction = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-primary btn-deposit-transaction',
+          'href': blockchain_address,
+          'target':'_blank'
+        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_TRANSACTION,' ' , goog.dom.createDom( 'i', ['icon-white', 'icon-share-alt']));
+
+
+        switch (rowSet['Type'] ) {
+          case 'CRY':
+            switch( rowSet['Status'] ) {
+              case '0':
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_qr, btn_transaction] ) ;
+              case '2':
+              case '4':
+              case '8':
+                return goog.dom.createDom('div', 'btn-group',[btn_transaction]);
+            }
+            break;
+
+          case 'BBS':
+          case 'BTI':
+            switch( rowSet['Status'] ) {
+              case '0':
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_view]);
+              case '2':
+              case '4':
+              case '8':
+                return goog.dom.createDom('div', 'btn-group',[btn_view]);
+            }
+        }
+
       },
       'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'details');}
     }
   ];
 
+
+  /**
+   * @desc Deposit delete button label in the  broker's deposit list
+   */
+  var MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_CANCEL  = goog.getMsg('cancel');
+
+  /**
+   * @desc Deposit delete button label in the  broker's deposit list
+   */
+  var MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_UPLOAD  = goog.getMsg('send receipt');
+
+
+  /**
+   * @desc Withdraw progress button label in the  broker's withdraw list
+   */
+  var MSG_DEPOSIT_TABLE_COLUMN_ACTION_PROGRESS = goog.getMsg('Set in progress');
+
+  /**
+   * @desc Withdraw progress button label in the  broker's withdraw list
+   */
+  var MSG_DEPOSIT_TABLE_COLUMN_ACTION_COMPLETE = goog.getMsg('Set as complete');
+
+
   if (broker_mode ){
     grid_columns.push({
-                        'property' : 'DepositID',
-                        'label': MSG_DEPOSIT_TABLE_COLUMN_ACTIONS,
-                        'sortable': false,
-                        'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'actions');},
-                        'formatter': function(s, row_set_obj){
-                          var data_row = goog.json.serialize( row_set_obj );
+      'property' : 'DepositID',
+      'label': MSG_DEPOSIT_TABLE_COLUMN_ACTIONS,
+      'sortable': false,
+      'formatter': function(value, rowSet){
+        var data_row = goog.json.serialize( rowSet );
 
-                          /**
-                           * @desc Deposit cancel button label in the  broker's deposit list
-                           */
-                          var MSG_DEPOSIT_TABLE_COLUMN_ACTION_CANCEL = goog.getMsg('Cancel');
+        var btn_cancel = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-danger btn-deposit-view-qr',
+          'href':'#',
+          'data-action':'CANCEL',
+          'data-row': data_row
+        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_CANCEL,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-remove']));
 
-                          var btn_cancel = goog.dom.createDom( 'button',
-                                                               { 'class':'btn btn-mini btn-danger btn-deposit-cancel', 'data-row': data_row},
-                                                               MSG_DEPOSIT_TABLE_COLUMN_ACTION_CANCEL );
+        var btn_progress = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-info btn-deposit-progress',
+          'href':'#',
+          'data-action':'PROGRESS',
+          'data-row': data_row
+        },MSG_DEPOSIT_TABLE_COLUMN_ACTION_PROGRESS,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-refresh']));
 
-                          /**
-                           * @desc Deposit progress button label in the  broker's deposit list
-                           */
-                          var MSG_DEPOSIT_TABLE_COLUMN_ACTION_PROGRESS = goog.getMsg('Set in progress');
-
-                          var btn_progress = goog.dom.createDom( 'button',
-                                                                 { 'class':'btn btn-mini btn-primary btn-deposit-progress', 'data-row': data_row},
-                                                                 MSG_DEPOSIT_TABLE_COLUMN_ACTION_PROGRESS );
+        var btn_complete = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-primary btn-deposit-complete',
+          'href':'#',
+          'data-action':'COMPLETE',
+          'data-row': data_row
+        },MSG_DEPOSIT_TABLE_COLUMN_ACTION_COMPLETE,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-ok']));
 
 
-                          /**
-                           * @desc Deposit progress button label in the  broker's deposit list
-                           */
-                          var MSG_DEPOSIT_TABLE_COLUMN_ACTION_COMPLETE = goog.getMsg('Set as complete');
+        switch (rowSet['Type'] ) {
+          case 'CRY':
+            switch( rowSet['Status'] ) {
+              case '0':
+                return '';
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_progress]);
+              case '2':
+                return goog.dom.createDom('div', 'btn-group',[btn_complete]);
+              case '4':
+              case '8':
+                return '';
+            }
+            break;
 
-                          var btn_complete = goog.dom.createDom( 'button',
-                                                                 { 'class':'btn btn-mini btn-success btn-deposit-complete', 'data-row': data_row},
-                                                                 MSG_DEPOSIT_TABLE_COLUMN_ACTION_COMPLETE );
+          default:
+            switch( rowSet['Status'] ) {
+              case '0':
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_cancel, btn_progress]);
+              case '2':
+                return goog.dom.createDom('div', 'btn-group',[btn_cancel, btn_complete]);
+              case '4':
+                return goog.dom.createDom('div', 'btn-group',[btn_cancel]);
+              case '8':
+                return '';
+            }
+        }
 
-                          switch(row_set_obj['Status']){
-                            case '0': return btn_cancel;
-                            case '1': return [btn_cancel, btn_progress];
-                            case '2': return [btn_cancel, btn_complete];
-                            case '4': return "";
-                            case '8': return "";
-                          }
-                        }
-                      });
+      },
+      'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'actions');}
+    });
+  } else {
+    grid_columns.push({
+      'property' : 'DepositID',
+      'label': MSG_DEPOSIT_TABLE_COLUMN_ACTIONS,
+      'sortable': false,
+      'formatter':function(value, rowSet){
+        var data_row = goog.json.serialize( rowSet );
+
+        var btn_cancel = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-danger btn-deposit-view-qr',
+          'href':'#',
+          'data-action':'CANCEL',
+          'data-row': data_row
+        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_CANCEL,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-remove']));
+
+
+        var btn_upload = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-success btn-deposit-upload',
+          'data-action':'UPLOAD',
+          'data-row': data_row
+        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_UPLOAD, ' ' ,goog.dom.createDom( 'i', ['icon-white', 'icon-file']));
+
+        switch (rowSet['Type'] ) {
+          case 'CRY':
+            switch( rowSet['Status'] ) {
+              case '0':
+              case '1':
+              case '2':
+              case '4':
+              case '8':
+                return '';
+            }
+            break;
+
+          default:
+            switch( rowSet['Status'] ) {
+              case '0':
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_upload]);
+              case '2':
+              case '4':
+              case '8':
+                return '';
+            }
+        }
+      },
+      'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'actions');}
+    });
   }
 
   this.selected_deposit_ = null;

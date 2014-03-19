@@ -135,7 +135,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
           'method': 'create',
           'address': hot_wallet,
           'callback': callback_url
-        }  )
+        })
 
         url_payment_processor = None
         if currency == 'BTC':
@@ -145,15 +145,28 @@ class WebSocketHandler(websocket.WebSocketHandler):
           # TODO: Return NOT SUPPORTED COIN error to the user
           return
 
-        response = urllib2.urlopen(url_payment_processor + '?' + parameters)
-        if not response:
+        try:
+          response = urllib2.urlopen(url_payment_processor + '?' + parameters)
+          data = json.load(response)
+          req_msg.set('InputAddress', data['input_address'])
+          req_msg.set('Destination',  data['destination'])
+          req_msg.set('Secret', secret)
+        except urllib2.HTTPError, e:
+          self.write_message ( json.dumps( {
+            'MsgType':'ERROR',
+            'ReqID': req_msg.get('DepositReqID'),
+            'Description': 'Blockchain.info is not available at this moment, please try again within few minutes',
+            'Detail': str(e)
+          }))
           return
-
-        data = json.load(response)
-        req_msg.set('InputAddress', data['input_address'])
-        req_msg.set('Destination',  data['destination'])
-        req_msg.set('Secret', secret)
-
+        except Exception, e:
+          self.write_message ( json.dumps( {
+            'MsgType':'ERROR',
+            'ReqID': req_msg.get('DepositReqID'),
+            'Description': 'Error retrieving a new deposit address from Blockchain.info. Please, try again',
+            'Detail': str(e)
+          }))
+          return
 
     try:
       resp_message = self.trade_client.sendMessage( req_msg )

@@ -138,7 +138,6 @@ bitex.ui.OrderEntryX.prototype.decorateInternal = function(element) {
 /** @override */
 bitex.ui.OrderEntryX.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
-  console.log('bitex.ui.OrderEntryX.prototype.enterDocument');
 
   var handler = this.getHandler();
   var dom  = this.getDomHelper();
@@ -183,8 +182,6 @@ bitex.ui.OrderEntryX.prototype.enterDocument = function() {
  * @private
  */
 bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_ = function(e) {
-  console.log('bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_');
-
   var inputEl = e.target;
   var inputValue = goog.dom.forms.getValue(inputEl);
 
