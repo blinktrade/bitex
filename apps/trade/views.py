@@ -83,6 +83,7 @@ def processLogin(session, msg):
       'Email'              : broker.email                ,
       'Currencies'         : broker.currencies           ,
       'VerificationForm'   : broker.verification_jotform ,
+      'UploadForm'         : broker.upload_jotform       ,
       'TosUrl'             : broker.tos_url              ,
       'FeeStructure'       : json.loads(broker.fee_structure),
       'WithdrawStructure'  : json.loads(broker.withdraw_structure),
@@ -854,14 +855,8 @@ def processDepositListRequest(session, msg):
   offset      = page * page_size
 
   user = session.user
-  if msg.has('ClientID'):
-    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
-    if user.broker_id  != session.user.id:
-      raise NotAuthorizedError()
-    if not user:
-      raise NotAuthorizedError()
 
-  if session.user.is_broker:
+  if user.is_broker:
     if msg.has('ClientID'):
       deposits = Deposit.get_list(application.db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
     else:

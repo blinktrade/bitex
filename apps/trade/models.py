@@ -519,7 +519,8 @@ class Broker(Base):
   skype                 = Column(String(30),    nullable=False)
   email                 = Column(String(15))
 
-  verification_jotform  = Column(String(50),    nullable=False)
+  verification_jotform  = Column(String(255),    nullable=False)
+  upload_jotform        = Column(String(255),    nullable=False)
 
   withdraw_structure    = Column(Text,          nullable=False)
 
@@ -556,13 +557,13 @@ class Broker(Base):
   def __repr__(self):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
            u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
-           u"verification_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
+           u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
            u"fee_structure=%r, withdraw_structure=%r," \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
-      self.verification_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
+      self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking )
@@ -1248,6 +1249,7 @@ def db_bootstrap(session):
                address=u'', state=u'', zip_code=u'', city='', country='', country_code='',
                phone_number_1='+1 (917) 753-1359', phone_number_2=None, skype='blinktrade', email=None,
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
                currencies='XXX',
                withdraw_structure=json.dumps({ }),
                crypto_currencies=json.dumps([
@@ -1272,6 +1274,7 @@ def db_bootstrap(session):
                address=u'40 Broad Street', city='New York', state='NY', zip_code='10004', country_code='US', country='United States',
                phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='joann.f.', email='NYCBitcoinCenter@gmail.com',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
                currencies='USD',
                withdraw_structure=json.dumps( {
                  'BTC': [

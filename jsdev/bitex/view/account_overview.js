@@ -21,6 +21,8 @@ bitex.view.AccountOverview = function(app, opt_domHelper) {
 
   this.request_id_ = null;
   this.withdraw_action_ = null;
+  this.deposit_action_ = null;
+  this.deposit_data_ = null;
 };
 goog.inherits(bitex.view.AccountOverview, bitex.view.View);
 
@@ -34,6 +36,28 @@ bitex.view.AccountOverview.prototype.withdraw_list_table_ ;
  * @type {bitex.ui.DepositList}
  */
 bitex.view.AccountOverview.prototype.deposit_list_table_ ;
+
+
+/**
+ * @type {number}
+ */
+bitex.view.AccountOverview.prototype.request_id_;
+
+/**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.withdraw_action_;
+
+/**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.deposit_action_;
+
+/**
+ * @type {Object}
+ */
+bitex.view.AccountOverview.prototype.deposit_data_;
+
 
 /**
  * @param {string} username
@@ -61,26 +85,6 @@ bitex.view.AccountOverview.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
 };
 
-
-/**
- * @type {number}
- */
-bitex.view.AccountOverview.prototype.request_id_;
-
-/**
- * @type {string}
- */
-bitex.view.AccountOverview.prototype.withdraw_action_;
-
-/**
- * @type {string}
- */
-bitex.view.AccountOverview.prototype.deposit_action_;
-
-/**
- * @type {Object}
- */
-bitex.view.AccountOverview.prototype.deposit_data_;
 
 /**
  * @override
@@ -157,13 +161,14 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
                      bitex.api.BitEx.EventType.BALANCE_RESPONSE,
                      this.onBalanceResponse_);
 
-    this.withdraw_list_table_ .dispose();
+    this.withdraw_list_table_.dispose();
   }
 
   var account_overview_header_el = goog.dom.getElement('account_overview_header_id');
   goog.dom.removeChildren(account_overview_header_el);
 
-  this.withdraw_list_table_  = null;
+  this.withdraw_list_table_ = null;
+  this.deposit_list_table_ = null;
   this.request_id_ = null;
 };
 
@@ -305,8 +310,10 @@ bitex.view.AccountOverview.prototype.onDepositListTableRequestData_ = function(e
   var limit = e.options['Limit'];
   var filter = e.options['Filter'];
 
+  var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+
   var conn = this.getApplication().getBitexConnection();
-  conn.requestDepositList(this.request_id_, page, limit, ['0', '1', '2', '4', '8'] , undefined, filter );
+  conn.requestDepositList(this.request_id_, page, limit, ['0', '1', '2', '4', '8'] , selectedCustomer["ID"], filter );
 };
 
 

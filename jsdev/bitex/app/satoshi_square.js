@@ -187,6 +187,11 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   });
 
   /**
+   * @desc deposit table title
+   */
+  var MSG_DEPOSIT_TABLE_TITLE  = goog.getMsg('Deposits');
+
+  /**
    * @desc placeholder for the search input text in the customers table
    */
   var MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
@@ -228,13 +233,22 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     title: MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE
   });
 
+  /**
+   * @desc Trades table title
+   */
+  var MSG_TRADES_TABLE_TITLE = goog.getMsg('Trades');
 
   goog.soy.renderElement(goog.dom.getElement('account_overview_trades_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_trades_table_id'
+    id: 'account_overview_trades_table_id',
+    title: MSG_TRADES_TABLE_TITLE
   });
 
+
   goog.soy.renderElement(goog.dom.getElement('account_overview_deposits_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_deposits_table_id'
+    id: 'account_overview_deposits_table_id',
+    title: MSG_DEPOSIT_TABLE_TITLE,
+    show_search: true,
+    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
   });
 
   // create all order entries
@@ -470,6 +484,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(this.views_, bitex.view.View.EventType.CONNECT_BITEX, this.onUserConnectBitEx_);
 
   handler.listen(this.views_, bitex.view.View.EventType.SHOW_QR, this.onUserShowQr_);
+  handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
 
   this.connectBitEx();
@@ -916,7 +931,36 @@ bitex.app.SatoshiSquare.prototype.onUserShowQr_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
+bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
+  var model = this.getModel();
+  var deposit_data = e.target.getDepositData();
+
+  var broker = model.get('Broker');
+  if (!goog.isDefAndNotNull(broker)){
+    return;
+  }
+
+  var upload_form_url =  broker['UploadForm'];
+  var form_src = goog.string.subs(upload_form_url,
+                                  model.get('UserID'),
+                                  model.get('Username'),
+                                  deposit_data['DepositMethodName'],
+                                  deposit_data['ControlNumber'] );
+
+
+  window.open(form_src,
+              'blank',
+              'scrollbars=yes,toolbar=no,width=700,height=500');
+
+
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
+  var model = this.getModel();
   var deposit_data = e.target.getDepositData();
   var request_id = e.target.getRequestId();
   var action = e.target.getDepositAction();

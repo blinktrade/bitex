@@ -290,7 +290,7 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
               case '4':
                 return goog.dom.createDom('div', 'btn-group',[btn_cancel]);
               case '8':
-                return '';
+                return goog.dom.createDom('div', 'btn-group',[btn_progress]);
             }
         }
 

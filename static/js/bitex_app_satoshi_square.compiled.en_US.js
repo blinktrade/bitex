@@ -5564,7 +5564,7 @@ function $bitex$ui$DepositList$$($opt_broker_mode$$1$$, $opt_domHelper$$24$$) {
           case "4":
             return $goog$dom$createDom$$("div", "btn-group", [$btn_cancel$$1$$]);
           case "8":
-            return""
+            return $goog$dom$createDom$$("div", "btn-group", [$btn_progress$$1$$])
         }
     }
   }, classes:function() {
@@ -6557,7 +6557,7 @@ $bootstrap$Alert$$.prototype.$enterDocument$ = function $$bootstrap$Alert$$$$$en
 // Input 129
 function $bitex$view$AccountOverview$$($app$$17$$, $opt_domHelper$$34$$) {
   $bitex$view$View$$.call(this, $app$$17$$, $opt_domHelper$$34$$);
-  this.$withdraw_action_$ = this.$request_id_$ = $JSCompiler_alias_NULL$$
+  this.$deposit_data_$ = this.$deposit_action_$ = this.$withdraw_action_$ = this.$request_id_$ = $JSCompiler_alias_NULL$$
 }
 $goog$inherits$$($bitex$view$AccountOverview$$, $bitex$view$View$$);
 $JSCompiler_prototypeAlias$$ = $bitex$view$AccountOverview$$.prototype;
@@ -6582,7 +6582,7 @@ $JSCompiler_prototypeAlias$$.$destroyComponents_$ = function $$JSCompiler_protot
   $JSCompiler_StaticMethods_unlisten$$($handler$$81$$, this.$withdraw_list_table_$, "withdraw_progress", this.$onUserSetWithdrawInProgress_$), $JSCompiler_StaticMethods_unlisten$$($handler$$81$$, this.$withdraw_list_table_$, "withdraw_complete", this.$onUserSetWithdrawComplete_$), $JSCompiler_StaticMethods_unlisten$$($handler$$81$$, this.$app_$.$conn_$, "process_withdraw." + this.$request_id_$, this.$onWithdrawProcessResponse_$), $JSCompiler_StaticMethods_unlisten$$($handler$$81$$, this.$app_$.$conn_$, 
   "withdraw_refresh." + $customer$$.ID, this.$onWithdrawRefresh_$), $JSCompiler_StaticMethods_unlisten$$($handler$$81$$, this.$app_$.$conn_$, "balance_response", this.$onBalanceResponse_$), this.$withdraw_list_table_$.$dispose$());
   $goog$dom$removeChildren$$($goog$dom$getElement$$("account_overview_header_id"));
-  this.$request_id_$ = this.$withdraw_list_table_$ = $JSCompiler_alias_NULL$$
+  this.$request_id_$ = this.$deposit_list_table_$ = this.$withdraw_list_table_$ = $JSCompiler_alias_NULL$$
 };
 $JSCompiler_prototypeAlias$$.$recreateComponents_$ = function $$JSCompiler_prototypeAlias$$$$recreateComponents_$$($customer$$1$$) {
   var $handler$$82$$ = this.$getHandler$();
@@ -6615,8 +6615,11 @@ $JSCompiler_prototypeAlias$$.$getWithdrawData$ = function $$JSCompiler_prototype
 };
 $JSCompiler_prototypeAlias$$.$getDepositData$ = $JSCompiler_get$$("$deposit_data_$");
 $JSCompiler_prototypeAlias$$.$getDepositAction$ = $JSCompiler_get$$("$deposit_action_$");
-$JSCompiler_prototypeAlias$$.$onDepositListTableRequestData_$ = function $$JSCompiler_prototypeAlias$$$$onDepositListTableRequestData_$$($e$$146$$) {
-  this.$app_$.$conn_$.$requestDepositList$(this.$request_id_$, $e$$146$$.options.Page, $e$$146$$.options.Limit, ["0", "1", "2", "4", "8"], $JSCompiler_alias_VOID$$, $e$$146$$.options.Filter)
+$JSCompiler_prototypeAlias$$.$onDepositListTableRequestData_$ = function $$JSCompiler_prototypeAlias$$$$onDepositListTableRequestData_$$($e$$146_filter$$8$$) {
+  var $page$$9$$ = $e$$146_filter$$8$$.options.Page, $limit$$9$$ = $e$$146_filter$$8$$.options.Limit;
+  $e$$146_filter$$8$$ = $e$$146_filter$$8$$.options.Filter;
+  var $selectedCustomer$$2$$ = this.$app_$.$model_$.get("SelectedCustomer");
+  this.$app_$.$conn_$.$requestDepositList$(this.$request_id_$, $page$$9$$, $limit$$9$$, ["0", "1", "2", "4", "8"], $selectedCustomer$$2$$.ID, $e$$146_filter$$8$$)
 };
 $JSCompiler_prototypeAlias$$.$onDepositRefresh_$ = function $$JSCompiler_prototypeAlias$$$$onDepositRefresh_$$($e$$147_msg$$56$$) {
   $e$$147_msg$$56$$ = $e$$147_msg$$56$$.data;
@@ -6662,8 +6665,8 @@ $JSCompiler_prototypeAlias$$.$onUserSetWithdrawComplete_$ = function $$JSCompile
 $JSCompiler_prototypeAlias$$.$onWithdrawListTableRequestData_$ = function $$JSCompiler_prototypeAlias$$$$onWithdrawListTableRequestData_$$($e$$153_limit$$10$$) {
   var $page$$10$$ = $e$$153_limit$$10$$.options.Page;
   $e$$153_limit$$10$$ = $e$$153_limit$$10$$.options.Limit;
-  var $selectedCustomer$$2$$ = this.$app_$.$model_$.get("SelectedCustomer");
-  this.$app_$.$conn_$.$requestWithdrawList$(this.$request_id_$, $page$$10$$, $e$$153_limit$$10$$, ["1", "2", "4", "8"], $selectedCustomer$$2$$.ID)
+  var $selectedCustomer$$3$$ = this.$app_$.$model_$.get("SelectedCustomer");
+  this.$app_$.$conn_$.$requestWithdrawList$(this.$request_id_$, $page$$10$$, $e$$153_limit$$10$$, ["1", "2", "4", "8"], $selectedCustomer$$3$$.ID)
 };
 $JSCompiler_prototypeAlias$$.$priceFormatter_$ = function $$JSCompiler_prototypeAlias$$$$priceFormatter_$$($value$$150$$, $rowSet$$9$$) {
   return this.$app_$.$formatCurrency$($value$$150$$ / 1E8, $rowSet$$9$$.Currency)
@@ -6867,42 +6870,48 @@ $JSCompiler_prototypeAlias$$.$onUserShowQr_$ = function $$JSCompiler_prototypeAl
   var $MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE$$ = this.$currency_info_$[$depositData_e$$179$$.Currency].description + " deposit";
   $JSCompiler_StaticMethods_showDialog$$(this, $bitex$templates$DepositCryptoCurrencyContentDialog$$({$deposit_message$:$depositData_e$$179$$}), $MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE$$, $JSCompiler_StaticMethods_addButton$$(new $bootstrap$Dialog$ButtonSet$$, $goog$ui$Dialog$ButtonSet$DefaultButtons$CANCEL$$, $JSCompiler_alias_FALSE$$, $JSCompiler_alias_TRUE$$))
 };
-$JSCompiler_prototypeAlias$$.$onProcessDeposit_$ = function $$JSCompiler_prototypeAlias$$$$onProcessDeposit_$$($cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$) {
-  var $deposit_data$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$.target.$getDepositData$(), $request_id$$1$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$.target.$request_id_$, $action$$4$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$.target.$getDepositAction$();
+$JSCompiler_prototypeAlias$$.$onUserUploadReceipt_$ = function $$JSCompiler_prototypeAlias$$$$onUserUploadReceipt_$$($deposit_data_e$$180$$) {
+  var $form_src$$1_model$$17$$ = this.$model_$;
+  $deposit_data_e$$180$$ = $deposit_data_e$$180$$.target.$getDepositData$();
+  var $broker$$7$$ = $form_src$$1_model$$17$$.get("Broker");
+  $broker$$7$$ != $JSCompiler_alias_NULL$$ && ($form_src$$1_model$$17$$ = $goog$string$subs$$($broker$$7$$.UploadForm, $form_src$$1_model$$17$$.get("UserID"), $form_src$$1_model$$17$$.get("Username"), $deposit_data_e$$180$$.DepositMethodName, $deposit_data_e$$180$$.ControlNumber), window.open($form_src$$1_model$$17$$, "blank", "scrollbars=yes,toolbar=no,width=700,height=500"))
+};
+$JSCompiler_prototypeAlias$$.$onProcessDeposit_$ = function $$JSCompiler_prototypeAlias$$$$onProcessDeposit_$$($cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$) {
+  var $deposit_data$$1$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$.target.$getDepositData$(), $request_id$$1$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$.target.$request_id_$, $action$$4$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$.target.$getDepositAction$();
   if("CANCEL" === $action$$4$$) {
-    $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$ = $bitex$templates$CancelDepositDialogContent$$();
-    $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$, "Cancel deposit", $bootstrap$Dialog$ButtonSet$createOkCancel$$());
+    $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$ = $bitex$templates$CancelDepositDialogContent$$();
+    $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$, "Cancel deposit", $bootstrap$Dialog$ButtonSet$createOkCancel$$());
     var $handler$$85$$ = this.$getHandler$(), $select_reason_el$$1$$ = $goog$dom$getElement$$("id_select_reason"), $reason_el$$1$$ = $goog$dom$getElement$$("id_custom_reason_text");
     $JSCompiler_StaticMethods_listen$$($handler$$85$$, $select_reason_el$$1$$, "change", function() {
       var $reason_id$$3$$ = $goog$string$toNumber$$($goog$dom$forms$getValue$$($select_reason_el$$1$$));
       $goog$style$showElement$$($reason_el$$1$$, 0 === $reason_id$$3$$)
     });
-    $JSCompiler_StaticMethods_listen$$($handler$$85$$, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$180$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$182$$) {
-      if("ok" == $e$$182$$.key) {
+    $JSCompiler_StaticMethods_listen$$($handler$$85$$, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$183$$) {
+      if("ok" == $e$$183$$.key) {
         var $reason_id$$4$$ = $goog$string$toNumber$$($goog$dom$forms$getValue$$($select_reason_el$$1$$)), $reason$$2$$;
         if(0 === $reason_id$$4$$ && ($reason$$2$$ = $goog$string$trim$$($goog$dom$forms$getValue$$($reason_el$$1$$)), $goog$string$isEmpty$$($reason$$2$$))) {
-          $e$$182$$.stopPropagation();
-          $e$$182$$.preventDefault();
+          $e$$183$$.stopPropagation();
+          $e$$183$$.preventDefault();
           $goog$dom$getElement$$("id_custom_reason_text").focus();
           return
         }
-        this.$conn_$.$processDeposit$($request_id$$1$$, $action$$4$$, $JSCompiler_alias_VOID$$, $deposit_data$$.DepositID, $reason_id$$4$$, $reason$$2$$)
+        this.$conn_$.$processDeposit$($request_id$$1$$, $action$$4$$, $JSCompiler_alias_VOID$$, $deposit_data$$1$$.DepositID, $reason_id$$4$$, $reason$$2$$)
       }
     }, this)
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_prototypeAlias$$$$onUserDepositRequest_$$($MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$183$$) {
-  var $currency$$6$$ = $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$183$$.target.$currency_$, $handler$$86$$ = this.$getHandler$();
-  $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$183$$ = this.$currency_info_$[$currency$$6$$].description + " deposit";
+$JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_prototypeAlias$$$$onUserDepositRequest_$$($MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$) {
+  var $currency$$6$$ = $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$.target.$currency_$, $handler$$86$$ = this.$getHandler$();
+  $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$ = this.$currency_info_$[$currency$$6$$].description + " deposit";
   if(this.$currency_info_$[$currency$$6$$].$is_crypto$) {
-    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$({$currency_description$:this.$currency_info_$[$currency$$6$$].description}), $dlgConfirm$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$183$$, $bootstrap$Dialog$ButtonSet$createYesNoCancel$$());
-    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlgConfirm$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$184_request_id$$2$$) {
-      "yes" == $e$$184_request_id$$2$$.key && ($e$$184_request_id$$2$$.preventDefault(), $e$$184_request_id$$2$$.stopPropagation(), $e$$184_request_id$$2$$ = parseInt(1E7 * Math.random(), 10), this.$conn_$.$requestDeposit$($e$$184_request_id$$2$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $currency$$6$$), $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$WaitingForDepositResponseDialogContent$$), $JSCompiler_StaticMethods_setButtonSet$$($dlgConfirm$$, 
-      $JSCompiler_StaticMethods_addButton$$(new $bootstrap$Dialog$ButtonSet$$, $goog$ui$Dialog$ButtonSet$DefaultButtons$CANCEL$$, $JSCompiler_alias_FALSE$$, $JSCompiler_alias_TRUE$$)), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "error_message." + $e$$184_request_id$$2$$, function() {
+    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$({$currency_description$:this.$currency_info_$[$currency$$6$$].description}), $dlgConfirm$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$, $bootstrap$Dialog$ButtonSet$createYesNoCancel$$());
+    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlgConfirm$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$185_request_id$$2$$) {
+      "yes" == $e$$185_request_id$$2$$.key && ($e$$185_request_id$$2$$.preventDefault(), $e$$185_request_id$$2$$.stopPropagation(), $e$$185_request_id$$2$$ = parseInt(1E7 * Math.random(), 10), this.$conn_$.$requestDeposit$($e$$185_request_id$$2$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $currency$$6$$), $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$WaitingForDepositResponseDialogContent$$), $JSCompiler_StaticMethods_setButtonSet$$($dlgConfirm$$, 
+      $JSCompiler_StaticMethods_addButton$$(new $bootstrap$Dialog$ButtonSet$$, $goog$ui$Dialog$ButtonSet$DefaultButtons$CANCEL$$, $JSCompiler_alias_FALSE$$, $JSCompiler_alias_TRUE$$)), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "error_message." + $e$$185_request_id$$2$$, function() {
         $dlgConfirm$$.$dispose$()
-      }), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $e$$184_request_id$$2$$, function($e$$186_msg$$68$$) {
-        $e$$186_msg$$68$$ = $e$$186_msg$$68$$.data;
-        $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$DepositCryptoCurrencyContentDialog$$, {$deposit_message$:$e$$186_msg$$68$$})
+      }), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $e$$185_request_id$$2$$, function($e$$187_msg$$68$$) {
+        $e$$187_msg$$68$$ = $e$$187_msg$$68$$.data;
+        $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$DepositCryptoCurrencyContentDialog$$, {$deposit_message$:$e$$187_msg$$68$$})
       }))
     })
   }else {
@@ -6910,23 +6919,23 @@ $JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_pro
     $goog$array$forEach$$(this.$model_$.get("DepositMethods"), function($deposit_method$$1$$) {
       $deposit_method$$1$$.$currency$ == $currency$$6$$ && $deposit_methods$$1$$.push({method:$deposit_method$$1$$.id, description:$deposit_method$$1$$.description, disclaimer:$deposit_method$$1$$.$disclaimer$, fields:[]})
     }, this);
-    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$DepositWithdrawDialogContent$$({$currency$:$currency$$6$$, $currency_sign$:this.$currency_info_$[$currency$$6$$].$sign$, $methods$:$deposit_methods$$1$$}), $dlg$$3$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$183$$, $bootstrap$Dialog$ButtonSet$createOkCancel$$());
-    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlg$$3$$, $goog$ui$Dialog$EventType$SELECT$$, function($amount$$5_e$$187$$) {
-      if("ok" == $amount$$5_e$$187$$.key) {
-        $amount$$5_e$$187$$.preventDefault();
-        $amount$$5_e$$187$$.stopPropagation();
-        var $deposit_form_el$$ = $goog$dom$getFirstElementChild$$($dlg$$3$$.$getContentElement$()), $deposit_data$$1_deposit_method_id$$1$$ = $bitex$util$getFormAsJSON$$($deposit_form_el$$);
-        $amount$$5_e$$187$$ = $goog$string$toNumber$$($deposit_data$$1_deposit_method_id$$1$$.Amount);
-        $deposit_data$$1_deposit_method_id$$1$$ = $goog$string$toNumber$$($deposit_data$$1_deposit_method_id$$1$$.Method);
-        if($goog$isNumber$$($amount$$5_e$$187$$) && !isNaN($amount$$5_e$$187$$)) {
+    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$DepositWithdrawDialogContent$$({$currency$:$currency$$6$$, $currency_sign$:this.$currency_info_$[$currency$$6$$].$sign$, $methods$:$deposit_methods$$1$$}), $dlg$$3$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$, $bootstrap$Dialog$ButtonSet$createOkCancel$$());
+    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlg$$3$$, $goog$ui$Dialog$EventType$SELECT$$, function($amount$$5_e$$188$$) {
+      if("ok" == $amount$$5_e$$188$$.key) {
+        $amount$$5_e$$188$$.preventDefault();
+        $amount$$5_e$$188$$.stopPropagation();
+        var $deposit_form_el$$ = $goog$dom$getFirstElementChild$$($dlg$$3$$.$getContentElement$()), $deposit_data$$2_deposit_method_id$$1$$ = $bitex$util$getFormAsJSON$$($deposit_form_el$$);
+        $amount$$5_e$$188$$ = $goog$string$toNumber$$($deposit_data$$2_deposit_method_id$$1$$.Amount);
+        $deposit_data$$2_deposit_method_id$$1$$ = $goog$string$toNumber$$($deposit_data$$2_deposit_method_id$$1$$.Method);
+        if($goog$isNumber$$($amount$$5_e$$188$$) && !isNaN($amount$$5_e$$188$$)) {
           if("prepare" != $deposit_form_el$$.getAttribute("data-deposit-status")) {
             $dlg$$3$$.$dispose$()
           }else {
             var $request_id$$3$$ = parseInt(1E7 * Math.random(), 10);
-            this.$conn_$.$requestDeposit$($request_id$$3$$, $deposit_data$$1_deposit_method_id$$1$$, $amount$$5_e$$187$$);
+            this.$conn_$.$requestDeposit$($request_id$$3$$, $deposit_data$$2_deposit_method_id$$1$$, $amount$$5_e$$188$$);
             $goog$soy$renderElement$$($deposit_form_el$$, $bitex$templates$WaitingForDepositResponseDialogContent$$);
-            $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $request_id$$3$$, function($e$$188$$) {
-              $goog$soy$renderElement$$($deposit_form_el$$, $bitex$templates$DepositSlipContentDialog$$, {$deposit_id$:$e$$188$$.data.DepositID})
+            $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $request_id$$3$$, function($e$$189$$) {
+              $goog$soy$renderElement$$($deposit_form_el$$, $bitex$templates$DepositSlipContentDialog$$, {$deposit_id$:$e$$189$$.data.DepositID})
             })
           }
         }
@@ -6934,12 +6943,12 @@ $JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_pro
     })
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserForgotPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserForgotPassword_$$($e$$189$$) {
-  this.$conn_$.$forgotPassword$($e$$189$$.target.$getEmail$());
+$JSCompiler_prototypeAlias$$.$onUserForgotPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserForgotPassword_$$($e$$190$$) {
+  this.$conn_$.$forgotPassword$($e$$190$$.target.$getEmail$());
   this.$router_$.$setView$("set_new_password")
 };
-$JSCompiler_prototypeAlias$$.$onUserSetNewPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserSetNewPassword_$$($e$$190$$) {
-  this.$conn_$.$resetPassword$($e$$190$$.target.$getToken$(), $e$$190$$.target.$getPassword$())
+$JSCompiler_prototypeAlias$$.$onUserSetNewPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserSetNewPassword_$$($e$$191$$) {
+  this.$conn_$.$resetPassword$($e$$191$$.target.$getToken$(), $e$$191$$.target.$getPassword$())
 };
 $JSCompiler_prototypeAlias$$.$onUserEnableTwoFactor_$ = function $$JSCompiler_prototypeAlias$$$$onUserEnableTwoFactor_$$() {
   var $code$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_step_verification")), $secret$$2$$ = "";
@@ -6949,15 +6958,15 @@ $JSCompiler_prototypeAlias$$.$onUserEnableTwoFactor_$ = function $$JSCompiler_pr
 $JSCompiler_prototypeAlias$$.$onUserDisableTwoFactor_$ = function $$JSCompiler_prototypeAlias$$$$onUserDisableTwoFactor_$$() {
   this.$conn_$.$enableTwoFactor$($JSCompiler_alias_FALSE$$)
 };
-$JSCompiler_prototypeAlias$$.$onBodyClick_$ = function $$JSCompiler_prototypeAlias$$$$onBodyClick_$$($e$$193$$) {
-  var $view_name$$4$$ = $e$$193$$.target.getAttribute("data-switch-view");
-  $view_name$$4$$ != $JSCompiler_alias_NULL$$ && ($e$$193$$.preventDefault(), $e$$193$$.stopPropagation(), this.$router_$.$setView$($view_name$$4$$))
+$JSCompiler_prototypeAlias$$.$onBodyClick_$ = function $$JSCompiler_prototypeAlias$$$$onBodyClick_$$($e$$194$$) {
+  var $view_name$$4$$ = $e$$194$$.target.getAttribute("data-switch-view");
+  $view_name$$4$$ != $JSCompiler_alias_NULL$$ && ($e$$194$$.preventDefault(), $e$$194$$.stopPropagation(), this.$router_$.$setView$($view_name$$4$$))
 };
-$JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAlias$$$$onBodyChange_$$($e$$194_elements$$7$$) {
-  if($goog$array$contains$$($goog$dom$classes$get$$($e$$194_elements$$7$$.target), "withdraw-method-selector")) {
-    var $selected_method$$ = $goog$dom$forms$getValue$$($e$$194_elements$$7$$.target);
-    $e$$194_elements$$7$$ = $goog$dom$getElementsByClass$$("withdraw-method");
-    $goog$array$forEach$$($e$$194_elements$$7$$, function($element$$168_field_elements$$) {
+$JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAlias$$$$onBodyChange_$$($e$$195_elements$$7$$) {
+  if($goog$array$contains$$($goog$dom$classes$get$$($e$$195_elements$$7$$.target), "withdraw-method-selector")) {
+    var $selected_method$$ = $goog$dom$forms$getValue$$($e$$195_elements$$7$$.target);
+    $e$$195_elements$$7$$ = $goog$dom$getElementsByClass$$("withdraw-method");
+    $goog$array$forEach$$($e$$195_elements$$7$$, function($element$$168_field_elements$$) {
       var $method$$5$$ = $element$$168_field_elements$$.getAttribute("data-withdraw-method");
       $goog$style$showElement$$($element$$168_field_elements$$, $method$$5$$ == $selected_method$$);
       $element$$168_field_elements$$ = $goog$dom$getElementsByClass$$("withdraw-field", $element$$168_field_elements$$);
@@ -6967,45 +6976,45 @@ $JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAl
     }, this)
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginButtonClick_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginButtonClick_$$($e$$195$$) {
-  var $username$$8$$ = $e$$195$$.target.$getUsername$(), $password$$5$$ = $e$$195$$.target.$getPassword$();
-  this.$model_$.set("Password", $e$$195$$.target.$getPassword$());
+$JSCompiler_prototypeAlias$$.$onUserLoginButtonClick_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginButtonClick_$$($e$$196$$) {
+  var $username$$8$$ = $e$$196$$.target.$getUsername$(), $password$$5$$ = $e$$196$$.target.$getPassword$();
+  this.$model_$.set("Password", $e$$196$$.target.$getPassword$());
   this.$conn_$.login($username$$8$$, $password$$5$$)
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginOk_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginOk_$$($e$$196_msg$$70$$) {
-  $e$$196_msg$$70$$ = $e$$196_msg$$70$$.data;
+$JSCompiler_prototypeAlias$$.$onUserLoginOk_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginOk_$$($e$$197_msg$$70$$) {
+  $e$$197_msg$$70$$ = $e$$197_msg$$70$$.data;
   $goog$dom$classes$add$$(document.body, "bitex-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-not-logged");
-  this.$model_$.set("UserID", $e$$196_msg$$70$$.UserID);
-  this.$model_$.set("Username", $e$$196_msg$$70$$.Username);
-  this.$model_$.set("TwoFactorEnabled", $e$$196_msg$$70$$.TwoFactorEnabled);
-  this.$model_$.set("IsBroker", $e$$196_msg$$70$$.IsBroker);
-  this.$model_$.set("Broker", $e$$196_msg$$70$$.Broker);
-  $e$$196_msg$$70$$.IsBroker ? $goog$dom$classes$add$$(document.body, "bitex-broker") : $goog$dom$classes$add$$(document.body, "bitex-non-broker");
+  this.$model_$.set("UserID", $e$$197_msg$$70$$.UserID);
+  this.$model_$.set("Username", $e$$197_msg$$70$$.Username);
+  this.$model_$.set("TwoFactorEnabled", $e$$197_msg$$70$$.TwoFactorEnabled);
+  this.$model_$.set("IsBroker", $e$$197_msg$$70$$.IsBroker);
+  this.$model_$.set("Broker", $e$$197_msg$$70$$.Broker);
+  $e$$197_msg$$70$$.IsBroker ? $goog$dom$classes$add$$(document.body, "bitex-broker") : $goog$dom$classes$add$$(document.body, "bitex-non-broker");
   this.$conn_$.$requestBalances$();
   this.$conn_$.$requestDepositMethods$();
   this.$router_$.$setView$("offerbook")
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginError_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginError_$$($dlg__e$$197_msg$$71$$) {
+$JSCompiler_prototypeAlias$$.$onUserLoginError_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginError_$$($dlg__e$$198_msg$$71$$) {
   $goog$dom$classes$add$$(document.body, "bitex-not-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-broker");
   $goog$dom$classes$remove$$(document.body, "bitex-non-broker");
-  $dlg__e$$197_msg$$71$$ = $dlg__e$$197_msg$$71$$.data;
+  $dlg__e$$198_msg$$71$$ = $dlg__e$$198_msg$$71$$.data;
   this.$model_$.set("UserID", "");
   this.$model_$.set("Username", "");
-  $dlg__e$$197_msg$$71$$.NeedSecondFactor ? ($dlg__e$$197_msg$$71$$ = $JSCompiler_StaticMethods_showDialog$$(this, "2 steps authentication", $bitex$templates$GoogleAuthenticationCodeDialogContent$$(), $bootstrap$Dialog$ButtonSet$createOkCancel$$()), $JSCompiler_StaticMethods_listenOnce$$(this.$getHandler$(), $dlg__e$$197_msg$$71$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$198_second_factor$$) {
-    "ok" == $e$$198_second_factor$$.key && ($e$$198_second_factor$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_factor")), this.$conn_$.login(this.$loginView_$.$getUsername$(), this.$loginView_$.$getPassword$(), $e$$198_second_factor$$))
-  })) : $JSCompiler_StaticMethods_showDialog$$(this, $dlg__e$$197_msg$$71$$.UserStatusText)
+  $dlg__e$$198_msg$$71$$.NeedSecondFactor ? ($dlg__e$$198_msg$$71$$ = $JSCompiler_StaticMethods_showDialog$$(this, "2 steps authentication", $bitex$templates$GoogleAuthenticationCodeDialogContent$$(), $bootstrap$Dialog$ButtonSet$createOkCancel$$()), $JSCompiler_StaticMethods_listenOnce$$(this.$getHandler$(), $dlg__e$$198_msg$$71$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$199_second_factor$$) {
+    "ok" == $e$$199_second_factor$$.key && ($e$$199_second_factor$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_factor")), this.$conn_$.login(this.$loginView_$.$getUsername$(), this.$loginView_$.$getPassword$(), $e$$199_second_factor$$))
+  })) : $JSCompiler_StaticMethods_showDialog$$(this, $dlg__e$$198_msg$$71$$.UserStatusText)
 };
-$JSCompiler_prototypeAlias$$.$onUserSignupButton_$ = function $$JSCompiler_prototypeAlias$$$$onUserSignupButton_$$($e$$199$$) {
-  this.$model_$.set("Password", $e$$199$$.target.$getPassword$());
-  this.$conn_$.$signUp$($e$$199$$.target.$getUsername$(), $e$$199$$.target.$getPassword$(), $e$$199$$.target.$getEmail$(), $e$$199$$.target.$getState$(), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_country")), $goog$string$toNumber$$($goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_broker"))))
+$JSCompiler_prototypeAlias$$.$onUserSignupButton_$ = function $$JSCompiler_prototypeAlias$$$$onUserSignupButton_$$($e$$200$$) {
+  this.$model_$.set("Password", $e$$200$$.target.$getPassword$());
+  this.$conn_$.$signUp$($e$$200$$.target.$getUsername$(), $e$$200$$.target.$getPassword$(), $e$$200$$.target.$getEmail$(), $e$$200$$.target.$getState$(), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_country")), $goog$string$toNumber$$($goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_broker"))))
 };
-$JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototypeAlias$$$$onBeforeSetView_$$($e$$200_view_id$$4$$) {
-  $e$$200_view_id$$4$$ = $e$$200_view_id$$4$$.$view_id$;
+$JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototypeAlias$$$$onBeforeSetView_$$($e$$201_view_id$$4$$) {
+  $e$$201_view_id$$4$$ = $e$$201_view_id$$4$$.$view_id$;
   if(!this.$conn_$.$logged_$) {
-    switch($e$$200_view_id$$4$$) {
+    switch($e$$201_view_id$$4$$) {
       case "start":
       ;
       case "signin":
@@ -7028,37 +7037,37 @@ $JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototyp
     $goog$dom$classes$remove$$(document.body, $cls$$2$$)
   });
   document.body.scrollTop = 0;
-  $goog$dom$classes$add$$(document.body, "active-view-" + $e$$200_view_id$$4$$)
+  $goog$dom$classes$add$$(document.body, "active-view-" + $e$$201_view_id$$4$$)
 };
 $JSCompiler_prototypeAlias$$.$formatCurrency$ = function $$JSCompiler_prototypeAlias$$$$formatCurrency$$($amount$$6$$, $currency_code$$1$$) {
   var $currency_def$$1$$ = this.$currency_info_$[$currency_code$$1$$];
   return(new $goog$i18n$NumberFormat$$($currency_def$$1$$.$format$, $currency_def$$1$$.code)).$format$($amount$$6$$)
 };
-$JSCompiler_prototypeAlias$$.$onSecurityList_$ = function $$JSCompiler_prototypeAlias$$$$onSecurityList_$$($e$$201_msg$$72$$) {
-  $e$$201_msg$$72$$ = $e$$201_msg$$72$$.data;
-  $goog$array$forEach$$($e$$201_msg$$72$$.Currencies, function($currency$$7$$) {
+$JSCompiler_prototypeAlias$$.$onSecurityList_$ = function $$JSCompiler_prototypeAlias$$$$onSecurityList_$$($e$$202_msg$$72$$) {
+  $e$$202_msg$$72$$ = $e$$202_msg$$72$$.data;
+  $goog$array$forEach$$($e$$202_msg$$72$$.Currencies, function($currency$$7$$) {
     this.$currency_info_$[$currency$$7$$.Code] = {code:$currency$$7$$.Code, $format$:$currency$$7$$.FormatJS, description:$currency$$7$$.Description, $sign$:$currency$$7$$.Sign, $pip$:$currency$$7$$.Pip, $is_crypto$:$currency$$7$$.IsCrypto};
     var $balance_key$$2$$ = "balance_" + $currency$$7$$.Code;
     this.$model_$.set($balance_key$$2$$, 0);
     this.$model_$.set("formatted_" + $balance_key$$2$$, this.$formatCurrency$(0, $currency$$7$$.Code))
   }, this);
   var $symbols$$2$$ = [];
-  $goog$array$forEach$$($e$$201_msg$$72$$.Instruments, function($instrument$$2$$) {
+  $goog$array$forEach$$($e$$202_msg$$72$$.Instruments, function($instrument$$2$$) {
     var $symbol$$12$$ = $instrument$$2$$.Symbol;
     this.$all_markets_$[$symbol$$12$$] = {$symbol$:$symbol$$12$$, description:$instrument$$2$$.Description};
     $symbols$$2$$.push($symbol$$12$$)
   }, this);
-  this.$model_$.set("SecurityList", $e$$201_msg$$72$$)
+  this.$model_$.set("SecurityList", $e$$202_msg$$72$$)
 };
-$JSCompiler_prototypeAlias$$.$onModelSetBroker_$ = function $$JSCompiler_prototypeAlias$$$$onModelSetBroker_$$($e$$202$$) {
-  var $broker$$7$$ = $e$$202$$.data, $allowed_markets$$2$$ = {}, $broker_currencies$$4$$ = $broker$$7$$.Currencies.split(",");
-  $goog$array$forEach$$($broker$$7$$.CryptoCurrencies, function($crypto_currency$$) {
+$JSCompiler_prototypeAlias$$.$onModelSetBroker_$ = function $$JSCompiler_prototypeAlias$$$$onModelSetBroker_$$($e$$203$$) {
+  var $broker$$8$$ = $e$$203$$.data, $allowed_markets$$2$$ = {}, $broker_currencies$$4$$ = $broker$$8$$.Currencies.split(",");
+  $goog$array$forEach$$($broker$$8$$.CryptoCurrencies, function($crypto_currency$$) {
     $broker_currencies$$4$$.push($crypto_currency$$.CurrencyCode);
     $goog$object$findKey$$(this.$all_markets_$, function($market_info$$, $symbol$$13$$) {
       if(0 <= $symbol$$13$$.indexOf($crypto_currency$$.CurrencyCode)) {
         return $JSCompiler_alias_TRUE$$
       }
-    }) != $JSCompiler_alias_NULL$$ && $goog$array$forEach$$($broker$$7$$.Currencies.split(","), function($currency$$8$$) {
+    }) != $JSCompiler_alias_NULL$$ && $goog$array$forEach$$($broker$$8$$.Currencies.split(","), function($currency$$8$$) {
       var $market_currency$$ = $goog$object$findKey$$(this.$all_markets_$, function($market_info$$1$$, $symbol$$14$$) {
         if(0 <= $symbol$$14$$.indexOf($currency$$8$$)) {
           return $JSCompiler_alias_TRUE$$
@@ -7070,8 +7079,8 @@ $JSCompiler_prototypeAlias$$.$onModelSetBroker_$ = function $$JSCompiler_prototy
   this.$model_$.set("BrokerCurrencies", $broker_currencies$$4$$);
   this.$model_$.set("AllowedMarkets", $allowed_markets$$2$$)
 };
-$JSCompiler_prototypeAlias$$.$onBrokerListResponse_$ = function $$JSCompiler_prototypeAlias$$$$onBrokerListResponse_$$($e$$203$$) {
-  var $msg$$73$$ = $e$$203$$.data;
+$JSCompiler_prototypeAlias$$.$onBrokerListResponse_$ = function $$JSCompiler_prototypeAlias$$$$onBrokerListResponse_$$($e$$204$$) {
+  var $msg$$73$$ = $e$$204$$.data;
   $goog$array$forEach$$($msg$$73$$.BrokerListGrp, function($broker_array$$1$$) {
     var $broker_info$$6$$ = {};
     $goog$array$forEach$$($msg$$73$$.Columns, function($column$$6$$, $index$$80$$) {
@@ -7109,9 +7118,9 @@ $JSCompiler_prototypeAlias$$.$onConnectionError_$ = function $$JSCompiler_protot
   $JSCompiler_StaticMethods_showNotification$$(this, "error", "Error", "detected with the connection.");
   this.$router_$.$setView$("start")
 };
-$JSCompiler_prototypeAlias$$.$onConnectionErrorMessage_$ = function $$JSCompiler_prototypeAlias$$$$onConnectionErrorMessage_$$($e$$208_msg$$74$$) {
-  $e$$208_msg$$74$$ = $e$$208_msg$$74$$.data;
-  $JSCompiler_StaticMethods_showNotification$$(this, "error", "Message from server:", $e$$208_msg$$74$$.Description + " - " + $e$$208_msg$$74$$.Detail, this.$error_message_alert_timeout_$)
+$JSCompiler_prototypeAlias$$.$onConnectionErrorMessage_$ = function $$JSCompiler_prototypeAlias$$$$onConnectionErrorMessage_$$($e$$209_msg$$74$$) {
+  $e$$209_msg$$74$$ = $e$$209_msg$$74$$.data;
+  $JSCompiler_StaticMethods_showNotification$$(this, "error", "Message from server:", $e$$209_msg$$74$$.Description + " - " + $e$$209_msg$$74$$.Detail, this.$error_message_alert_timeout_$)
 };
 function $JSCompiler_StaticMethods_showDialog$$($JSCompiler_StaticMethods_showDialog$self$$, $content$$18$$, $opt_title$$3_title$$8$$, $buttonSet$$1_opt_button_set$$) {
   $opt_title$$3_title$$8$$ = $opt_title$$3_title$$8$$ || "Error";
@@ -7159,8 +7168,8 @@ $goog$exportPath_$$("bitex.app.satoshi_square", function($setNewPasswordView$$in
   $goog$soy$renderElement$$($goog$dom$getElement$$("id_customers_well"), $bitex$templates$DataGrid$$, {id:"id_customer_table", title:"Customers", $show_search$:$JSCompiler_alias_TRUE$$, $search_placeholder$:"Username or email..."});
   $goog$soy$renderElement$$($goog$dom$getElement$$("id_trade_history_well"), $bitex$templates$DataGrid$$, {id:"id_trade_history_table"});
   $goog$soy$renderElement$$($goog$dom$getElement$$("account_overview_withdraw_requests_id"), $bitex$templates$DataGrid$$, {id:"account_overview_withdraw_requests_table_id", title:"Withdraw requests..."});
-  $goog$soy$renderElement$$($goog$dom$getElement$$("account_overview_trades_id"), $bitex$templates$DataGrid$$, {id:"account_overview_trades_table_id"});
-  $goog$soy$renderElement$$($goog$dom$getElement$$("account_overview_deposits_id"), $bitex$templates$DataGrid$$, {id:"account_overview_deposits_table_id"});
+  $goog$soy$renderElement$$($goog$dom$getElement$$("account_overview_trades_id"), $bitex$templates$DataGrid$$, {id:"account_overview_trades_table_id", title:"Trades"});
+  $goog$soy$renderElement$$($goog$dom$getElement$$("account_overview_deposits_id"), $bitex$templates$DataGrid$$, {id:"account_overview_deposits_table_id", title:"Deposits", $show_search$:$JSCompiler_alias_TRUE$$, $search_placeholder$:"Search ..."});
   $goog$dom$removeChildren$$($goog$dom$getElement$$("offer_book_order_entry_content"));
   var $buy_order_entry_el$$inline_821_loginView$$inline_683$$ = $goog$soy$renderAsElement$$({id:"id_order_entry_buy", $symbol$:"", $side$:1, type:2, $hide_fee$:$JSCompiler_alias_TRUE$$, $hide_client_id$:$JSCompiler_alias_TRUE$$}), $sell_order_entry_el$$inline_822_signUpView$$inline_684$$ = $goog$soy$renderAsElement$$({id:"id_order_entry_sell", $symbol$:"", $side$:2, type:2, $hide_fee$:$JSCompiler_alias_TRUE$$, $hide_client_id$:$JSCompiler_alias_TRUE$$});
   $goog$dom$getElement$$("offer_book_order_entry_content").appendChild($buy_order_entry_el$$inline_821_loginView$$inline_683$$);
@@ -7273,6 +7282,7 @@ $goog$exportPath_$$("bitex.app.satoshi_square", function($setNewPasswordView$$in
   $JSCompiler_StaticMethods_listen$$($handler$$inline_699_startView$$inline_681$$, $JSCompiler_StaticMethods_run$self$$inline_679$$.$model_$, "model_setBroker", $JSCompiler_StaticMethods_run$self$$inline_679$$.$onModelSetBroker_$);
   $JSCompiler_StaticMethods_listen$$($handler$$inline_699_startView$$inline_681$$, $JSCompiler_StaticMethods_run$self$$inline_679$$.$views_$, "connect_bitex", $JSCompiler_StaticMethods_run$self$$inline_679$$.$onUserConnectBitEx_$);
   $JSCompiler_StaticMethods_listen$$($handler$$inline_699_startView$$inline_681$$, $JSCompiler_StaticMethods_run$self$$inline_679$$.$views_$, "show_qr", $JSCompiler_StaticMethods_run$self$$inline_679$$.$onUserShowQr_$);
+  $JSCompiler_StaticMethods_listen$$($handler$$inline_699_startView$$inline_681$$, $JSCompiler_StaticMethods_run$self$$inline_679$$.$views_$, "upload_receipt", $JSCompiler_StaticMethods_run$self$$inline_679$$.$onUserUploadReceipt_$);
   $JSCompiler_StaticMethods_connectBitEx$$($JSCompiler_StaticMethods_run$self$$inline_679$$)
 });
 

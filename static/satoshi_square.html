@@ -336,20 +336,20 @@
 
   <div class="content">
 
-    <div id="account_overview_header_id"></div>
-
-    <h4>Balances</h4>
-    <div id="account_overview_balances_id"></div>
-
-    <div id="account_overview_withdraw_requests_id" class=""></div>
-
-    <h4>Deposits</h4>
-    <div id="account_overview_deposits_id">
+    <div class="row-fluid">
+      <div class="span6">
+        <div id="account_overview_header_id"></div>
+      </div>
+      <div class="span6">
+        <div id="account_overview_balances_id"></div>
+      </div>
     </div>
 
-    <h4>Trades</h4>
-    <div id="account_overview_trades_id">
-    </div>
+    <div id="account_overview_withdraw_requests_id"></div>
+
+    <div id="account_overview_deposits_id"></div>
+
+    <div id="account_overview_trades_id"></div>
 
 
   </div>
@@ -474,8 +474,8 @@
 </footer>
 
 <script>
-  //bitex.app.satoshi_square('wss://pinhopro.no-ip.org/trade/');
-  bitex.app.satoshi_square('wss://localhost/trade/');
+  bitex.app.satoshi_square('wss://pinhopro.no-ip.org/trade/');
+  //bitex.app.satoshi_square('wss://localhost/trade/');
   //bitex.app.satoshi_square('wss://192.168.1.50/trade/');
 </script>
 
