@@ -1003,8 +1003,8 @@ class Trade(Base):
 
 
   @staticmethod
-  def get_last_100_trades(session, symbol):
-    trades = session.query(Trade).filter_by(symbol=symbol).order_by(Trade.created.desc() ).limit(100)
+  def get_last_trades(session, symbol, timestamp):
+    trades = session.query(Trade).filter_by(symbol=symbol).filter(Trade.created >= timestamp).order_by(Trade.created.desc())
     return trades
 
 

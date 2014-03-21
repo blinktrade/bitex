@@ -108,7 +108,7 @@ class MarketDataPublisher(object):
     application.publish( 'MD_TRADE_' + symbol , md )
 
   @staticmethod
-  def generate_md_full_refresh( session, symbol, market_depth, om, entries, req_id  ):
+  def generate_md_full_refresh( session, symbol, market_depth, om, entries, req_id, timestamp  ):
     entry_list = []
 
     for entry_type in entries:
@@ -138,8 +138,8 @@ class MarketDataPublisher(object):
           if entry_position >= market_depth > 0:
             break
       elif entry_type == '2':
-        # return last 100 Trades
-        trades = Trade.get_last_100_trades(session, symbol)
+        print "getting last trades"
+        trades = Trade.get_last_trades(session, symbol, timestamp)
         trade_list = []
         for trade in  trades:
           trade_list.append({

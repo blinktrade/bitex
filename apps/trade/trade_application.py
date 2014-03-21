@@ -1,5 +1,8 @@
 import logging
 import zmq
+import time
+import datetime
+import traceback
 
 from tornado.options import  options
 
@@ -152,14 +155,30 @@ class TradeApplication(object):
             market_depth = msg.get('MarketDepth')
             instruments = msg.get('Instruments')
             entries = msg.get('MDEntryTypes')
+            transact_time = msg.get('TransactTime')
 
+            timestamp = None
+            if transact_time:
+              timestamp = transact_time
+            else:
+              trade_date = msg.get('TradeDate')
+              if not trade_date:
+                trade_date = time.strftime("%Y%m%d", time.localtime())
+
+              self.log('OUT', 'TRADEDATE', trade_date)
+              timestamp = datetime.datetime.strptime(trade_date, "%Y%m%d")
+
+            self.log('OUT', 'TIMESTAMP', timestamp )
+            
             if len(instruments) > 1:
               raise  InvalidMessageError()
 
             instrument = instruments[0]
 
+            
+
             om = OrderMatcher.get(instrument)
-            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries, req_id )
+            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries, req_id, timestamp )
             response_message = 'REP,' + json.dumps( response_message , cls=JsonEncoder)
           else:
             response_message = self.session_manager.process_message( msg_header, session_id, msg )
@@ -172,6 +191,7 @@ class TradeApplication(object):
         response_message = 'ERR,{"MsgType":"ERROR", "Description":"' + e.error_description.replace("'", "") + '", "Detail": ""}'
 
       except Exception,e:
+        traceback.print_exc()
         self.db_session.rollback()
         self.session_manager.close_session(session_id)
         response_message = 'ERR,{"MsgType":"ERROR", "Description":"Unknow error", "Detail": "'  + str(e) + '"}'

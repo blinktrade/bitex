@@ -48,19 +48,22 @@ from bitex.zmq_client import TradeClient, TradeClientException
 
 from zmq.eventloop.zmqstream import  ZMQStream
 
-from market_data_helper import  MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh
-
 define("callback_url", default="https://www.bitex.com.br/process_deposit?s=" )
 define("port", default=8443, help="port" )
 define("certfile",default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_certificate.pem") , help="Certificate file" )
 define("keyfile", default=os.path.join(ROOT_PATH, "ssl/", "order_matcher_privatekey.pem") , help="Private key file" )
 define("trade_in",  default="tcp://127.0.0.1:5755", help="trade zmq queue" )
 define("trade_pub", default="tcp://127.0.0.1:5756", help="trade zmq publish queue" )
+define("session_timeout_limit", default=0, help="Session timeout")
+define("db_echo", default=False, help="Prints every database command on the stdout" )
+define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "ws_01_bitex.sqlite"), help="SQLAlchemy database engine string")
 
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"))
 tornado.options.parse_command_line()
 
-from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
+from market_data_helper import  MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh
+
+#from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
 from deposit_hander import DepositHandler
 from process_deposit_handler import ProcessDepositHandler
 import datetime
@@ -326,12 +329,7 @@ def main():
 
   application = WebSocketGatewayApplication(options)
 
-  ssl_options={
-    "certfile": options.certfile,
-    "keyfile" : options.keyfile,
-  }
-
-  server = tornado.httpserver.HTTPServer(application,ssl_options=ssl_options)
+  server = tornado.httpserver.HTTPServer(application)
   server.listen(options.port)
 
   try:
