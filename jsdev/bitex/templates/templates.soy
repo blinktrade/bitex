@@ -23,6 +23,31 @@
   </dl>
 {/template}
 
+/**
+  * @param id_value
+  * @param controlNumber
+  * @param currencySign
+  * @param value
+  */
+{template .BrokerConfirmDepositContent}
+  <form class="form-horizontal">
+    <div class="control-group">
+      <label class="control-label">{msg desc="Control number label"}Control number{/msg}</label>
+      <div class="controls">
+        <label class="control-label" style="text-align: left;">{$controlNumber}</label>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label">{msg desc="Amount label"}Amount paid{/msg}</label>
+      <div class="controls">
+        <div class="input-prepend">
+          <span class="add-on">{$currencySign}</span>
+          <input id="{$id_value}" type="text" class="input-small" size="16" name="PaidValue" value="{$value}">
+        </div>
+      </div>
+    </div>
+  </form>
+{/template}
 
 
 /**
@@ -157,6 +182,7 @@
       </div>
     </div>
   </fieldset>
+</form>
 {/template}
 
 

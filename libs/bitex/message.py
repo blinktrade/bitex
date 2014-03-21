@@ -403,7 +403,7 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_empty('ProcessDepositReqID')
 
       self.raise_exception_if_required_tag_is_missing('Action')
-      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROCESS', 'COMPLETE'])
+      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROGRESS', 'COMPLETE'])
 
 
     elif self.type == 'B2': # Customer List Request
@@ -429,7 +429,7 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_greater_than_zero('WithdrawID')
 
       self.raise_exception_if_required_tag_is_missing('Action')
-      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROCESS', 'COMPLETE'])
+      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROGRESS', 'COMPLETE'])
 
 
     elif self.type == 'B7': # Process Withdraw

@@ -796,8 +796,9 @@ bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, with
  * @param {number=} opt_depositId
  * @param {number=} opt_reasonId
  * @param {string=} opt_reason
+ * @param {number=} opt_amount
  */
-bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_secret, opt_depositId, opt_reasonId, opt_reason){
+bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_secret, opt_depositId, opt_reasonId, opt_reason, opt_amount){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
@@ -817,6 +818,10 @@ bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_s
   if (goog.isDefAndNotNull(opt_reason)){
     msg['Reason'] = opt_reason;
   }
+  if (goog.isDefAndNotNull(opt_amount)){
+    msg['Amount'] = opt_amount;
+  }
+
 
   this.sendMessage(msg);
   return requestId;

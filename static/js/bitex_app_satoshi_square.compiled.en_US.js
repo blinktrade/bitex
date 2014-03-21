@@ -5282,141 +5282,145 @@ function $soy$esc$$0$0REPLACER_FOR_ESCAPE_HTML__AND__NORMALIZE_HTML__AND__ESCAPE
 }
 var $soy$esc$$0$0MATCHER_FOR_ESCAPE_HTML_$$ = /[\x00\x22\x26\x27\x3c\x3e]/g;
 // Input 109
-function $bitex$templates$BrokerView$$($opt_data$$5$$) {
-  var $output$$3$$;
-  $output$$3$$ = "" + ('<div class="section-title"><h3>My broker</h3></div><div class="content"><address><strong>' + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.BusinessName) + "</strong><br/>" + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.Address) + "<br/>" + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.City) + ", " + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.State) + " " + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.ZipCode) + " - " + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.Country) + 
-  '<br/><abbr title="Phone">P:</abbr>' + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.PhoneNumber1) + " " + ($opt_data$$5$$.$msg_broker$.PhoneNumber2 ? ", $msg_broker['PhoneNumber2']" : "") + "<br/>Skype: " + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.Skype) + '<br/><a href="mailto:' + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.Email) + '" target="_blank">' + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.Email) + '</a></address><h4>Fees</h4><table class="table table-bordered"><thead><tr><th>Operation</th><th>Fee</th><th>Terms</th></tr></thead><tbody>');
-  $output$$3$$ = $opt_data$$5$$.$msg_broker$.TransactionFeeBuy == $opt_data$$5$$.$msg_broker$.TransactionFeeSell ? $output$$3$$ + ("<tr><td>Trade fee</td><td>" + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.TransactionFeeBuy) + "</td><td>Instantaneous</td></tr>") : $output$$3$$ + ("<tr><td>Trade fee - Buy side</td><td>" + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.TransactionFeeBuy) + "</td><td>Instantaneous</td></tr><tr><td>Trade fee - Sell side</td><td>" + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.TransactionFeeSell) + 
+function $bitex$templates$BrokerConfirmDepositContent$$($opt_data$$5_output$$3$$) {
+  return $opt_data$$5_output$$3$$ = "" + ('<form class="form-horizontal"><div class="control-group"><label class="control-label">Control number</label><div class="controls"><label class="control-label" style="text-align: left;">' + $soy$$0$0escapeHtml$$($opt_data$$5_output$$3$$.$controlNumber$) + '</label></div></div><div class="control-group"><label class="control-label">Amount paid</label><div class="controls"><div class="input-prepend"><span class="add-on">' + $soy$$0$0escapeHtml$$($opt_data$$5_output$$3$$.$currencySign$) + 
+  '</span><input id="' + $soy$$0$0escapeHtml$$($opt_data$$5_output$$3$$.$id_value$) + '" type="text" class="input-small" size="16" name="PaidValue" value="' + $soy$$0$0escapeHtml$$($opt_data$$5_output$$3$$.value) + '"></div></div></div></form>')
+}
+function $bitex$templates$BrokerView$$($opt_data$$6$$) {
+  var $output$$4$$;
+  $output$$4$$ = "" + ('<div class="section-title"><h3>My broker</h3></div><div class="content"><address><strong>' + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.BusinessName) + "</strong><br/>" + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.Address) + "<br/>" + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.City) + ", " + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.State) + " " + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.ZipCode) + " - " + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.Country) + 
+  '<br/><abbr title="Phone">P:</abbr>' + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.PhoneNumber1) + " " + ($opt_data$$6$$.$msg_broker$.PhoneNumber2 ? ", $msg_broker['PhoneNumber2']" : "") + "<br/>Skype: " + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.Skype) + '<br/><a href="mailto:' + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.Email) + '" target="_blank">' + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.Email) + '</a></address><h4>Fees</h4><table class="table table-bordered"><thead><tr><th>Operation</th><th>Fee</th><th>Terms</th></tr></thead><tbody>');
+  $output$$4$$ = $opt_data$$6$$.$msg_broker$.TransactionFeeBuy == $opt_data$$6$$.$msg_broker$.TransactionFeeSell ? $output$$4$$ + ("<tr><td>Trade fee</td><td>" + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.TransactionFeeBuy) + "</td><td>Instantaneous</td></tr>") : $output$$4$$ + ("<tr><td>Trade fee - Buy side</td><td>" + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.TransactionFeeBuy) + "</td><td>Instantaneous</td></tr><tr><td>Trade fee - Sell side</td><td>" + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.TransactionFeeSell) + 
   "</td><td>Instantaneous</td></tr>");
-  for(var $crypto_currenciesList121_feeList93$$ = $opt_data$$5$$.$msg_broker$.FeeStructure, $crypto_currenciesListLen121_feeListLen93$$ = $crypto_currenciesList121_feeList93$$.length, $crypto_currenciesIndex121_feeIndex93$$ = 0;$crypto_currenciesIndex121_feeIndex93$$ < $crypto_currenciesListLen121_feeListLen93$$;$crypto_currenciesIndex121_feeIndex93$$++) {
-    var $crypto_currenciesData121_feeData93$$ = $crypto_currenciesList121_feeList93$$[$crypto_currenciesIndex121_feeIndex93$$];
-    $output$$3$$ += "<tr><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData121_feeData93$$.Operation) + "</td><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData121_feeData93$$.Fee) + "</td><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData121_feeData93$$.Terms) + "</td></tr>"
+  for(var $crypto_currenciesList137_feeList109$$ = $opt_data$$6$$.$msg_broker$.FeeStructure, $crypto_currenciesListLen137_feeListLen109$$ = $crypto_currenciesList137_feeList109$$.length, $crypto_currenciesIndex137_feeIndex109$$ = 0;$crypto_currenciesIndex137_feeIndex109$$ < $crypto_currenciesListLen137_feeListLen109$$;$crypto_currenciesIndex137_feeIndex109$$++) {
+    var $crypto_currenciesData137_feeData109$$ = $crypto_currenciesList137_feeList109$$[$crypto_currenciesIndex137_feeIndex109$$];
+    $output$$4$$ += "<tr><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData137_feeData109$$.Operation) + "</td><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData137_feeData109$$.Fee) + "</td><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData137_feeData109$$.Terms) + "</td></tr>"
   }
-  $output$$3$$ += '</tbody></table><h4>Wallets</h4><table class="table table-bordered"><thead><tr><th>Coin</th><th>Type</th><th>Address</th><th>Multi signature</th><th>Managed by</th></tr></thead><tbody>';
-  $crypto_currenciesList121_feeList93$$ = $opt_data$$5$$.$msg_broker$.CryptoCurrencies;
-  $crypto_currenciesListLen121_feeListLen93$$ = $crypto_currenciesList121_feeList93$$.length;
-  for($crypto_currenciesIndex121_feeIndex93$$ = 0;$crypto_currenciesIndex121_feeIndex93$$ < $crypto_currenciesListLen121_feeListLen93$$;$crypto_currenciesIndex121_feeIndex93$$++) {
-    for(var $crypto_currenciesData121_feeData93$$ = $crypto_currenciesList121_feeList93$$[$crypto_currenciesIndex121_feeIndex93$$], $walletsList122$$ = $crypto_currenciesData121_feeData93$$.Wallets, $walletsListLen122$$ = $walletsList122$$.length, $walletsIndex122$$ = 0;$walletsIndex122$$ < $walletsListLen122$$;$walletsIndex122$$++) {
-      var $walletsData122$$ = $walletsList122$$[$walletsIndex122$$];
-      $output$$3$$ += "<tr><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData121_feeData93$$.CurrencyDescription) + "</td><td>" + $soy$$0$0escapeHtml$$($walletsData122$$.type) + "</td><td>" + ("BTC" == $crypto_currenciesData121_feeData93$$.CurrencyCode ? '<a href="https://blockchain.info/address/' + $soy$$0$0escapeHtml$$($walletsData122$$.address) + '/" target="_blank">' + $soy$$0$0escapeHtml$$($walletsData122$$.address) + "</a>" : $soy$$0$0escapeHtml$$($walletsData122$$.address)) + "</td><td>";
-      $output$$3$$ = $walletsData122$$.multisig ? $output$$3$$ + "Yes" : $output$$3$$ + "No";
-      $output$$3$$ += "</td><td>" + $soy$$0$0escapeHtml$$($walletsData122$$.managed_by) + "</td></tr>"
+  $output$$4$$ += '</tbody></table><h4>Wallets</h4><table class="table table-bordered"><thead><tr><th>Coin</th><th>Type</th><th>Address</th><th>Multi signature</th><th>Managed by</th></tr></thead><tbody>';
+  $crypto_currenciesList137_feeList109$$ = $opt_data$$6$$.$msg_broker$.CryptoCurrencies;
+  $crypto_currenciesListLen137_feeListLen109$$ = $crypto_currenciesList137_feeList109$$.length;
+  for($crypto_currenciesIndex137_feeIndex109$$ = 0;$crypto_currenciesIndex137_feeIndex109$$ < $crypto_currenciesListLen137_feeListLen109$$;$crypto_currenciesIndex137_feeIndex109$$++) {
+    for(var $crypto_currenciesData137_feeData109$$ = $crypto_currenciesList137_feeList109$$[$crypto_currenciesIndex137_feeIndex109$$], $walletsList138$$ = $crypto_currenciesData137_feeData109$$.Wallets, $walletsListLen138$$ = $walletsList138$$.length, $walletsIndex138$$ = 0;$walletsIndex138$$ < $walletsListLen138$$;$walletsIndex138$$++) {
+      var $walletsData138$$ = $walletsList138$$[$walletsIndex138$$];
+      $output$$4$$ += "<tr><td>" + $soy$$0$0escapeHtml$$($crypto_currenciesData137_feeData109$$.CurrencyDescription) + "</td><td>" + $soy$$0$0escapeHtml$$($walletsData138$$.type) + "</td><td>" + ("BTC" == $crypto_currenciesData137_feeData109$$.CurrencyCode ? '<a href="https://blockchain.info/address/' + $soy$$0$0escapeHtml$$($walletsData138$$.address) + '/" target="_blank">' + $soy$$0$0escapeHtml$$($walletsData138$$.address) + "</a>" : $soy$$0$0escapeHtml$$($walletsData138$$.address)) + "</td><td>";
+      $output$$4$$ = $walletsData138$$.multisig ? $output$$4$$ + "Yes" : $output$$4$$ + "No";
+      $output$$4$$ += "</td><td>" + $soy$$0$0escapeHtml$$($walletsData138$$.managed_by) + "</td></tr>"
     }
   }
-  return $output$$3$$ += '</tbody></table><h4>Terms of service</h4><iframe style="width:100%;height:400px;" src="' + $soy$$0$0escapeHtml$$($opt_data$$5$$.$msg_broker$.TosUrl) + '"></iframe></div>'
+  return $output$$4$$ += '</tbody></table><h4>Terms of service</h4><iframe style="width:100%;height:400px;" src="' + $soy$$0$0escapeHtml$$($opt_data$$6$$.$msg_broker$.TosUrl) + '"></iframe></div>'
 }
 function $bitex$templates$CancelDepositDialogContent$$() {
-  var $output$$4$$;
-  return $output$$4$$ = "" + ('<p>Enter a reason for cancelling the deposit</p><form class="form-horizontal"><fieldset><div class="control-group"><label class="control-label" for="' + $soy$$0$0escapeHtml$$("id_select_reason") + '" >Reason:</label><div class="controls"><select id="' + $soy$$0$0escapeHtml$$("id_select_reason") + '"><option value=0 selected>Other</option></select></div></div><div class="control-group"><div class="controls"><textarea id="' + $soy$$0$0escapeHtml$$("id_custom_reason_text") + 
-  '" rows="2" style=""></textarea></div></div></fieldset>')
+  var $output$$5$$;
+  return $output$$5$$ = "" + ('<p>Enter a reason for cancelling the deposit</p><form class="form-horizontal"><fieldset><div class="control-group"><label class="control-label" for="' + $soy$$0$0escapeHtml$$("id_select_reason") + '" >Reason:</label><div class="controls"><select id="' + $soy$$0$0escapeHtml$$("id_select_reason") + '"><option value=0 selected>Other</option></select></div></div><div class="control-group"><div class="controls"><textarea id="' + $soy$$0$0escapeHtml$$("id_custom_reason_text") + 
+  '" rows="2" style=""></textarea></div></div></fieldset></form>')
 }
 function $bitex$templates$CancelWithdrawDialogContent$$() {
-  var $output$$5$$;
-  return $output$$5$$ = "" + ('<p>Enter a reason for cancelling the user withdraw</p><form class="form-horizontal"><fieldset><div class="control-group"><label class="control-label" for="' + $soy$$0$0escapeHtml$$("id_select_reason") + '" >Reason:</label><div class="controls"><select id="' + $soy$$0$0escapeHtml$$("id_select_reason") + '"><option value=0>Other</option><option value=-1 selected>Insufficient funds</option><option value=-2>Account not verified</option><option value=-3>Suspicion of fraud</option><option value=-4>Withdrawing to a different account than yours</option><option value=-5>Invalid wallet</option><option value=-6>Invalid bank account</option><option value=-7>Amount exceeded your daily withdraw limit</option></select></div></div><div class="control-group"><div class="controls"><textarea id="' + 
+  var $output$$6$$;
+  return $output$$6$$ = "" + ('<p>Enter a reason for cancelling the user withdraw</p><form class="form-horizontal"><fieldset><div class="control-group"><label class="control-label" for="' + $soy$$0$0escapeHtml$$("id_select_reason") + '" >Reason:</label><div class="controls"><select id="' + $soy$$0$0escapeHtml$$("id_select_reason") + '"><option value=0>Other</option><option value=-1 selected>Insufficient funds</option><option value=-2>Account not verified</option><option value=-3>Suspicion of fraud</option><option value=-4>Withdrawing to a different account than yours</option><option value=-5>Invalid wallet</option><option value=-6>Invalid bank account</option><option value=-7>Amount exceeded your daily withdraw limit</option></select></div></div><div class="control-group"><div class="controls"><textarea id="' + 
   $soy$$0$0escapeHtml$$("id_custom_reason_text") + '" rows="2" style="display:none;"></textarea></div></div></fieldset></form>')
 }
 function $bitex$templates$GoogleAuthenticationCodeDialogContent$$() {
-  var $output$$6$$;
-  return $output$$6$$ = "" + ('Google Authenticator code: <input id="' + $soy$$0$0escapeHtml$$("id_second_factor") + '" placeholder="eg. 555555" size="10">')
+  var $output$$7$$;
+  return $output$$7$$ = "" + ('Google Authenticator code: <input id="' + $soy$$0$0escapeHtml$$("id_second_factor") + '" placeholder="eg. 555555" size="10">')
 }
 function $bitex$templates$WithdrawConfirmationDialogContent$$() {
-  var $output$$7$$;
-  return $output$$7$$ = "" + ('<p>We just sent a confirmation code to your email.</p><input id="' + $soy$$0$0escapeHtml$$("id_withdraw_confirmation") + '" placeholder="Confirmation code" class="input-block-level"><p><i>This is security measure to improve your account security</i></p>')
-}
-function $bitex$templates$YourAccountSummary$$($currencyList238_opt_data$$10$$) {
   var $output$$8$$;
-  $output$$8$$ = '<h6>Your account</h6><table class="data"><tbody>';
-  $currencyList238_opt_data$$10$$ = $currencyList238_opt_data$$10$$.$currencies$;
-  for(var $currencyListLen238$$ = $currencyList238_opt_data$$10$$.length, $currencyIndex238$$ = 0;$currencyIndex238$$ < $currencyListLen238$$;$currencyIndex238$$++) {
-    $output$$8$$ += '<tr><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyList238_opt_data$$10$$[$currencyIndex238$$]) + '" data-blink-class="balance-info-blink"></span></td></tr>'
-  }
-  return $output$$8$$ + "</tbody></table>"
+  return $output$$8$$ = "" + ('<p>We just sent a confirmation code to your email.</p><input id="' + $soy$$0$0escapeHtml$$("id_withdraw_confirmation") + '" placeholder="Confirmation code" class="input-block-level"><p><i>This is security measure to improve your account security</i></p>')
 }
-function $bitex$templates$AccountBalances$$($opt_data$$11$$) {
-  for(var $output$$9$$ = '<table class="table table-striped" style="width: 350px"><tbody>', $currencyList246$$ = $opt_data$$11$$.$currencies$, $currencyListLen246$$ = $currencyList246$$.length, $currencyIndex246$$ = 0;$currencyIndex246$$ < $currencyListLen246$$;$currencyIndex246$$++) {
-    var $currencyData246$$ = $currencyList246$$[$currencyIndex246$$], $MSG_UNNAMED_709$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData246$$), $output$$9$$ = $output$$9$$ + ("<tr><td><strong>" + $MSG_UNNAMED_709$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData246$$) + '" data-blink-class="balance-info-blink"></span></td>');
-    "deposit" == $opt_data$$11$$.action && ($output$$9$$ += '<td><button class="btn btn-mini" data-action="deposit"  data-currency="' + $soy$$0$0escapeHtml$$($currencyData246$$) + '"><i data-action="deposit"  data-currency="' + $soy$$0$0escapeHtml$$($currencyData246$$) + '" class="icon-plus"/> Deposit</button></td>');
-    "withdraw" == $opt_data$$11$$.action && ($output$$9$$ += '<td><button class="btn btn-mini" data-action="withdraw" data-currency="' + $soy$$0$0escapeHtml$$($currencyData246$$) + '"><i data-action="withdraw" data-currency="' + $soy$$0$0escapeHtml$$($currencyData246$$) + '" class="icon-minus"/> Withdraw</button></td>');
-    $output$$9$$ += "</tr>"
+function $bitex$templates$YourAccountSummary$$($currencyList254_opt_data$$11$$) {
+  var $output$$9$$;
+  $output$$9$$ = '<h6>Your account</h6><table class="data"><tbody>';
+  $currencyList254_opt_data$$11$$ = $currencyList254_opt_data$$11$$.$currencies$;
+  for(var $currencyListLen254$$ = $currencyList254_opt_data$$11$$.length, $currencyIndex254$$ = 0;$currencyIndex254$$ < $currencyListLen254$$;$currencyIndex254$$++) {
+    $output$$9$$ += '<tr><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyList254_opt_data$$11$$[$currencyIndex254$$]) + '" data-blink-class="balance-info-blink"></span></td></tr>'
   }
   return $output$$9$$ + "</tbody></table>"
+}
+function $bitex$templates$AccountBalances$$($opt_data$$12$$) {
+  for(var $output$$10$$ = '<table class="table table-striped" style="width: 350px"><tbody>', $currencyList262$$ = $opt_data$$12$$.$currencies$, $currencyListLen262$$ = $currencyList262$$.length, $currencyIndex262$$ = 0;$currencyIndex262$$ < $currencyListLen262$$;$currencyIndex262$$++) {
+    var $currencyData262$$ = $currencyList262$$[$currencyIndex262$$], $MSG_UNNAMED_733$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData262$$), $output$$10$$ = $output$$10$$ + ("<tr><td><strong>" + $MSG_UNNAMED_733$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" data-blink-class="balance-info-blink"></span></td>');
+    "deposit" == $opt_data$$12$$.action && ($output$$10$$ += '<td><button class="btn btn-mini" data-action="deposit"  data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '"><i data-action="deposit"  data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" class="icon-plus"/> Deposit</button></td>');
+    "withdraw" == $opt_data$$12$$.action && ($output$$10$$ += '<td><button class="btn btn-mini" data-action="withdraw" data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '"><i data-action="withdraw" data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" class="icon-minus"/> Withdraw</button></td>');
+    $output$$10$$ += "</tr>"
+  }
+  return $output$$10$$ + "</tbody></table>"
 }
 function $bitex$templates$WaitingForDepositResponseDialogContent$$() {
   return'<div class="row-fluid" data-deposit-status="processing"><h5 class="text-center">Processing deposit request...</h5></div><div class="row-fluid"><div class="span6 offset3"><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div></div>'
 }
-function $bitex$templates$DepositCryptoCurrencyContentDialog$$($opt_data$$13_output$$11$$) {
-  return $opt_data$$13_output$$11$$ = "" + ('<div class="row-fluid" data-deposit-status="prepare"><h4 class="text-center">' + $soy$$0$0escapeHtml$$($opt_data$$13_output$$11$$.$deposit_message$.Data.InputAddress) + '</h4><div class="text-center"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl=' + $soy$$0$0escapeHtml$$($opt_data$$13_output$$11$$.$deposit_message$.Data.InputAddress) + '"/></div><p class="text-center"> Powered by <a href="https://blockchain.info/api/api_receive/" target="_blank">https://blockchain.info/api/api_receive</a></p></div>')
+function $bitex$templates$DepositCryptoCurrencyContentDialog$$($opt_data$$14_output$$12$$) {
+  return $opt_data$$14_output$$12$$ = "" + ('<div class="row-fluid" data-deposit-status="prepare"><h4 class="text-center">' + $soy$$0$0escapeHtml$$($opt_data$$14_output$$12$$.$deposit_message$.Data.InputAddress) + '</h4><div class="text-center"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl=' + $soy$$0$0escapeHtml$$($opt_data$$14_output$$12$$.$deposit_message$.Data.InputAddress) + '"/></div><p class="text-center"> Powered by <a href="https://blockchain.info/api/api_receive/" target="_blank">https://blockchain.info/api/api_receive</a></p></div>')
 }
-function $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$($MSG_UNNAMED_721_opt_data$$14$$) {
-  var $output$$12$$ = "";
-  $MSG_UNNAMED_721_opt_data$$14$$ = " We will generate a unique " + ($soy$$0$0escapeHtml$$($MSG_UNNAMED_721_opt_data$$14$$.$currency_description$) + " address that will be valid only for this transaction.");
-  return $output$$12$$ + ('<div class="row-fluid" data-deposit-status="confirm"><h3 class="text-center"> IMPORTANT! </h3><h4 class="text-center">' + $MSG_UNNAMED_721_opt_data$$14$$ + '</h4><h3 class="text-center"> Did you understand? </h3><br/><br/></div>')
+function $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$($MSG_UNNAMED_745_opt_data$$15$$) {
+  var $output$$13$$ = "";
+  $MSG_UNNAMED_745_opt_data$$15$$ = " We will generate a unique " + ($soy$$0$0escapeHtml$$($MSG_UNNAMED_745_opt_data$$15$$.$currency_description$) + " address that will be valid only for this transaction.");
+  return $output$$13$$ + ('<div class="row-fluid" data-deposit-status="confirm"><h3 class="text-center"> IMPORTANT! </h3><h4 class="text-center">' + $MSG_UNNAMED_745_opt_data$$15$$ + '</h4><h3 class="text-center"> Did you understand? </h3><br/><br/></div>')
 }
-function $bitex$templates$DepositSlipContentDialog$$($opt_data$$15_output$$13$$) {
-  return $opt_data$$15_output$$13$$ = "" + ('<div class="row-fluid" data-deposit-status="done"><h5 class="text-center">done</h5></div><div class="row-fluid"><div class="span6 offset3"><a  target="_blank" href="/get_deposit?deposit_id=' + $soy$$0$0escapeHtml$$($opt_data$$15_output$$13$$.$deposit_id$) + '" class="btn btn-primary">Print</a>  or  <a href="/get_deposit?download=1&deposit_id=' + $soy$$0$0escapeHtml$$($opt_data$$15_output$$13$$.$deposit_id$) + '">Download</a></div></div>')
+function $bitex$templates$DepositSlipContentDialog$$($opt_data$$16_output$$14$$) {
+  return $opt_data$$16_output$$14$$ = "" + ('<div class="row-fluid" data-deposit-status="done"><h5 class="text-center">done</h5></div><div class="row-fluid"><div class="span6 offset3"><a  target="_blank" href="/get_deposit?deposit_id=' + $soy$$0$0escapeHtml$$($opt_data$$16_output$$14$$.$deposit_id$) + '" class="btn btn-primary">Print</a>  or  <a href="/get_deposit?download=1&deposit_id=' + $soy$$0$0escapeHtml$$($opt_data$$16_output$$14$$.$deposit_id$) + '">Download</a></div></div>')
 }
-function $bitex$templates$DepositWithdrawDialogContent$$($methodList349_opt_data$$16$$) {
-  var $output$$14$$ = '<form class="form-horizontal" data-deposit-status="prepare"><input type="hidden" name="Currency" value="' + $soy$$0$0escapeHtml$$($methodList349_opt_data$$16$$.$currency$) + '"><div class="control-group"><label class="control-label">Amount</label><div class="controls"><div class="input-prepend"><span class="add-on">' + $soy$$0$0escapeHtml$$($methodList349_opt_data$$16$$.$currency_sign$) + '</span><input type="text" class="input-small" size="16" name="Amount"></div></div></div>';
-  if(1 < $methodList349_opt_data$$16$$.$methods$.length) {
-    for(var $output$$14$$ = $output$$14$$ + '<div class="control-group"><label class="control-label">Method</label><div class="controls"><select name="Method" class="withdraw-method-selector">', $methodList330_methodList343_methodListLen349$$ = $methodList349_opt_data$$16$$.$methods$, $methodIndex349_methodListLen330_methodListLen343$$ = $methodList330_methodList343_methodListLen349$$.length, $fieldList359_methodData349_methodIndex330_methodIndex343$$ = 0;$fieldList359_methodData349_methodIndex330_methodIndex343$$ < 
-    $methodIndex349_methodListLen330_methodListLen343$$;$fieldList359_methodData349_methodIndex330_methodIndex343$$++) {
-      var $fieldListLen359_methodData330$$ = $methodList330_methodList343_methodListLen349$$[$fieldList359_methodData349_methodIndex330_methodIndex343$$], $output$$14$$ = $output$$14$$ + ("<option " + (0 == $fieldList359_methodData349_methodIndex330_methodIndex343$$ ? "selected" : "") + ' value="' + $soy$$0$0escapeHtml$$($fieldListLen359_methodData330$$.method) + '" >' + $soy$$0$0escapeHtml$$($fieldListLen359_methodData330$$.description) + "</option>")
+function $bitex$templates$DepositWithdrawDialogContent$$($methodList365_opt_data$$17$$) {
+  var $output$$15$$ = '<form class="form-horizontal" data-deposit-status="prepare"><input type="hidden" name="Currency" value="' + $soy$$0$0escapeHtml$$($methodList365_opt_data$$17$$.$currency$) + '"><div class="control-group"><label class="control-label">Amount</label><div class="controls"><div class="input-prepend"><span class="add-on">' + $soy$$0$0escapeHtml$$($methodList365_opt_data$$17$$.$currency_sign$) + '</span><input type="text" class="input-small" size="16" name="Amount"></div></div></div>';
+  if(1 < $methodList365_opt_data$$17$$.$methods$.length) {
+    for(var $output$$15$$ = $output$$15$$ + '<div class="control-group"><label class="control-label">Method</label><div class="controls"><select name="Method" class="withdraw-method-selector">', $methodList346_methodList359_methodListLen365$$ = $methodList365_opt_data$$17$$.$methods$, $methodIndex365_methodListLen346_methodListLen359$$ = $methodList346_methodList359_methodListLen365$$.length, $fieldList375_methodData365_methodIndex346_methodIndex359$$ = 0;$fieldList375_methodData365_methodIndex346_methodIndex359$$ < 
+    $methodIndex365_methodListLen346_methodListLen359$$;$fieldList375_methodData365_methodIndex346_methodIndex359$$++) {
+      var $fieldListLen375_methodData346$$ = $methodList346_methodList359_methodListLen365$$[$fieldList375_methodData365_methodIndex346_methodIndex359$$], $output$$15$$ = $output$$15$$ + ("<option " + (0 == $fieldList375_methodData365_methodIndex346_methodIndex359$$ ? "selected" : "") + ' value="' + $soy$$0$0escapeHtml$$($fieldListLen375_methodData346$$.method) + '" >' + $soy$$0$0escapeHtml$$($fieldListLen375_methodData346$$.description) + "</option>")
     }
-    $output$$14$$ += "</select></div></div>"
+    $output$$15$$ += "</select></div></div>"
   }else {
-    $methodList330_methodList343_methodListLen349$$ = $methodList349_opt_data$$16$$.$methods$;
-    $methodIndex349_methodListLen330_methodListLen343$$ = $methodList330_methodList343_methodListLen349$$.length;
-    for($fieldList359_methodData349_methodIndex330_methodIndex343$$ = 0;$fieldList359_methodData349_methodIndex330_methodIndex343$$ < $methodIndex349_methodListLen330_methodListLen343$$;$fieldList359_methodData349_methodIndex330_methodIndex343$$++) {
-      $output$$14$$ += '<input type="hidden" name="Method" value="' + $soy$$0$0escapeHtml$$($methodList330_methodList343_methodListLen349$$[$fieldList359_methodData349_methodIndex330_methodIndex343$$].method) + '">'
+    $methodList346_methodList359_methodListLen365$$ = $methodList365_opt_data$$17$$.$methods$;
+    $methodIndex365_methodListLen346_methodListLen359$$ = $methodList346_methodList359_methodListLen365$$.length;
+    for($fieldList375_methodData365_methodIndex346_methodIndex359$$ = 0;$fieldList375_methodData365_methodIndex346_methodIndex359$$ < $methodIndex365_methodListLen346_methodListLen359$$;$fieldList375_methodData365_methodIndex346_methodIndex359$$++) {
+      $output$$15$$ += '<input type="hidden" name="Method" value="' + $soy$$0$0escapeHtml$$($methodList346_methodList359_methodListLen365$$[$fieldList375_methodData365_methodIndex346_methodIndex359$$].method) + '">'
     }
   }
-  $output$$14$$ += '<div class="withdraw-methods">';
-  $methodList349_opt_data$$16$$ = $methodList349_opt_data$$16$$.$methods$;
-  $methodList330_methodList343_methodListLen349$$ = $methodList349_opt_data$$16$$.length;
-  for($methodIndex349_methodListLen330_methodListLen343$$ = 0;$methodIndex349_methodListLen330_methodListLen343$$ < $methodList330_methodList343_methodListLen349$$;$methodIndex349_methodListLen330_methodListLen343$$++) {
-    for(var $fieldList359_methodData349_methodIndex330_methodIndex343$$ = $methodList349_opt_data$$16$$[$methodIndex349_methodListLen330_methodListLen343$$], $output$$14$$ = $output$$14$$ + ('<div class="withdraw-method" data-withdraw-method="' + $soy$$0$0escapeHtml$$($fieldList359_methodData349_methodIndex330_methodIndex343$$.method) + '" style="' + (0 != $methodIndex349_methodListLen330_methodListLen343$$ ? "display:none;" : "") + '" ><div class="control-group" style="margin-bottom: 5px;"><div class="controls"><label>' + 
-    $soy$$0$0escapeHtml$$($fieldList359_methodData349_methodIndex330_methodIndex343$$.disclaimer) + "</label></div></div>"), $fieldList359_methodData349_methodIndex330_methodIndex343$$ = $fieldList359_methodData349_methodIndex330_methodIndex343$$.fields, $fieldListLen359_methodData330$$ = $fieldList359_methodData349_methodIndex330_methodIndex343$$.length, $fieldIndex359$$ = 0;$fieldIndex359$$ < $fieldListLen359_methodData330$$;$fieldIndex359$$++) {
-      var $fieldData359$$ = $fieldList359_methodData349_methodIndex330_methodIndex343$$[$fieldIndex359$$], $output$$14$$ = $output$$14$$ + ('<div class="control-group"><label class="control-label">' + $soy$$0$0escapeHtml$$($fieldData359$$.label) + '</label><div class="controls"><input class="withdraw-field" type="' + $soy$$0$0escapeHtml$$($fieldData359$$.type) + '" name="' + $soy$$0$0escapeHtml$$($fieldData359$$.name) + '" placeholder="' + $soy$$0$0escapeHtml$$($fieldData359$$.placeholder) + '" value="' + 
-      $soy$$0$0escapeHtml$$($fieldData359$$.value) + '" ' + (0 != $methodIndex349_methodListLen330_methodListLen343$$ ? "disabled" : "") + " /></div></div>")
+  $output$$15$$ += '<div class="withdraw-methods">';
+  $methodList365_opt_data$$17$$ = $methodList365_opt_data$$17$$.$methods$;
+  $methodList346_methodList359_methodListLen365$$ = $methodList365_opt_data$$17$$.length;
+  for($methodIndex365_methodListLen346_methodListLen359$$ = 0;$methodIndex365_methodListLen346_methodListLen359$$ < $methodList346_methodList359_methodListLen365$$;$methodIndex365_methodListLen346_methodListLen359$$++) {
+    for(var $fieldList375_methodData365_methodIndex346_methodIndex359$$ = $methodList365_opt_data$$17$$[$methodIndex365_methodListLen346_methodListLen359$$], $output$$15$$ = $output$$15$$ + ('<div class="withdraw-method" data-withdraw-method="' + $soy$$0$0escapeHtml$$($fieldList375_methodData365_methodIndex346_methodIndex359$$.method) + '" style="' + (0 != $methodIndex365_methodListLen346_methodListLen359$$ ? "display:none;" : "") + '" ><div class="control-group" style="margin-bottom: 5px;"><div class="controls"><label>' + 
+    $soy$$0$0escapeHtml$$($fieldList375_methodData365_methodIndex346_methodIndex359$$.disclaimer) + "</label></div></div>"), $fieldList375_methodData365_methodIndex346_methodIndex359$$ = $fieldList375_methodData365_methodIndex346_methodIndex359$$.fields, $fieldListLen375_methodData346$$ = $fieldList375_methodData365_methodIndex346_methodIndex359$$.length, $fieldIndex375$$ = 0;$fieldIndex375$$ < $fieldListLen375_methodData346$$;$fieldIndex375$$++) {
+      var $fieldData375$$ = $fieldList375_methodData365_methodIndex346_methodIndex359$$[$fieldIndex375$$], $output$$15$$ = $output$$15$$ + ('<div class="control-group"><label class="control-label">' + $soy$$0$0escapeHtml$$($fieldData375$$.label) + '</label><div class="controls"><input class="withdraw-field" type="' + $soy$$0$0escapeHtml$$($fieldData375$$.type) + '" name="' + $soy$$0$0escapeHtml$$($fieldData375$$.name) + '" placeholder="' + $soy$$0$0escapeHtml$$($fieldData375$$.placeholder) + '" value="' + 
+      $soy$$0$0escapeHtml$$($fieldData375$$.value) + '" ' + (0 != $methodIndex365_methodListLen346_methodListLen359$$ ? "disabled" : "") + " /></div></div>")
     }
-    $output$$14$$ += "</div>"
+    $output$$15$$ += "</div>"
   }
-  return $output$$14$$ + '</div><div class="control-group dlg-response-group"><label class="control-label dlg-response-group-label"></label><div class="controls" class="dlg-response-group-value" ></div></div></form>'
+  return $output$$15$$ + '</div><div class="control-group dlg-response-group"><label class="control-label dlg-response-group-label"></label><div class="controls" class="dlg-response-group-value" ></div></div></form>'
 }
-function $bitex$templates$YourAccountBalances$$($currencyList381_opt_data$$17$$) {
-  var $output$$15$$ = '<table class="table table-striped" style="width: 350px"><tbody>';
-  $currencyList381_opt_data$$17$$ = $currencyList381_opt_data$$17$$.$currencies$;
-  for(var $currencyListLen381$$ = $currencyList381_opt_data$$17$$.length, $currencyIndex381$$ = 0;$currencyIndex381$$ < $currencyListLen381$$;$currencyIndex381$$++) {
-    var $currencyData381$$ = $currencyList381_opt_data$$17$$[$currencyIndex381$$], $MSG_UNNAMED_731$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData381$$.code), $output$$15$$ = $output$$15$$ + ("<tr><td><strong>" + $MSG_UNNAMED_731$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData381$$.$model_key$) + '" data-blink-class="balance-info-blink">' + ($currencyData381$$.$balance$ ? $soy$$0$0escapeHtml$$($currencyData381$$.$balance$) : 
+function $bitex$templates$YourAccountBalances$$($currencyList397_opt_data$$18$$) {
+  var $output$$16$$ = '<table class="table table-striped" style="width: 350px"><tbody>';
+  $currencyList397_opt_data$$18$$ = $currencyList397_opt_data$$18$$.$currencies$;
+  for(var $currencyListLen397$$ = $currencyList397_opt_data$$18$$.length, $currencyIndex397$$ = 0;$currencyIndex397$$ < $currencyListLen397$$;$currencyIndex397$$++) {
+    var $currencyData397$$ = $currencyList397_opt_data$$18$$[$currencyIndex397$$], $MSG_UNNAMED_755$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData397$$.code), $output$$16$$ = $output$$16$$ + ("<tr><td><strong>" + $MSG_UNNAMED_755$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData397$$.$model_key$) + '" data-blink-class="balance-info-blink">' + ($currencyData397$$.$balance$ ? $soy$$0$0escapeHtml$$($currencyData397$$.$balance$) : 
     "-") + "</span></td></tr>")
   }
-  return $output$$15$$ + "</tbody></table>"
+  return $output$$16$$ + "</tbody></table>"
 }
-function $bitex$templates$AccountOverviewHeader$$($opt_data$$18_output$$16$$) {
-  return $opt_data$$18_output$$16$$ = "" + ('<h4>Details</h4><table class="table table-striped" style="width: 350px"><tbody><tr><td><strong>ID</strong></td><td>' + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.ID) + "</td></tr><tr><td><strong>Username</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.Username) + "</td></tr><tr><td><strong>Email</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.Email) + 
-  "</td></tr><tr><td><strong>State</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.State) + "</td></tr><tr><td><strong>Country</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.CountryCode) + "</td></tr><tr><td><strong>Last login</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.LastLogin) + "</td></tr><tr><td><strong>Is verified</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.Verified) + 
-  "</td></tr><tr><td><strong>Has two step authentication</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.TwoFactorEnabled) + "</td></tr><tr><td><strong>Registration date</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$18_output$$16$$.$msg_customer_detail$.Created) + "</td></tr></tbody></table>")
+function $bitex$templates$AccountOverviewHeader$$($opt_data$$19_output$$17$$) {
+  return $opt_data$$19_output$$17$$ = "" + ('<h4>Details</h4><table class="table table-striped" style="width: 350px"><tbody><tr><td><strong>ID</strong></td><td>' + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.ID) + "</td></tr><tr><td><strong>Username</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.Username) + "</td></tr><tr><td><strong>Email</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.Email) + 
+  "</td></tr><tr><td><strong>State</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.State) + "</td></tr><tr><td><strong>Country</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.CountryCode) + "</td></tr><tr><td><strong>Last login</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.LastLogin) + "</td></tr><tr><td><strong>Is verified</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.Verified) + 
+  "</td></tr><tr><td><strong>Has two step authentication</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.TwoFactorEnabled) + "</td></tr><tr><td><strong>Registration date</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.Created) + "</td></tr></tbody></table>")
 }
-function $bitex$templates$OrderBook$$($columnList454_opt_data$$19$$) {
-  var $output$$17$$ = '<div class="text-center"><h4>' + $soy$$0$0escapeHtml$$($columnList454_opt_data$$19$$.title) + '</h4></div><table id="' + $soy$$0$0escapeHtml$$($columnList454_opt_data$$19$$.id) + '"  class="table"><thead><tr>';
-  $columnList454_opt_data$$19$$ = $columnList454_opt_data$$19$$.$columns$;
-  for(var $columnListLen454$$ = $columnList454_opt_data$$19$$.length, $columnIndex454$$ = 0;$columnIndex454$$ < $columnListLen454$$;$columnIndex454$$++) {
-    $output$$17$$ += "<th>" + $soy$$0$0escapeHtml$$($columnList454_opt_data$$19$$[$columnIndex454$$]) + "</th>"
+function $bitex$templates$OrderBook$$($columnList470_opt_data$$20$$) {
+  var $output$$18$$ = '<div class="text-center"><h4>' + $soy$$0$0escapeHtml$$($columnList470_opt_data$$20$$.title) + '</h4></div><table id="' + $soy$$0$0escapeHtml$$($columnList470_opt_data$$20$$.id) + '"  class="table"><thead><tr>';
+  $columnList470_opt_data$$20$$ = $columnList470_opt_data$$20$$.$columns$;
+  for(var $columnListLen470$$ = $columnList470_opt_data$$20$$.length, $columnIndex470$$ = 0;$columnIndex470$$ < $columnListLen470$$;$columnIndex470$$++) {
+    $output$$18$$ += "<th>" + $soy$$0$0escapeHtml$$($columnList470_opt_data$$20$$[$columnIndex470$$]) + "</th>"
   }
-  return $output$$17$$ + "</tr></thead><tbody></tbody></table>"
+  return $output$$18$$ + "</tr></thead><tbody></tbody></table>"
 }
-function $bitex$templates$OrderEntry$$($opt_data$$20$$) {
-  var $output$$18$$;
-  $output$$18$$ = "" + ('<div id="' + $soy$$0$0escapeHtml$$($opt_data$$20$$.id) + '" class="well span6 order-entry"><input type="hidden" name="symbol" class="order-entry-symbol" value="' + $soy$$0$0escapeHtml$$($opt_data$$20$$.$symbol$) + '"><input type="hidden" name="side" class="order-entry-side" value="' + $soy$$0$0escapeHtml$$($opt_data$$20$$.$side$) + '"><input type="hidden" name="type" class="order-entry-type" value="' + $soy$$0$0escapeHtml$$($opt_data$$20$$.type) + '"><div class="row-fluid"><div class="span5 order-entry-label"> <span>Amount:</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">\u0e3f</span><input class="input-block-level order-entry-amount" type="text" value="" required/></div></div></div><div class="row-fluid"><div class="span5 order-entry-label"> <span>Price per <span class="order-entry-amount-sign">\u0e3f</span>:</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span><input class="input-block-level order-entry-price" type="text" required/></div></div></div><div class="row-fluid"><div class="span5 order-entry-label"><span>Total:</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span><input class="input-block-level order-entry-total" type="text" required/></div></div></div><div class="row-fluid" ' + 
-  ($opt_data$$20$$.$hide_fee$ ? 'style="display: none;"' : "") + ' ><div class="span5 order-entry-label"> <span>Fee (optional):</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">\u0e3f</span><input class="input-block-level order-entry-fee" type="text" value="0" /></div></div></div><div class="row-fluid"><div class="span5"><input class="input-block-level order-entry-client-id" placeholder="Client ID" ' + ($opt_data$$20$$.$hide_client_id$ ? 
-  'style="display:none"' : "") + ' /></div><div class="span5"><button class="btn ' + (1 == $opt_data$$20$$.$side$ ? "btn-success" : "btn-danger") + ' btn-execution order-entry-action">');
-  $output$$18$$ = 1 == $opt_data$$20$$.$side$ ? $output$$18$$ + "BUY" : $output$$18$$ + "SELL";
-  return $output$$18$$ + "</button></div></div></div>"
+function $bitex$templates$OrderEntry$$($opt_data$$21$$) {
+  var $output$$19$$;
+  $output$$19$$ = "" + ('<div id="' + $soy$$0$0escapeHtml$$($opt_data$$21$$.id) + '" class="well span6 order-entry"><input type="hidden" name="symbol" class="order-entry-symbol" value="' + $soy$$0$0escapeHtml$$($opt_data$$21$$.$symbol$) + '"><input type="hidden" name="side" class="order-entry-side" value="' + $soy$$0$0escapeHtml$$($opt_data$$21$$.$side$) + '"><input type="hidden" name="type" class="order-entry-type" value="' + $soy$$0$0escapeHtml$$($opt_data$$21$$.type) + '"><div class="row-fluid"><div class="span5 order-entry-label"> <span>Amount:</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">\u0e3f</span><input class="input-block-level order-entry-amount" type="text" value="" required/></div></div></div><div class="row-fluid"><div class="span5 order-entry-label"> <span>Price per <span class="order-entry-amount-sign">\u0e3f</span>:</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span><input class="input-block-level order-entry-price" type="text" required/></div></div></div><div class="row-fluid"><div class="span5 order-entry-label"><span>Total:</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span><input class="input-block-level order-entry-total" type="text" required/></div></div></div><div class="row-fluid" ' + 
+  ($opt_data$$21$$.$hide_fee$ ? 'style="display: none;"' : "") + ' ><div class="span5 order-entry-label"> <span>Fee (optional):</span></div><div class="span6"><div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">\u0e3f</span><input class="input-block-level order-entry-fee" type="text" value="0" /></div></div></div><div class="row-fluid"><div class="span5"><input class="input-block-level order-entry-client-id" placeholder="Client ID" ' + ($opt_data$$21$$.$hide_client_id$ ? 
+  'style="display:none"' : "") + ' /></div><div class="span5"><button class="btn ' + (1 == $opt_data$$21$$.$side$ ? "btn-success" : "btn-danger") + ' btn-execution order-entry-action">');
+  $output$$19$$ = 1 == $opt_data$$21$$.$side$ ? $output$$19$$ + "BUY" : $output$$19$$ + "SELL";
+  return $output$$19$$ + "</button></div></div></div>"
 }
-function $bitex$templates$DataGrid$$($opt_data$$21$$) {
-  return"<div " + ($opt_data$$21$$.id ? 'id="' + $soy$$0$0escapeHtml$$($opt_data$$21$$.id) + '"' : "") + '  class="fuelux ' + ($opt_data$$21$$.$base_class$ ? $soy$$0$0escapeHtml$$($opt_data$$21$$.$base_class$) : "") + '" style="width:100%;"><table class="table table-bordered datagrid datagrid-stretch-header"><thead><tr><th colspan="4" ' + (!$opt_data$$21$$.title && !$opt_data$$21$$.$show_search$ ? 'style="display: none;"' : "") + '><span class="datagrid-header-title"  ' + (!$opt_data$$21$$.title ? 
-  'style="display: none;"' : "") + " ><strong>" + $soy$$0$0escapeHtml$$($opt_data$$21$$.title) + '</strong></span><div class="datagrid-header-left" ' + (!$opt_data$$21$$.$show_search$ ? 'style="display: none;"' : "") + '><div class="input-append search datagrid-search"><input type="text" class="input-medium" placeholder="' + $soy$$0$0escapeHtml$$($opt_data$$21$$.$search_placeholder$) + '"><button type="button" class="btn"><i class="icon-search"></i></button></div></div><div class="datagrid-header-right"></div></th></tr></thead></table><div class="datagrid-stretch-wrapper" style="height:' + 
-  ($opt_data$$21$$.$wrapper_height$ ? $soy$$0$0escapeHtml$$($opt_data$$21$$.$wrapper_height$) : "360") + 'px;"><table class="table table-bordered datagrid"><tbody></tbody></table></div><table class="table table-bordered datagrid datagrid-stretch-footer"><tfoot><tr><th colspan="4"><div class="datagrid-footer-left" style="visibility: visible;"><div class="grid-controls"><span><span class="grid-start"></span> -<span class="grid-end"></span></span></div></div><div class="datagrid-footer-right" style="visibility: visible;"><div class="grid-pager"><button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button><button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button></div></div></th></tr></tfoot></table></div>'
+function $bitex$templates$DataGrid$$($opt_data$$22$$) {
+  return"<div " + ($opt_data$$22$$.id ? 'id="' + $soy$$0$0escapeHtml$$($opt_data$$22$$.id) + '"' : "") + '  class="fuelux ' + ($opt_data$$22$$.$base_class$ ? $soy$$0$0escapeHtml$$($opt_data$$22$$.$base_class$) : "") + '" style="width:100%;"><table class="table table-bordered datagrid datagrid-stretch-header"><thead><tr><th colspan="4" ' + (!$opt_data$$22$$.title && !$opt_data$$22$$.$show_search$ ? 'style="display: none;"' : "") + '><span class="datagrid-header-title"  ' + (!$opt_data$$22$$.title ? 
+  'style="display: none;"' : "") + " ><strong>" + $soy$$0$0escapeHtml$$($opt_data$$22$$.title) + '</strong></span><div class="datagrid-header-left" ' + (!$opt_data$$22$$.$show_search$ ? 'style="display: none;"' : "") + '><div class="input-append search datagrid-search"><input type="text" class="input-medium" placeholder="' + $soy$$0$0escapeHtml$$($opt_data$$22$$.$search_placeholder$) + '"><button type="button" class="btn"><i class="icon-search"></i></button></div></div><div class="datagrid-header-right"></div></th></tr></thead></table><div class="datagrid-stretch-wrapper" style="height:' + 
+  ($opt_data$$22$$.$wrapper_height$ ? $soy$$0$0escapeHtml$$($opt_data$$22$$.$wrapper_height$) : "360") + 'px;"><table class="table table-bordered datagrid"><tbody></tbody></table></div><table class="table table-bordered datagrid datagrid-stretch-footer"><tfoot><tr><th colspan="4"><div class="datagrid-footer-left" style="visibility: visible;"><div class="grid-controls"><span><span class="grid-start"></span> -<span class="grid-end"></span></span></div></div><div class="datagrid-footer-right" style="visibility: visible;"><div class="grid-pager"><button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button><button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button></div></div></th></tr></tfoot></table></div>'
 }
 ;
 // Input 110
@@ -5537,7 +5541,7 @@ function $bitex$ui$DepositList$$($opt_broker_mode$$1$$, $opt_domHelper$$24$$) {
   }}];
   $broker_mode$$1$$ ? $grid_columns$$4$$.push({property:"DepositID", label:"Actions", sortable:$JSCompiler_alias_FALSE$$, formatter:function($value$$146$$, $rowSet$$5$$) {
     var $btn_complete$$1_data_row$$4$$ = $goog$json$serialize$$($rowSet$$5$$), $btn_cancel$$1$$ = $goog$dom$createDom$$("a", {"class":"btn btn-mini btn-danger btn-deposit-view-qr", href:"#", "data-action":"CANCEL", "data-row":$btn_complete$$1_data_row$$4$$}, "cancel", " ", $goog$dom$createDom$$("i", ["icon-white", "icon-remove"])), $btn_progress$$1$$ = $goog$dom$createDom$$("a", {"class":"btn btn-mini btn-info btn-deposit-progress", href:"#", "data-action":"PROGRESS", "data-row":$btn_complete$$1_data_row$$4$$}, 
-    "Set in progress", " ", $goog$dom$createDom$$("i", ["icon-white", "icon-refresh"])), $btn_complete$$1_data_row$$4$$ = $goog$dom$createDom$$("a", {"class":"btn btn-mini btn-primary btn-deposit-complete", href:"#", "data-action":"COMPLETE", "data-row":$btn_complete$$1_data_row$$4$$}, "Set as complete", " ", $goog$dom$createDom$$("i", ["icon-white", "icon-ok"]));
+    "Set in progress", " ", $goog$dom$createDom$$("i", ["icon-white", "icon-refresh"])), $btn_complete$$1_data_row$$4$$ = $goog$dom$createDom$$("a", {"class":"btn btn-mini btn-success btn-deposit-complete", href:"#", "data-action":"COMPLETE", "data-row":$btn_complete$$1_data_row$$4$$}, "Set as complete", " ", $goog$dom$createDom$$("i", ["icon-white", "icon-ok"]));
     switch($rowSet$$5$$.Type) {
       case "CRY":
         switch($rowSet$$5$$.Status) {
@@ -5550,7 +5554,7 @@ function $bitex$ui$DepositList$$($opt_broker_mode$$1$$, $opt_domHelper$$24$$) {
           case "4":
           ;
           case "8":
-            return""
+            return $goog$dom$createDom$$("div", "btn-group", [$btn_progress$$1$$])
         }
         break;
       default:
@@ -6109,13 +6113,14 @@ $JSCompiler_prototypeAlias$$.$processWithdraw$ = function $$JSCompiler_prototype
   this.sendMessage($action_msg$$37$$);
   return $opt_requestId$$5_requestId$$5$$
 };
-$JSCompiler_prototypeAlias$$.$processDeposit$ = function $$JSCompiler_prototypeAlias$$$$processDeposit$$($opt_requestId$$6_requestId$$6$$, $action$$1_msg$$38$$, $opt_secret$$1$$, $opt_depositId$$, $opt_reasonId$$, $opt_reason$$1$$) {
+$JSCompiler_prototypeAlias$$.$processDeposit$ = function $$JSCompiler_prototypeAlias$$$$processDeposit$$($opt_requestId$$6_requestId$$6$$, $action$$1_msg$$38$$, $opt_secret$$1$$, $opt_depositId$$, $opt_reasonId$$, $opt_reason$$1$$, $opt_amount$$) {
   $opt_requestId$$6_requestId$$6$$ = $opt_requestId$$6_requestId$$6$$ || parseInt(1E7 * Math.random(), 10);
   $action$$1_msg$$38$$ = {MsgType:"B0", ProcessDepositReqID:$opt_requestId$$6_requestId$$6$$, Action:$action$$1_msg$$38$$};
   $opt_secret$$1$$ != $JSCompiler_alias_NULL$$ && ($action$$1_msg$$38$$.Secret = $opt_secret$$1$$);
   $opt_depositId$$ != $JSCompiler_alias_NULL$$ && ($action$$1_msg$$38$$.DepositID = $opt_depositId$$);
   $opt_reasonId$$ != $JSCompiler_alias_NULL$$ && ($action$$1_msg$$38$$.ReasonID = $opt_reasonId$$);
   $opt_reason$$1$$ != $JSCompiler_alias_NULL$$ && ($action$$1_msg$$38$$.Reason = $opt_reason$$1$$);
+  $opt_amount$$ != $JSCompiler_alias_NULL$$ && ($action$$1_msg$$38$$.Amount = $opt_amount$$);
   this.sendMessage($action$$1_msg$$38$$);
   return $opt_requestId$$6_requestId$$6$$
 };
@@ -6192,9 +6197,9 @@ $JSCompiler_prototypeAlias$$.$sendSellLimitedOrder$ = function $$JSCompiler_prot
 $JSCompiler_prototypeAlias$$.$testRequest$ = function $$JSCompiler_prototypeAlias$$$$testRequest$$() {
   this.sendMessage({MsgType:"1", TestReqID:Math.random()})
 };
-function $bitex$api$BitExEvent$$($type$$106$$, $opt_data$$22$$) {
+function $bitex$api$BitExEvent$$($type$$106$$, $opt_data$$23$$) {
   $goog$events$Event$$.call(this, $type$$106$$);
-  this.data = $opt_data$$22$$
+  this.data = $opt_data$$23$$
 }
 $goog$inherits$$($bitex$api$BitExEvent$$, $goog$events$Event$$);
 $goog$exportPath_$$("BitEx", $bitex$api$BitEx$$);
@@ -6629,7 +6634,6 @@ $JSCompiler_prototypeAlias$$.$onDepositListResponse_$ = function $$JSCompiler_pr
   this.$deposit_list_table_$ != $JSCompiler_alias_NULL$$ && ($e$$148_msg$$57$$ = $e$$148_msg$$57$$.data, $JSCompiler_StaticMethods_setResultSet$$(this.$deposit_list_table_$, $e$$148_msg$$57$$.DepositListGrp, $e$$148_msg$$57$$.Columns))
 };
 $JSCompiler_prototypeAlias$$.$onDepositListTableClick_$ = function $$JSCompiler_prototypeAlias$$$$onDepositListTableClick_$$($e$$149$$) {
-  console.log("onDepositListTableClick_");
   var $element$$166$$ = $e$$149$$.target;
   "I" === $element$$166$$.tagName && ($element$$166$$ = $goog$dom$getParentElement$$($element$$166$$));
   var $data_action$$1$$ = $element$$166$$.getAttribute("data-action");
@@ -6876,17 +6880,17 @@ $JSCompiler_prototypeAlias$$.$onUserUploadReceipt_$ = function $$JSCompiler_prot
   var $broker$$7$$ = $form_src$$1_model$$17$$.get("Broker");
   $broker$$7$$ != $JSCompiler_alias_NULL$$ && ($form_src$$1_model$$17$$ = $goog$string$subs$$($broker$$7$$.UploadForm, $form_src$$1_model$$17$$.get("UserID"), $form_src$$1_model$$17$$.get("Username"), $deposit_data_e$$180$$.DepositMethodName, $deposit_data_e$$180$$.ControlNumber), window.open($form_src$$1_model$$17$$, "blank", "scrollbars=yes,toolbar=no,width=700,height=500"))
 };
-$JSCompiler_prototypeAlias$$.$onProcessDeposit_$ = function $$JSCompiler_prototypeAlias$$$$onProcessDeposit_$$($cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$) {
-  var $deposit_data$$1$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$.target.$getDepositData$(), $request_id$$1$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$.target.$request_id_$, $action$$4$$ = $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$.target.$getDepositAction$();
+$JSCompiler_prototypeAlias$$.$onProcessDeposit_$ = function $$JSCompiler_prototypeAlias$$$$onProcessDeposit_$$($e$$181_handler$$85$$) {
+  var $deposit_data$$1$$ = $e$$181_handler$$85$$.target.$getDepositData$(), $request_id$$1$$ = $e$$181_handler$$85$$.target.$request_id_$, $action$$4$$ = $e$$181_handler$$85$$.target.$getDepositAction$();
+  $e$$181_handler$$85$$ = this.$getHandler$();
   if("CANCEL" === $action$$4$$) {
-    $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$ = $bitex$templates$CancelDepositDialogContent$$();
-    $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$, "Cancel deposit", $bootstrap$Dialog$ButtonSet$createOkCancel$$());
-    var $handler$$85$$ = this.$getHandler$(), $select_reason_el$$1$$ = $goog$dom$getElement$$("id_select_reason"), $reason_el$$1$$ = $goog$dom$getElement$$("id_custom_reason_text");
-    $JSCompiler_StaticMethods_listen$$($handler$$85$$, $select_reason_el$$1$$, "change", function() {
+    var $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$ = $bitex$templates$CancelDepositDialogContent$$(), $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$, "Cancel deposit", $bootstrap$Dialog$ButtonSet$createOkCancel$$()), $select_reason_el$$1$$ = 
+    $goog$dom$getElement$$("id_select_reason"), $reason_el$$1$$ = $goog$dom$getElement$$("id_custom_reason_text");
+    $JSCompiler_StaticMethods_listen$$($e$$181_handler$$85$$, $select_reason_el$$1$$, "change", function() {
       var $reason_id$$3$$ = $goog$string$toNumber$$($goog$dom$forms$getValue$$($select_reason_el$$1$$));
       $goog$style$showElement$$($reason_el$$1$$, 0 === $reason_id$$3$$)
     });
-    $JSCompiler_StaticMethods_listen$$($handler$$85$$, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_e$$181$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$183$$) {
+    $JSCompiler_StaticMethods_listen$$($e$$181_handler$$85$$, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$183$$) {
       if("ok" == $e$$183$$.key) {
         var $reason_id$$4$$ = $goog$string$toNumber$$($goog$dom$forms$getValue$$($select_reason_el$$1$$)), $reason$$2$$;
         if(0 === $reason_id$$4$$ && ($reason$$2$$ = $goog$string$trim$$($goog$dom$forms$getValue$$($reason_el$$1$$)), $goog$string$isEmpty$$($reason$$2$$))) {
@@ -6898,20 +6902,35 @@ $JSCompiler_prototypeAlias$$.$onProcessDeposit_$ = function $$JSCompiler_prototy
         this.$conn_$.$processDeposit$($request_id$$1$$, $action$$4$$, $JSCompiler_alias_VOID$$, $deposit_data$$1$$.DepositID, $reason_id$$4$$, $reason$$2$$)
       }
     }, this)
+  }else {
+    if("PROGRESS" === $action$$4$$) {
+      this.$conn_$.$processDeposit$($request_id$$1$$, $action$$4$$, $JSCompiler_alias_VOID$$, $deposit_data$$1$$.DepositID)
+    }else {
+      if("COMPLETE" === $action$$4$$) {
+        var $valueFormatter$$ = new $goog$i18n$NumberFormat$$(1), $paid_value_element_id$$ = Math.floor(2147483648 * Math.random()).toString(36) + Math.abs(Math.floor(2147483648 * Math.random()) ^ $goog$now$$()).toString(36), $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$ = $bitex$templates$BrokerConfirmDepositContent$$({$id_value$:$paid_value_element_id$$, $controlNumber$:$deposit_data$$1$$.ControlNumber, $currencySign$:this.$currency_info_$[$deposit_data$$1$$.Currency].$sign$, 
+        value:$valueFormatter$$.$format$($deposit_data$$1$$.Value / 1E8)}), $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$, "Confirm deposit", $bootstrap$Dialog$ButtonSet$createOkCancel$$());
+        $JSCompiler_StaticMethods_listen$$($e$$181_handler$$85$$, $cancelWithdrawDlg$$1_cancel_reason_dialog_content$$1_confirmDepositDlg_confirm_deposit_dialog_content$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$184$$) {
+          if("ok" == $e$$184$$.key) {
+            var $pos$$13$$ = [0], $raw_paid_value$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$($paid_value_element_id$$)), $paid_value$$2$$ = $valueFormatter$$.parse($raw_paid_value$$, $pos$$13$$);
+            $pos$$13$$[0] != $raw_paid_value$$.length || isNaN($paid_value$$2$$) || 0 >= $paid_value$$2$$ ? ($e$$184$$.stopPropagation(), $e$$184$$.preventDefault(), $goog$dom$getElement$$($paid_value_element_id$$).focus()) : this.$conn_$.$processDeposit$($request_id$$1$$, $action$$4$$, $JSCompiler_alias_VOID$$, $deposit_data$$1$$.DepositID, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, 1E8 * $paid_value$$2$$)
+          }
+        }, this)
+      }
+    }
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_prototypeAlias$$$$onUserDepositRequest_$$($MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$) {
-  var $currency$$6$$ = $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$.target.$currency_$, $handler$$86$$ = this.$getHandler$();
-  $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$ = this.$currency_info_$[$currency$$6$$].description + " deposit";
+$JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_prototypeAlias$$$$onUserDepositRequest_$$($MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$185$$) {
+  var $currency$$6$$ = $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$185$$.target.$currency_$, $handler$$86$$ = this.$getHandler$();
+  $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$185$$ = this.$currency_info_$[$currency$$6$$].description + " deposit";
   if(this.$currency_info_$[$currency$$6$$].$is_crypto$) {
-    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$({$currency_description$:this.$currency_info_$[$currency$$6$$].description}), $dlgConfirm$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$, $bootstrap$Dialog$ButtonSet$createYesNoCancel$$());
-    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlgConfirm$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$185_request_id$$2$$) {
-      "yes" == $e$$185_request_id$$2$$.key && ($e$$185_request_id$$2$$.preventDefault(), $e$$185_request_id$$2$$.stopPropagation(), $e$$185_request_id$$2$$ = parseInt(1E7 * Math.random(), 10), this.$conn_$.$requestDeposit$($e$$185_request_id$$2$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $currency$$6$$), $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$WaitingForDepositResponseDialogContent$$), $JSCompiler_StaticMethods_setButtonSet$$($dlgConfirm$$, 
-      $JSCompiler_StaticMethods_addButton$$(new $bootstrap$Dialog$ButtonSet$$, $goog$ui$Dialog$ButtonSet$DefaultButtons$CANCEL$$, $JSCompiler_alias_FALSE$$, $JSCompiler_alias_TRUE$$)), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "error_message." + $e$$185_request_id$$2$$, function() {
+    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$({$currency_description$:this.$currency_info_$[$currency$$6$$].description}), $dlgConfirm$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$185$$, $bootstrap$Dialog$ButtonSet$createYesNoCancel$$());
+    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlgConfirm$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$186_request_id$$2$$) {
+      "yes" == $e$$186_request_id$$2$$.key && ($e$$186_request_id$$2$$.preventDefault(), $e$$186_request_id$$2$$.stopPropagation(), $e$$186_request_id$$2$$ = parseInt(1E7 * Math.random(), 10), this.$conn_$.$requestDeposit$($e$$186_request_id$$2$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $currency$$6$$), $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$WaitingForDepositResponseDialogContent$$), $JSCompiler_StaticMethods_setButtonSet$$($dlgConfirm$$, 
+      $JSCompiler_StaticMethods_addButton$$(new $bootstrap$Dialog$ButtonSet$$, $goog$ui$Dialog$ButtonSet$DefaultButtons$CANCEL$$, $JSCompiler_alias_FALSE$$, $JSCompiler_alias_TRUE$$)), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "error_message." + $e$$186_request_id$$2$$, function() {
         $dlgConfirm$$.$dispose$()
-      }), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $e$$185_request_id$$2$$, function($e$$187_msg$$68$$) {
-        $e$$187_msg$$68$$ = $e$$187_msg$$68$$.data;
-        $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$DepositCryptoCurrencyContentDialog$$, {$deposit_message$:$e$$187_msg$$68$$})
+      }), $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $e$$186_request_id$$2$$, function($e$$188_msg$$68$$) {
+        $e$$188_msg$$68$$ = $e$$188_msg$$68$$.data;
+        $goog$soy$renderElement$$($goog$dom$getFirstElementChild$$($dlgConfirm$$.$getContentElement$()), $bitex$templates$DepositCryptoCurrencyContentDialog$$, {$deposit_message$:$e$$188_msg$$68$$})
       }))
     })
   }else {
@@ -6919,23 +6938,23 @@ $JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_pro
     $goog$array$forEach$$(this.$model_$.get("DepositMethods"), function($deposit_method$$1$$) {
       $deposit_method$$1$$.$currency$ == $currency$$6$$ && $deposit_methods$$1$$.push({method:$deposit_method$$1$$.id, description:$deposit_method$$1$$.description, disclaimer:$deposit_method$$1$$.$disclaimer$, fields:[]})
     }, this);
-    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$DepositWithdrawDialogContent$$({$currency$:$currency$$6$$, $currency_sign$:this.$currency_info_$[$currency$$6$$].$sign$, $methods$:$deposit_methods$$1$$}), $dlg$$3$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$184$$, $bootstrap$Dialog$ButtonSet$createOkCancel$$());
-    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlg$$3$$, $goog$ui$Dialog$EventType$SELECT$$, function($amount$$5_e$$188$$) {
-      if("ok" == $amount$$5_e$$188$$.key) {
-        $amount$$5_e$$188$$.preventDefault();
-        $amount$$5_e$$188$$.stopPropagation();
+    var $confirmDialogContent_dialogContent$$1$$ = $bitex$templates$DepositWithdrawDialogContent$$({$currency$:$currency$$6$$, $currency_sign$:this.$currency_info_$[$currency$$6$$].$sign$, $methods$:$deposit_methods$$1$$}), $dlg$$3$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$1$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$185$$, $bootstrap$Dialog$ButtonSet$createOkCancel$$());
+    $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlg$$3$$, $goog$ui$Dialog$EventType$SELECT$$, function($amount$$5_e$$189$$) {
+      if("ok" == $amount$$5_e$$189$$.key) {
+        $amount$$5_e$$189$$.preventDefault();
+        $amount$$5_e$$189$$.stopPropagation();
         var $deposit_form_el$$ = $goog$dom$getFirstElementChild$$($dlg$$3$$.$getContentElement$()), $deposit_data$$2_deposit_method_id$$1$$ = $bitex$util$getFormAsJSON$$($deposit_form_el$$);
-        $amount$$5_e$$188$$ = $goog$string$toNumber$$($deposit_data$$2_deposit_method_id$$1$$.Amount);
+        $amount$$5_e$$189$$ = $goog$string$toNumber$$($deposit_data$$2_deposit_method_id$$1$$.Amount);
         $deposit_data$$2_deposit_method_id$$1$$ = $goog$string$toNumber$$($deposit_data$$2_deposit_method_id$$1$$.Method);
-        if($goog$isNumber$$($amount$$5_e$$188$$) && !isNaN($amount$$5_e$$188$$)) {
+        if($goog$isNumber$$($amount$$5_e$$189$$) && !isNaN($amount$$5_e$$189$$)) {
           if("prepare" != $deposit_form_el$$.getAttribute("data-deposit-status")) {
             $dlg$$3$$.$dispose$()
           }else {
             var $request_id$$3$$ = parseInt(1E7 * Math.random(), 10);
-            this.$conn_$.$requestDeposit$($request_id$$3$$, $deposit_data$$2_deposit_method_id$$1$$, $amount$$5_e$$188$$);
+            this.$conn_$.$requestDeposit$($request_id$$3$$, $deposit_data$$2_deposit_method_id$$1$$, $amount$$5_e$$189$$);
             $goog$soy$renderElement$$($deposit_form_el$$, $bitex$templates$WaitingForDepositResponseDialogContent$$);
-            $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $request_id$$3$$, function($e$$189$$) {
-              $goog$soy$renderElement$$($deposit_form_el$$, $bitex$templates$DepositSlipContentDialog$$, {$deposit_id$:$e$$189$$.data.DepositID})
+            $JSCompiler_StaticMethods_listenOnce$$($handler$$86$$, this.$conn_$, "deposit_response." + $request_id$$3$$, function($e$$190$$) {
+              $goog$soy$renderElement$$($deposit_form_el$$, $bitex$templates$DepositSlipContentDialog$$, {$deposit_id$:$e$$190$$.data.DepositID})
             })
           }
         }
@@ -6943,12 +6962,12 @@ $JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_pro
     })
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserForgotPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserForgotPassword_$$($e$$190$$) {
-  this.$conn_$.$forgotPassword$($e$$190$$.target.$getEmail$());
+$JSCompiler_prototypeAlias$$.$onUserForgotPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserForgotPassword_$$($e$$191$$) {
+  this.$conn_$.$forgotPassword$($e$$191$$.target.$getEmail$());
   this.$router_$.$setView$("set_new_password")
 };
-$JSCompiler_prototypeAlias$$.$onUserSetNewPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserSetNewPassword_$$($e$$191$$) {
-  this.$conn_$.$resetPassword$($e$$191$$.target.$getToken$(), $e$$191$$.target.$getPassword$())
+$JSCompiler_prototypeAlias$$.$onUserSetNewPassword_$ = function $$JSCompiler_prototypeAlias$$$$onUserSetNewPassword_$$($e$$192$$) {
+  this.$conn_$.$resetPassword$($e$$192$$.target.$getToken$(), $e$$192$$.target.$getPassword$())
 };
 $JSCompiler_prototypeAlias$$.$onUserEnableTwoFactor_$ = function $$JSCompiler_prototypeAlias$$$$onUserEnableTwoFactor_$$() {
   var $code$$5$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_step_verification")), $secret$$2$$ = "";
@@ -6958,15 +6977,15 @@ $JSCompiler_prototypeAlias$$.$onUserEnableTwoFactor_$ = function $$JSCompiler_pr
 $JSCompiler_prototypeAlias$$.$onUserDisableTwoFactor_$ = function $$JSCompiler_prototypeAlias$$$$onUserDisableTwoFactor_$$() {
   this.$conn_$.$enableTwoFactor$($JSCompiler_alias_FALSE$$)
 };
-$JSCompiler_prototypeAlias$$.$onBodyClick_$ = function $$JSCompiler_prototypeAlias$$$$onBodyClick_$$($e$$194$$) {
-  var $view_name$$4$$ = $e$$194$$.target.getAttribute("data-switch-view");
-  $view_name$$4$$ != $JSCompiler_alias_NULL$$ && ($e$$194$$.preventDefault(), $e$$194$$.stopPropagation(), this.$router_$.$setView$($view_name$$4$$))
+$JSCompiler_prototypeAlias$$.$onBodyClick_$ = function $$JSCompiler_prototypeAlias$$$$onBodyClick_$$($e$$195$$) {
+  var $view_name$$4$$ = $e$$195$$.target.getAttribute("data-switch-view");
+  $view_name$$4$$ != $JSCompiler_alias_NULL$$ && ($e$$195$$.preventDefault(), $e$$195$$.stopPropagation(), this.$router_$.$setView$($view_name$$4$$))
 };
-$JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAlias$$$$onBodyChange_$$($e$$195_elements$$7$$) {
-  if($goog$array$contains$$($goog$dom$classes$get$$($e$$195_elements$$7$$.target), "withdraw-method-selector")) {
-    var $selected_method$$ = $goog$dom$forms$getValue$$($e$$195_elements$$7$$.target);
-    $e$$195_elements$$7$$ = $goog$dom$getElementsByClass$$("withdraw-method");
-    $goog$array$forEach$$($e$$195_elements$$7$$, function($element$$168_field_elements$$) {
+$JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAlias$$$$onBodyChange_$$($e$$196_elements$$7$$) {
+  if($goog$array$contains$$($goog$dom$classes$get$$($e$$196_elements$$7$$.target), "withdraw-method-selector")) {
+    var $selected_method$$ = $goog$dom$forms$getValue$$($e$$196_elements$$7$$.target);
+    $e$$196_elements$$7$$ = $goog$dom$getElementsByClass$$("withdraw-method");
+    $goog$array$forEach$$($e$$196_elements$$7$$, function($element$$168_field_elements$$) {
       var $method$$5$$ = $element$$168_field_elements$$.getAttribute("data-withdraw-method");
       $goog$style$showElement$$($element$$168_field_elements$$, $method$$5$$ == $selected_method$$);
       $element$$168_field_elements$$ = $goog$dom$getElementsByClass$$("withdraw-field", $element$$168_field_elements$$);
@@ -6976,45 +6995,45 @@ $JSCompiler_prototypeAlias$$.$onBodyChange_$ = function $$JSCompiler_prototypeAl
     }, this)
   }
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginButtonClick_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginButtonClick_$$($e$$196$$) {
-  var $username$$8$$ = $e$$196$$.target.$getUsername$(), $password$$5$$ = $e$$196$$.target.$getPassword$();
-  this.$model_$.set("Password", $e$$196$$.target.$getPassword$());
+$JSCompiler_prototypeAlias$$.$onUserLoginButtonClick_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginButtonClick_$$($e$$197$$) {
+  var $username$$8$$ = $e$$197$$.target.$getUsername$(), $password$$5$$ = $e$$197$$.target.$getPassword$();
+  this.$model_$.set("Password", $e$$197$$.target.$getPassword$());
   this.$conn_$.login($username$$8$$, $password$$5$$)
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginOk_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginOk_$$($e$$197_msg$$70$$) {
-  $e$$197_msg$$70$$ = $e$$197_msg$$70$$.data;
+$JSCompiler_prototypeAlias$$.$onUserLoginOk_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginOk_$$($e$$198_msg$$70$$) {
+  $e$$198_msg$$70$$ = $e$$198_msg$$70$$.data;
   $goog$dom$classes$add$$(document.body, "bitex-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-not-logged");
-  this.$model_$.set("UserID", $e$$197_msg$$70$$.UserID);
-  this.$model_$.set("Username", $e$$197_msg$$70$$.Username);
-  this.$model_$.set("TwoFactorEnabled", $e$$197_msg$$70$$.TwoFactorEnabled);
-  this.$model_$.set("IsBroker", $e$$197_msg$$70$$.IsBroker);
-  this.$model_$.set("Broker", $e$$197_msg$$70$$.Broker);
-  $e$$197_msg$$70$$.IsBroker ? $goog$dom$classes$add$$(document.body, "bitex-broker") : $goog$dom$classes$add$$(document.body, "bitex-non-broker");
+  this.$model_$.set("UserID", $e$$198_msg$$70$$.UserID);
+  this.$model_$.set("Username", $e$$198_msg$$70$$.Username);
+  this.$model_$.set("TwoFactorEnabled", $e$$198_msg$$70$$.TwoFactorEnabled);
+  this.$model_$.set("IsBroker", $e$$198_msg$$70$$.IsBroker);
+  this.$model_$.set("Broker", $e$$198_msg$$70$$.Broker);
+  $e$$198_msg$$70$$.IsBroker ? $goog$dom$classes$add$$(document.body, "bitex-broker") : $goog$dom$classes$add$$(document.body, "bitex-non-broker");
   this.$conn_$.$requestBalances$();
   this.$conn_$.$requestDepositMethods$();
   this.$router_$.$setView$("offerbook")
 };
-$JSCompiler_prototypeAlias$$.$onUserLoginError_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginError_$$($dlg__e$$198_msg$$71$$) {
+$JSCompiler_prototypeAlias$$.$onUserLoginError_$ = function $$JSCompiler_prototypeAlias$$$$onUserLoginError_$$($dlg__e$$199_msg$$71$$) {
   $goog$dom$classes$add$$(document.body, "bitex-not-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-logged");
   $goog$dom$classes$remove$$(document.body, "bitex-broker");
   $goog$dom$classes$remove$$(document.body, "bitex-non-broker");
-  $dlg__e$$198_msg$$71$$ = $dlg__e$$198_msg$$71$$.data;
+  $dlg__e$$199_msg$$71$$ = $dlg__e$$199_msg$$71$$.data;
   this.$model_$.set("UserID", "");
   this.$model_$.set("Username", "");
-  $dlg__e$$198_msg$$71$$.NeedSecondFactor ? ($dlg__e$$198_msg$$71$$ = $JSCompiler_StaticMethods_showDialog$$(this, "2 steps authentication", $bitex$templates$GoogleAuthenticationCodeDialogContent$$(), $bootstrap$Dialog$ButtonSet$createOkCancel$$()), $JSCompiler_StaticMethods_listenOnce$$(this.$getHandler$(), $dlg__e$$198_msg$$71$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$199_second_factor$$) {
-    "ok" == $e$$199_second_factor$$.key && ($e$$199_second_factor$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_factor")), this.$conn_$.login(this.$loginView_$.$getUsername$(), this.$loginView_$.$getPassword$(), $e$$199_second_factor$$))
-  })) : $JSCompiler_StaticMethods_showDialog$$(this, $dlg__e$$198_msg$$71$$.UserStatusText)
+  $dlg__e$$199_msg$$71$$.NeedSecondFactor ? ($dlg__e$$199_msg$$71$$ = $JSCompiler_StaticMethods_showDialog$$(this, "2 steps authentication", $bitex$templates$GoogleAuthenticationCodeDialogContent$$(), $bootstrap$Dialog$ButtonSet$createOkCancel$$()), $JSCompiler_StaticMethods_listenOnce$$(this.$getHandler$(), $dlg__e$$199_msg$$71$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$200_second_factor$$) {
+    "ok" == $e$$200_second_factor$$.key && ($e$$200_second_factor$$ = $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_second_factor")), this.$conn_$.login(this.$loginView_$.$getUsername$(), this.$loginView_$.$getPassword$(), $e$$200_second_factor$$))
+  })) : $JSCompiler_StaticMethods_showDialog$$(this, $dlg__e$$199_msg$$71$$.UserStatusText)
 };
-$JSCompiler_prototypeAlias$$.$onUserSignupButton_$ = function $$JSCompiler_prototypeAlias$$$$onUserSignupButton_$$($e$$200$$) {
-  this.$model_$.set("Password", $e$$200$$.target.$getPassword$());
-  this.$conn_$.$signUp$($e$$200$$.target.$getUsername$(), $e$$200$$.target.$getPassword$(), $e$$200$$.target.$getEmail$(), $e$$200$$.target.$getState$(), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_country")), $goog$string$toNumber$$($goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_broker"))))
+$JSCompiler_prototypeAlias$$.$onUserSignupButton_$ = function $$JSCompiler_prototypeAlias$$$$onUserSignupButton_$$($e$$201$$) {
+  this.$model_$.set("Password", $e$$201$$.target.$getPassword$());
+  this.$conn_$.$signUp$($e$$201$$.target.$getUsername$(), $e$$201$$.target.$getPassword$(), $e$$201$$.target.$getEmail$(), $e$$201$$.target.$getState$(), $goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_country")), $goog$string$toNumber$$($goog$dom$forms$getValue$$($goog$dom$getElement$$("id_signup_broker"))))
 };
-$JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototypeAlias$$$$onBeforeSetView_$$($e$$201_view_id$$4$$) {
-  $e$$201_view_id$$4$$ = $e$$201_view_id$$4$$.$view_id$;
+$JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototypeAlias$$$$onBeforeSetView_$$($e$$202_view_id$$4$$) {
+  $e$$202_view_id$$4$$ = $e$$202_view_id$$4$$.$view_id$;
   if(!this.$conn_$.$logged_$) {
-    switch($e$$201_view_id$$4$$) {
+    switch($e$$202_view_id$$4$$) {
       case "start":
       ;
       case "signin":
@@ -7037,30 +7056,30 @@ $JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototyp
     $goog$dom$classes$remove$$(document.body, $cls$$2$$)
   });
   document.body.scrollTop = 0;
-  $goog$dom$classes$add$$(document.body, "active-view-" + $e$$201_view_id$$4$$)
+  $goog$dom$classes$add$$(document.body, "active-view-" + $e$$202_view_id$$4$$)
 };
 $JSCompiler_prototypeAlias$$.$formatCurrency$ = function $$JSCompiler_prototypeAlias$$$$formatCurrency$$($amount$$6$$, $currency_code$$1$$) {
   var $currency_def$$1$$ = this.$currency_info_$[$currency_code$$1$$];
   return(new $goog$i18n$NumberFormat$$($currency_def$$1$$.$format$, $currency_def$$1$$.code)).$format$($amount$$6$$)
 };
-$JSCompiler_prototypeAlias$$.$onSecurityList_$ = function $$JSCompiler_prototypeAlias$$$$onSecurityList_$$($e$$202_msg$$72$$) {
-  $e$$202_msg$$72$$ = $e$$202_msg$$72$$.data;
-  $goog$array$forEach$$($e$$202_msg$$72$$.Currencies, function($currency$$7$$) {
+$JSCompiler_prototypeAlias$$.$onSecurityList_$ = function $$JSCompiler_prototypeAlias$$$$onSecurityList_$$($e$$203_msg$$72$$) {
+  $e$$203_msg$$72$$ = $e$$203_msg$$72$$.data;
+  $goog$array$forEach$$($e$$203_msg$$72$$.Currencies, function($currency$$7$$) {
     this.$currency_info_$[$currency$$7$$.Code] = {code:$currency$$7$$.Code, $format$:$currency$$7$$.FormatJS, description:$currency$$7$$.Description, $sign$:$currency$$7$$.Sign, $pip$:$currency$$7$$.Pip, $is_crypto$:$currency$$7$$.IsCrypto};
     var $balance_key$$2$$ = "balance_" + $currency$$7$$.Code;
     this.$model_$.set($balance_key$$2$$, 0);
     this.$model_$.set("formatted_" + $balance_key$$2$$, this.$formatCurrency$(0, $currency$$7$$.Code))
   }, this);
   var $symbols$$2$$ = [];
-  $goog$array$forEach$$($e$$202_msg$$72$$.Instruments, function($instrument$$2$$) {
+  $goog$array$forEach$$($e$$203_msg$$72$$.Instruments, function($instrument$$2$$) {
     var $symbol$$12$$ = $instrument$$2$$.Symbol;
     this.$all_markets_$[$symbol$$12$$] = {$symbol$:$symbol$$12$$, description:$instrument$$2$$.Description};
     $symbols$$2$$.push($symbol$$12$$)
   }, this);
-  this.$model_$.set("SecurityList", $e$$202_msg$$72$$)
+  this.$model_$.set("SecurityList", $e$$203_msg$$72$$)
 };
-$JSCompiler_prototypeAlias$$.$onModelSetBroker_$ = function $$JSCompiler_prototypeAlias$$$$onModelSetBroker_$$($e$$203$$) {
-  var $broker$$8$$ = $e$$203$$.data, $allowed_markets$$2$$ = {}, $broker_currencies$$4$$ = $broker$$8$$.Currencies.split(",");
+$JSCompiler_prototypeAlias$$.$onModelSetBroker_$ = function $$JSCompiler_prototypeAlias$$$$onModelSetBroker_$$($e$$204$$) {
+  var $broker$$8$$ = $e$$204$$.data, $allowed_markets$$2$$ = {}, $broker_currencies$$4$$ = $broker$$8$$.Currencies.split(",");
   $goog$array$forEach$$($broker$$8$$.CryptoCurrencies, function($crypto_currency$$) {
     $broker_currencies$$4$$.push($crypto_currency$$.CurrencyCode);
     $goog$object$findKey$$(this.$all_markets_$, function($market_info$$, $symbol$$13$$) {
@@ -7079,8 +7098,8 @@ $JSCompiler_prototypeAlias$$.$onModelSetBroker_$ = function $$JSCompiler_prototy
   this.$model_$.set("BrokerCurrencies", $broker_currencies$$4$$);
   this.$model_$.set("AllowedMarkets", $allowed_markets$$2$$)
 };
-$JSCompiler_prototypeAlias$$.$onBrokerListResponse_$ = function $$JSCompiler_prototypeAlias$$$$onBrokerListResponse_$$($e$$204$$) {
-  var $msg$$73$$ = $e$$204$$.data;
+$JSCompiler_prototypeAlias$$.$onBrokerListResponse_$ = function $$JSCompiler_prototypeAlias$$$$onBrokerListResponse_$$($e$$205$$) {
+  var $msg$$73$$ = $e$$205$$.data;
   $goog$array$forEach$$($msg$$73$$.BrokerListGrp, function($broker_array$$1$$) {
     var $broker_info$$6$$ = {};
     $goog$array$forEach$$($msg$$73$$.Columns, function($column$$6$$, $index$$80$$) {
@@ -7118,9 +7137,9 @@ $JSCompiler_prototypeAlias$$.$onConnectionError_$ = function $$JSCompiler_protot
   $JSCompiler_StaticMethods_showNotification$$(this, "error", "Error", "detected with the connection.");
   this.$router_$.$setView$("start")
 };
-$JSCompiler_prototypeAlias$$.$onConnectionErrorMessage_$ = function $$JSCompiler_prototypeAlias$$$$onConnectionErrorMessage_$$($e$$209_msg$$74$$) {
-  $e$$209_msg$$74$$ = $e$$209_msg$$74$$.data;
-  $JSCompiler_StaticMethods_showNotification$$(this, "error", "Message from server:", $e$$209_msg$$74$$.Description + " - " + $e$$209_msg$$74$$.Detail, this.$error_message_alert_timeout_$)
+$JSCompiler_prototypeAlias$$.$onConnectionErrorMessage_$ = function $$JSCompiler_prototypeAlias$$$$onConnectionErrorMessage_$$($e$$210_msg$$74$$) {
+  $e$$210_msg$$74$$ = $e$$210_msg$$74$$.data;
+  $JSCompiler_StaticMethods_showNotification$$(this, "error", "Message from server:", $e$$210_msg$$74$$.Description + " - " + $e$$210_msg$$74$$.Detail, this.$error_message_alert_timeout_$)
 };
 function $JSCompiler_StaticMethods_showDialog$$($JSCompiler_StaticMethods_showDialog$self$$, $content$$18$$, $opt_title$$3_title$$8$$, $buttonSet$$1_opt_button_set$$) {
   $opt_title$$3_title$$8$$ = $opt_title$$3_title$$8$$ || "Error";

@@ -951,8 +951,6 @@ bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
   window.open(form_src,
               'blank',
               'scrollbars=yes,toolbar=no,width=700,height=500');
-
-
 };
 
 /**
@@ -964,6 +962,7 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
   var deposit_data = e.target.getDepositData();
   var request_id = e.target.getRequestId();
   var action = e.target.getDepositAction();
+  var handler = this.getHandler();
 
   if (action === 'CANCEL') {
 
@@ -981,7 +980,6 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
                                               MSG_DEPOSIT_CANCEL_DIALOG_TITLE,
                                               bootstrap.Dialog.ButtonSet.createOkCancel() );
 
-    var handler = this.getHandler();
 
     var select_reason_el = goog.dom.getElement('id_select_reason');
     var reason_el = goog.dom.getElement('id_custom_reason_text');
@@ -1012,6 +1010,56 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
                                                   deposit_data['DepositID'],
                                                   reason_id,
                                                   reason);
+      }
+    }, this);
+  } else if (action === 'PROGRESS') {
+    this.getBitexConnection().processDeposit (request_id,
+                                              action,
+                                              undefined,
+                                              deposit_data['DepositID']);
+
+  } else if (action === 'COMPLETE') {
+    var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+    var paid_value_element_id = goog.string.getRandomString();
+
+    var confirm_deposit_dialog_content = bitex.templates.BrokerConfirmDepositContent({
+      id_value:paid_value_element_id,
+      controlNumber:deposit_data['ControlNumber'],
+      currencySign:this.getCurrencySign(deposit_data['Currency']),
+      value: valueFormatter.format(deposit_data['Value']/1e8)
+    });
+
+    /**
+     * @desc Dialog title to get deposit paid value
+     */
+    var MSG_DLG_TITLE_GET_DEPOSIT_PAID_VALUE = goog.getMsg('Confirm deposit');
+
+    var confirmDepositDlg = this.showDialog(confirm_deposit_dialog_content,
+                                            MSG_DLG_TITLE_GET_DEPOSIT_PAID_VALUE,
+                                            bootstrap.Dialog.ButtonSet.createOkCancel());
+
+    handler.listen(confirmDepositDlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'ok') {
+        var pos = [0];
+        var raw_paid_value = goog.dom.forms.getValue( goog.dom.getElement(paid_value_element_id) );
+
+        var paid_value = valueFormatter.parse(raw_paid_value , pos );
+        if (pos[0] != raw_paid_value.length || isNaN(paid_value) || paid_value <= 0 ) {
+          e.stopPropagation();
+          e.preventDefault();
+          goog.dom.getElement(paid_value_element_id).focus();
+          return;
+        }
+        paid_value = paid_value * 1e8;
+
+        this.getBitexConnection().processDeposit (request_id,
+                                                  action,
+                                                  undefined, // opt_secret
+                                                  deposit_data['DepositID'],
+                                                  undefined, // opt_reasonId
+                                                  undefined, // opt_reason
+                                                  paid_value);
+
       }
     }, this);
   }

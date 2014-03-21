@@ -348,7 +348,6 @@ bitex.view.AccountOverview.prototype.onDepositListResponse_ = function(e) {
  * @param {goog.events.Event} e
  */
 bitex.view.AccountOverview.prototype.onDepositListTableClick_ = function(e) {
-  console.log('onDepositListTableClick_');
   var element = e.target;
   if (element.tagName  === goog.dom.TagName.I ) {
     element = goog.dom.getParentElement(element);

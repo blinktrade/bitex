@@ -258,7 +258,7 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
         },MSG_DEPOSIT_TABLE_COLUMN_ACTION_PROGRESS,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-refresh']));
 
         var btn_complete = goog.dom.createDom( 'a', {
-          'class':'btn btn-mini btn-primary btn-deposit-complete',
+          'class':'btn btn-mini btn-success btn-deposit-complete',
           'href':'#',
           'data-action':'COMPLETE',
           'data-row': data_row
@@ -276,7 +276,7 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
                 return goog.dom.createDom('div', 'btn-group',[btn_complete]);
               case '4':
               case '8':
-                return '';
+                return goog.dom.createDom('div', 'btn-group',[btn_progress]);
             }
             break;
 

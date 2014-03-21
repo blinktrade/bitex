@@ -784,7 +784,7 @@ def processProcessWithdraw(session, msg):
 
   if msg.get('Action') == 'CANCEL':
     withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
-  elif msg.get('Action') == 'PROCESS':
+  elif msg.get('Action') == 'PROGRESS':
     #TODO: Set the withdraw in process
     pass
   elif msg.get('Action') == 'COMPLETE':
@@ -828,14 +828,25 @@ def processProcessDeposit(session, msg):
 
   if msg.get('Action') == 'CANCEL':
     deposit.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
-  if msg.get('Action') == 'CONFIRM':
-    amount      = msg.get('Amount')
+  elif msg.get('Action') == 'PROGRESS':
     data        = msg.get('Data')
+    deposit.set_in_progress(application.db_session, data)
 
+  elif msg.get('Action') == 'COMPLETE':
+    amount      = int(msg.get('Amount'))
+    data        = msg.get('Data')
     deposit.process_confirmation(application.db_session, amount, data)
 
 
   application.db_session.commit()
+
+
+  deposit_refresh = depositRecordToDepositMessage(deposit)
+  deposit_refresh['MsgType'] = 'U23'
+  deposit_refresh['DepositReqID'] = msg.get('DepositReqID')
+  application.publish( deposit.account_id, deposit_refresh  )
+  application.publish( deposit.broker_id,  deposit_refresh  )
+
 
   result = depositRecordToDepositMessage(deposit)
   result['MsgType'] =  'B1'

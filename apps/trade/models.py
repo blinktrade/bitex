@@ -415,36 +415,54 @@ class Ledger(Base):
   account_id            = Column(Integer,       ForeignKey('users.id'),       nullable=False)
   broker_id             = Column(Integer,       ForeignKey('users.id'),       nullable=False)
   payee_id              = Column(Integer,       ForeignKey('users.id'),       nullable=False)
-  payeee_broker_id      = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payee_broker_id       = Column(Integer,       ForeignKey('users.id'),       nullable=False)
   operation             = Column(String(1),     nullable=False)
   amount                = Column(Integer,       nullable=False)
   balance               = Column(Integer,       nullable=False)
+  reference             = Column(String(25),    nullable=False)
   created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
   description           = Column(String(255))
 
   def __repr__(self):
-    return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payeee_broker_id=%r," \
-                    u"operation=%r,amount=%r,balance=%r,created=%r,description=%r)>" % (
-      self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payeee_broker_id,
-      self.operation, self.amount, self.balance, self.created, self.description)
+    return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payee_broker_id=%r," \
+                    u"operation=%r,amount=%r,balance=%r,reference=%r, created=%r,description=%r)>" % (
+      self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payee_broker_id,
+      self.operation, self.amount, self.balance, self.reference, self.created, self.description)
 
   @staticmethod
-  def deposit(session, account_id, payee_id, broker_id, payeee_broker_id, currency, amount, description=None):
+  def deposit(session, account_id, payee_id, broker_id, payee_broker_id, currency, amount, reference=None, description=None):
     balance = Balance.update_balance(session, 'CREDIT', account_id, broker_id, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
                      payee_id         = payee_id,
                      broker_id        = broker_id,
-                     payeee_broker_id = payeee_broker_id,
+                     payee_broker_id  = payee_broker_id,
                      operation        = 'C',
                      amount           = amount,
                      balance          = balance,
+                     reference        = reference,
                      description      = description )
     session.add(ledger)
 
 
   @staticmethod
-  def execute_order(session, order, counter_order, symbol, qty, price):
+  def withdraw(session, account_id, payee_id, broker_id, payee_broker_id, currency, amount, reference=None, description=None):
+    balance = Balance.update_balance(session, 'DEBIT', account_id, broker_id, currency, amount)
+    ledger = Ledger( currency         = currency,
+                     account_id       = account_id,
+                     payee_id         = payee_id,
+                     broker_id        = broker_id,
+                     payee_broker_id  = payee_broker_id,
+                     operation        = 'D',
+                     amount           = amount,
+                     balance          = balance,
+                     reference        = reference,
+                     description      = description )
+    session.add(ledger)
+
+
+  @staticmethod
+  def execute_order(session, order, counter_order, symbol, qty, price, trade_id):
     total_value = int(float(price) * float(qty)/1e8)
 
       # adjust balances
@@ -456,11 +474,12 @@ class Ledger(Base):
                                  account_id       = order.account_id,
                                  broker_id        = order.broker_id,
                                  payee_id         = counter_order.account_id,
-                                 payeee_broker_id = counter_order.broker_id,
+                                 payee_broker_id  = counter_order.broker_id,
                                  operation        = 'D'  if order.is_buy else 'C',
                                  amount           = total_value,
                                  balance          = balance,
-                                 description      = 'Trade')
+                                 reference        = trade_id,
+                                 description      = 'T')
     session.add(order_record_debit)
 
 
@@ -469,11 +488,12 @@ class Ledger(Base):
                                          account_id   = counter_order.account_id,
                                          broker_id    = counter_order.broker_id,
                                          payee_id     = order.account_id,
-                                         payeee_broker_id = order.broker_id,
+                                         payee_broker_id = order.broker_id,
                                          operation    = 'C'  if order.is_buy else 'D',
                                          amount       = total_value,
                                          balance      = balance,
-                                         description  = 'Trade')
+                                         reference    = trade_id,
+                                         description  = 'T')
     session.add(counter_order_record_credit)
 
 
@@ -482,11 +502,12 @@ class Ledger(Base):
                                  account_id   = order.account_id,
                                  broker_id    = order.broker_id,
                                  payee_id     = counter_order.account_id,
-                                 payeee_broker_id = counter_order.broker_id,
+                                 payee_broker_id = counter_order.broker_id,
                                  operation    = 'C'  if order.is_buy else 'D',
                                  amount       = qty,
                                  balance      = balance,
-                                 description  = 'Trade')
+                                 reference    = trade_id,
+                                 description  = 'T')
     session.add(order_record_credit)
 
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.broker_id, to_symbol, qty )
@@ -494,11 +515,12 @@ class Ledger(Base):
                                         account_id   = counter_order.account_id,
                                         broker_id    = counter_order.broker_id,
                                         payee_id     = order.account_id,
-                                        payeee_broker_id = order.broker_id,
+                                        payee_broker_id = order.broker_id,
                                         operation    = 'D' if order.is_buy else 'C',
                                         amount       = qty,
                                         balance      = balance,
-                                        description  = 'Trade')
+                                        reference    = trade_id,
+                                        description  = 'T')
     session.add(counter_order_record_debit)
 
 
@@ -985,8 +1007,6 @@ class Trade(Base):
       buyer_username = seller_username
       seller_username = tmp_username
 
-    Ledger.execute_order(session, order, counter_order, symbol, size, price)
-
     trade =  Trade( id                = str(order.id) + '.' + str(counter_order.id),
                     order_id          = order.id,
                     counter_order_id  = counter_order.id,
@@ -998,6 +1018,10 @@ class Trade(Base):
                     price             = price,
                     created           = datetime.datetime.now())
     session.add(trade)
+
+
+    Ledger.execute_order(session, order, counter_order, symbol, size, price, trade.id)
+
 
     return trade
 
@@ -1119,13 +1143,28 @@ class Deposit(Base):
     session.add(self)
     session.flush()
 
-  def process_confirmation(self, session, amount, data=None ):
-    if data:
-      current_data = json.loads(self.data)
-      data = json.loads(data)
-      current_data.update( data )
-      self.data = json.dumps(current_data)
 
+  def set_in_progress(self, session, data=None):
+    if self.status == '4' or self.status == '2':
+      return
+
+    self.status = '2'
+    session.add(self)
+    session.flush()
+
+
+  def process_confirmation(self, session, amount, data=None ):
+    should_update = False
+    new_data = {}
+    if data:
+      data = json.loads(data)
+
+      new_data.update(json.loads(self.data))
+      new_data.update( data )
+      if self.data != json.dumps(new_data):
+        should_update = True
+
+    should_confirm = False
     self.paid_value = amount
     if self.type == 'CRY':
       broker = Broker.get_broker( session, self.broker_id  )
@@ -1140,26 +1179,42 @@ class Deposit(Base):
 
       for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
         if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
-          self.confirm(session, amount)
-          return
+          should_confirm = True
+          break
+    else:
+      should_confirm = True
 
-    session.add(self)
-    session.flush()
 
-  def confirm(self, session, amount, data=None):
-    if data:
-      current_data = json.loads(self.data)
-      data = json.loads(data)
-      current_data.update( data )
-      self.data = json.dumps(current_data)
+    should_adjust_ledger = False
+    if should_confirm and self.status != '4':
+      self.paid_value = amount
+      self.status = '4'
+      should_adjust_ledger = True
 
-    self.paid_value = amount
-    self.status = '4'
+      should_update = True
+    elif  should_confirm and self.status == '4':
+      # The user probably saved the deposit address and he is sending to the same address
+      if self.type == 'CRY' and self.paid_value != amount:
+        # TODO: Create another deposit
+        # and process the deposit
+        return
 
-    # TODO: adjust ledger
 
-    session.add(self)
-    session.flush()
+    if should_adjust_ledger:
+      Ledger.deposit(session,
+                     self.account_id,       # account_id
+                     self.account_id,       # payee_id
+                     self.broker_id,        # broker_id
+                     self.broker_id,        # payee_broker_id
+                     self.currency,         # currency
+                     self.paid_value,       # amount
+                     self.id,               # reference
+                     'D')                   # description
+
+    if should_update:
+      self.data = json.dumps(new_data)
+      session.add(self)
+      session.flush()
 
 
 class DepositMethods(Base):
@@ -1375,9 +1430,9 @@ def db_bootstrap(session):
       session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      Ledger.deposit(session, x, 1, 9000001, 9000001, 'BTC', 100e8)
-      Ledger.deposit(session, x, 1, 9000001, 9000001, 'USD', 100000e8)
-      Ledger.deposit(session, x, 1, 9000001, 9000001, 'BRL', 250000e8)
+      Ledger.deposit(session, x, x, 9000001, 9000001, 'BTC', 100e8   , 'BONUS' )
+      Ledger.deposit(session, x, x, 9000001, 9000001, 'USD', 100000e8, 'BONUS' )
+      Ledger.deposit(session, x, x, 9000001, 9000001, 'BRL', 250000e8, 'BONUS' )
       session.commit()
 
 
