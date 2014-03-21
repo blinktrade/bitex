@@ -1,6 +1,7 @@
 import os
 import base64
 import json
+import time
 
 from bitex.signals import Signal
 
@@ -8,6 +9,10 @@ import zmq
 from zmq.eventloop.zmqstream import  ZMQStream
 
 from bitex.message import JsonMessage
+
+from models import Trade
+
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 market_data_subscriber_dict = {}
 
@@ -26,6 +31,11 @@ class MarketDataSubscriber(object):
     self.trade_list = []
     self.volume_dict = {}
 
+    from models import engine, db_bootstrap
+    self.db_session = scoped_session(sessionmaker(bind=engine))
+    db_bootstrap(self.db_session)
+
+
   def subscribe(self, zmq_context,trade_pub_connection_string, trade_client ):
     self.md_pub_socket = zmq_context.socket(zmq.SUB)
     self.md_pub_socket.connect(trade_pub_connection_string)
@@ -42,6 +52,7 @@ class MarketDataSubscriber(object):
       'MDReqID': '0',  # not important.
       'SubscriptionRequestType': '0',
       'MarketDepth': 0,
+      'TradeDate': time.strftime("%Y%m%d", time.localtime()),
       'MDUpdateType': '0',
       'MDEntryTypes': ['0','1','2'],
       'Instruments': [ self.symbol ]
@@ -212,6 +223,7 @@ class MarketDataSubscriber(object):
     print 'on_trade', msg
     trade = {
       "price":            msg.get('MDEntryPx'),
+      "symbol":           msg.get('Symbol'),
       "size":             msg.get('MDEntrySize'),
       "trade_date":       msg.get('MDEntryDate'),
       "trade_time":       msg.get('MDEntryTime'),
@@ -222,6 +234,8 @@ class MarketDataSubscriber(object):
       "buyer_username":   msg.get('MDEntryBuyer'),
       "seller_username":  msg.get('MDEntrySeller'),
     }
+
+    Trade.create(self.db_session, trade)
     self.trade_list.insert(0, trade)
 
     # only keep in memory only the last 100 trades
