@@ -1378,6 +1378,7 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
       case 'start':
       case 'signin':
       case 'signup':
+      case 'tos':
       case 'forgot_password':
       case 'set_new_password':
         break;
