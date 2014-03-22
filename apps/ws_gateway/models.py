@@ -55,17 +55,17 @@ class Trade(Base):
 
   @staticmethod
   def create(session, msg):
-    trade = Trade.get_trade( session, msg.id )
+    trade = Trade.get_trade( session, msg['id'] )
     if not trade:
-      trade =  Trade( id                = msg.id,
-                      order_id          = msg.order_id,
-                      counter_order_id  = msg.counter_order_id,
-                      buyer_username    = msg.buyer_username,
-                      seller_username   = msg.seller_username,
-                      side              = msg.side,
-                      symbol            = msg.symbol,
-                      size              = msg.size,
-                      price             = msg.price,
+      trade =  Trade( id                = msg['id'],
+                      order_id          = msg['order_id'],
+                      counter_order_id  = msg['counter_order_id'],
+                      buyer_username    = msg['buyer_username'],
+                      seller_username   = msg['seller_username'],
+                      side              = msg['side'],
+                      symbol            = msg['symbol'],
+                      size              = msg['size'],
+                      price             = msg['price'],
                       created           = datetime.datetime.now())
 
       session.add(trade)
