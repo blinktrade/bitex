@@ -20,10 +20,13 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
     transaction_hash        = self.get_argument("transaction_hash",       default=None, strip=False)
     confirmations           = self.get_argument("confirmations",          default=0, strip=False)
 
+    import random
+    req_id = random.randrange(600000,900000)
+
     process_deposit_message = {
       'MsgType': 'B0',
-      'ProcessDepositReqID':0,
-      'Action': 'PROCESS',
+      'ProcessDepositReqID':req_id,
+      'Action': 'COMPLETE',
       'Secret': secret,
       'Amount': int(value),
       'Data': json.dumps({

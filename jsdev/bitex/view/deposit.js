@@ -186,7 +186,8 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
   var el = goog.dom.getElement('id_deposit_list_table');
-  this.deposit_list_table_ =  new bitex.ui.DepositList();
+  var broker = model.get('Broker');
+  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'] );
 
   handler.listen(this.deposit_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -216,7 +217,6 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
  * @param {goog.events.Event} e
  */
 bitex.view.DepositView.prototype.onDepositListTableClick_ = function(e) {
-  console.log('onDepositListTableClick_');
   var element = e.target;
   if (element.tagName  === goog.dom.TagName.I ) {
     element = goog.dom.getParentElement(element);
@@ -259,9 +259,11 @@ bitex.view.DepositView.prototype.valuePriceFormatter_ = function(value, rowSet) 
   if (value === 0 ) {
     if (paid_value  === 0){
       return '-';
-    } else {
-      value = paid_value;
     }
+    return goog.dom.createDom('abbr',
+                              {'title': currency_description },
+                              this.getApplication().formatCurrency(paid_value/1e8, priceCurrency) );
+
   } else if ( paid_value >0 && paid_value != value ) {
     var formatted_paid_value =  this.getApplication().formatCurrency(paid_value/1e8, priceCurrency);
 

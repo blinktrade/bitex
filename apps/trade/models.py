@@ -1181,6 +1181,10 @@ class Deposit(Base):
         if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
           should_confirm = True
           break
+
+      if self.status == '0' or self.status == '1':
+        self.status = '2'
+        should_update = True
     else:
       should_confirm = True
 
@@ -1368,7 +1372,7 @@ def db_bootstrap(session):
                  {
                    "CurrencyCode": "BTC",
                    "CurrencyDescription":"Bitcoin",
-                   "Confirmations":[ [0, 1e8, 1], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                   "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                    "Wallets": [
                        { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
                        { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
@@ -1430,9 +1434,9 @@ def db_bootstrap(session):
       session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      Ledger.deposit(session, x, x, 9000001, 9000001, 'BTC', 100e8   , 'BONUS' )
-      Ledger.deposit(session, x, x, 9000001, 9000001, 'USD', 100000e8, 'BONUS' )
-      Ledger.deposit(session, x, x, 9000001, 9000001, 'BRL', 250000e8, 'BONUS' )
+      #Ledger.deposit(session, x, x, 9000001, 9000001, 'BTC', 100e8   , 'BONUS' )
+      #Ledger.deposit(session, x, x, 9000001, 9000001, 'USD', 100000e8, 'BONUS' )
+      #Ledger.deposit(session, x, x, 9000001, 9000001, 'BRL', 250000e8, 'BONUS' )
       session.commit()
 
 

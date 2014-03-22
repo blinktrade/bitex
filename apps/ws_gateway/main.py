@@ -149,7 +149,9 @@ class WebSocketHandler(websocket.WebSocketHandler):
           return
 
         try:
-          response = urllib2.urlopen(url_payment_processor + '?' + parameters)
+          url_payment_processor +=  '?' + parameters
+          print "invoking .. ", url_payment_processor
+          response = urllib2.urlopen(url_payment_processor)
           data = json.load(response)
           req_msg.set('InputAddress', data['input_address'])
           req_msg.set('Destination',  data['destination'])
@@ -317,11 +319,13 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 
 def main():
+  print 'callback_url', options.callback_url
   print 'port', options.port
   print 'certfile', options.certfile
   print 'keyfile', options.keyfile
   print 'trade_in', options.trade_in
   print 'trade_pub', options.trade_pub
+  print 'session_timeout_limit', options.session_timeout_limit
 
 
   from zmq.eventloop import ioloop

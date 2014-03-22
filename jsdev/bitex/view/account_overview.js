@@ -180,6 +180,8 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
  */
 bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
   var handler = this.getHandler();
+  var model = this.getApplication().getModel();
+
 
   this.destroyComponents_(customer);
 
@@ -190,7 +192,9 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
 
 
 
-  this.deposit_list_table_ = new bitex.ui.DepositList(true);
+  var broker = model.get('Broker');
+  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], true );
+
   handler.listen(this.deposit_list_table_ ,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
                  this.onDepositListTableRequestData_);
@@ -442,9 +446,12 @@ bitex.view.AccountOverview.prototype.valuePriceFormatter_ = function(value, rowS
   if (value === 0 ) {
     if (paid_value  === 0){
       return '-';
-    } else {
-      value = paid_value;
     }
+
+    return goog.dom.createDom('abbr',
+                              {'title': currency_description },
+                              this.getApplication().formatCurrency(paid_value/1e8, priceCurrency) );
+
   } else if ( paid_value >0 && paid_value != value ) {
     var formatted_paid_value =  this.getApplication().formatCurrency(paid_value/1e8, priceCurrency);
 

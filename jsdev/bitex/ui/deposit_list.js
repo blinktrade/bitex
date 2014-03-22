@@ -18,31 +18,6 @@ var MSG_DEPOSIT_TABLE_COLUMN_ID = goog.getMsg('ID');
 var MSG_DEPOSIT_TABLE_COLUMN_STATUS = goog.getMsg('Status');
 
 /**
- * @desc Column Status of the Deposit List
- */
-var MSG_DEPOSIT_TABLE_COLUMN_STATUS_PENDING = goog.getMsg('Pending');
-
-/**
- * @desc Column Status of the Deposit List
- */
-var MSG_DEPOSIT_TABLE_COLUMN_STATUS_UNCONFIRMED = goog.getMsg('Unconfirmed');
-
-/**
- * @desc Column Status of the Deposit List
- */
-var MSG_DEPOSIT_TABLE_COLUMN_STATUS_PROGRESS = goog.getMsg('In progress...');
-
-/**
- * @desc Column Status of the Deposit List
- */
-var MSG_DEPOSIT_TABLE_COLUMN_STATUS_COMPLETED = goog.getMsg('Completed');
-
-/**
- * @desc Column Status of the Deposit List
- */
-var MSG_DEPOSIT_TABLE_COLUMN_STATUS_CANCELLED = goog.getMsg('Cancelled');
-
-/**
  * @desc Column Currency of the Deposit List
  */
 var MSG_DEPOSIT_TABLE_COLUMN_CURRENCY = goog.getMsg('Currency');
@@ -80,12 +55,13 @@ var MSG_DEPOSIT_TABLE_COLUMN_DETAIL = goog.getMsg('Details');
 
 
 /**
+ * @param {Array.<Object>} crypto_currencies_def
  * @param {boolean} opt_broker_mode
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
+bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_domHelper) {
   var broker_mode = false;
   if (opt_broker_mode === true) {
     broker_mode = true;
@@ -101,13 +77,78 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
       'property': 'Status',
       'label': MSG_DEPOSIT_TABLE_COLUMN_STATUS,
       'sortable': false,
-      'formatter': function(s){
+      'formatter': function(s, rowSet){
+        /**
+         * @desc Column Status of the Deposit List
+         */
+        var MSG_DEPOSIT_TABLE_COLUMN_STATUS_PENDING = goog.getMsg('Pending');
+
+        /**
+         * @desc Column Status of the Deposit List
+         */
+        var MSG_DEPOSIT_TABLE_COLUMN_STATUS_UNCONFIRMED = goog.getMsg('Unconfirmed');
+
+        /**
+         * @desc Column Status of the Deposit List
+         */
+        var MSG_DEPOSIT_TABLE_COLUMN_STATUS_PROGRESS = goog.getMsg('In progress...');
+
+        /**
+         * @desc Column Status of the Deposit List
+         */
+        var MSG_DEPOSIT_TABLE_COLUMN_STATUS_COMPLETED = goog.getMsg('Completed');
+
+        /**
+         * @desc Column Status of the Deposit List
+         */
+        var MSG_DEPOSIT_TABLE_COLUMN_STATUS_CANCELLED = goog.getMsg('Cancelled');
+
+        var progress_message = MSG_DEPOSIT_TABLE_COLUMN_STATUS_PROGRESS;
+        var number_of_necessary_confirmations = null;
+        if (rowSet['Type'] == 'CRY' ) {
+          // search for currency
+          var crypto_currency_def = goog.array.find(crypto_currencies_def,function(c){
+            if (c['CurrencyCode'] == rowSet['Currency']  ) {
+              return true;
+            }
+          });
+          console.log(goog.debug.deepExpose(crypto_currency_def));
+
+          if (goog.isDefAndNotNull(crypto_currency_def)) {
+            if (goog.isDefAndNotNull(rowSet['PaidValue']) && rowSet['PaidValue'] > 0 ) {
+              var confirmation_info_array = goog.array.find( crypto_currency_def['Confirmations'], function(conf_info){
+                if ( rowSet['PaidValue'] >= conf_info[0]  &&  rowSet['PaidValue'] < conf_info[1] ) {
+                  return true;
+                }
+              });
+            }
+            if (goog.isDefAndNotNull(confirmation_info_array)) {
+              number_of_necessary_confirmations = confirmation_info_array[2];
+
+              var number_of_confirmations = 0;
+              if (goog.isDef(rowSet['Data']) && goog.isDef(rowSet['Data']['Confirmations'] ) ) {
+                number_of_confirmations = rowSet['Data']['Confirmations'] ;
+              }
+
+              /**
+               * @desc status message for confirming crypto coin deposits
+               */
+              var MSG_PROGRESS_MESSAGE_FOR_CRYPTO_CURRENCY = goog.getMsg('{$confirmations} of {$necessaryConfirmations} confirmations',{
+                confirmations: number_of_confirmations,
+                necessaryConfirmations: number_of_necessary_confirmations
+              });
+
+              progress_message = MSG_PROGRESS_MESSAGE_FOR_CRYPTO_CURRENCY;
+            }
+          }
+        }
+
         var status = function(s) {
           switch(s){
             case '0': return [''          , MSG_DEPOSIT_TABLE_COLUMN_STATUS_UNCONFIRMED];
             case '1': return ['warning'   , MSG_DEPOSIT_TABLE_COLUMN_STATUS_PENDING];
-            case '2': return ['info'      , MSG_DEPOSIT_TABLE_COLUMN_STATUS_PROGRESS];
-            case '4': return ['sucess'    , MSG_DEPOSIT_TABLE_COLUMN_STATUS_COMPLETED];
+            case '2': return ['info'      , progress_message];
+            case '4': return ['success'   , MSG_DEPOSIT_TABLE_COLUMN_STATUS_COMPLETED];
             case '8': return ['important' , MSG_DEPOSIT_TABLE_COLUMN_STATUS_CANCELLED];
           }
           return ['',''];
@@ -269,12 +310,10 @@ bitex.ui.DepositList = function( opt_broker_mode, opt_domHelper) {
           case 'CRY':
             switch( rowSet['Status'] ) {
               case '0':
-                return '';
               case '1':
-                return goog.dom.createDom('div', 'btn-group',[btn_progress]);
               case '2':
-                return goog.dom.createDom('div', 'btn-group',[btn_complete]);
               case '4':
+                return '';
               case '8':
                 return goog.dom.createDom('div', 'btn-group',[btn_progress]);
             }
