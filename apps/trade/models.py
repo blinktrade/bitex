@@ -736,7 +736,58 @@ class Withdraw(Base):
 
     return  withdraw_data
 
+  def set_in_progress(self, session):
+    if self.status != '1':
+      return
+
+    current_balance = Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
+    if self.amount >= current_balance:
+      self.cancel(session, -1 ) # Insufficient funds
+      return
+
+    self.status = '2'
+    Ledger.withdraw(session,
+                    self.account_id,
+                    self.account_id,
+                    self.broker_id,
+                    self.broker_id,
+                    self.currency,
+                    self.amount,
+                    str(self.id),
+                    'W')
+    session.add(self)
+    session.flush()
+
+  def set_as_complete(self, session, data=None):
+    if self.status != '2':
+      return
+
+    new_data = {}
+    new_data.update(json.loads(self.data))
+    if data:
+      data = json.loads(data)
+      new_data.update( data )
+      if self.data != json.dumps(new_data):
+        self.data = json.dumps(new_data)
+
+    self.status = '4' # CANCELLED
+
+    session.add(self)
+    session.flush()
+
   def cancel(self, session, reason_id = None, reason=None):
+    if self.status == '2':
+      #deposit the money back :)
+      Ledger.deposit(session,
+                      self.account_id,
+                      self.account_id,
+                      self.broker_id,
+                      self.broker_id,
+                      self.currency,
+                      self.amount,
+                      str(self.id),
+                      'W')
+
     self.status = '8' # CANCELLED
     self.reason_id = reason_id
     self.reason = reason
@@ -1156,17 +1207,16 @@ class Deposit(Base):
   def process_confirmation(self, session, amount, data=None ):
     should_update = False
     new_data = {}
+    new_data.update(json.loads(self.data))
     if data:
       data = json.loads(data)
-
-      new_data.update(json.loads(self.data))
       new_data.update( data )
       if self.data != json.dumps(new_data):
         should_update = True
 
     should_confirm = False
     self.paid_value = amount
-    if self.type == 'CRY':
+    if self.type == 'CRY' and data:
       broker = Broker.get_broker( session, self.broker_id  )
       broker_crypto_currencies = json.loads(broker.crypto_currencies)
       crypto_currency_param = None
@@ -1342,7 +1392,8 @@ def db_bootstrap(session):
                      'description':'Saque em Bitcoins',
                      'disclaimer': 'Processamento instantâneo para valores menores do que 0.1 BTC. Acima deste valor, processamento manual ao final do dia',
                      'fields': [
-                         {'name': 'Wallet'  ,  'type':'text'  , 'value':""       , 'label':'Wallet', 'placeholder':'' }
+                         {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                         {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' }
                      ]
                    }
                  ],
@@ -1352,18 +1403,20 @@ def db_bootstrap(session):
                      'description':'Saque via TED ou DOC',
                      'disclaimer':'Processamento no final dia somente. Taxa de 1% + R$ 8,00 ( exceto Itaú )',
                      'fields': [
-                         {'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
-                         {'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
-                         {'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
-                         {'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
-                         {'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'}
+                         {'side':'client', 'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                         {'side':'client', 'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                         {'side':'client', 'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' }
                      ]
                    }, {
                      'method':'paypal',
                      'description':'Saque direto via paypal',
                      'disclaimer':'Realizado na hora. Taxa de 2.3% do paypal',
                      'fields': [
-                         {'name': 'Email'  ,  'type':'text'  , 'value':""       , 'label':'Email', 'placeholder':'' }
+                         {'side':'client',  'name': 'Email'          ,  'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
+                         {'side':'broker',  'name': 'TransactionID'  ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' }
                      ]
                    }
                  ]
@@ -1426,7 +1479,7 @@ def db_bootstrap(session):
 
 
   # create 1000 test users for the NYC Bitcoin Center - Satoshi square
-  for x in xrange(2, 1000):
+  for x in xrange(2, 2000):
     if not User.get_user(session, str(x)):
       e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, password='password' + str(x),
                country_code='US', state='NY',
@@ -1434,9 +1487,8 @@ def db_bootstrap(session):
       session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      #Ledger.deposit(session, x, x, 9000001, 9000001, 'BTC', 100e8   , 'BONUS' )
-      #Ledger.deposit(session, x, x, 9000001, 9000001, 'USD', 100000e8, 'BONUS' )
-      #Ledger.deposit(session, x, x, 9000001, 9000001, 'BRL', 250000e8, 'BONUS' )
+      Ledger.deposit(session, x, x, 9000001, 9000001, 'BTC', 100e8   , 'BONUS' )
+      Ledger.deposit(session, x, x, 9000001, 9000001, 'USD', 100000e8, 'BONUS' )
       session.commit()
 
 

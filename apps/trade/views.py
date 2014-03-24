@@ -516,7 +516,7 @@ def processWithdrawRequest(session, msg):
                                     msg.get('Currency'),
                                     msg.get('Amount'),
                                     msg.get('Method'),
-                                    msg.get('Data'))
+                                    msg.get('Data', {} ))
 
   application.db_session.commit()
 
@@ -785,11 +785,10 @@ def processProcessWithdraw(session, msg):
   if msg.get('Action') == 'CANCEL':
     withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
-    #TODO: Set the withdraw in process
-    pass
+    withdraw.set_in_progress( application.db_session)
   elif msg.get('Action') == 'COMPLETE':
-    #TODO: Set the withdraw in process
-    pass
+    data        = msg.get('Data')
+    withdraw.set_as_complete( application.db_session, data)
 
   application.db_session.commit()
 

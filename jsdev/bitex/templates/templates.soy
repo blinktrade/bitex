@@ -370,6 +370,7 @@
 
 
 /**
+  * @param side
   * @param currency
   * @param currency_sign
   * @param methods
@@ -415,12 +416,14 @@
           </div>
 
           {foreach $field in $method['fields'] }
-            <div class="control-group">
-              <label class="control-label">{$field['label']}</label>
-              <div class="controls">
-                <input class="withdraw-field" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+            {if $field['side'] == $side}
+              <div class="control-group">
+                <label class="control-label">{$field['label']}</label>
+                <div class="controls">
+                  <input class="withdraw-field" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                </div>
               </div>
-            </div>
+            {/if}
           {/foreach}
         </div>
      {/foreach}

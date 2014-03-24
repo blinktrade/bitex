@@ -791,6 +791,9 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
   var withdraw_data = e.target.getWithdrawData();
   var request_id = e.target.getRequestId();
   var action = e.target.getWithdrawAction();
+  var handler = this.getHandler();
+
+  console.log( 'onBrokerProcessWithdraw_:' + action);
 
   if (action === 'CANCEL') {
 
@@ -807,7 +810,6 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
                                                MSG_WITHDRAW_CANCEL_DIALOG_TITLE,
                                                bootstrap.Dialog.ButtonSet.createOkCancel() );
 
-    var handler = this.getHandler();
 
     var select_reason_el = goog.dom.getElement('id_select_reason');
     var reason_el = goog.dom.getElement('id_custom_reason_text');
@@ -839,6 +841,50 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
                                                   reason);
       }
     }, this);
+  } else if (action === 'PROGRESS') {
+
+    this.getBitexConnection().processWithdraw(request_id,
+                                              action,
+                                              withdraw_data['WithdrawID']);
+
+  } else if (action === 'COMPLETE') {
+    var model = this.getModel();
+    var withdraw_methods = model.get('Broker')['WithdrawStructure'][withdraw_data['Currency'] ];
+
+    var dialogContent = bitex.templates.DepositWithdrawDialogContent({
+      side: 'broker',
+      currency: withdraw_data['Currency'],
+      currency_sign: this.getCurrencySign(withdraw_data['Currency']),
+      methods: withdraw_methods
+    });
+
+
+    /**
+     * @desc Crypto Currency Withdraw accordion title
+     */
+    var MSG_CURRENCY_BROKER_WITHDRAW_DIALOG_TITLE =
+        goog.getMsg('{$currency} withdrawal', {currency :  this.getCurrencyDescription(withdraw_data['Currency']) });
+
+
+    var dlg =  this.showDialog(dialogContent,
+                               MSG_CURRENCY_BROKER_WITHDRAW_DIALOG_TITLE,
+                               bootstrap.Dialog.ButtonSet.createOkCancel());
+
+
+    handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'ok') {
+        var withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+
+        /*
+        this.getBitexConnection().processWithdraw(request_id,
+                                                  action,
+                                                  withdraw_data['WithdrawID']);
+        */
+
+      }
+    }, this);
+
+
   }
 };
 
@@ -1022,9 +1068,14 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
     var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
     var paid_value_element_id = goog.string.getRandomString();
 
+    var control_number  = deposit_data['ControlNumber'];
+    if (deposit_data['Type'] == 'CRY') {
+      control_number  = deposit_data['Data']['InputAddress'];
+    }
+
     var confirm_deposit_dialog_content = bitex.templates.BrokerConfirmDepositContent({
       id_value:paid_value_element_id,
-      controlNumber:deposit_data['ControlNumber'],
+      controlNumber:control_number ,
       currencySign:this.getCurrencySign(deposit_data['Currency']),
       value: valueFormatter.format(deposit_data['Value']/1e8)
     });

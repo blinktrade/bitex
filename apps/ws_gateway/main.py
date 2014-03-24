@@ -295,7 +295,10 @@ class WebSocketGatewayApplication(tornado.web.Application):
     self.heart_beat_timer.start()
 
   def send_heartbeat_to_trade(self):
-    self.application_trade_client.sendJSON( {'MsgType':'1', 'TestReqID':'0'} )
+    try:
+      self.application_trade_client.sendJSON( {'MsgType':'1', 'TestReqID':'0'} )
+    except Exception, e:
+      pass
 
   def register_connection(self, ws_client):
     if ws_client.trade_client.connection_id in self.connections:

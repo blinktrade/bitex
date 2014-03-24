@@ -135,6 +135,7 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
   var withdraw_methods = model.get('Broker')['WithdrawStructure'][currency];
 
   var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
+    side: 'client',
     currency: currency,
     currency_sign: this.getApplication().getCurrencySign(currency),
     methods: withdraw_methods

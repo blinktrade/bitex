@@ -169,7 +169,36 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_do
       'formatter': function(value, rowSet) {
         switch (rowSet['Type'] ) {
           case 'CRY':
-            return '-';
+            var top_el =  goog.dom.createDom('div');
+            goog.style.setStyle(top_el, 'position', 'relative');
+            goog.style.setWidth(top_el, 120);
+
+
+            var inner_el = goog.dom.createDom('div',
+                                              undefined,
+                                              goog.dom.createDom('span', undefined, rowSet['Data']['InputAddress']) );
+
+            if (rowSet['Currency'] == 'BTC') {
+              var blockchain_address = 'https://blockchain.info/address/'  + rowSet['Data']['InputAddress'];
+
+              inner_el = goog.dom.createDom('div',
+                                            undefined,
+                                            goog.dom.createDom('a',
+                                                               {
+                                                                 href:blockchain_address,
+                                                                 target:'blank_'
+                                                               }, rowSet['Data']['InputAddress']) );
+
+            }
+
+            goog.style.setFloat(inner_el, 'left');
+            goog.style.setStyle(inner_el, 'max-width', '110px' );
+            goog.style.setStyle(inner_el, 'overflow', 'hidden');
+            goog.style.setStyle(inner_el, 'text-overflow', 'ellipsis');
+            goog.style.setStyle(inner_el, 'white-space', 'nowrap');
+
+            goog.dom.appendChild(top_el, inner_el);
+            return top_el;
           default:
             return '' + value;
         }
@@ -210,28 +239,17 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_do
           'data-row': data_row
         },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_QR,' ' , goog.dom.createDom( 'i', ['icon-white', 'icon-qrcode']));
 
-        var blockchain_address = "#";
-        if (rowSet['Currency'] == 'BTC') {
-          blockchain_address = 'https://blockchain.info/address/'  + rowSet['Data']['InputAddress'];
-        }
-
-        var btn_transaction = goog.dom.createDom( 'a', {
-          'class':'btn btn-mini btn-primary btn-deposit-transaction',
-          'href': blockchain_address,
-          'target':'_blank'
-        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_TRANSACTION,' ' , goog.dom.createDom( 'i', ['icon-white', 'icon-share-alt']));
-
 
         switch (rowSet['Type'] ) {
           case 'CRY':
             switch( rowSet['Status'] ) {
               case '0':
               case '1':
-                return goog.dom.createDom('div', 'btn-group',[btn_qr, btn_transaction] ) ;
+                return goog.dom.createDom('div', 'btn-group',[btn_qr] ) ;
               case '2':
               case '4':
               case '8':
-                return goog.dom.createDom('div', 'btn-group',[btn_transaction]);
+                return '';
             }
             break;
 
@@ -311,7 +329,9 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_do
             switch( rowSet['Status'] ) {
               case '0':
               case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_progress]);
               case '2':
+                return goog.dom.createDom('div', 'btn-group',[btn_complete]);
               case '4':
                 return '';
               case '8':
@@ -344,12 +364,10 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_do
       'formatter':function(value, rowSet){
         var data_row = goog.json.serialize( rowSet );
 
-        var btn_cancel = goog.dom.createDom( 'a', {
-          'class':'btn btn-mini btn-danger btn-deposit-view-qr',
-          'href':'#',
-          'data-action':'CANCEL',
-          'data-row': data_row
-        },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_CANCEL,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-remove']));
+        /**
+         * @desc Request support action button label on deposit table
+         */
+        var MSG_DEPOSIT_TABLE_COLUMN_ACTION_REQUEST_SUPPORT = goog.getMsg('Where are my coins ?');
 
 
         var btn_upload = goog.dom.createDom( 'a', {

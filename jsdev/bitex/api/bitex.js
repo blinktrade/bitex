@@ -767,21 +767,30 @@ bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clien
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {string} action
  * @param {number} withdrawId
- * @param {number} reasonId
+ * @param {number=} opt_reasonId
  * @param {string=} opt_reason
+ * @param {Object=} opt_data
  */
-bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, withdrawId, reasonId, opt_reason){
+bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, withdrawId, opt_reasonId, opt_reason, opt_data){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
     'MsgType': 'B6',
     'ProcessWithdrawReqID': requestId,
     'WithdrawID': withdrawId,
-    'Action': action,
-    'ReasonID': reasonId
+    'Action': action
   };
+
+  if (goog.isDefAndNotNull(opt_reasonId)){
+    msg['ReasonID'] = opt_reasonId;
+  }
+
   if (goog.isDefAndNotNull(opt_reason)){
     msg['Reason'] = opt_reason;
+  }
+
+  if (goog.isDefAndNotNull(opt_data)){
+    msg['Data'] = opt_data;
   }
 
   this.sendMessage(msg);
