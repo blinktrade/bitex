@@ -7159,6 +7159,8 @@ $JSCompiler_prototypeAlias$$.$onBeforeSetView_$ = function $$JSCompiler_prototyp
       ;
       case "signup":
       ;
+      case "tos":
+      ;
       case "forgot_password":
       ;
       case "set_new_password":
