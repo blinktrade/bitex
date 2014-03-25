@@ -765,18 +765,17 @@ class Withdraw(Base):
     new_data = {}
     new_data.update(json.loads(self.data))
     if data:
-      data = json.loads(data)
       new_data.update( data )
       if self.data != json.dumps(new_data):
         self.data = json.dumps(new_data)
 
-    self.status = '4' # CANCELLED
+    self.status = '4' # COMPLETE
 
     session.add(self)
     session.flush()
 
   def cancel(self, session, reason_id = None, reason=None):
-    if self.status == '2':
+    if self.status in ('2', '4'): # in progress or completed
       #deposit the money back :)
       Ledger.deposit(session,
                       self.account_id,
@@ -1209,7 +1208,6 @@ class Deposit(Base):
     new_data = {}
     new_data.update(json.loads(self.data))
     if data:
-      data = json.loads(data)
       new_data.update( data )
       if self.data != json.dumps(new_data):
         should_update = True

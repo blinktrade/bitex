@@ -5428,7 +5428,7 @@ function $bitex$templates$YourAccountSummary$$($currencyList254_opt_data$$11$$) 
 }
 function $bitex$templates$AccountBalances$$($opt_data$$12$$) {
   for(var $output$$10$$ = '<table class="table table-striped" style="width: 350px"><tbody>', $currencyList262$$ = $opt_data$$12$$.$currencies$, $currencyListLen262$$ = $currencyList262$$.length, $currencyIndex262$$ = 0;$currencyIndex262$$ < $currencyListLen262$$;$currencyIndex262$$++) {
-    var $currencyData262$$ = $currencyList262$$[$currencyIndex262$$], $MSG_UNNAMED_735$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData262$$), $output$$10$$ = $output$$10$$ + ("<tr><td><strong>" + $MSG_UNNAMED_735$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" data-blink-class="balance-info-blink"></span></td>');
+    var $currencyData262$$ = $currencyList262$$[$currencyIndex262$$], $MSG_UNNAMED_768$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData262$$), $output$$10$$ = $output$$10$$ + ("<tr><td><strong>" + $MSG_UNNAMED_768$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" data-blink-class="balance-info-blink"></span></td>');
     "deposit" == $opt_data$$12$$.action && ($output$$10$$ += '<td><button class="btn btn-mini" data-action="deposit"  data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '"><i data-action="deposit"  data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" class="icon-plus"/> Deposit</button></td>');
     "withdraw" == $opt_data$$12$$.action && ($output$$10$$ += '<td><button class="btn btn-mini" data-action="withdraw" data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '"><i data-action="withdraw" data-currency="' + $soy$$0$0escapeHtml$$($currencyData262$$) + '" class="icon-minus"/> Withdraw</button></td>');
     $output$$10$$ += "</tr>"
@@ -5441,46 +5441,60 @@ function $bitex$templates$WaitingForDepositResponseDialogContent$$() {
 function $bitex$templates$DepositCryptoCurrencyContentDialog$$($opt_data$$14_output$$12$$) {
   return $opt_data$$14_output$$12$$ = "" + ('<div class="row-fluid" data-deposit-status="prepare"><h4 class="text-center">' + $soy$$0$0escapeHtml$$($opt_data$$14_output$$12$$.$deposit_message$.Data.InputAddress) + '</h4><div class="text-center"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl=' + $soy$$0$0escapeHtml$$($opt_data$$14_output$$12$$.$deposit_message$.Data.InputAddress) + '"/></div><p class="text-center"> Powered by <a href="https://blockchain.info/api/api_receive/" target="_blank">https://blockchain.info/api/api_receive</a></p></div>')
 }
-function $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$($MSG_UNNAMED_747_opt_data$$15$$) {
+function $bitex$templates$ConfirmDepositCryptoCurrencyContentDialog$$($MSG_UNNAMED_780_opt_data$$15$$) {
   var $output$$13$$ = "";
-  $MSG_UNNAMED_747_opt_data$$15$$ = " We will generate a unique " + ($soy$$0$0escapeHtml$$($MSG_UNNAMED_747_opt_data$$15$$.$currency_description$) + " address that will be valid only for this transaction.");
-  return $output$$13$$ + ('<div class="row-fluid" data-deposit-status="confirm"><h3 class="text-center"> IMPORTANT! </h3><h4 class="text-center">' + $MSG_UNNAMED_747_opt_data$$15$$ + '</h4><h3 class="text-center"> Did you understand? </h3><br/><br/></div>')
+  $MSG_UNNAMED_780_opt_data$$15$$ = " We will generate a unique " + ($soy$$0$0escapeHtml$$($MSG_UNNAMED_780_opt_data$$15$$.$currency_description$) + " address that will be valid only for this transaction.");
+  return $output$$13$$ + ('<div class="row-fluid" data-deposit-status="confirm"><h3 class="text-center"> IMPORTANT! </h3><h4 class="text-center">' + $MSG_UNNAMED_780_opt_data$$15$$ + '</h4><h3 class="text-center"> Did you understand? </h3><br/><br/></div>')
 }
 function $bitex$templates$DepositSlipContentDialog$$($opt_data$$16_output$$14$$) {
   return $opt_data$$16_output$$14$$ = "" + ('<div class="row-fluid" data-deposit-status="done"><h5 class="text-center">done</h5></div><div class="row-fluid"><div class="span6 offset3"><a  target="_blank" href="/get_deposit?deposit_id=' + $soy$$0$0escapeHtml$$($opt_data$$16_output$$14$$.$deposit_id$) + '" class="btn btn-primary">Print</a>  or  <a href="/get_deposit?download=1&deposit_id=' + $soy$$0$0escapeHtml$$($opt_data$$16_output$$14$$.$deposit_id$) + '">Download</a></div></div>')
 }
 function $bitex$templates$DepositWithdrawDialogContent$$($opt_data$$17$$) {
-  var $output$$15$$ = '<form class="form-horizontal" data-deposit-status="prepare"><input type="hidden" name="Currency" value="' + $soy$$0$0escapeHtml$$($opt_data$$17$$.$currency$) + '"><div class="control-group"><label class="control-label">Amount</label><div class="controls"><div class="input-prepend"><span class="add-on">' + $soy$$0$0escapeHtml$$($opt_data$$17$$.$currency_sign$) + '</span><input type="text" class="input-small" size="16" name="Amount"></div></div></div>';
-  if(1 < $opt_data$$17$$.$methods$.length) {
-    for(var $output$$15$$ = $output$$15$$ + '<div class="control-group"><label class="control-label">Method</label><div class="controls"><select name="Method" class="withdraw-method-selector">', $methodList346_methodList359_methodList365$$ = $opt_data$$17$$.$methods$, $methodListLen346_methodListLen359_methodListLen365$$ = $methodList346_methodList359_methodList365$$.length, $methodIndex346_methodIndex359_methodIndex365$$ = 0;$methodIndex346_methodIndex359_methodIndex365$$ < $methodListLen346_methodListLen359_methodListLen365$$;$methodIndex346_methodIndex359_methodIndex365$$++) {
-      var $fieldList375_methodData346_methodData365$$ = $methodList346_methodList359_methodList365$$[$methodIndex346_methodIndex359_methodIndex365$$], $output$$15$$ = $output$$15$$ + ("<option " + (0 == $methodIndex346_methodIndex359_methodIndex365$$ ? "selected" : "") + ' value="' + $soy$$0$0escapeHtml$$($fieldList375_methodData346_methodData365$$.method) + '" >' + $soy$$0$0escapeHtml$$($fieldList375_methodData346_methodData365$$.description) + "</option>")
-    }
-    $output$$15$$ += "</select></div></div>"
-  }else {
-    $methodList346_methodList359_methodList365$$ = $opt_data$$17$$.$methods$;
-    $methodListLen346_methodListLen359_methodListLen365$$ = $methodList346_methodList359_methodList365$$.length;
-    for($methodIndex346_methodIndex359_methodIndex365$$ = 0;$methodIndex346_methodIndex359_methodIndex365$$ < $methodListLen346_methodListLen359_methodListLen365$$;$methodIndex346_methodIndex359_methodIndex365$$++) {
-      $output$$15$$ += '<input type="hidden" name="Method" value="' + $soy$$0$0escapeHtml$$($methodList346_methodList359_methodList365$$[$methodIndex346_methodIndex359_methodIndex365$$].method) + '">'
+  var $output$$15$$ = '<form class="form-horizontal" data-deposit-status="prepare"><input type="hidden" name="Currency" value="' + $soy$$0$0escapeHtml$$($opt_data$$17$$.$currency$) + '">' + ("client" == $opt_data$$17$$.$side$ ? '<div class="control-group"><label class="control-label">Amount</label><div class="controls"><div class="input-prepend"><span class="add-on">' + $soy$$0$0escapeHtml$$($opt_data$$17$$.$currency_sign$) + '</span><input type="text" class="input-small" size="16" name="Amount"></div></div></div>' : 
+  "");
+  if(!$opt_data$$17$$.$force_method$) {
+    if(1 < $opt_data$$17$$.$methods$.length) {
+      for(var $output$$15$$ = $output$$15$$ + '<div class="control-group"><label class="control-label">Method</label><div class="controls"><select name="Method" class="withdraw-method-selector">', $methodList351_methodList364_methodList370$$ = $opt_data$$17$$.$methods$, $methodListLen351_methodListLen364_methodListLen370$$ = $methodList351_methodList364_methodList370$$.length, $methodIndex351_methodIndex364_methodIndex370$$ = 0;$methodIndex351_methodIndex364_methodIndex370$$ < $methodListLen351_methodListLen364_methodListLen370$$;$methodIndex351_methodIndex364_methodIndex370$$++) {
+        var $fieldList402_methodData351_methodData370$$ = $methodList351_methodList364_methodList370$$[$methodIndex351_methodIndex364_methodIndex370$$], $output$$15$$ = $output$$15$$ + ("<option " + (0 == $methodIndex351_methodIndex364_methodIndex370$$ ? "selected" : "") + ' value="' + $soy$$0$0escapeHtml$$($fieldList402_methodData351_methodData370$$.method) + '" >' + $soy$$0$0escapeHtml$$($fieldList402_methodData351_methodData370$$.description) + "</option>")
+      }
+      $output$$15$$ += "</select></div></div>"
+    }else {
+      $methodList351_methodList364_methodList370$$ = $opt_data$$17$$.$methods$;
+      $methodListLen351_methodListLen364_methodListLen370$$ = $methodList351_methodList364_methodList370$$.length;
+      for($methodIndex351_methodIndex364_methodIndex370$$ = 0;$methodIndex351_methodIndex364_methodIndex370$$ < $methodListLen351_methodListLen364_methodListLen370$$;$methodIndex351_methodIndex364_methodIndex370$$++) {
+        $output$$15$$ += '<input type="hidden" name="Method" value="' + $soy$$0$0escapeHtml$$($methodList351_methodList364_methodList370$$[$methodIndex351_methodIndex364_methodIndex370$$].method) + '">'
+      }
     }
   }
   $output$$15$$ += '<div class="withdraw-methods">';
-  $methodList346_methodList359_methodList365$$ = $opt_data$$17$$.$methods$;
-  $methodListLen346_methodListLen359_methodListLen365$$ = $methodList346_methodList359_methodList365$$.length;
-  for($methodIndex346_methodIndex359_methodIndex365$$ = 0;$methodIndex346_methodIndex359_methodIndex365$$ < $methodListLen346_methodListLen359_methodListLen365$$;$methodIndex346_methodIndex359_methodIndex365$$++) {
-    for(var $fieldList375_methodData346_methodData365$$ = $methodList346_methodList359_methodList365$$[$methodIndex346_methodIndex359_methodIndex365$$], $output$$15$$ = $output$$15$$ + ('<div class="withdraw-method" data-withdraw-method="' + $soy$$0$0escapeHtml$$($fieldList375_methodData346_methodData365$$.method) + '" style="' + (0 != $methodIndex346_methodIndex359_methodIndex365$$ ? "display:none;" : "") + '" ><div class="control-group" style="margin-bottom: 5px;"><div class="controls"><label>' + 
-    $soy$$0$0escapeHtml$$($fieldList375_methodData346_methodData365$$.disclaimer) + "</label></div></div>"), $fieldList375_methodData346_methodData365$$ = $fieldList375_methodData346_methodData365$$.fields, $fieldListLen375$$ = $fieldList375_methodData346_methodData365$$.length, $fieldIndex375$$ = 0;$fieldIndex375$$ < $fieldListLen375$$;$fieldIndex375$$++) {
-      var $fieldData375$$ = $fieldList375_methodData346_methodData365$$[$fieldIndex375$$], $output$$15$$ = $output$$15$$ + ($fieldData375$$.side == $opt_data$$17$$.$side$ ? '<div class="control-group"><label class="control-label">' + $soy$$0$0escapeHtml$$($fieldData375$$.label) + '</label><div class="controls"><input class="withdraw-field" type="' + $soy$$0$0escapeHtml$$($fieldData375$$.type) + '" name="' + $soy$$0$0escapeHtml$$($fieldData375$$.name) + '" placeholder="' + $soy$$0$0escapeHtml$$($fieldData375$$.placeholder) + 
-      '" value="' + $soy$$0$0escapeHtml$$($fieldData375$$.value) + '" ' + (0 != $methodIndex346_methodIndex359_methodIndex365$$ ? "disabled" : "") + " /></div></div>" : "")
+  $methodList351_methodList364_methodList370$$ = $opt_data$$17$$.$methods$;
+  $methodListLen351_methodListLen364_methodListLen370$$ = $methodList351_methodList364_methodList370$$.length;
+  for($methodIndex351_methodIndex364_methodIndex370$$ = 0;$methodIndex351_methodIndex364_methodIndex370$$ < $methodListLen351_methodListLen364_methodListLen370$$;$methodIndex351_methodIndex364_methodIndex370$$++) {
+    if($fieldList402_methodData351_methodData370$$ = $methodList351_methodList364_methodList370$$[$methodIndex351_methodIndex364_methodIndex370$$], $opt_data$$17$$.$force_method$) {
+      if($fieldList402_methodData351_methodData370$$.method == $opt_data$$17$$.$force_method$) {
+        for(var $fieldList375_fieldListLen402$$ = $fieldList402_methodData351_methodData370$$.fields, $fieldIndex402_fieldListLen375$$ = $fieldList375_fieldListLen402$$.length, $fieldData402_fieldIndex375$$ = 0;$fieldData402_fieldIndex375$$ < $fieldIndex402_fieldListLen375$$;$fieldData402_fieldIndex375$$++) {
+          var $fieldData375$$ = $fieldList375_fieldListLen402$$[$fieldData402_fieldIndex375$$], $output$$15$$ = $output$$15$$ + ($fieldData375$$.side == $opt_data$$17$$.$side$ ? '<div class="control-group"><label class="control-label">' + $soy$$0$0escapeHtml$$($fieldData375$$.label) + '</label><div class="controls"><input class="withdraw-field" type="' + $soy$$0$0escapeHtml$$($fieldData375$$.type) + '" name="' + $soy$$0$0escapeHtml$$($fieldData375$$.name) + '" placeholder="' + $soy$$0$0escapeHtml$$($fieldData375$$.placeholder) + 
+          '" value="' + $soy$$0$0escapeHtml$$($fieldData375$$.value) + '"/></div></div><div class="control-group" style="margin-bottom: 5px;"><div class="controls"><label>' + $soy$$0$0escapeHtml$$($fieldList402_methodData351_methodData370$$.disclaimer) + "</label></div></div>" : "")
+        }
+      }
+    }else {
+      $output$$15$$ += '<div class="withdraw-method" data-withdraw-method="' + $soy$$0$0escapeHtml$$($fieldList402_methodData351_methodData370$$.method) + '" style="' + (0 != $methodIndex351_methodIndex364_methodIndex370$$ ? "display:none;" : "") + '" ><div class="control-group" style="margin-bottom: 5px;"><div class="controls"><label>' + $soy$$0$0escapeHtml$$($fieldList402_methodData351_methodData370$$.disclaimer) + "</label></div></div>";
+      $fieldList402_methodData351_methodData370$$ = $fieldList402_methodData351_methodData370$$.fields;
+      $fieldList375_fieldListLen402$$ = $fieldList402_methodData351_methodData370$$.length;
+      for($fieldIndex402_fieldListLen375$$ = 0;$fieldIndex402_fieldListLen375$$ < $fieldList375_fieldListLen402$$;$fieldIndex402_fieldListLen375$$++) {
+        $fieldData402_fieldIndex375$$ = $fieldList402_methodData351_methodData370$$[$fieldIndex402_fieldListLen375$$], $output$$15$$ += $fieldData402_fieldIndex375$$.side == $opt_data$$17$$.$side$ ? '<div class="control-group"><label class="control-label">' + $soy$$0$0escapeHtml$$($fieldData402_fieldIndex375$$.label) + '</label><div class="controls"><input class="withdraw-field" type="' + $soy$$0$0escapeHtml$$($fieldData402_fieldIndex375$$.type) + '" name="' + $soy$$0$0escapeHtml$$($fieldData402_fieldIndex375$$.name) + 
+        '" placeholder="' + $soy$$0$0escapeHtml$$($fieldData402_fieldIndex375$$.placeholder) + '" value="' + $soy$$0$0escapeHtml$$($fieldData402_fieldIndex375$$.value) + '" ' + (0 != $methodIndex351_methodIndex364_methodIndex370$$ ? "disabled" : "") + " /></div></div>" : ""
+      }
+      $output$$15$$ += "</div>"
     }
-    $output$$15$$ += "</div>"
   }
   return $output$$15$$ + '</div><div class="control-group dlg-response-group"><label class="control-label dlg-response-group-label"></label><div class="controls" class="dlg-response-group-value" ></div></div></form>'
 }
-function $bitex$templates$YourAccountBalances$$($currencyList399_opt_data$$18$$) {
+function $bitex$templates$YourAccountBalances$$($currencyList426_opt_data$$18$$) {
   var $output$$16$$ = '<table class="table table-striped" style="width: 350px"><tbody>';
-  $currencyList399_opt_data$$18$$ = $currencyList399_opt_data$$18$$.$currencies$;
-  for(var $currencyListLen399$$ = $currencyList399_opt_data$$18$$.length, $currencyIndex399$$ = 0;$currencyIndex399$$ < $currencyListLen399$$;$currencyIndex399$$++) {
-    var $currencyData399$$ = $currencyList399_opt_data$$18$$[$currencyIndex399$$], $MSG_UNNAMED_757$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData399$$.code), $output$$16$$ = $output$$16$$ + ("<tr><td><strong>" + $MSG_UNNAMED_757$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData399$$.$model_key$) + '" data-blink-class="balance-info-blink">' + ($currencyData399$$.$balance$ ? $soy$$0$0escapeHtml$$($currencyData399$$.$balance$) : 
+  $currencyList426_opt_data$$18$$ = $currencyList426_opt_data$$18$$.$currencies$;
+  for(var $currencyListLen426$$ = $currencyList426_opt_data$$18$$.length, $currencyIndex426$$ = 0;$currencyIndex426$$ < $currencyListLen426$$;$currencyIndex426$$++) {
+    var $currencyData426$$ = $currencyList426_opt_data$$18$$[$currencyIndex426$$], $MSG_UNNAMED_790$$ = "Available " + $soy$$0$0escapeHtml$$($currencyData426$$.code), $output$$16$$ = $output$$16$$ + ("<tr><td><strong>" + $MSG_UNNAMED_790$$ + '</strong></td><td><span class="bitex-model" data-model-key="formatted_balance_' + $soy$$0$0escapeHtml$$($currencyData426$$.$model_key$) + '" data-blink-class="balance-info-blink">' + ($currencyData426$$.$balance$ ? $soy$$0$0escapeHtml$$($currencyData426$$.$balance$) : 
     "-") + "</span></td></tr>")
   }
   return $output$$16$$ + "</tbody></table>"
@@ -5490,11 +5504,11 @@ function $bitex$templates$AccountOverviewHeader$$($opt_data$$19_output$$17$$) {
   "</td></tr><tr><td><strong>State</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.State) + "</td></tr><tr><td><strong>Country</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.CountryCode) + "</td></tr><tr><td><strong>Last login</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.LastLogin) + "</td></tr><tr><td><strong>Is verified</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.Verified) + 
   "</td></tr><tr><td><strong>Has two step authentication</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.TwoFactorEnabled) + "</td></tr><tr><td><strong>Registration date</strong></td><td>" + $soy$$0$0escapeHtml$$($opt_data$$19_output$$17$$.$msg_customer_detail$.Created) + "</td></tr></tbody></table>")
 }
-function $bitex$templates$OrderBook$$($columnList472_opt_data$$20$$) {
-  var $output$$18$$ = '<div class="text-center"><h4>' + $soy$$0$0escapeHtml$$($columnList472_opt_data$$20$$.title) + '</h4></div><table id="' + $soy$$0$0escapeHtml$$($columnList472_opt_data$$20$$.id) + '"  class="table"><thead><tr>';
-  $columnList472_opt_data$$20$$ = $columnList472_opt_data$$20$$.$columns$;
-  for(var $columnListLen472$$ = $columnList472_opt_data$$20$$.length, $columnIndex472$$ = 0;$columnIndex472$$ < $columnListLen472$$;$columnIndex472$$++) {
-    $output$$18$$ += "<th>" + $soy$$0$0escapeHtml$$($columnList472_opt_data$$20$$[$columnIndex472$$]) + "</th>"
+function $bitex$templates$OrderBook$$($columnList499_opt_data$$20$$) {
+  var $output$$18$$ = '<div class="text-center"><h4>' + $soy$$0$0escapeHtml$$($columnList499_opt_data$$20$$.title) + '</h4></div><table id="' + $soy$$0$0escapeHtml$$($columnList499_opt_data$$20$$.id) + '"  class="table"><thead><tr>';
+  $columnList499_opt_data$$20$$ = $columnList499_opt_data$$20$$.$columns$;
+  for(var $columnListLen499$$ = $columnList499_opt_data$$20$$.length, $columnIndex499$$ = 0;$columnIndex499$$ < $columnListLen499$$;$columnIndex499$$++) {
+    $output$$18$$ += "<th>" + $soy$$0$0escapeHtml$$($columnList499_opt_data$$20$$[$columnIndex499$$]) + "</th>"
   }
   return $output$$18$$ + "</tr></thead><tbody></tbody></table>"
 }
@@ -6964,10 +6978,10 @@ $JSCompiler_prototypeAlias$$.$onBrokerProcessWithdraw_$ = function $$JSCompiler_
       this.$conn_$.$processWithdraw$($request_id$$, $action$$3$$, $withdraw_data$$1$$.WithdrawID)
     }else {
       if("COMPLETE" === $action$$3$$) {
-        var $cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$ = this.$model_$.get("Broker").WithdrawStructure[$withdraw_data$$1$$.Currency], $cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$ = $bitex$templates$DepositWithdrawDialogContent$$({$side$:"broker", $currency$:$withdraw_data$$1$$.Currency, $currency_sign$:this.$currency_info_$[$withdraw_data$$1$$.Currency].$sign$, $methods$:$cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$}), 
-        $dlg$$2$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$, this.$currency_info_$[$withdraw_data$$1$$.Currency].description + " withdrawal", $bootstrap$Dialog$ButtonSet$createOkCancel$$());
-        $JSCompiler_StaticMethods_listenOnce$$($e$$174_handler$$84$$, $dlg$$2$$, $goog$ui$Dialog$EventType$SELECT$$, function($e$$177$$) {
-          "ok" == $e$$177$$.key && $bitex$util$getFormAsJSON$$($goog$dom$getFirstElementChild$$($dlg$$2$$.$getContentElement$()))
+        var $cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$ = this.$model_$.get("Broker").WithdrawStructure[$withdraw_data$$1$$.Currency], $cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$ = $bitex$templates$DepositWithdrawDialogContent$$({$side$:"broker", $currency$:$withdraw_data$$1$$.Currency, $currency_sign$:this.$currency_info_$[$withdraw_data$$1$$.Currency].$sign$, $force_method$:$withdraw_data$$1$$.Method, $methods$:$cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$}), 
+        $dlg$$2$$ = $JSCompiler_StaticMethods_showDialog$$(this, $cancelWithdrawDlg_cancel_reason_dialog_content_dialogContent$$1_withdraw_methods$$1$$, "Confirm " + (this.$currency_info_$[$withdraw_data$$1$$.Currency].description + " withdrawal"), $bootstrap$Dialog$ButtonSet$createOkCancel$$());
+        $JSCompiler_StaticMethods_listenOnce$$($e$$174_handler$$84$$, $dlg$$2$$, $goog$ui$Dialog$EventType$SELECT$$, function($broker_withdraw_data_e$$177$$) {
+          "ok" == $broker_withdraw_data_e$$177$$.key && ($broker_withdraw_data_e$$177$$ = $bitex$util$getFormAsJSON$$($goog$dom$getFirstElementChild$$($dlg$$2$$.$getContentElement$())), this.$conn_$.$processWithdraw$($request_id$$, $action$$3$$, $withdraw_data$$1$$.WithdrawID, $JSCompiler_alias_VOID$$, $JSCompiler_alias_VOID$$, $broker_withdraw_data_e$$177$$))
         }, this)
       }
     }
@@ -7057,7 +7071,7 @@ $JSCompiler_prototypeAlias$$.$onUserDepositRequest_$ = function $$JSCompiler_pro
     $goog$array$forEach$$(this.$model_$.get("DepositMethods"), function($deposit_method$$1$$) {
       $deposit_method$$1$$.$currency$ == $currency$$6$$ && $deposit_methods$$1$$.push({method:$deposit_method$$1$$.id, description:$deposit_method$$1$$.description, disclaimer:$deposit_method$$1$$.$disclaimer$, fields:[]})
     }, this);
-    var $confirmDialogContent_dialogContent$$2$$ = $bitex$templates$DepositWithdrawDialogContent$$({$currency$:$currency$$6$$, $currency_sign$:this.$currency_info_$[$currency$$6$$].$sign$, $methods$:$deposit_methods$$1$$}), $dlg$$4$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$2$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$186$$, $bootstrap$Dialog$ButtonSet$createOkCancel$$());
+    var $confirmDialogContent_dialogContent$$2$$ = $bitex$templates$DepositWithdrawDialogContent$$({$side$:"client", $currency$:$currency$$6$$, $currency_sign$:this.$currency_info_$[$currency$$6$$].$sign$, $methods$:$deposit_methods$$1$$}), $dlg$$4$$ = $JSCompiler_StaticMethods_showDialog$$(this, $confirmDialogContent_dialogContent$$2$$, $MSG_CURRENCY_DEPOSIT_DIALOG_TITLE_e$$186$$, $bootstrap$Dialog$ButtonSet$createOkCancel$$());
     $JSCompiler_StaticMethods_listen$$($handler$$86$$, $dlg$$4$$, $goog$ui$Dialog$EventType$SELECT$$, function($amount$$5_e$$190$$) {
       if("ok" == $amount$$5_e$$190$$.key) {
         $amount$$5_e$$190$$.preventDefault();

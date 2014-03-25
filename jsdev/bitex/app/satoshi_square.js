@@ -855,6 +855,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
       side: 'broker',
       currency: withdraw_data['Currency'],
       currency_sign: this.getCurrencySign(withdraw_data['Currency']),
+      force_method: withdraw_data['Method'],
       methods: withdraw_methods
     });
 
@@ -863,7 +864,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
      * @desc Crypto Currency Withdraw accordion title
      */
     var MSG_CURRENCY_BROKER_WITHDRAW_DIALOG_TITLE =
-        goog.getMsg('{$currency} withdrawal', {currency :  this.getCurrencyDescription(withdraw_data['Currency']) });
+        goog.getMsg('Confirm {$currency} withdrawal', {currency :  this.getCurrencyDescription(withdraw_data['Currency']) });
 
 
     var dlg =  this.showDialog(dialogContent,
@@ -873,14 +874,15 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
 
     handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
       if (e.key == 'ok') {
-        var withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+        var broker_withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
 
-        /*
+
         this.getBitexConnection().processWithdraw(request_id,
                                                   action,
-                                                  withdraw_data['WithdrawID']);
-        */
-
+                                                  withdraw_data['WithdrawID'],
+                                                  undefined,
+                                                  undefined,
+                                                  broker_withdraw_data);
       }
     }, this);
 
@@ -1186,6 +1188,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
   }, this);
 
   var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
+    side: 'client',
     currency: currency,
     currency_sign: this.getCurrencySign(currency),
     methods: deposit_methods
