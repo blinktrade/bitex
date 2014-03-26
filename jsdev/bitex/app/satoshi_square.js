@@ -83,6 +83,9 @@ bitex.app.SatoshiSquare = function() {
     this.model_   = new bitex.model.Model(document.body);
     this.conn_    = new bitex.api.BitEx();
     this.views_   = new goog.ui.Component();
+    this.last_trades = new bitex.ui.LastTrades();
+    this.order_book_bid   =  null;
+    this.order_book_offer   =  null;
   } catch ( error) {
     this.showDialog(error);
   }
@@ -449,7 +452,15 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
 
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADE_CLEAR, goog.bind(  this.onBitexTradesClear_, this ) );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADE, goog.bind(  this.onBitexTrade_, this ) );
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, goog.bind(  this.onBitexTradingSessionStatus_, this ) );
+
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR, goog.bind(  this.onBitexOrderBookClear_, this ) );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU, goog.bind(  this.onBitexOrderBookDeleteThru_, this ) );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDER, goog.bind(  this.onBitexOrderBookDeleteOrder_, this ) );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, goog.bind(  this.onBitexOrderBookNewOrder_, this ) );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_UPDATE_ORDER, goog.bind(  this.onBitexOrderBookUpdateOrder_, this ) );
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
@@ -595,6 +606,104 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 
 };
 
+bitex.app.SatoshiSquare.prototype.onBitexTradesClear_ = function(e) {
+  this.last_trades.clear();
+}
+
+bitex.app.SatoshiSquare.prototype.onBitexTrade_ = function(e) {
+    var msg = e.data;
+    var price =  (msg['MDEntryPx']/1e8);
+    var size =  (msg['MDEntrySize']/1e8);
+
+    // Workaround for satoshi square USD market
+    var symbol = msg['Symbol'];
+    var price_currency  = symbol.substr(3,3);
+    var size_currency   = symbol.substr(0,3);
+
+    this.last_trades.publishTrade(msg['MDEntryDate'],
+                             msg['MDEntryTime'],
+                             symbol,
+                             msg['Side'],
+                             this.formatCurrency(price, price_currency),
+                             this.formatCurrency(size, size_currency),
+                             msg['MDEntryBuyer'],
+                             msg['MDEntrySeller'] );
+}
+
+bitex.app.SatoshiSquare.prototype.onBitexOrderBookClear_ = function(e) {
+  if (goog.isDefAndNotNull(this.order_book_bid)) {
+    this.order_book_bid.clear();
+    this.order_book_offer.clear();
+
+    this.order_book_bid.dispose();
+    this.order_book_offer.dispose();
+  }
+}
+
+bitex.app.SatoshiSquare.prototype.onBitexOrderBookDeleteThru_ = function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'];
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      this.order_book_bid.deleteOrderThru(index);
+    } else if (side == '1') {
+      this.order_book_offer.deleteOrderThru(index);
+    }
+}
+
+bitex.app.SatoshiSquare.prototype.onBitexOrderBookDeleteOrder_ = function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      this.order_book_bid.deleteOrder(index);
+    } else if (side == '1') {
+      this.order_book_offer.deleteOrder(index);
+    }
+}
+
+bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
+    var msg = e.data;
+    var symbol = msg['Symbol'];
+    var index = msg['MDEntryPositionNo'] - 1;
+    var price =  msg['MDEntryPx']/1e8;
+    var qty = msg['MDEntrySize']/1e8;
+    var username = msg['Username'];
+    var broker = msg['Broker'];
+    var orderId =  msg['OrderID'];
+    var side = msg['MDEntryType'];
+    var currency = symbol.substr(3,3);
+
+    if (side == '0') {
+      if (index === 0) {
+        var bid_key = 'best_bid_' +  currency.toLowerCase();
+        this.model_.set('formatted_' + bid_key, this.formatCurrency(price, currency));
+      }
+      this.order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
+    } else if (side == '1') {
+      if (index === 0) {
+        var offer_key = 'best_offer_' +  currency.toLowerCase();
+        this.model_.set('formatted_' + offer_key, this.formatCurrency(price, currency));
+      }
+      this.order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
+    }
+  }
+
+bitex.app.SatoshiSquare.prototype.onBitexOrderBookUpdateOrder_ = function(e) {
+    var msg = e.data;
+    var index = msg['MDEntryPositionNo'] - 1;
+    var qty = msg['MDEntrySize']/1e8;
+    var side = msg['MDEntryType'];
+
+    if (side == '0') {
+      this.order_book_bid.updateOrder(index, qty);
+    } else if (side == '1') {
+      this.order_book_offer.updateOrder(index, qty);
+    }
+}
+
 bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
     try {
       //  {"BRL": 52800000000, "MDEntryType": "4", "BTC": 66000000}
@@ -607,8 +716,22 @@ bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
         volume = volume / 1e8;
 
         var volume_key = 'volume_' +  currency.toLowerCase();
+        var min_key = 'min_' +  currency.toLowerCase();
+        var max_key = 'max_' +  currency.toLowerCase();
+        var avg_key = 'avg_' +  currency.toLowerCase();
+        var bid_key = 'best_bid_' +  currency.toLowerCase();
+        var offer_key = 'best_offer_' +  currency.toLowerCase();
+        var last_price = 'last_price_' +  currency.toLowerCase();
+
         app.model_.set( volume_key , volume );
         app.model_.set('formatted_' + volume_key, app.formatCurrency(volume, currency));
+
+        app.model_.set('formatted_' + min_key, app.formatCurrency(0, currency));
+        app.model_.set('formatted_' + max_key, app.formatCurrency(0, currency));
+        app.model_.set('formatted_' + avg_key, app.formatCurrency(0, currency));
+        app.model_.set('formatted_' + bid_key, app.formatCurrency(0, currency));
+        app.model_.set('formatted_' + offer_key, app.formatCurrency(0, currency));
+        app.model_.set('formatted_' + last_price, app.formatCurrency(0, currency));
       });
     } catch(str) {}
 };
@@ -1594,6 +1717,29 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
   this.conn_.subscribeMarketData(0,
                                  symbols,
                                  ['4','1','2'] );
+
+  if (goog.isDefAndNotNull(this.order_book_bid)) {
+    this.order_book_bid.clear();
+    this.order_book_offer.clear();
+
+    this.order_book_bid.dispose();
+    this.order_book_offer.dispose();
+  }
+
+  if (symbols.length > 0) {
+    var qtyCurrency = symbols[0].substr(0,3);
+    var priceCurrency = symbols[0].substr(3);
+
+    var qtyCurrencyDef = this.currency_info_[qtyCurrency];
+    var priceCurrencyDef = this.currency_info_[priceCurrency];
+
+    this.order_book_bid =  new bitex.ui.OrderBook(this.model_.get('Username'), bitex.ui.OrderBook.Side.BUY, qtyCurrencyDef, priceCurrencyDef);
+    this.order_book_offer =  new bitex.ui.OrderBook(this.model_.get('Username'), bitex.ui.OrderBook.Side.SELL, qtyCurrencyDef, priceCurrencyDef);
+    this.order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
+    this.order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
+  }
+
+  this.last_trades.decorate( goog.dom.getElement('last_trades_id') );
 };
 
 /**
