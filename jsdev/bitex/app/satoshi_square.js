@@ -988,16 +988,27 @@ bitex.app.SatoshiSquare.prototype.onUserCancelOrder_ = function(e){
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onUserShowQr_ = function(e){
-  var depositData = e.target.getDepositData();
+  var qrData = e.target.getQrData();
 
   /**
-   * @desc Crypto Currency Withdraw accordion title
+   * @desc Crypto Currency Withdraw deposit title
    */
   var MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE =
-      goog.getMsg('{$currency} deposit', {currency :  this.getCurrencyDescription(depositData['Currency']) });
+      goog.getMsg('{$currency} deposit', {currency :  this.getCurrencyDescription(qrData['Currency']) });
 
-  var dlg =  this.showDialog(bitex.templates.DepositCryptoCurrencyContentDialog({deposit_message:depositData}),
-                             MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE,
+  /**
+   * @desc Crypto Currency Withdraw withdraw title
+   */
+  var MSG_SHOW_QR_CURRENCY_WITHDRAW_DIALOG_TITLE =
+      goog.getMsg('{$currency} withdraw', {currency :  this.getCurrencyDescription(qrData['Currency']) });
+
+  var dialog_title = MSG_SHOW_QR_CURRENCY_WITHDRAW_DIALOG_TITLE;
+  if (e.target.getQrDataVerb() === 'DEPOSIT') {
+    dialog_title = MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE;
+  }
+
+  var dlg =  this.showDialog(bitex.templates.CryptoCurrencyQRContentDialog({data:qrData}),
+                             dialog_title,
                              bootstrap.Dialog.ButtonSet.createCancel());
 };
 

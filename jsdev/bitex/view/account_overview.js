@@ -23,6 +23,8 @@ bitex.view.AccountOverview = function(app, opt_domHelper) {
   this.withdraw_action_ = null;
   this.deposit_action_ = null;
   this.deposit_data_ = null;
+  this.qr_data_ = null;
+  this.qr_data_verb_ = null;
 };
 goog.inherits(bitex.view.AccountOverview, bitex.view.View);
 
@@ -58,6 +60,15 @@ bitex.view.AccountOverview.prototype.deposit_action_;
  */
 bitex.view.AccountOverview.prototype.deposit_data_;
 
+/**
+ * @type {Object}
+ */
+bitex.view.AccountOverview.prototype.qr_data_;
+
+/**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.qr_data_verb_;
 
 /**
  * @param {string} username
@@ -161,6 +172,10 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
                      bitex.api.BitEx.EventType.BALANCE_RESPONSE,
                      this.onBalanceResponse_);
 
+    handler.unlisten(this.withdraw_list_table_.getElement(),
+                     goog.events.EventType.CLICK,
+                     this.onWithdrawListTableClick_);
+
     this.withdraw_list_table_.dispose();
   }
 
@@ -261,6 +276,9 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
                  goog.events.EventType.CLICK,
                  this.onDepositListTableClick_);
 
+  handler.listen(this.withdraw_list_table_.getElement(),
+                 goog.events.EventType.CLICK,
+                 this.onWithdrawListTableClick_);
 
   this.getApplication().getBitexConnection().requestBalances( customer['ID'] );
 };
@@ -288,6 +306,19 @@ bitex.view.AccountOverview.prototype.getRequestId = function() {
   return this.request_id_;
 };
 
+/**
+ * @return {Object}
+ */
+bitex.view.AccountOverview.prototype.getQrData = function() {
+  return this.qr_data_;
+};
+
+/**
+ * @return {Object}
+ */
+bitex.view.AccountOverview.prototype.getQrDataVerb = function() {
+  return this.qr_data_verb_;
+};
 
 
 /**
@@ -348,6 +379,37 @@ bitex.view.AccountOverview.prototype.onDepositListResponse_ = function(e) {
 };
 
 
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.AccountOverview.prototype.onWithdrawListTableClick_ = function(e) {
+  var element = e.target;
+  if (element.tagName  === goog.dom.TagName.I ) {
+    element = goog.dom.getParentElement(element);
+  }
+
+  var data_action = element.getAttribute('data-action');
+  if (goog.isDefAndNotNull(data_action)) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var data = goog.json.parse(element.getAttribute('data-row'));
+
+    switch( data_action ) {
+      case 'SHOW_QR':
+        this.qr_data_ = {
+          'Wallet': data['Data']['Wallet'],
+          'Currency': data['Currency']
+        };
+        this.qr_data_verb_ = 'WITHDRAW';
+        this.dispatchEvent(bitex.view.View.EventType.SHOW_QR);
+        break;
+    }
+  }
+};
+
+
 /**
  * @param {goog.events.Event} e
  */
@@ -367,6 +429,11 @@ bitex.view.AccountOverview.prototype.onDepositListTableClick_ = function(e) {
 
     switch( data_action ) {
       case 'SHOW_QR':
+        this.qr_data_ = {
+          'Wallet': this.deposit_data_['Data']['InputAddress'],
+          'Currency': this.deposit_data_['Currency']
+        };
+        this.qr_data_verb_ = 'DEPOSIT';
         this.dispatchEvent(bitex.view.View.EventType.SHOW_QR);
         break;
       case 'UPLOAD':
@@ -430,7 +497,14 @@ bitex.view.AccountOverview.prototype.onWithdrawListTableRequestData_ = function(
  */
 bitex.view.AccountOverview.prototype.priceFormatter_ = function(value, rowSet) {
   var priceCurrency = rowSet['Currency'];
-  return this.getApplication().formatCurrency(value/1e8, priceCurrency);
+  var currency_description = this.getApplication().getCurrencyDescription(priceCurrency );
+
+  if (value === 0 ) {
+    return '-'
+  }
+  return goog.dom.createDom('abbr',
+                            {'title': currency_description },
+                            this.getApplication().formatCurrency(value/1e8, priceCurrency) );
 };
 
 /**

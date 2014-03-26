@@ -111,11 +111,6 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
       },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'status'); }
     },{
-      'property': 'Currency',
-      'label': MSG_WITHDRAW_TABLE_COLUMN_CURRENCY,
-      'sortable': false,
-      'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'currency'); }
-    },{
       'property': 'Amount',
       'label': MSG_WITHDRAW_TABLE_COLUMN_AMOUNT,
       'sortable': false,
@@ -154,47 +149,108 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
 
           switch(reason_id) {
             case 0:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,reason ))) ;
               break;
             case -1:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_INSUFFICIENT_FUNDS ))) ;
               break;
 
             case -2:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_ACCOUNT_NOT_VERIFIED ))) ;
               break;
 
             case -3:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_SUSPICION_OF_FRAUD ))) ;
               break;
             case -4:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_DIFFERENT_ACCOUNT ))) ;
               break;
             case -5:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_INVALID_WALLET ))) ;
               break;
             case -6:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_INVALID_BANK_ACCOUNT ))) ;
               break;
             case -7:
-              goog.dom.appendChild(element, goog.dom.createDom('tr', undefined,
+              goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
                                                                goog.dom.createDom('td', {'colspan':2} ,MSG_WITHDRAW_REASON_OVER_LIMIT ))) ;
               break;
           }
         }
 
+        if (goog.isDefAndNotNull(data['Link'])) {
+          /** @desc reason for cancelling withdraw */
+          var MSG_WITHDRAW_BROKER_RECEIPT_URL = goog.getMsg('Broker receipt');
+
+          if (!goog.string.isEmpty(data['Link'])){
+            goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
+                goog.dom.createDom('td', {'colspan':2},
+                  goog.dom.createDom('a', {
+                    'class':'btn btn-mini btn-primary',
+                    'target':'_blank',
+                    'href': data['Link']
+                  }, MSG_WITHDRAW_BROKER_RECEIPT_URL,' ' ,goog.dom.createDom( 'i', ['icon-white', 'icon-share-alt'] )
+                ) ))) ;
+          }
+        }
+
         goog.object.forEach(data, function(value, key) {
-          var row_element =  goog.dom.createDom('tr', undefined,
-                                                goog.dom.createDom('td', undefined, key ),
-                                                goog.dom.createDom('td', undefined, value ));
-          goog.dom.appendChild(element, row_element);
+          if (key != 'Link' && key != 'Currency' ) {
+            if (goog.isDefAndNotNull(value) && !goog.string.isEmpty(value) )  {
+              if (key == 'Wallet') {
+                /**
+                 * @desc Withdraw qr button label in the  broker's withdraw list
+                 */
+                var MSG_WITHDRAW_TABLE_WALLET_KEY  = goog.getMsg('Wallet');
+
+
+                /**
+                 * @desc Withdraw qr button label in the  broker's withdraw list
+                 */
+                var MSG_WITHDRAW_TABLE_DETAILS_COLUMN_BTN_QR  = goog.getMsg('qr');
+
+                var btn_qr = goog.dom.createDom( 'a', {
+                  'class':'btn btn-mini btn-info btn-withdraw-list-qr',
+                  'href':'#',
+                  'data-action':'SHOW_QR',
+                  'data-row': goog.json.serialize( rowSet )
+                },MSG_WITHDRAW_TABLE_DETAILS_COLUMN_BTN_QR,' ' , goog.dom.createDom( 'i', ['icon-white', 'icon-qrcode']));
+
+                goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
+                    goog.dom.createDom('td', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-td-key'), MSG_WITHDRAW_TABLE_WALLET_KEY ),
+                    goog.dom.createDom('td', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-td-value'), btn_qr)));
+              } else if ( key == 'TransactionID' && data['Currency'] == 'BTC' ) {
+                /**
+                 * @desc Withdraw qr button label in the  broker's withdraw list
+                 */
+                var MSG_WITHDRAW_TABLE_DETAILS_COLUMN_BTN_BLOCKCHAIN  = goog.getMsg('blockchain');
+
+                var btn_blockchain = goog.dom.createDom( 'a', {
+                  'class':'btn btn-mini btn-info btn-btc-blockchain',
+                  'href': 'https://blockchain.info/tx/' + value,
+                  'target':'_blank'
+                },MSG_WITHDRAW_TABLE_DETAILS_COLUMN_BTN_BLOCKCHAIN,' ' ,goog.dom.createDom( 'i', ['icon-white', 'icon-share-alt']));
+
+                goog.dom.appendChild(element, goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
+                   goog.dom.createDom('td', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-td-key'), key ),
+                   goog.dom.createDom('td', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-td-value'), btn_blockchain)));
+
+              } else {
+                goog.dom.appendChild(element,
+                   goog.dom.createDom('tr', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-tr'),
+                     goog.dom.createDom('td', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-td-key'), key ),
+                     goog.dom.createDom('td', goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details-td-value'), value ))
+                );
+              }
+            }
+          }
         }, this);
 
         return element;
@@ -243,8 +299,8 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
 
         switch(row_set_obj['Status']){
           case '0': return btn_cancel;
-          case '1': return [btn_cancel, btn_progress];
-          case '2': return [btn_cancel, btn_complete];
+          case '1': return goog.dom.createDom('div', 'btn-group',[btn_cancel, btn_progress]);
+          case '2': return goog.dom.createDom('div', 'btn-group', [btn_cancel, btn_complete]);
           case '4': return "";
           case '8': return "";
         }

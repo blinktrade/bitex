@@ -74,6 +74,17 @@ bitex.view.DepositView.prototype.action_;
 
 
 /**
+ * @type {Object}
+ */
+bitex.view.DepositView.prototype.qr_data_;
+
+/**
+ * @type {string}
+ */
+bitex.view.DepositView.prototype.qr_data_verb_;
+
+
+/**
  * @return {number}
  */
 bitex.view.DepositView.prototype.getAmount = function() {
@@ -94,18 +105,39 @@ bitex.view.DepositView.prototype.getCurrency = function() {
   return this.currency_;
 };
 
-
+/**
+ * @return {number}
+ */
 bitex.view.DepositView.prototype.getRequestId = function() {
   return this.request_id_;
 };
 
-
+/**
+ * @return {String}
+ */
 bitex.view.DepositView.prototype.getDepositAction = function() {
   return this.action_;
 };
 
+/**
+ * @return {Object}
+ */
 bitex.view.DepositView.prototype.getDepositData = function() {
   return this.data_;
+};
+
+/**
+ * @return {Object}
+ */
+bitex.view.DepositView.prototype.getQrData = function() {
+  return this.qr_data_;
+};
+
+/**
+ * @return {Object}
+ */
+bitex.view.DepositView.prototype.getQrDataVerb = function() {
+  return this.qr_data_verb_;
 };
 
 
@@ -232,6 +264,12 @@ bitex.view.DepositView.prototype.onDepositListTableClick_ = function(e) {
 
     switch( data_action ) {
       case 'SHOW_QR':
+        this.qr_data_ = {
+          'Wallet': this.data_['Data']['InputAddress'],
+          'Currency': this.data_['Currency']
+        };
+        this.qr_data_verb_ = 'DEPOSIT';
+
         this.dispatchEvent(bitex.view.View.EventType.SHOW_QR);
         break;
       case 'UPLOAD':

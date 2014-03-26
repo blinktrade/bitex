@@ -19,6 +19,8 @@ bitex.view.WithdrawView = function(app, opt_domHelper) {
 
   this.request_id_ = null;
   this.confirmation_token_ = null
+  this.qr_data_ = null;
+  this.qr_data_verb_ = null;
 };
 goog.inherits(bitex.view.WithdrawView, bitex.view.View);
 
@@ -71,6 +73,17 @@ bitex.view.WithdrawView.prototype.method_;
  * @type {Object}
  */
 bitex.view.WithdrawView.prototype.data_;
+
+/**
+ * @type {Object}
+ */
+bitex.view.WithdrawView.prototype.qr_data_;
+
+/**
+ * @type {string}
+ */
+bitex.view.WithdrawView.prototype.qr_data_verb_;
+
 
 /**
  * @override
@@ -168,6 +181,37 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
   }, this);
 };
 
+
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.WithdrawView.prototype.onWithdrawListTableClick_ = function(e) {
+  var element = e.target;
+  if (element.tagName  === goog.dom.TagName.I ) {
+    element = goog.dom.getParentElement(element);
+  }
+
+  var data_action = element.getAttribute('data-action');
+  if (goog.isDefAndNotNull(data_action)) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var data = goog.json.parse(element.getAttribute('data-row'));
+
+    switch( data_action ) {
+      case 'SHOW_QR':
+        this.qr_data_ = {
+          'Wallet': data['Data']['Wallet'],
+          'Currency': data['Currency']
+        };
+        this.qr_data_verb_ = 'WITHDRAW';
+        this.dispatchEvent(bitex.view.View.EventType.SHOW_QR);
+        break;
+    }
+  }
+};
+
 /**
  * @param {goog.events.Event} e
  * @private
@@ -221,6 +265,11 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
                      bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + model.get('UserID'),
                      this.onWithdrawRefresh_);
 
+    handler.unlisten(this.withdraw_list_table_.getElement(),
+                     goog.events.EventType.CLICK,
+                     this.onWithdrawListTableClick_);
+
+
     this.withdraw_list_table_.dispose();
   }
 
@@ -260,6 +309,11 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   this.withdraw_list_table_.decorate(el);
 
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
+
+  handler.listen(this.withdraw_list_table_.getElement(),
+                 goog.events.EventType.CLICK,
+                 this.onWithdrawListTableClick_);
+
 };
 
 
@@ -269,7 +323,14 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
  */
 bitex.view.WithdrawView.prototype.priceFormatter_ = function(value, rowSet) {
   var priceCurrency = rowSet['Currency'];
-  return this.getApplication().formatCurrency(value/1e8, priceCurrency);
+  var currency_description = this.getApplication().getCurrencyDescription(priceCurrency );
+
+  if (value === 0 ) {
+    return '-'
+  }
+  return goog.dom.createDom('abbr',
+                            {'title': currency_description },
+                            this.getApplication().formatCurrency(value/1e8, priceCurrency) );
 };
 
 /**

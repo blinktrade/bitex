@@ -303,7 +303,7 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_do
         var data_row = goog.json.serialize( rowSet );
 
         var btn_cancel = goog.dom.createDom( 'a', {
-          'class':'btn btn-mini btn-danger btn-deposit-view-qr',
+          'class':'btn btn-mini btn-danger btn-deposit-cancel',
           'href':'#',
           'data-action':'CANCEL',
           'data-row': data_row
