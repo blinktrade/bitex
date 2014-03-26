@@ -29,12 +29,12 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
       'Action': 'COMPLETE',
       'Secret': secret,
       'Amount': int(value),
-      'Data': json.dumps({
+      'Data': {
         'Confirmations': int(confirmations),
         'InputAddress': input_address,
         'InputTransactionHash': input_transaction_hash,
         'TransactionHash': transaction_hash
-      })
+      }
     }
 
     response_msg = self.application.application_trade_client.sendJSON(process_deposit_message)

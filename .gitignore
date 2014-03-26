@@ -40,3 +40,4 @@ nosetests.xml
 
 # OS files
 .DS_Store
+*.sqlite
