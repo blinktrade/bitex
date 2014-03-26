@@ -1372,7 +1372,7 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
-               tos_url=u'http://bitex.com.br/tos/bitex/',
+               tos_url=u'http://localhost/tos',
                fee_structure="[]",
                transaction_fee_buy=0,transaction_fee_sell=0, status=u'1', ranking=0)
     session.add(e)

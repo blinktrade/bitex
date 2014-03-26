@@ -62,6 +62,7 @@ bitex.app.bitex = function( url ) {
         case 'start':
         case 'signin':
         case 'signup':
+        case 'market':
         case 'forgot_password':
         case 'set_new_password':
           break;
@@ -71,6 +72,8 @@ bitex.app.bitex = function( url ) {
           return false;
       }
     }
+
+    console.log("view_name", view_name);
 
     // remove any active view classes from document body
     var classes = goog.dom.classes.get(document.body );
