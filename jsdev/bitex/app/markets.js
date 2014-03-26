@@ -31,8 +31,8 @@ goog.require('goog.debug');
  * @param {string} url
  */
 bitex.app.markets = function( url ) {
-  var bitEx = new bitex.api.BitEx();
-  var model = new bitex.model.Model(document.body);
+  //var bitEx = new bitex.api.BitEx();
+  //var model = new bitex.model.Model(document.body);
   var last_trades = new bitex.ui.LastTrades();
   var order_book_bid =  null;
   var order_book_offer =  null;

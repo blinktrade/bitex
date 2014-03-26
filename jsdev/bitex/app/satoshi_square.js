@@ -65,6 +65,9 @@ goog.require('bitex.view.CustomersView');
 goog.require('bitex.view.AccountOverview');
 goog.require('bitex.view.BrokerView');
 goog.require('bitex.view.ToolBarView');
+goog.require('bitex.view.MarketView');
+
+goog.require('bitex.app.markets');
 
 /**
  * @constructor
@@ -356,6 +359,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var accountOverviewView = new bitex.view.AccountOverview(this);
   var sideBarView         = new bitex.view.SideBarView(this);
   var brokerView          = new bitex.view.BrokerView(this);
+  var marketView          = new bitex.view.MarketView(this);
   var tradingView         = new bitex.view.NullView(this);
 
   var toolBarView         = new bitex.view.ToolBarView(this);
@@ -378,7 +382,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   this.views_.addChild( verificationView    );
   this.views_.addChild( enableTwoFactorView );
   this.views_.addChild( brokerView          );
-
+  this.views_.addChild( marketView          );
 
   startView.decorate(goog.dom.getElement('start'));
   setNewPasswordView.decorate(goog.dom.getElement('set_new_password'));
@@ -398,6 +402,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   sideBarView.decorate(goog.dom.getElement('id_sidebar'));
   toolBarView.decorate(goog.dom.getElement('id_toolbar') );
   brokerView.decorate(goog.dom.getElement('my_broker'));
+  marketView.decorate(goog.dom.getElement('market'));
 
   this.views_.decorate(document.body);
 
@@ -418,6 +423,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   this.router_.addView( '(verification)'                , verificationView    );
   this.router_.addView( '(enable_two_factor)'           , enableTwoFactorView );
   this.router_.addView( '(my_broker)'                   , brokerView          );
+  this.router_.addView( '(market)'                      , marketView          );
 
   this.router_.setView('start');
   this.router_.init();
@@ -443,12 +449,14 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
 
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, goog.bind(  this.onBitexTradingSessionStatus_, this ) );
+
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.EXECUTION_REPORT, this.onBitexExecutionReport_);
 
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'receive' ) );
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'send' )  );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
@@ -585,6 +593,24 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
     price_currency: priceCurrencyDef
   });
 
+};
+
+bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
+    try {
+      //  {"BRL": 52800000000, "MDEntryType": "4", "BTC": 66000000}
+      var msg = e.data;
+      delete msg['MDEntryType'];
+      delete msg['MDReqID'];
+
+      var app = this;
+      goog.object.forEach( msg, function(volume, currency) {
+        volume = volume / 1e8;
+
+        var volume_key = 'volume_' +  currency.toLowerCase();
+        app.model_.set( volume_key , volume );
+        app.model_.set('formatted_' + volume_key, app.formatCurrency(volume, currency));
+      });
+    } catch(str) {}
 };
 
 bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
@@ -1433,6 +1459,7 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
       case 'signin':
       case 'signup':
       case 'tos':
+      case 'market':
       case 'forgot_password':
       case 'set_new_password':
         break;
@@ -1552,6 +1579,10 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
   }, this );
 
   this.model_.set('SecurityList', msg);
+
+  this.conn_.subscribeMarketData(0,
+                                 symbols,
+                                 ['4','1','2'] );
 };
 
 /**

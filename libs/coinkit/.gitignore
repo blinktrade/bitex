@@ -17,12 +17,10 @@ develop-eggs
 .installed.cfg
 lib
 lib64
+__pycache__
 
 # Installer logs
 pip-log.txt
-
-# logs
-*.log
 
 # Unit test / coverage reports
 .coverage
@@ -36,8 +34,5 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-.idea
 
-# OS files
-.DS_Store
-*.sqlite
+ignore
