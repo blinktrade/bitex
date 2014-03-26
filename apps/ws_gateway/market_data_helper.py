@@ -379,6 +379,16 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
                 })
 
             volume_dict = {}
+
+            if not len(trade_list):
+                price_currency = symbol[3:]
+                size_currency = symbol[:3]
+                if price_currency not in volume_dict:
+                    volume_dict[price_currency] = 0
+                if size_currency not in volume_dict:
+                    volume_dict[size_currency] = 0
+                volume_dict['MDEntryType'] = '4'    
+                
             for trade in reversed(trade_list):
                 entry_list.append(trade)
 
@@ -398,6 +408,7 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
                 volume_dict[size_currency] += volume_size
                 volume_dict['MDEntryType'] = '4'
             entry_list.append(volume_dict)
+
 
     md = {
         "MsgType": "W",
