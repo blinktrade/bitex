@@ -101,7 +101,7 @@ bitex.ui.WithdrawList = function( opt_broker_mode, opt_domHelper) {
             case '0': return [''          , MSG_WITHDRAW_TABLE_COLUMN_STATUS_UNCONFIRMED];
             case '1': return ['warning'   , MSG_WITHDRAW_TABLE_COLUMN_STATUS_PENDING];
             case '2': return ['info'      , MSG_WITHDRAW_TABLE_COLUMN_STATUS_PROGRESS];
-            case '4': return ['sucess'    , MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED];
+            case '4': return ['success'   , MSG_WITHDRAW_TABLE_COLUMN_STATUS_COMPLETED];
             case '8': return ['important' , MSG_WITHDRAW_TABLE_COLUMN_STATUS_CANCELLED];
           }
           return ['',''];

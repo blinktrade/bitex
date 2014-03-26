@@ -611,13 +611,13 @@ bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
 
 bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
   /**
-   * @desc Password Chanced with sucess dialog title
+   * @desc Password Chanced with success dialog title
    */
   var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
 
 
   /**
-   * @desc Password Chanced with sucess dialog content
+   * @desc Password Chanced with success dialog content
    */
   var MSG_BITEX_PASSWORD_CHANGED_OK_CONTENT = goog.getMsg('Password Changed');
 
@@ -628,13 +628,13 @@ bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
 
 bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedError_ = function(e) {
   /**
-   * @desc Password Chanced with sucess dialog title
+   * @desc Password Chanced with success dialog title
    */
   var MSG_BITEX_PASSWORD_CHANGED_ERROR_TITLE = goog.getMsg('Error');
 
 
   /**
-   * @desc Password Chanced with sucess dialog content
+   * @desc Password Chanced with success dialog content
    */
   var MSG_BITEX_PASSWORD_CHANGED_ERROR_CONTENT = goog.getMsg('There was an error changing the password');
 

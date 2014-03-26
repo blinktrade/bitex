@@ -3003,7 +3003,7 @@ function $bitex$ui$WithdrawList$$($opt_broker_mode$$, $opt_domHelper$$8$$) {
         case "2":
           return["info", "In progress..."];
         case "4":
-          return["sucess", "Completed"];
+          return["success", "Completed"];
         case "8":
           return["important", "Cancelled"]
       }
