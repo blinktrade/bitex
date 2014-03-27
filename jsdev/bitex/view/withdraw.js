@@ -290,8 +290,19 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
 
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
+
+
   var el = goog.dom.getElement('id_withdraw_list_table');
-  this.withdraw_list_table_ =  new bitex.ui.WithdrawList();
+  var currency_method_description_obj = {};
+  goog.object.forEach( model.get('Broker')['WithdrawStructure'], function(method_list, currency){
+    currency_method_description_obj[ currency ] = {};
+    goog.array.forEach(method_list, function(method) {
+      currency_method_description_obj[ currency ][method['method'] ] = method['description'];
+    } );
+  });
+
+
+  this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj);
 
   handler.listen(this.withdraw_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -339,9 +350,10 @@ bitex.view.WithdrawView.prototype.priceFormatter_ = function(value, rowSet) {
 bitex.view.WithdrawView.prototype.onWithdrawListTableRequestData_ = function(e) {
   var page = e.options['Page'];
   var limit = e.options['Limit'];
+  var filter = e.options['Filter'];
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8']  );
+  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8'], undefined, filter  );
 };
 
 

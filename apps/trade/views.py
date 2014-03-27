@@ -573,6 +573,7 @@ def processWithdrawListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
   status_list = msg.get('StatusList', ['1', '2'] )
+  filter      = msg.get('Filter')
   offset      = page * page_size
 
   user = session.user
@@ -583,8 +584,13 @@ def processWithdrawListRequest(session, msg):
     if not user:
       raise NotAuthorizedError()
 
-
-  withdraws = Withdraw.get_list(application.db_session, user.id, status_list, page_size, offset  )
+  if user.is_broker:
+    if msg.has('ClientID'):
+      withdraws = Withdraw.get_list(application.db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
+    else:
+      withdraws = Withdraw.get_list(application.db_session, user.id, None, status_list, page_size, offset, filter  )
+  else:
+    withdraws = Withdraw.get_list(application.db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
 
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Method'   , 'Currency'     , 'Amount' , 'Data',

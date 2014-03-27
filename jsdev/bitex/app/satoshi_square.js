@@ -186,10 +186,16 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   goog.dom.removeChildren( goog.dom.getElement('account_overview_trades_id'));
   goog.dom.removeChildren( goog.dom.getElement('account_overview_deposits_id'));
 
+  /**
+   * @desc placeholder for the search input text in the customers table
+   */
+  var MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
 
   goog.soy.renderElement(goog.dom.getElement('id_withdraw_list'), bitex.templates.DataGrid, {
     id: 'id_withdraw_list_table',
-    title: 'Withdrawal history'
+    title: 'Withdrawal history',
+    show_search: true,
+    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
   });
 
   /**
@@ -197,10 +203,6 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
    */
   var MSG_DEPOSIT_TABLE_TITLE  = goog.getMsg('Deposits');
 
-  /**
-   * @desc placeholder for the search input text in the customers table
-   */
-  var MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
 
   goog.soy.renderElement(goog.dom.getElement('id_deposit_list'), bitex.templates.DataGrid, {
     id: 'id_deposit_list_table',
@@ -236,7 +238,9 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   var MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE = goog.getMsg('Withdraw requests...');
   goog.soy.renderElement(goog.dom.getElement('account_overview_withdraw_requests_id'), bitex.templates.DataGrid, {
     id: 'account_overview_withdraw_requests_table_id',
-    title: MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE
+    title: MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE,
+    show_search: true,
+    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
   });
 
   /**

@@ -611,8 +611,9 @@ bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
  * @param {number=} opt_limit. Defaults to 100
  * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
  * @param {number=} opt_clientID
+ * @param {string=} opt_filter
  */
-bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status, opt_clientID){
+bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status, opt_clientID, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
@@ -628,6 +629,10 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
 
   if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
     msg['ClientID'] = opt_clientID;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+    msg['Filter'] = opt_filter;
   }
 
   this.sendMessage(msg);

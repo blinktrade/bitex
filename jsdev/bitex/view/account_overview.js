@@ -227,8 +227,16 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
                  this.onDepositRefresh_);
 
 
+  var currency_method_description_obj = {};
+  goog.object.forEach( broker['WithdrawStructure'], function(method_list, currency, obj){
+    currency_method_description_obj[ currency ] = {};
+    goog.array.forEach(method_list, function(method) {
+      currency_method_description_obj[ currency ][method['method'] ] = method['description'];
+    } );
+  });
 
-  this.withdraw_list_table_ =  new bitex.ui.WithdrawList( true);
+
+  this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj, true);
   handler.listen(this.withdraw_list_table_ ,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
                  this.onWithdrawListTableRequestData_);
@@ -484,11 +492,12 @@ bitex.view.AccountOverview.prototype.onUserSetWithdrawComplete_ = function(e) {
 bitex.view.AccountOverview.prototype.onWithdrawListTableRequestData_ = function(e) {
   var page = e.options['Page'];
   var limit = e.options['Limit'];
+  var filter = e.options['Filter'];
 
   var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8'], selectedCustomer['ID']);
+  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8'], selectedCustomer['ID'], filter);
 };
 
 /**

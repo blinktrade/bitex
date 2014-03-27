@@ -705,11 +705,11 @@ class Withdraw(Base):
   account_id      = Column(Integer,       ForeignKey('users.id'))
   broker_id       = Column(Integer,       ForeignKey('users.id'))
   username        = Column(String,        nullable=False)
-  currency        = Column(String,        nullable=False)
-  amount          = Column(Integer,       nullable=False)
+  currency        = Column(String,        nullable=False, index=True)
+  amount          = Column(Integer,       nullable=False, index=True)
 
-  method          = Column(String,        nullable=False)
-  data            = Column(Text,          nullable=False)
+  method          = Column(String,        nullable=False, index=True)
+  data            = Column(Text,          nullable=False, index=True)
 
   confirmation_token = Column(String,     index=True, unique=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
@@ -814,10 +814,32 @@ class Withdraw(Base):
 
 
   @staticmethod
-  def get_list(session, user_id, status_list, page_size, offset):
-    return session.query(Withdraw).filter_by( user_id = user_id)\
-                                  .filter(Withdraw.status.in_( status_list ))\
-                                  .order_by(Withdraw.created.desc()).limit( page_size ).offset( offset )
+  def get_list(session, broker_id, account_id, status_list, page_size, offset, filter) :
+    query = session.query(Withdraw).filter( Withdraw.status.in_( status_list ) ).filter(Withdraw.broker_id==broker_id)
+
+    if account_id:
+      query = query.filter( Withdraw.account_id == account_id  )
+
+    if filter:
+      if filter.isdigit():
+        query = query.filter( or_( Withdraw.data.like('%' + filter + '%' ),
+                                   Withdraw.currency == filter,
+                                   Withdraw.amount == int(filter) * 1e8,
+                                   ))
+      else:
+        query = query.filter( or_( Withdraw.data.like('%' + filter + '%'),
+                                   Withdraw.currency == filter ) )
+
+    query = query.order_by(Withdraw.created.desc())
+
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+
+    return query
+
+
 
 
   @staticmethod
@@ -1145,7 +1167,7 @@ class Deposit(Base):
 
     if filter:
       if filter.isdigit():
-        query = query.filter( or_( Deposit.data.like('%' + filter + '%s' ),
+        query = query.filter( or_( Deposit.data.like('%' + filter + '%' ),
                                    Deposit.currency == filter,
                                    Deposit.deposit_option_name == filter,
                                    Deposit.value == int(filter) * 1e8,
@@ -1153,7 +1175,7 @@ class Deposit(Base):
                                    Deposit.broker_deposit_ctrl_num == int(filter),
                                    ))
       else:
-        query = query.filter( or_( Deposit.data.like('%' + filter + '%s'),
+        query = query.filter( or_( Deposit.data.like('%' + filter + '%'),
                                    Deposit.currency == filter,
                                    Deposit.deposit_option_name == filter ) )
 
