@@ -54,5 +54,5 @@ $ ./jsdev/build_release.sh  # recompile the application using the translated fil
 
 Copyright 2014 BitEx, LTDA. BitEx is a trademark maintained by BitEx, LTDA.
 
-** VIOLATORS OF THE GNU GPL LICENSE WILL BE PROSECUTED TO THE FULL EXTENT OF THE LAW **
-** FREE SOFTWARE FOR FREE PEOPLE **
+**VIOLATORS OF THE GNU GPL LICENSE WILL BE PROSECUTED TO THE FULL EXTENT OF THE LAW**
+**FREE SOFTWARE FOR FREE PEOPLE**
