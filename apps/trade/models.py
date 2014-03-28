@@ -1205,9 +1205,15 @@ class Deposit(Base):
 
   def cancel(self, session, reason_id, reason=None):
     if self.status == '4':
-      # TODO: revert the deposit
-      # TODO: Update ledger
-      pass
+      Ledger.withdraw(session,
+                     self.account_id,       # account_id
+                     self.account_id,       # payee_id
+                     self.broker_id,        # broker_id
+                     self.broker_id,        # payee_broker_id
+                     self.currency,         # currency
+                     self.paid_value,       # amount
+                     self.id,               # reference
+                     'D')                   # description
 
     self.status = '8'
     self.reason_id = reason_id
