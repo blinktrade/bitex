@@ -84,8 +84,6 @@ bitex.app.SatoshiSquare = function() {
     this.conn_    = new bitex.api.BitEx();
     this.views_   = new goog.ui.Component();
     this.last_trades = new bitex.ui.LastTrades();
-    this.order_book_bid   =  null;
-    this.order_book_offer   =  null;
   } catch ( error) {
     this.showDialog(error);
   }
@@ -460,11 +458,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADE, goog.bind(  this.onBitexTrade_, this ) );
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, goog.bind(  this.onBitexTradingSessionStatus_, this ) );
 
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR, goog.bind(  this.onBitexOrderBookClear_, this ) );
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU, goog.bind(  this.onBitexOrderBookDeleteThru_, this ) );
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDER, goog.bind(  this.onBitexOrderBookDeleteOrder_, this ) );
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, goog.bind(  this.onBitexOrderBookNewOrder_, this ) );
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_UPDATE_ORDER, goog.bind(  this.onBitexOrderBookUpdateOrder_, this ) );
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
@@ -635,42 +629,9 @@ bitex.app.SatoshiSquare.prototype.onBitexTrade_ = function(e) {
                              msg['MDEntrySeller'] );
 }
 
-bitex.app.SatoshiSquare.prototype.onBitexOrderBookClear_ = function(e) {
-  if (goog.isDefAndNotNull(this.order_book_bid)) {
-    this.order_book_bid.clear();
-    this.order_book_offer.clear();
-
-    this.order_book_bid.dispose();
-    this.order_book_offer.dispose();
-  }
-}
-
-bitex.app.SatoshiSquare.prototype.onBitexOrderBookDeleteThru_ = function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'];
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      this.order_book_bid.deleteOrderThru(index);
-    } else if (side == '1') {
-      this.order_book_offer.deleteOrderThru(index);
-    }
-}
-
-bitex.app.SatoshiSquare.prototype.onBitexOrderBookDeleteOrder_ = function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'] - 1;
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      this.order_book_bid.deleteOrder(index);
-    } else if (side == '1') {
-      this.order_book_offer.deleteOrder(index);
-    }
-}
-
 bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
     var msg = e.data;
+
     var symbol = msg['Symbol'];
     var index = msg['MDEntryPositionNo'] - 1;
     var price =  msg['MDEntryPx']/1e8;
@@ -686,28 +647,13 @@ bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
         var bid_key = 'best_bid_' +  currency.toLowerCase();
         this.model_.set('formatted_' + bid_key, this.formatCurrency(price, currency));
       }
-      this.order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
     } else if (side == '1') {
       if (index === 0) {
         var offer_key = 'best_offer_' +  currency.toLowerCase();
         this.model_.set('formatted_' + offer_key, this.formatCurrency(price, currency));
       }
-      this.order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
     }
   }
-
-bitex.app.SatoshiSquare.prototype.onBitexOrderBookUpdateOrder_ = function(e) {
-    var msg = e.data;
-    var index = msg['MDEntryPositionNo'] - 1;
-    var qty = msg['MDEntrySize']/1e8;
-    var side = msg['MDEntryType'];
-
-    if (side == '0') {
-      this.order_book_bid.updateOrder(index, qty);
-    } else if (side == '1') {
-      this.order_book_offer.updateOrder(index, qty);
-    }
-}
 
 bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
     try {
@@ -1731,7 +1677,11 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
 
   this.model_.set('SecurityList', msg);
 
-  this.conn_.subscribeMarketData(0,
+  if (goog.isDefAndNotNull(this.subscription)) {
+    this.conn_.unSubscribeMarketData(this.subscription);
+  }
+
+  this.subscription = this.conn_.subscribeMarketData(0,
                                  symbols,
                                  ['4','1','2'] );
 

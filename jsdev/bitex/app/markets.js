@@ -241,6 +241,9 @@ bitex.app.markets = function( url ) {
 
   bitEx.addEventListener('ob_new_order',  function(e) {
     var msg = e.data;
+
+    console.log("=================> 2 - received:", msg);
+
     var symbol = msg['Symbol'];
     var index = msg['MDEntryPositionNo'] - 1;
     var price =  msg['MDEntryPx']/1e8;
