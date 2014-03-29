@@ -84,6 +84,8 @@ bitex.app.SatoshiSquare = function() {
     this.conn_    = new bitex.api.BitEx();
     this.views_   = new goog.ui.Component();
     this.last_trades = new bitex.ui.LastTrades();
+    this.pricemin_ = 0;
+    this.pricemax_ = 0;
   } catch ( error) {
     this.showDialog(error);
   }
@@ -464,8 +466,8 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.EXECUTION_REPORT, this.onBitexExecutionReport_);
 
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
+  //handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
+  //handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
@@ -611,6 +613,7 @@ bitex.app.SatoshiSquare.prototype.onBitexTradesClear_ = function(e) {
 
 bitex.app.SatoshiSquare.prototype.onBitexTrade_ = function(e) {
     var msg = e.data;
+    
     var price =  (msg['MDEntryPx']/1e8);
     var size =  (msg['MDEntrySize']/1e8);
 
@@ -627,6 +630,22 @@ bitex.app.SatoshiSquare.prototype.onBitexTrade_ = function(e) {
                              this.formatCurrency(size, size_currency),
                              msg['MDEntryBuyer'],
                              msg['MDEntrySeller'] );
+
+
+    var last_price_key = 'last_price_' +  price_currency.toLowerCase();
+    this.model_.set('formatted_' + last_price_key, this.formatCurrency(price, price_currency));
+
+    if (( this.pricemin_ == 0 ) || ( price < this.pricemin_ )) {
+      var min_key = 'min_' +  price_currency.toLowerCase();
+      this.model_.set('formatted_' + min_key, this.formatCurrency(price, price_currency));
+      this.pricemin_ = price;
+    }
+
+    if (( this.pricemax_ == 0 ) || ( price > this.pricemax_ )) {
+      var max_key = 'max_' +  price_currency.toLowerCase();
+      this.model_.set('formatted_' + max_key, this.formatCurrency(price, price_currency));
+      this.pricemax_ = price;
+    }
 }
 
 bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
@@ -667,22 +686,22 @@ bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
         volume = volume / 1e8;
 
         var volume_key = 'volume_' +  currency.toLowerCase();
-        var min_key = 'min_' +  currency.toLowerCase();
-        var max_key = 'max_' +  currency.toLowerCase();
-        var avg_key = 'avg_' +  currency.toLowerCase();
-        var bid_key = 'best_bid_' +  currency.toLowerCase();
-        var offer_key = 'best_offer_' +  currency.toLowerCase();
-        var last_price = 'last_price_' +  currency.toLowerCase();
+        //var min_key = 'min_' +  currency.toLowerCase();
+        //var max_key = 'max_' +  currency.toLowerCase();
+        //var avg_key = 'avg_' +  currency.toLowerCase();
+        //var bid_key = 'best_bid_' +  currency.toLowerCase();
+        //var offer_key = 'best_offer_' +  currency.toLowerCase();
+        //var last_price = 'last_price_' +  currency.toLowerCase();
 
         app.model_.set( volume_key , volume );
         app.model_.set('formatted_' + volume_key, app.formatCurrency(volume, currency));
 
-        app.model_.set('formatted_' + min_key, app.formatCurrency(0, currency));
-        app.model_.set('formatted_' + max_key, app.formatCurrency(0, currency));
-        app.model_.set('formatted_' + avg_key, app.formatCurrency(0, currency));
-        app.model_.set('formatted_' + bid_key, app.formatCurrency(0, currency));
-        app.model_.set('formatted_' + offer_key, app.formatCurrency(0, currency));
-        app.model_.set('formatted_' + last_price, app.formatCurrency(0, currency));
+        //app.model_.set('formatted_' + min_key, app.formatCurrency(0, currency));
+        //app.model_.set('formatted_' + max_key, app.formatCurrency(0, currency));
+        //app.model_.set('formatted_' + avg_key, app.formatCurrency(0, currency));
+        //app.model_.set('formatted_' + bid_key, app.formatCurrency(0, currency));
+        //app.model_.set('formatted_' + offer_key, app.formatCurrency(0, currency));
+        //app.model_.set('formatted_' + last_price, app.formatCurrency(0, currency));
       });
     } catch(str) {}
 };
@@ -1684,27 +1703,6 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
   this.subscription = this.conn_.subscribeMarketData(0,
                                  symbols,
                                  ['4','1','2'] );
-
-  if (goog.isDefAndNotNull(this.order_book_bid)) {
-    this.order_book_bid.clear();
-    this.order_book_offer.clear();
-
-    this.order_book_bid.dispose();
-    this.order_book_offer.dispose();
-  }
-
-  if (symbols.length > 0) {
-    var qtyCurrency = symbols[0].substr(0,3);
-    var priceCurrency = symbols[0].substr(3);
-
-    var qtyCurrencyDef = this.currency_info_[qtyCurrency];
-    var priceCurrencyDef = this.currency_info_[priceCurrency];
-
-    this.order_book_bid =  new bitex.ui.OrderBook(this.model_.get('Username'), bitex.ui.OrderBook.Side.BUY, qtyCurrencyDef, priceCurrencyDef);
-    this.order_book_offer =  new bitex.ui.OrderBook(this.model_.get('Username'), bitex.ui.OrderBook.Side.SELL, qtyCurrencyDef, priceCurrencyDef);
-    this.order_book_bid.decorate( goog.dom.getElement('order_book_bid') );
-    this.order_book_offer.decorate( goog.dom.getElement('order_book_offer') );
-  }
 
   this.last_trades.decorate( goog.dom.getElement('last_trades_id') );
 };
