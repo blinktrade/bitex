@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt_BR">
+<head>
+  <meta charset="utf-8">
+  <title>BitCoin Center - Satoshi Square</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Buy and sell Crypto currencies.">
+
+  <meta name="keywords" content="bitcoin, litecoin, BTC, LTC">
+
+  <meta name="author" content="Rodrigo">
+
+  <link rel="shortcut icon" href="./images/favicon.ico">
+
+  <meta charset="utf-8">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <!--Bootstrap-->
+  <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js" type="text/javascript"></script>
+  <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+
+  <link href="./css/Dialog.css" rel="stylesheet">
+  <link href="./css/fuelux.css" rel="stylesheet">
+  <link href="./css/style.css?v4" rel="stylesheet">
+
+  <link rel="canonical" href="https://www.bitex.com.br" />
+  <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+
+  <!-- bitex application -->
+  <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v4" type="text/javascript"></script> <!--  -->
+  <!-- <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v4" type="text/javascript"></script>  -->
+</head>
+
+<body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
+<div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="/start"><img src="/images/bitex.png" style="
+            height: 55px;
+            margin-top: -10px;
+            margin-bottom: -30px;
+        "></a>
+
+      <ul class="nav navbar-nav pull-right">
+
+          <li> <a href="" data-switch-view="market">
+            Volume BTC: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_volume_btc" data-blink-class="md-blink"></span>
+            / USD: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_volume_usd" data-blink-class="md-blink"></span>
+            Last Price: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_last_price_usd" data-blink-class="md-blink"></span>
+            Bid: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_usd" data-blink-class="md-blink"></span>
+            Ask: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_usd" data-blink-class="md-blink"></span>
+            Low: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_min_usd" data-blink-class="md-blink"></span>
+            High: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_max_usd" data-blink-class="md-blink"></span>
+          </a></li>
+
+
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Market</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
+        <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn-link">connect <i class="icon-white icon-repeat"></i></button></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="clearfix" style="padding: 30px;"></div>
+
+<div class="container">
+  <div id="id_notifications" class="notifications top-right" style="z-index: 9000;"></div>
+<div id="start" class="page  row-fluid">
+
+  <header class="jumbotron">
+    <img src="/images/bitex2.png" style="">
+    <p class="lead">Live bitcoin exchange</p>
+  </header>
+
+  <div class="row bitex-hide-if-logged" style="text-align: center;">
+    <form action="" class="form-inline">
+      <label for="id_landing_username">Username:</label>
+      <input class="focus" id="id_landing_username" placeholder="" size="30" type="text">
+      <label for="id_landing_password">Password:</label>
+      <input id="id_landing_password" placeholder="" size="30" type="password">
+      <button id="id_landing_signin" class="btn btn-success">Login</button>
+    </form>
+  </div>
+</div>
+
+
+<div id="signup" class="page  row-fluid">
+  <div class="page-header">
+    <h1>Register</h1>
+  </div>
+  <p>Already registered? <a href="#" data-switch-view="signin" >Login</a>.</p>
+
+  <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
+
+    <div class="control-group">
+      <label class="control-label">Username</label>
+      <div class="controls">
+        <input id="id_signup_username" name="Username" size="30" type="text" placeholder="">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Email address</label>
+      <div class="controls">
+        <input id="id_signup_email" name="Email" size="30" type="text" placeholder="eg.: joe@doe.com">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Password</label>
+      <div class="controls">
+        <input id="id_signup_password" name="Password" size="30" type="password">
+        <p class="help-block">At least 8 characters</p>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Confirm your password</label>
+      <div class="controls">
+        <input id="id_signup_password2" name="Password2" size="30" type="password">
+      </div>
+    </div>
+
+    <div class="control-group" style="">
+      <label class="control-label">Country</label>
+      <div class="controls">
+        <select id="id_signup_country" name="country"></select>
+      </div>
+    </div>
+
+    <div id="id_signup_state_group" class="control-group" style="display: none">
+      <label class="control-label">State or Province</label>
+      <div class="controls">
+        <select id="id_signup_state" name="state"></select>
+      </div>
+    </div>
+
+    <div class="control-group" style="">
+      <label class="control-label">Broker</label>
+      <div class="controls">
+        <select id="id_signup_broker" name="broker"></select>
+        <span id="id_signup_broker_warning" style="display: none">There are no brokers in your area. We will send you an email once we have a broker in your area.</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Terms of service</label>
+      <div class="controls">
+
+        <label class="checkbox">
+          <input id="user_agreed_tos" name="" type="checkbox" checked>
+          I agree with <a href="#" data-switch-view="tos">terms terms of service</a>.
+        </label>
+      </div>
+    </div>
+  </form>
+
+  <button id="id_btn_signup" class="btn btn-primary">Register</button>
+</div>
+
+<div id="signin" class="page  row-fluid">
+  <div class="page-header">
+    <h1>Login</h1>
+  </div>
+  <p>Don't have an account? <a href="#" data-switch-view="signup">Register</a></p>
+
+  <form accept-charset="UTF-8" action="" method="post">
+    <div class="clearfix">
+      <label for="id_username">Username</label>
+      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
+    </div>
+    <div class="clearfix">
+      <label for="id_password">Password</label>
+      <div class="input"><input id="id_password"  placeholder="" name="password" type="password"></div>
+    </div>
+    <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
+    <div class="actions">
+      <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Login">
+    </div>
+  </form>
+</div>
+
+
+<div id="forgot_password" class="page row">
+  <div class="page-header">
+    <h1>Password recovery</h1>
+  </div>
+
+  <form accept-charset="UTF-8" action="" method="post">
+    <div class="clearfix">
+      <label for="id_forgot_password_email">e-mail</label>
+      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
+    </div>
+    <div class="actions">
+      <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recover password">
+    </div>
+  </form>
+</div>
+
+
+<div id="set_new_password" class="page  row">
+  <div class="page-header">
+    <h1>Set new password</h1>
+  </div>
+  <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
+
+    <div class="control-group">
+      <label class="control-label">Security code</label>
+      <div class="controls">
+        <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
+        <p class="help-block">We just sent a security code to your email.</p>
+      </div>
+
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">New password</label>
+      <div class="controls">
+        <input id="id_set_new_password_password" name="Password" size="30" type="password">
+        <p class="help-block">At least 8 characters</p>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Confirm your password</label>
+      <div class="controls">
+        <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
+      </div>
+    </div>
+
+
+    <div class="actions">
+      <input id="id_btn_set_new_password"  class="btn btn-primary" name="commit" type="submit" value="Reset password">
+    </div>
+  </form>
+</div>
+
+<div class="page row-fluid bitex-display-if-logged">
+
+<div  class="span9">
+
+<div id="trading">
+  <div class="section-title">
+    <h3>Trading</h3>
+  </div>
+
+  <div id="trading_order_entry_content" class="row-fluid"></div>
+
+  <div id="id_tradingg_well"></div>
+</div>
+
+<div id="offerbook">
+  <div class="section-title">
+    <h3>Order Book</h3>
+  </div>
+
+  <div id="offer_book_order_entry_content" class="row-fluid"></div>
+
+  <div class="well">
+    <div class="row-fluid">
+      <div id="id_order_book_bid_content" class="span6"></div>
+      <div id="id_order_book_ask_content" class="span6"></div>
+    </div>
+  </div>
+</div>
+
+<div id="customers">
+  <div class="section-title">
+    <h3>Customers</h3>
+  </div>
+
+  <div id="id_customers_well"></div>
+</div>
+
+<div id="account_activity">
+  <div class="section-title">
+    <h3>History</h3>
+  </div>
+
+  <div id="id_trade_history_well"></div>
+</div>
+
+<div id="enable_two_factor">
+  <div class="section-title">
+    <h3>Enable or Disable Two steps authentication</h3>
+  </div>
+
+  <div class="content">
+
+    <div class="well span6">
+      <form id="id_enable_two_factor_div" class="form-horizontal ">
+
+        <div class="control-group">
+          <label class="control-label">Key</label>
+          <div class="controls">
+            <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="controls">
+            <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Authentication code</label>
+          <div class="controls">
+            <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
+          </div>
+        </div>
+
+      </form>
+
+      <button id="id_btn_enable_two_factor" class="btn btn-primary">Enable</button>
+      <button id="id_btn_disable_two_factor" class="btn btn-danger">Disable</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div id="my_broker">
+  <div class="section-title">
+    <h3>My broker</h3>
+  </div>
+
+  <div class="content">
+    <div id="id_broker_wallets"></div>
+  </div>
+</div>
+
+<div id="account_overview">
+  <div class="section-title">
+    <h3>Account overview</h3>
+  </div>
+
+  <div class="content">
+
+    <div class="row-fluid">
+      <div class="span6">
+        <div id="account_overview_header_id"></div>
+      </div>
+      <div class="span6">
+        <div id="account_overview_balances_id"></div>
+      </div>
+    </div>
+
+    <div id="account_overview_withdraw_requests_id"></div>
+
+    <div id="account_overview_deposits_id"></div>
+
+    <div id="account_overview_trades_id"></div>
+
+
+  </div>
+
+</div>
+
+<div id="withdraw">
+  <div class="section-title">
+    <h3>Withdrawals</h3>
+  </div>
+
+  <div class="content">
+    <div id="id_user_balances_well"></div>
+
+    <div id="id_withdraw_list"></div>
+  </div>
+</div>
+
+<div id="deposit">
+  <div class="section-title">
+    <h3>Deposits</h3>
+  </div>
+
+  <div class="content">
+    <div id="id_deposit_balances_container"></div>
+
+    <div id="id_deposit_list"></div>
+  </div>
+</div>
+
+
+
+<div id="settings">
+  <div class="section-title">
+    <h3>Configurações</h3>
+  </div>
+</div>
+
+<div id="verification">
+  <div class="section-title">
+    <h3>Verify your account</h3>
+  </div>
+
+  <iframe id="JotFormIFrame" onload="window.parent.scrollTo(0,0)" allowtransparency="true" src="" frameborder="0" style="width:100%; height:1550px; border:none;" scrolling="no"></iframe>
+  <script type="text/javascript">
+    window.handleIFrameMessage = function(e) {
+      var args = e.data.split(":");
+      var iframe = document.getElementById("JotFormIFrame");
+      if (!iframe)
+        return;
+      switch (args[0]) {
+        case "scrollIntoView":
+          iframe.scrollIntoView();
+          break;
+        case "setHeight":
+          iframe.style.height = (args[1] + 200 ) + "px";
+          break;
+      }
+    };
+    if (window.addEventListener) {
+      window.addEventListener("message", handleIFrameMessage, false);
+    } else if (window.attachEvent) {
+      window.attachEvent("onmessage", handleIFrameMessage);
+    }
+  </script>
+</div>
+
+</div>
+
+<div id="id_sidebar" class="span3 sidebar">
+  <h3><span class="bitex-model" data-model-key="Username"></span></h3>
+  <div id="account_balance" style="">
+
+    <form class="form-inline">
+      <label class="control-label" for="id_instrument_1">Market: </label>
+      <select id="id_instrument_1">
+        <option></option>
+      </select>
+    </form>
+
+    <div id="id_account_summary_content" class="bitex-display-if-non-broker"></div>
+  </div>
+  <h6>Menu</h6>
+  <ul class="nav nav-list">
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i> My Broker info</a></li>
+
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> Customers</a></li>
+
+    <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>
+    <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
+    <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
+
+    <li style=""><a href="javascript:void(0)" data-uv-lightbox="classic_widget" data-uv-mode="full" data-uv-primary-color="#050505" data-uv-link-color="#505659" data-uv-default-mode="support" data-uv-forum-id="206574"><i class="icon-envelope"></i> Suggestions & Support</a></li>
+    <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
+  </ul>
+</div>
+</div>
+
+<div id="market" class="page row">
+    <div class="row-fluid">
+        <div class="page-header">
+            <h1>Market</h1>
+        </div>
+    </div>
+
+<div class="row-fluid">
+        <div class="span7">
+
+          <div class="well">
+            <div class="row-fluid">
+              <div class="span6">
+                <div class="text-center"><h4>BID</h4></div>
+                <table id="order_book_bid" class="table">
+                  <thead>
+                  <tr>
+                    <th class="order-book-username">Buyer</th>
+                    <th class="order-book-amount">Amount</th>
+                    <th class="order-book-price">Price</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <div class="span6">
+                <div class="text-center"><h4>ASK</h4></div>
+                <table id="order_book_offer" class="table">
+                  <thead>
+                  <tr>
+                    <th class="order-book-price">Price</th>
+                    <th class="order-book-amount">Amount</th>
+                    <th class="order-book-username">Seller</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="well">
+            <div class="text-center"><h4>Last Trades</h4></div>
+            <div style="height: 450px;width:100%;margin-bottom:20px;overflow:auto; ">
+              <table id="last_trades_id" class="table last-trades">
+                <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Side</th>
+                  <th>Price</th>
+                  <th>Size</th>
+                  <th>Buyer</th>
+                  <th>Seller</th>
+                </tr>
+                </thead>
+                <tbody><tr class="last-trades-row"><td class="last-trades-time">01:02:40</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:33</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 5.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:26</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:15</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 3.330</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:57</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:20:36</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:11:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 597.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:03:21</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 598.00</td><td class="last-trades-size">฿ 0.250</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="span5">
+          <form class="form-inline">
+            <label class="control-label" for="id_instrument_1">Market: </label>
+            <select id="Select1">
+            <option selected="" value="BTCUSD">BTC / USD</option></select>
+          </form>
+
+          <h3>Announcements</h3>
+          <textarea rows="30" style="width:100%; font-weight: bolder; font-family: monospace"></textarea>
+        </div>
+      </div>
+
+</div>
+
+<div id="tos" class="page row">
+  <div class="page-header">
+    <h1>Terms of service</h1>
+  </div>
+  <!-- Main content -->
+  <div class="well">
+    [NONE.]
+  </div>
+</div>
+
+</div>
+
+
+<footer class="footer">
+  <div class="container">
+    <p>© 2013 Bitcoin Center - Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
+      Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a></p>
+  </div>
+</footer>
+
+<script>
+  bitex.app.satoshi_square('wss://localhost/trade/');
+  //bitex.app.satoshi_square('wss://pinhopro.no-ip.org/trade/');
+  //bitex.app.satoshi_square('wss://192.168.1.50/trade/');
+  //bitex.app.satoshi_square('wss://satoshi.bitex.com.br/trade/');
+</script>
+
+
+</body>
+
+</html>
+

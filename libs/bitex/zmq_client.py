@@ -17,13 +17,16 @@ class TradeClientException(Exception):
       return self.error_message + '( detail:%s)'%self.detail
     return self.error_message
 
+
+
 class TradeClient(object):
-  def  __init__(self, zmq_context, trade_in_socket, trade_pub = None):
+  def  __init__(self, zmq_context, trade_in_socket, trade_pub = None, reopen=True):
     self.zmq_context      = zmq_context
     self.connection_id    = None
     self.trade_in_socket  = trade_in_socket
     self.is_logged        = False
     self.user_id          = None
+    self.reopen           = reopen
 
     self.trade_pub_socket = None
     self.trade_pub_socket_stream = None
@@ -66,7 +69,18 @@ class TradeClient(object):
   def isConnected(self):
     return self.connection_id is not None
 
+  def getSecurityList(self):
+    resp =  self.sendJSON({  'MsgType' : 'x',
+                            'SecurityReqID': 'getSecurityList',
+                            'SecurityListRequestType': 0})
+
+    return resp.get('Instruments')
+
+
   def sendString(self, string_msg):
+    if not self.isConnected() and self.reopen:
+      self.connect()
+
     self.trade_in_socket.send_unicode( "REQ," +  self.connection_id + ',' + string_msg)
 
     response_message        = self.trade_in_socket.recv()
@@ -80,8 +94,17 @@ class TradeClient(object):
       except Exception:
         pass
 
+    if raw_resp_message_header == 'CLS' and rep_msg and not rep_msg.isErrorMessage():
+      self.close()
+      if self.reopen:
+        self.connect()
+      return rep_msg
+
     if raw_resp_message_header != 'REP':
       self.close()
+      if self.reopen:
+        self.connect()
+
       if rep_msg and rep_msg.isErrorMessage():
         raise TradeClientException(rep_msg.get('Description'), rep_msg.get('Detail'))
       raise TradeClientException('Invalid request: ' + raw_resp_message )

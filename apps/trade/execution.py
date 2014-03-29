@@ -142,7 +142,8 @@ class OrderMatcher(object):
 
 
       # let's get the available qty to execute on the order side
-      available_qty_on_order_side = order.get_available_qty_to_execute('1' if order.is_buy else '2',
+      available_qty_on_order_side = order.get_available_qty_to_execute(session,
+                                                                       '1' if order.is_buy else '2',
                                                                        executed_qty,
                                                                        executed_price )
 
@@ -166,7 +167,8 @@ class OrderMatcher(object):
 
 
       # let's get the available qty to execute on the counter side
-      available_qty_on_counter_side = counter_order.get_available_qty_to_execute('1' if counter_order.is_buy else '2',
+      available_qty_on_counter_side = counter_order.get_available_qty_to_execute(session,
+                                                                                 '1' if counter_order.is_buy else '2',
                                                                                  executed_qty,
                                                                                  executed_price )
 
@@ -202,27 +204,8 @@ class OrderMatcher(object):
         order.execute( executed_qty, executed_price )
         counter_order.execute(executed_qty, executed_price )
 
-        # create a Trade record
-        buyer_username = order.user.username
-        seller_username = counter_order.user.username
-        if order.is_sell:
-          tmp_username = buyer_username
-          buyer_username = seller_username
-          seller_username = tmp_username
-
-        trade =  Trade( id                = str(order.id) + '.' + str(counter_order.id),
-                        order_id          = order.id,
-                        counter_order_id  = counter_order.id,
-                        buyer_username    = buyer_username,
-                        seller_username   = seller_username,
-                        side              = order.side,
-                        symbol            = self.symbol,
-                        size              = executed_qty,
-                        price             = executed_price,
-                        created           = datetime.datetime.now())
-        session.add(trade)
+        trade = Trade.create(session, order, counter_order, self.symbol, executed_qty, executed_price )
         trades_to_publish.append(trade)
-
 
         rpt_order         = ExecutionReport( order, execution_side )
         execution_reports.append( ( order.user_id, rpt_order.toJson() )  )
@@ -234,46 +217,40 @@ class OrderMatcher(object):
         if counter_order.user_id != counter_order.account_id:
           execution_reports.append( ( counter_order.account_id, rpt_counter_order.toJson() )  )
 
-        def generate_email_subject_and_body( order, trade ):
+        def generate_email_subject_and_body( session, order, trade ):
           from json import  dumps
           from bitex.json_encoder import  JsonEncoder
+          from models import Currency
 
-          formatted_btc = u'฿  {:,.8f}'.format(order.order_qty / 1.e8)
-          formatted_btc = formatted_btc.replace(',', '#')
-          formatted_btc = formatted_btc.replace('.', ',')
-          formatted_btc = formatted_btc.replace('#', '.')
+          qty_currency = order.symbol[:3]
+          formatted_qty = Currency.format_number( session, qty_currency, order.order_qty / 1.e8 )
 
-          formatted_brl = u'R$ {:,.2f}'.format(order.order_price / 1.e5)
-          formatted_brl = formatted_brl.replace(',', '#')
-          formatted_brl = formatted_brl.replace('.', ',')
-          formatted_brl = formatted_brl.replace('#', '.')
+          price_currency = order.symbol[3:]
+          formatted_price = Currency.format_number( session, price_currency, order.price / 1.e8 )
 
-          formatted_total_price = u'R$ {:,.2f}'.format( order.order_qty/1.e8 * order.order_price / 1.e5)
-          formatted_total_price = formatted_total_price.replace(',', '#')
-          formatted_total_price = formatted_total_price.replace('.', ',')
-          formatted_total_price = formatted_total_price.replace('#', '.')
+          formatted_total_price = Currency.format_number( session, price_currency, order.order_qty/1.e8 * order.price / 1.e8 )
 
-          email_subject =  u"Sua oferta número #%s de %s à %s foi executada!" % (order.id, formatted_btc, formatted_brl)
+          email_subject =  u"Sua oferta número #%s de %s à %s foi executada!" % (order.id, formatted_qty, formatted_price)
           email_template = "order_execution_ptBR.txt"
           email_params = {
             'name': order.user.username,
             'order_id': order.id,
             'trade_id': trade.id,
             'executed_when': trade.created,
-            'qty': formatted_btc,
-            'price': formatted_brl,
+            'qty': formatted_qty,
+            'price': formatted_price,
             'total': formatted_total_price
           }
           return  email_subject, email_template, dumps(email_params, cls=JsonEncoder)
 
-        email_data = generate_email_subject_and_body(order, trade)
+        email_data = generate_email_subject_and_body(session, order, trade)
         UserEmail.create( session = session,
                           user_id = order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
                           params  = email_data[2])
 
-        email_data = generate_email_subject_and_body(counter_order, trade)
+        email_data = generate_email_subject_and_body(session, counter_order, trade)
         UserEmail.create( session = session,
                           user_id = counter_order.user_id,
                           subject = email_data[0],
@@ -342,6 +319,8 @@ class OrderMatcher(object):
                                                  counter_md_entry_type,
                                                  execution_counter )
 
+    if trades_to_publish:
+      MarketDataPublisher.publish_trades(self.symbol, trades_to_publish)
     return ""
 
 

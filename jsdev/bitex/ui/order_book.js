@@ -3,25 +3,33 @@ goog.provide('bitex.ui.OrderBook.Side');
 goog.provide('bitex.ui.OrderBook.EventType');
 goog.provide('bitex.ui.OrderBookEvent');
 
+goog.require('goog.i18n.NumberFormat');
 goog.require('goog.ui.Component');
 goog.require('goog.dom.classes');
 goog.require('goog.object');
 
 goog.require('goog.Timer');
+goog.require('bitex.model.OrderBookCurrencyModel');
+
 
 /**
  * @param {string} username
  * @param {bitex.ui.OrderBook.Side} side
+ * @param {bitex.model.OrderBookCurrencyModel} qtyCurrencyDef
+ * @param {bitex.model.OrderBookCurrencyModel} priceCurrencyDef
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper.
  *
  * @extends {goog.ui.Component}
  * @constructor
  */
-bitex.ui.OrderBook = function ( username, side, opt_blinkDelay, opt_domHelper) {
+bitex.ui.OrderBook = function ( username, side, qtyCurrencyDef, priceCurrencyDef , opt_blinkDelay, opt_domHelper) {
   goog.base(this, opt_domHelper);
 
   this.blink_delay_ = opt_blinkDelay || 700;
+
+  this.qtyCurrencyDef_ = qtyCurrencyDef;
+  this.priceCurrencyDef_ = priceCurrencyDef;
 
   this.username_ = username;
   this.side_ = side;
@@ -57,6 +65,19 @@ bitex.ui.OrderBook.prototype.username_;
  * @private
  */
 bitex.ui.OrderBook.prototype.side_;
+
+/**
+ * @type {bitex.model.OrderBookCurrencyModel}
+ * @private
+ */
+bitex.ui.OrderBook.prototype.qtyCurrencyDef_;
+
+/**
+ * @type {bitex.model.OrderBookCurrencyModel}
+ * @private
+ */
+bitex.ui.OrderBook.prototype.priceCurrencyDef_;
+
 
 /**
  * @type {number}
@@ -169,13 +190,16 @@ bitex.ui.OrderBook.prototype.deleteOrder = function( index) {
  */
 bitex.ui.OrderBook.prototype.updateOrder = function( index, qty) {
   var dom = this.getDomHelper();
-
+  
+  var formatter = new goog.i18n.NumberFormat( this.qtyCurrencyDef_.format, this.qtyCurrencyDef_.code );
+  qty = formatter.format(qty);
+  
   var trEl = dom.getChildren(this.bodyEl_ )[index];
 
   var tdQtyEl = dom.getChildren( trEl )[1];
   dom.setTextContent(tdQtyEl, qty);
 
-  var blink_class = goog.getCssName(this.getBaseCssClass(), 'blink');
+  var blink_class = 'warning'; //goog.getCssName(this.getBaseCssClass(), 'blink');
   goog.dom.classes.add( tdQtyEl,  blink_class );
 
   goog.Timer.callOnce( function(){
@@ -190,18 +214,25 @@ bitex.ui.OrderBook.prototype.updateOrder = function( index, qty) {
  * @param {number} price
  * @param {number} qty
  * @param {string} username
+ * @param {string} broker
  */
-bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, username ) {
+bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, username, broker ) {
   var dom = this.getDomHelper();
+
+  var formatter = new goog.i18n.NumberFormat( this.qtyCurrencyDef_.format, this.qtyCurrencyDef_.code );
+  qty = formatter.format(qty);
+
+  formatter = new goog.i18n.NumberFormat( this.priceCurrencyDef_.format, this.priceCurrencyDef_.code );
+  price = formatter.format(price);
 
   var priceEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'price') , price);
   var qtyEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'qty'), qty);
 
   var userNameEl;
-  if (username === this.username_) {
+  if (username === this.username_ || broker === this.username_ ){
     userNameEl = dom.createDom('td', undefined,
                    dom.createDom( 'a', { 'class':'btn-cancel-order text-error', 'href':'', 'data-order-id':id },
-                     dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  Cancelar')));
+                     dom.createDom( 'i', { 'class':'icon-remove', 'style':'line-height: 2px;', 'data-order-id':id}, '  ' + username )));
   } else {
     userNameEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'username'), username);
   }
@@ -229,7 +260,7 @@ bitex.ui.OrderBook.prototype.insertOrder = function( index, id, price, qty, user
   dom.insertChildAt( this.bodyEl_, rowEl, index );
 
 
-  var blink_class = goog.getCssName(this.getBaseCssClass(), 'blink');
+  var blink_class  = 'warning'; // goog.getCssName(this.getBaseCssClass(), 'blink');
   goog.dom.classes.add( rowEl,  blink_class );
 
   goog.Timer.callOnce( function(){

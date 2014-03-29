@@ -1,5 +1,8 @@
 import logging
 import zmq
+import time
+import datetime
+import traceback
 
 from tornado.options import  options
 
@@ -18,10 +21,12 @@ class TradeApplication(object):
     return cls._instance
 
   def initialize(self):
+    self.publish_queue = []
     self.options = options
 
-    from models import engine
+    from models import engine, db_bootstrap
     self.db_session = scoped_session(sessionmaker(bind=engine))
+    db_bootstrap(self.db_session)
 
     from session_manager import SessionManager
     self.session_manager = SessionManager(timeout_limit=self.options.session_timeout_limit)
@@ -42,8 +47,6 @@ class TradeApplication(object):
     self.replay_logger.setLevel(logging.INFO)
     self.replay_logger.addHandler(input_log_file_handler)
     self.replay_logger.info('START')
-
-    self.publish_queue = []
 
     self.log_start_data()
 
@@ -73,16 +76,33 @@ class TradeApplication(object):
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','END')
 
-    from models import User, BoletoOptions, Order, Withdraw
+    from models import User, Deposit, DepositMethods, Order, Withdraw, Broker, Currency, Instrument
 
-    # log all users on the replay log
+
+    currencies = self.db_session.query(Currency)
+    for currency in currencies:
+      self.log('DB_ENTITY', 'CURRENCY', currency)
+
+    instruments = self.db_session.query(Instrument)
+    for instrument in instruments:
+      self.log('DB_ENTITY', 'INSTRUMENT', instrument)
+
     users = self.db_session.query(User)
     for user in users:
       self.log('DB_ENTITY', 'USER', user)
 
-    boleto_options = self.db_session.query(BoletoOptions)
-    for boleto in boleto_options:
-      self.log('DB_ENTITY', 'BOLETO',  boleto)
+    # log all users on the replay log
+    brokers = self.db_session.query(Broker)
+    for broker in brokers:
+      self.log('DB_ENTITY', 'BROKER', broker)
+
+    deposit_options = self.db_session.query(DepositMethods)
+    for deposit_option in deposit_options:
+      self.log('DB_ENTITY', 'DEPOSIT_OPTION',  deposit_option)
+
+    deposits = self.db_session.query(Deposit)
+    for deposit in deposits:
+      self.log('DB_ENTITY', 'DEPOSIT',  repr(deposit))
 
     orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
@@ -131,17 +151,32 @@ class TradeApplication(object):
 
         if msg:
           if msg.isMarketDataRequest(): # Market Data Request
+            req_id = msg.get('MDReqID')
             market_depth = msg.get('MarketDepth')
             instruments = msg.get('Instruments')
             entries = msg.get('MDEntryTypes')
+            transact_time = msg.get('TransactTime')
 
+            timestamp = None
+            if transact_time:
+              timestamp = transact_time
+            else:
+              trade_date = msg.get('TradeDate')
+              if not trade_date:
+                trade_date = time.strftime("%Y%m%d", time.localtime())
+
+              self.log('OUT', 'TRADEDATE', trade_date)
+              timestamp = datetime.datetime.strptime(trade_date, "%Y%m%d")
+
+            self.log('OUT', 'TIMESTAMP', timestamp )
+            
             if len(instruments) > 1:
               raise  InvalidMessageError()
 
             instrument = instruments[0]
 
             om = OrderMatcher.get(instrument)
-            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries )
+            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries, req_id, timestamp )
             response_message = 'REP,' + json.dumps( response_message , cls=JsonEncoder)
           else:
             response_message = self.session_manager.process_message( msg_header, session_id, msg )
@@ -149,10 +184,13 @@ class TradeApplication(object):
           response_message = self.session_manager.process_message( msg_header, session_id, msg )
 
       except TradeRuntimeError, e:
+        self.db_session.rollback()
         self.session_manager.close_session(session_id)
         response_message = 'ERR,{"MsgType":"ERROR", "Description":"' + e.error_description.replace("'", "") + '", "Detail": ""}'
 
       except Exception,e:
+        traceback.print_exc()
+        self.db_session.rollback()
         self.session_manager.close_session(session_id)
         response_message = 'ERR,{"MsgType":"ERROR", "Description":"Unknow error", "Detail": "'  + str(e) + '"}'
 

@@ -38,12 +38,15 @@ class BaseMessage(object):
   def get(self, attr, default):
     raise  NotImplementedError()
 
+  def set(self, attr, value):
+    raise NotImplementedError()
+
   def is_valid(self):
     raise  NotImplementedError()
 
 
 class JsonMessage(BaseMessage):
-  MAX_MESSAGE_LENGTH = 4096
+  MAX_MESSAGE_LENGTH = 40096
   def raise_exception_if_required_tag_is_missing(self, tag):
     if tag not in self.message:
       raise InvalidMessageMissingTagException(self.raw_message, self.message, tag)
@@ -69,6 +72,12 @@ class JsonMessage(BaseMessage):
     if not val > 0:
       raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
 
+  def raise_exception_if_not_in(self, tag, list):
+    val = self.get(tag)
+    if val not in list :
+      raise InvalidMessageFieldException(self.raw_message, self.message, tag, val)
+
+
   def toJSON(self):
     return self.message
 
@@ -90,8 +99,10 @@ class JsonMessage(BaseMessage):
     del self.message['MsgType']
 
     self.valid_message_types = {
+      # User messages based on the Fix Protocol
       '0':   'Heartbeat',
       '1':   'TestRequest',
+      'B':   'News',
       'C':   'Email',
       'V':   'MarketDataRequest',
       'W':   'MarketDataFullRefresh',
@@ -101,38 +112,61 @@ class JsonMessage(BaseMessage):
       'BF':  'UserResponse',
       'D':   'NewOrderSingle',
       'F':   'OrderCancelRequest',
+      'x':   'SecurityListRequest',
+      'y':   'SecurityList',
+      'e':   'SecurityStatusRequest',
+      'f':   'SecurityStatus',
+
+      # User  messages
       'U0':  'Signup',
       'U2':  'UserBalanceRequest',
       'U3':  'UserBalanceResponse',
       'U4':  'OrdersListRequest',
       'U5':  'OrdersListResponse',
-      'U6':  'CryptoCoinWithdrawRequest',
-      'U7':  'CryptoCoinWithdrawResponse',
-      'U8':  'BRLBankTransferWithdrawRequest',
-      'U9':  'BRLBankTransferWithdrawResponse',
+      'U6':  'WithdrawRequest',
+      'U7':  'WithdrawResponse',
+      'U9':  'WithdrawRefresh',
+
       'U10': 'ResetPasswordRequest',
       'U11': 'ResetPasswordResponse',
       'U12': 'ResetPasswordRequest',
       'U13': 'ResetPasswordResponse',
       'U16': 'EnableDisableTwoFactorAuthenticationRequest',
       'U17': 'EnableDisableTwoFactorAuthenticationResponse',
-      'U18': 'GenerateBoletoRequest',
-      'U19': 'GenerateBoletoResponse',
-      'U20': 'BoletoOptionsRequest',
-      'U21': 'BoletoOptionsResponse',
-      'U22': 'BoletoRequest',
-      'U23': 'BoletoResponse',
+
+      'U18': 'DepositRequest',
+      'U19': 'DepositResponse',
+      'U23': 'DepositRefresh',
+
+      'U20': 'DepositMethodsRequest',
+      'U21': 'DepositMethodsResponse',
+
       'U24': 'WithdrawConfirmationRequest',
       'U25': 'WithdrawConfirmationResponse',
       'U26': 'WithdrawListRequest',
       'U27': 'WithdrawListResponse',
+      'U28': 'BrokerListRequest',
+      'U29': 'BrokerListResponse',
 
-      'S0':  'BitcoinNewAddressRequest',
-      'S1':  'BitcoinNewAddressResponse',
-      'S2':  'NumberOfFreeBitcoinNewAddressRequest',
-      'S3':  'NumberOfFreeBitcoinNewAddressResponse',
+      'U30': 'DepositListRequest',
+      'U31': 'DepositListResponse',
+
+
+      # Broker messages
+      'B0':  'ProcessDeposit',
+      'B1':  'ProcessDepositResponse',
+      'B2':  'CustomerListRequest',
+      'B3':  'CustomerListResponse',
+      'B4':  'CustomerRequest',
+      'B5':  'CustomerResponse',
+
+      'B6':  'ProcessWithdraw',
+      'B7':  'ProcessWithdrawResponse',
+
+      # Administrative messages
       'A0':  'DbQueryRequest',
       'A1':  'DbQueryResponse',
+
       'ERROR': 'ErrorMessage',
     }
 
@@ -194,8 +228,16 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('Username')
       self.raise_exception_if_required_tag_is_missing('Password')
       self.raise_exception_if_required_tag_is_missing('Email')
+      self.raise_exception_if_required_tag_is_missing('BrokerID')
 
-      #TODO: Validate all fields of Signup Message
+
+      self.raise_exception_if_empty('Username')
+      self.raise_exception_if_empty('Password')
+      self.raise_exception_if_empty('Email')
+      self.raise_exception_if_not_a_integer('BrokerID')
+
+      #TODO: password is greater than 8 bytes
+      #TODO: email is valid
 
     elif self.type == 'U10':  #Request Reset Password
       self.raise_exception_if_required_tag_is_missing('Email')
@@ -207,16 +249,19 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U16':  #Enable Disable Two Factor Authentication
       self.raise_exception_if_required_tag_is_missing('Enable')
 
-    elif self.type == 'U18': # Generate Boleto
-      self.raise_exception_if_required_tag_is_missing('BoletoId')
-      self.raise_exception_if_required_tag_is_missing('Value')
+    elif self.type == 'U18': # Deposit Request
+      self.raise_exception_if_required_tag_is_missing('DepositReqID')
 
-    elif self.type == 'U20': # Request Boleto Options
-      self.raise_exception_if_required_tag_is_missing('BoletoOptionReqId')
+      if "DepositMethodID" not in self.message and "DepositID" not in self.message  and 'Currency' not in self.message:
+        raise InvalidMessageMissingTagException(self.raw_message, self.message, "DepositID,DepositMethodID,Currency")
+
+    elif self.type == 'U19': # Deposit Response
+      self.raise_exception_if_required_tag_is_missing('DepositReqID')
+      self.raise_exception_if_required_tag_is_missing('DepositID')
 
 
-    elif self.type == 'U22': # Request Boleto
-      self.raise_exception_if_required_tag_is_missing('BoletoId')
+    elif self.type == 'U20': # Request Deposit Methods
+      self.raise_exception_if_required_tag_is_missing('DepositMethodReqID')
 
 
     elif self.type == 'D':  #New Order Single
@@ -229,12 +274,33 @@ class JsonMessage(BaseMessage):
 
       #TODO: Validate all fields of New Order Single Message
 
+    elif self.type == 'B': # News
+      self.raise_exception_if_required_tag_is_missing('Headline')
+      self.raise_exception_if_required_tag_is_missing('LinesOfText')
+      self.raise_exception_if_required_tag_is_missing('Text')
+
+      self.raise_exception_if_empty('Headline')
+      self.raise_exception_if_not_a_integer('LinesOfText')
+      self.raise_exception_if_not_greater_than_zero('LinesOfText')
+      self.raise_exception_if_empty('Text')
+
+
+
     elif self.type == 'C': # Email
       self.raise_exception_if_required_tag_is_missing('EmailThreadID')
       self.raise_exception_if_required_tag_is_missing('Subject')
       self.raise_exception_if_required_tag_is_missing('EmailType')
 
+    elif self.type == 'x': # Security List Request
+      self.raise_exception_if_required_tag_is_missing('SecurityReqID')
+      self.raise_exception_if_required_tag_is_missing('SecurityListRequestType')
+      self.raise_exception_if_not_a_integer('SecurityListRequestType')
+      self.raise_exception_if_not_in('SecurityListRequestType', (0,1,2,3,4))
 
+    elif self.type == 'y': # Security List
+      self.raise_exception_if_required_tag_is_missing('SecurityReqID')
+      self.raise_exception_if_required_tag_is_missing('SecurityResponseID')
+      self.raise_exception_if_required_tag_is_missing('SecurityRequestResult')
 
     elif self.type == 'F':  #Order Cancel Request
       pass
@@ -251,12 +317,11 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('OrdersReqID')
       self.raise_exception_if_empty('OrdersReqID')
 
-
-    elif self.type == 'U6': # Request for Crypto Coin Withdraw
+    elif self.type == 'U6': # Withdraw Request
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_required_tag_is_missing('Amount')
-      self.raise_exception_if_required_tag_is_missing('Wallet')
       self.raise_exception_if_required_tag_is_missing('Currency')
+      self.raise_exception_if_required_tag_is_missing('Method')
 
       self.raise_exception_if_not_a_integer('WithdrawReqID')
       self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
@@ -264,40 +329,39 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_a_number('Amount')
       self.raise_exception_if_not_greater_than_zero('Amount')
 
-      self.raise_exception_if_empty('Wallet')
-      self.raise_exception_if_empty('Currency')
+      self.raise_exception_if_empty('Method')
 
-    elif self.type == 'U8': # Request for BRL Bank Transfer Withdraw
-      self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
-      self.raise_exception_if_required_tag_is_missing('Amount')
-      self.raise_exception_if_required_tag_is_missing('BankNumber')
-      self.raise_exception_if_required_tag_is_missing('BankName')
-      self.raise_exception_if_required_tag_is_missing('AccountName')
-      self.raise_exception_if_required_tag_is_missing('AccountNumber')
-      self.raise_exception_if_required_tag_is_missing('AccountBranch')
-      self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
+      if self.get('Type') == 'CRY':
+        self.raise_exception_if_required_tag_is_missing('Wallet')
+        self.raise_exception_if_empty('Wallet')
+      elif self.get('Type') == 'BBT':
+        self.raise_exception_if_required_tag_is_missing('Amount')
+        self.raise_exception_if_required_tag_is_missing('BankNumber')
+        self.raise_exception_if_required_tag_is_missing('BankName')
+        self.raise_exception_if_required_tag_is_missing('AccountName')
+        self.raise_exception_if_required_tag_is_missing('AccountNumber')
+        self.raise_exception_if_required_tag_is_missing('AccountBranch')
+        self.raise_exception_if_required_tag_is_missing('CPFCNPJ')
 
-      self.raise_exception_if_not_a_integer('WithdrawReqID')
-      self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
+        self.raise_exception_if_empty('BankNumber')
+        self.raise_exception_if_empty('BankName')
+        self.raise_exception_if_empty('AccountName')
+        self.raise_exception_if_empty('AccountNumber')
+        self.raise_exception_if_empty('AccountBranch')
+        self.raise_exception_if_empty('CPFCNPJ')
 
-      self.raise_exception_if_not_a_number('Amount')
-      self.raise_exception_if_not_greater_than_zero('Amount')
-
-      self.raise_exception_if_empty('BankNumber')
-      self.raise_exception_if_empty('BankName')
-      self.raise_exception_if_empty('AccountName')
-      self.raise_exception_if_empty('AccountNumber')
-      self.raise_exception_if_empty('AccountBranch')
-      self.raise_exception_if_empty('CPFCNPJ')
-
-
-    elif self.type == 'U7' or self.type == 'U9': # Response for Withdraw ( Crypto Coin or BRL Bank Transfer )
+    elif self.type == 'U7': # WithdrawResponse
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
       self.raise_exception_if_not_a_integer('WithdrawReqID')
       self.raise_exception_if_not_greater_than_zero('WithdrawReqID')
 
       self.raise_exception_if_required_tag_is_missing('WithdrawID')
       self.raise_exception_if_not_a_integer('WithdrawID')
+
+    elif self.type == 'U8': #WithdrawRefresh
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+
 
     elif self.type == 'U24': # WithdrawConfirmationRequest
       self.raise_exception_if_required_tag_is_missing('WithdrawReqID')
@@ -318,8 +382,66 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('WithdrawListReqID')
       self.raise_exception_if_empty('WithdrawListReqID')
 
-    elif self.type == 'S0': # Bitcoin New Address
-      self.raise_exception_if_required_tag_is_missing('BtcAddress')
+    elif self.type == 'U28': # Broker List Request
+      self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
+      self.raise_exception_if_empty('BrokerListReqID')
+
+    elif self.type == 'U29': # Broker List Response
+      self.raise_exception_if_required_tag_is_missing('BrokerListReqID')
+      self.raise_exception_if_empty('BrokerListReqID')
+
+    elif self.type == 'U30': # DepositList Request
+      self.raise_exception_if_required_tag_is_missing('DepositListReqID')
+      self.raise_exception_if_empty('DepositListReqID')
+
+    elif self.type == 'U31': # DepositList Response
+      self.raise_exception_if_required_tag_is_missing('DepositListReqID')
+      self.raise_exception_if_empty('DepositListReqID')
+
+    elif self.type == 'B0': # Deposit Payment Confirmation
+      self.raise_exception_if_required_tag_is_missing('ProcessDepositReqID')
+      self.raise_exception_if_empty('ProcessDepositReqID')
+
+      self.raise_exception_if_required_tag_is_missing('Action')
+      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROGRESS', 'COMPLETE'])
+
+
+    elif self.type == 'B2': # Customer List Request
+      self.raise_exception_if_required_tag_is_missing('CustomerListReqID')
+      self.raise_exception_if_empty('CustomerListReqID')
+
+      pass
+    elif self.type == 'B3': # Customer List Response
+      pass
+
+    elif self.type == 'B4': # Customer Request
+      pass
+    elif self.type == 'B5': # Customer Response
+      pass
+
+    elif self.type == 'B6': # Process Withdraw
+      self.raise_exception_if_required_tag_is_missing('ProcessWithdrawReqID')
+      self.raise_exception_if_not_a_integer('ProcessWithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('ProcessWithdrawReqID')
+
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawID')
+
+      self.raise_exception_if_required_tag_is_missing('Action')
+      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROGRESS', 'COMPLETE'])
+
+
+    elif self.type == 'B7': # Process Withdraw
+      self.raise_exception_if_required_tag_is_missing('ProcessWithdrawReqID')
+      self.raise_exception_if_not_a_integer('ProcessWithdrawReqID')
+      self.raise_exception_if_not_greater_than_zero('ProcessWithdrawReqID')
+
+      self.raise_exception_if_required_tag_is_missing('WithdrawID')
+      self.raise_exception_if_not_a_integer('WithdrawID')
+      self.raise_exception_if_not_greater_than_zero('WithdrawID')
+
+      self.raise_exception_if_required_tag_is_missing('Status')
 
 
   def has(self, attr):
@@ -330,4 +452,7 @@ class JsonMessage(BaseMessage):
       return  default
     return self.message[attr]
 
-
+  def set(self, attr, value):
+    self.message[attr] = value
+    self.raw_message = json.dumps(  dict(self.message.items()  +  {'MsgType' : self.type}.items() ) )
+    return self

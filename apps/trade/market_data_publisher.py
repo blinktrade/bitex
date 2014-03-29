@@ -31,7 +31,8 @@ class MarketDataPublisher(object):
         "MDEntryDate": order.created.date(),
         "MDEntryTime": order.created.time(),
         "OrderID": order.id,
-        "Username": order.username
+        "Username": order.account_username,
+        "Broker": order.broker_username
       })
 
     md = {
@@ -73,18 +74,18 @@ class MarketDataPublisher(object):
         "MDEntryDate": order.created.date(),
         "MDEntryTime": order.created.time(),
         "OrderID": order.id,
-        "Username": order.username
+        "Username": order.account_username,
+        "Broker": order.broker_username
+
       }]
     }
     application.publish( 'MD_INCREMENTAL_' + symbol + '.' + entry_type , md )
 
   @staticmethod
-  def publish_trade(trade):
-    md = {
-      "MsgType":"X",
-      "MDBkTyp": '3', # Order Depth
-      "TradeDate": trade.created,
-      "MDIncGrp": [{
+  def publish_trades(symbol, trades):
+    md_trades = []
+    for trade in trades:
+      md_trades.append({
         "MDUpdateAction":"0",
         "MDEntryType": "2",  # Trade
         "Symbol": trade.symbol,
@@ -98,12 +99,16 @@ class MarketDataPublisher(object):
         "TradeID": trade.id,
         "MDEntryBuyer": trade.buyer_username,
         "MDEntrySeller": trade.seller_username,
-        }]
+      })
+    md = {
+      "MsgType":"X",
+      "MDBkTyp": '3', # Order Depth
+      "MDIncGrp": md_trades
     }
-    application.publish( 'MD_TRADE_' + trade.symbol , md )
+    application.publish( 'MD_TRADE_' + symbol , md )
 
   @staticmethod
-  def generate_md_full_refresh( session, symbol, market_depth, om, entries  ):
+  def generate_md_full_refresh( session, symbol, market_depth, om, entries, req_id, timestamp  ):
     entry_list = []
 
     for entry_type in entries:
@@ -126,14 +131,15 @@ class MarketDataPublisher(object):
             "MDEntryDate": order.created.date(),
             "MDEntryTime": order.created.time(),
             "OrderID": order.id,
-            "Username": order.username
+            "Username": order.account_username,
+            "Broker": order.broker_username
           })
 
           if entry_position >= market_depth > 0:
             break
       elif entry_type == '2':
-        # return last 100 Trades
-        trades = Trade.get_last_100_trades(session, symbol)
+        print "getting last trades"
+        trades = Trade.get_last_trades(session, symbol, timestamp)
         trade_list = []
         for trade in  trades:
           trade_list.append({
@@ -156,6 +162,7 @@ class MarketDataPublisher(object):
 
     md = {
       "MsgType":"W",
+      "MDReqID": req_id,
       "MarketDepth": market_depth,
       "Symbol": symbol,
       "MDFullGrp": entry_list

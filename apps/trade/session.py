@@ -9,12 +9,17 @@ class Session(object):
     self.client_version = client_version
 
     self.user           = None
+    self.broker         = None
     self.should_end     = False
 
   def set_user(self, user):
+    if user is None:
+      return
+
     if self.user:
       raise UserAlreadyLogged
     self.user = user
+    self.broker = user.broker
 
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest
@@ -29,6 +34,9 @@ class Session(object):
     elif  msg.type == 'F' : # Cancel Order Request
       return processCancelOrderRequest(self, msg)
 
+    elif msg.type == 'x': # Security List Request
+      return processSecurityListRequest(self, msg)
+
     elif msg.type == 'U0': # signup
       return processSignup(self, msg)
 
@@ -39,10 +47,7 @@ class Session(object):
       return processRequestForOpenOrders(self, msg)
 
     elif msg.type == 'U6': # CryptoCoin Withdraw Request
-      return processCryptoCoinWithdrawRequest(self, msg)
-
-    elif msg.type == 'U8': # BRL Bank Transfer Withdraw Request
-      return processBRLBankTransferWithdrawRequest(self, msg)
+      return processWithdrawRequest(self, msg)
 
     elif msg.type == 'U10': # Request password request
       return processRequestPasswordRequest(self, msg)
@@ -53,14 +58,11 @@ class Session(object):
     elif msg.type == 'U16':  #Enable Disable Two Factor Authentication
       return processEnableDisableTwoFactorAuth(self, msg)
 
-    elif msg.type == 'U18': #Generate Boleto
-      return processGenerateBoleto(self, msg)
+    elif msg.type == 'U18': #Request Deposit
+      return processRequestDeposit(self, msg)
 
-    elif msg.type == 'U20': # Request Boleto Options
-      return processRequestBoletoOptions(self, msg)
-
-    elif msg.type == 'U22': # Request Boleto
-      return processRequestBoleto(self, msg)
+    elif msg.type == 'U20': # Request Deposit Options
+      return processRequestDepositMethods(self, msg)
 
     elif msg.type == 'U24': # Withdraw Confirmation Request
       return processWithdrawConfirmationRequest(self, msg)
@@ -68,13 +70,25 @@ class Session(object):
     elif msg.type == 'U26': # Withdraw List Request
       return processWithdrawListRequest(self, msg)
 
+    elif msg.type == 'U28': # Request broker lists
+      return processBrokerListRequest(self, msg)
+
+    elif msg.type == 'U30': # Deposit List Request
+      return  processDepositListRequest(self, msg)
+
+    elif msg.type == 'B0':  # Deposit Payment Confirmation
+      return processProcessDeposit(self, msg)
+
+    elif msg.type == 'B2':  # Customer List Request
+      return processCustomerListRequest(self, msg)
+
+    elif msg.type == 'B4':  # Customer Detail Request
+      return processCustomerDetailRequest(self, msg)
+
+    elif msg.type == 'B6':  # Process Withdraw
+      return processProcessWithdraw(self, msg)
+
+
     elif msg.type == 'A0':  # Request Query in Database
       return processRequestDatabaseQuery(self, msg)
-
-    elif msg.type == 'S0':  # Bitcoin New Address
-      return processBitcoinNewAddress(self, msg)
-
-    elif msg.type == 'S2':  # Get Number of Free Bitcoin New Address
-      return processGetNumberOfFreeBitcoinNewAddress(self, msg)
-
     raise InvalidMessageError()

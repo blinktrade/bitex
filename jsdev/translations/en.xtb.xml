@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE translationbundle SYSTEM "translationbundle.dtd">
+<translationbundle lang="en_US">
+    <!-- ../bitex/api/bitex.js -->
+    <!-- ../bitex/app/admin.js -->
+    <!-- ../bitex/app/bitex.js -->
+    <!-- ../bitex/app/markets.js -->
+    <!-- ../bitex/app/satoshi_square.js -->
+    <translation id="2400499506154150669">Customer details</translation>
+    <translation id="5743734095470344451">Withdraw</translation>
+    <translation id="1665132237497548554">Bitcoin withdrawal</translation>
+    <translation id="5287452069436627398">Amount</translation>
+    <translation id="6199107164753403907">eg. 0.44550000</translation>
+    <translation id="1900924298639858818">Brazilian Bank Withdrawal</translation>
+    <translation id="1702204003341689750">eg. 2300</translation>
+    <!-- ../bitex/app/url_router.js -->
+    <!-- ../bitex/fsm/fsm.js -->
+    <!-- ../bitex/model/model.js -->
+    <!-- ../bitex/templates/templates.soy.js -->
+    <translation id="4112774560296927039">Username:</translation>
+    <translation id="7011525327340223100">Google Authenticator code:</translation>
+    <translation id="707556265285906962">eg. 555555</translation>
+    <translation id="8307629111885527514">We just sent a confirmation code to your email.</translation>
+    <translation id="5002588433270413301">Confirmation code</translation>
+    <translation id="4772336795492447708">This is security measure to improve your account security</translation>
+    <translation id="5999717034897972511">Print</translation>
+    <translation id="6907261760401925072">Download</translation>
+    <translation id="8476044854846017210">Your account</translation>
+    <translation id="7723325992076527303">Available <ph name="code"/></translation>
+    <translation id="5269852189982841932">ID:</translation>
+    <translation id="5266381457013872080">Email:</translation>
+    <translation id="8953563663849525614">State:</translation>
+    <translation id="2646089907833131171">Country:</translation>
+    <translation id="5280057048043671215">Last login:</translation>
+    <translation id="4524398387235517729">Is verified:</translation>
+    <translation id="2321644747725362534">Has two step authentication:</translation>
+    <translation id="5490255410712407814">Registration date:</translation>
+    <translation id="199016394919963544">Amount:</translation>
+    <translation id="4670462076425028517">Price per </translation>
+    <translation id="2836929569038606269">Total:</translation>
+    <translation id="8914746547850879819">Fee (optional):</translation>
+    <translation id="403362466876676198">Client ID</translation>
+    <translation id="8282725871353943578">BUY</translation>
+    <translation id="798662724377115710">SELL</translation>
+
+
+    <!-- ../bitex/ui/account_activity.js -->
+    <translation id="6843864912009919805">ID</translation>
+    <translation id="1159462222642106601">Side</translation>
+    <translation id="3584342616551132388">Date/Time</translation>
+    <translation id="2145987329723512251">Price</translation>
+    <translation id="5088847860270762216">Qty</translation>
+    <translation id="8516168426198762290">Avg. Price</translation>
+    <translation id="9144502694009394125">Total</translation>
+    <!-- ../bitex/ui/bitex_datagrid.js -->
+    <!-- ../bitex/ui/customers.js -->
+    <translation id="8760059298648880498">ID</translation>
+    <translation id="4133367714099977955">Username</translation>
+    <translation id="1729488863170893175">Verified</translation>
+    <translation id="3491186699363788719">Yes</translation>
+    <translation id="5915224440342247505">No</translation>
+    <translation id="7436020073690507077">Email</translation>
+    <translation id="3276120422247338709">Last seen</translation>
+    <translation id="6933140633350718576">Two step</translation>
+    <translation id="7999894366292936662">Yes</translation>
+    <translation id="7174797153832618058">No</translation>
+    <translation id="2250683114899504658">Actions</translation>
+    <translation id="9029307460728334893">Details</translation>
+    <!-- ../bitex/ui/last_trades.js -->
+    <!-- ../bitex/ui/order_book.js -->
+    <!-- ../bitex/ui/order_entry.js -->
+    <!-- ../bitex/ui/order_entryx.js -->
+    <!-- ../bitex/ui/order_manager.js -->
+    <translation id="4074349737120839915">ID</translation>
+    <translation id="6178399923739131757">Status</translation>
+    <translation id="2183547009519815142">Side</translation>
+    <translation id="4642438927941107670">Qty</translation>
+    <translation id="2506463809523281007">Price</translation>
+    <translation id="5858834917273196487">Leaves Qty</translation>
+    <translation id="1975600462777767642">Cum Qty</translation>
+    <translation id="7751096803755647453">Average Price</translation>
+    <translation id="4650774354751697290">Date/Time</translation>
+    <translation id="6005798175559036606">Actions</translation>
+    <translation id="2354691648543224176">Buy</translation>
+    <translation id="1530868274778197347">Sell</translation>
+    <translation id="2862418125748017210">Pending</translation>
+    <translation id="7651405300494245365">New</translation>
+    <translation id="7884388121836672294">Partially filled</translation>
+    <translation id="8518549624003419322">Filled</translation>
+    <translation id="4661807207545160901">Cancelled</translation>
+    <!-- ../bitex/ui/withdraw.js -->
+    <!-- ../bitex/ui/withdraw_list.js -->
+    <translation id="6762041175470619352">ID</translation>
+    <translation id="909806336906094688">Status</translation>
+    <translation id="7442299103845522435">Currency</translation>
+    <translation id="3872080233688046838">Amount</translation>
+    <translation id="1996999318694812051">Date/Time</translation>
+    <translation id="8376210582968521122">Wallet</translation>
+    <translation id="2533475876080710712">Details</translation>
+    <!-- ../bitex/util/util.js -->
+    <!-- ../bitex/view/account_activity.js -->
+    <!-- ../bitex/view/deposit.js -->
+    <!-- ../bitex/view/forgot_password.js -->
+    <translation id="1019142662678297310">Invalid email address</translation>
+    <!-- ../bitex/view/login.js -->
+    <translation id="5933058039137369322">Invalid username</translation>
+    <translation id="8640549489502576540">Password must have at least 8 characters</translation>
+    <!-- ../bitex/view/null_view.js -->
+    <!-- ../bitex/view/offerbook.js -->
+    <!-- ../bitex/view/set_new_password.js -->
+    <translation id="3757804423543063307">Invalid confirmation code</translation>
+    <translation id="1924047624752361130">Password must have at least 8 characters</translation>
+    <translation id="1819752015791513766">Passwords does not match</translation>
+    <!-- ../bitex/view/side_bar.js -->
+    <!-- ../bitex/view/singup.js -->
+    <translation id="824760302463696685">Invalid username</translation>
+    <translation id="6360277786240269656">Invalid email</translation>
+    <translation id="4970940983930735928">Password must have at least 8 characters</translation>
+    <translation id="376556933125593961">Passwords does not match</translation>
+    <!-- ../bitex/view/two_factor.js -->
+    <!-- ../bitex/view/verification.js -->
+    <!-- ../bitex/view/view.js -->
+    <!-- ../bitex/view/withdraw.js -->
+    <translation id="8075057508728404340">Withdraw</translation>
+    <translation id="7563127770852144951">Fill up the form.</translation>
+    <translation id="7957443323105238308"><ph name="currency"/> withdrawal</translation>
+    <translation id="6485072331885507359">Amount</translation>
+    <translation id="1627387668348774370">eg. 0.44550000</translation>
+    <translation id="1136249626486253920">Wallet</translation>
+    <translation id="6775255324748239528">Your <ph name="currency"/> wallet here.</translation>
+    <translation id="585213474663949097"><ph name="currency"/> withdrawal</translation>
+    <translation id="5072776444350887530">eg. 2300.00</translation>
+    <translation id="155721093394102393">Bank number</translation>
+    <translation id="4912713723546384161">Bank name</translation>
+    <translation id="4047455922253741067">Account Branch</translation>
+    <translation id="4340771958128915624">Account name</translation>
+    <translation id="8724168544434715762">Account number</translation>
+    <translation id="3031211667020457298">ID</translation>
+    <translation id="5655247845346256421">eg. 2331</translation>
+    <translation id="3673205419061402233">eg. Bank of America</translation>
+    <translation id="5557292225290424764">eg. 88888</translation>
+    <translation id="8244977167558971746">eg. John Doe</translation>
+    <translation id="828555752930624995">eg. 88888</translation>
+    <translation id="4601803026700424560">eg. A34455</translation>
+    <!-- ../closure-bootstrap/javascript/bootstrap/Button.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/ButtonRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Dialog.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Pills.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/PillsRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Tab.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/TabBarRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/TabRenderer.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/Tabs.js -->
+    <!-- ../closure-bootstrap/javascript/bootstrap/TabsRenderer.js -->
+</translationbundle>

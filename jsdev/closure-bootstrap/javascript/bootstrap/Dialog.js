@@ -1,7 +1,9 @@
 goog.provide('bootstrap.Dialog');
+goog.provide('bootstrap.Dialog.ButtonSet');
 
 goog.require('goog.a11y.aria');
 goog.require('goog.ui.Dialog');
+
 
 /**
  * It's not a great solution for overriding createDom like this
@@ -68,3 +70,105 @@ bootstrap.Dialog.prototype.setBackgroundElementOpacity = function(opacity) {
         }
     }
 };
+
+
+
+/**
+ * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper; see {@link
+ *    goog.ui.Component} for semantics.
+ * @constructor
+ * @extends goog.ui.Dialog.ButtonSet
+ */
+bootstrap.Dialog.ButtonSet = function(opt_domHelper) {
+  goog.ui.Dialog.ButtonSet.call(this, opt_domHelper);
+};
+goog.inherits(bootstrap.Dialog.ButtonSet, goog.ui.Dialog.ButtonSet);
+
+
+/**
+ * Renders the button set inside its container element.
+ */
+bootstrap.Dialog.ButtonSet.prototype.render = function() {
+  if (this.element_) {
+    this.element_.innerHTML = '';
+    var domHelper = goog.dom.getDomHelper(this.element_);
+    goog.structs.forEach(this, function(caption, key) {
+      var button = domHelper.createDom('button', {'name': key}, caption);
+      if (key == this.defaultButton_) {
+        button.className = 'btn btn-primary';
+      } else {
+        button.className = 'btn';
+      }
+      this.element_.appendChild(button);
+    }, this);
+  }
+};
+
+
+
+/**
+ * Creates a new ButtonSet with a single 'OK' button, which is also set with
+ * cancel button semantics so that pressing escape will close the dialog.
+ * @return {!bootstrap.Dialog.ButtonSet} The created ButtonSet.
+ */
+bootstrap.Dialog.ButtonSet.createOk = function() {
+  return new bootstrap.Dialog.ButtonSet().
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.OK, true, true);
+};
+
+
+/**
+ * Creates a new ButtonSet with 'OK' (default) and 'Cancel' buttons.
+ * @return {!bootstrap.Dialog.ButtonSet} The created ButtonSet.
+ */
+bootstrap.Dialog.ButtonSet.createOkCancel = function() {
+  return new bootstrap.Dialog.ButtonSet().
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.OK, true).
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.CANCEL, false, true);
+};
+
+/**
+ * Creates a new ButtonSet with 'Cancel' button.
+ * @return {!bootstrap.Dialog.ButtonSet} The created ButtonSet.
+ */
+bootstrap.Dialog.ButtonSet.createCancel = function() {
+  return new bootstrap.Dialog.ButtonSet().
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.CANCEL, false, true);
+};
+
+
+/**
+ * Creates a new ButtonSet with 'Yes' (default) and 'No' buttons.
+ * @return {!bootstrap.Dialog.ButtonSet} The created ButtonSet.
+ */
+bootstrap.Dialog.ButtonSet.createYesNo = function() {
+  return new bootstrap.Dialog.ButtonSet().
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.YES, true).
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.NO, false, true);
+};
+
+
+/**
+ * Creates a new ButtonSet with 'Yes', 'No' (default), and 'Cancel' buttons.
+ * @return {!bootstrap.Dialog.ButtonSet} The created ButtonSet.
+ */
+bootstrap.Dialog.ButtonSet.createYesNoCancel = function() {
+  return new bootstrap.Dialog.ButtonSet().
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.YES).
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.NO, true).
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.CANCEL, false, true);
+};
+
+
+/**
+ * Creates a new ButtonSet with 'Continue', 'Save', and 'Cancel' (default)
+ * buttons.
+ * @return {!bootstrap.Dialog.ButtonSet} The created ButtonSet.
+ */
+bootstrap.Dialog.ButtonSet.createContinueSaveCancel = function() {
+  return new bootstrap.Dialog.ButtonSet().
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.CONTINUE).
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.SAVE).
+      addButton(goog.ui.Dialog.ButtonSet.DefaultButtons.CANCEL, true, true);
+};
+

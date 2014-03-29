@@ -40,3 +40,8 @@ nosetests.xml
 
 # OS files
 .DS_Store
+*.sqlite
+jsdev/bitex/templates/templates.soy.js
+static/satoshi_square.bkp.html
+static/js/bitex_app_satoshi_square.compiled.en_US.js
+logs/

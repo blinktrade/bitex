@@ -5,7 +5,7 @@ from session import  Session
 from errors import *
 
 class SessionManager(object):
-  def __init__(self, timeout_limit = 300 ):
+  def __init__(self, timeout_limit=0):
     self.sessions = {}
     self.timeout_limit = timeout_limit
 
@@ -50,8 +50,9 @@ class SessionManager(object):
 
     # Check if the session is expired
     session_time = self.sessions[session_id][1]
-    if datetime.timedelta(seconds=self.timeout_limit) + session_time < datetime.datetime.now():
-      raise SessionTimeoutError()
+    if self.timeout_limit:
+      if datetime.timedelta(seconds=self.timeout_limit) + session_time < datetime.datetime.now():
+        raise SessionTimeoutError()
 
     self.sessions[session_id][0] += 1  # increment the number of received messages
     self.sessions[session_id][1] = datetime.datetime.now() # update session time, so we can timeout old sessions.

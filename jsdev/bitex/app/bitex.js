@@ -8,9 +8,12 @@ goog.require('bitex.ui.OrderBook.Side');
 goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderEntry.EventType');
 
+goog.require('bitex.ui.OrderEntryX');
+goog.require('bitex.ui.OrderEntryX.EventType');
 
-goog.require('bitex.ui.Withdraw');
-goog.require('bitex.ui.Withdraw.EventType');
+
+//goog.require('bitex.ui.Withdraw');
+//goog.require('bitex.ui.Withdraw.EventType');
 
 goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
@@ -59,6 +62,7 @@ bitex.app.bitex = function( url ) {
         case 'start':
         case 'signin':
         case 'signup':
+        case 'market':
         case 'forgot_password':
         case 'set_new_password':
           break;
@@ -68,6 +72,8 @@ bitex.app.bitex = function( url ) {
           return false;
       }
     }
+
+    console.log("view_name", view_name);
 
     // remove any active view classes from document body
     var classes = goog.dom.classes.get(document.body );
@@ -248,11 +254,58 @@ bitex.app.bitex = function( url ) {
                                    e.target.getModel().data['account_branch'] ,
                                    e.target.getModel().data['CPFCNPJ'])
   });
+  var buy_order_entry = new bitex.ui.OrderEntryX();
+  buy_order_entry.decorate( goog.dom.getElement('id_order_entry_buy') );
+
+  var sell_order_entry = new bitex.ui.OrderEntryX();
+  sell_order_entry.decorate( goog.dom.getElement('id_order_entry_sell') );
+
+
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_offer_brl', function(e) {
+    var formatted_best_offer = /* @type {string}  */  e.data;
+    buy_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_offer) );
+  });
+
+  model.addEventListener( bitex.model.Model.EventType.SET + 'formatted_best_bid_brl', function(e) {
+    var formatted_best_bid = /* @type {string}  */  e.data;
+    sell_order_entry.setMarketPrice( goog.string.toNumber(formatted_best_bid) );
+  });
+
+  buy_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
+    var client_order_id = bitEx.sendBuyLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
+    var pendingOrderMessage = {
+      'OrderID': '-',
+      'ClOrdID': '' + client_order_id,
+      'OrdStatus': '-',
+      'Symbol': 'BTCBRL',
+      'Side': '1',
+      'OrderQty': e.target.getAmount() * 1e8,
+      'Price': e.target.getPrice()  * 1e8
+    };
+    order_manager.processExecutionReport(pendingOrderMessage);
+  });
+
+  sell_order_entry.addEventListener(bitex.ui.OrderEntryX.EventType.SUBMIT, function(e) {
+    var client_order_id = bitEx.sendSellLimitedOrder( "BTCBRL", e.target.getAmount(), e.target.getPrice(), e.target.getClientID());
+    var pendingOrderMessage = {
+      'OrderID': '-',
+      'ClOrdID': '' + client_order_id,
+      'OrdStatus': '-',
+      'Symbol': 'BTCBRL',
+      'Side': '2',
+      'OrderQty': e.target.getAmount() * 1e8,
+      'Price': e.target.getPrice()  * 1e8
+    };
+    order_manager.processExecutionReport(pendingOrderMessage);
+  });
+
 
   var order_entry = new bitex.ui.OrderEntry();
   order_entry.decorate( goog.dom.getElement('id_order_entry') );
 
   var order_manager = new bitex.ui.OrderManager();
+
 
   order_entry.addEventListener( bitex.ui.OrderEntry.EventType.BUY_LIMITED, function(e){
     var client_order_id = bitEx.sendBuyLimitedOrder( e.symbol, e.qty, e.price );
@@ -263,7 +316,7 @@ bitex.app.bitex = function( url ) {
       'Symbol': e.symbol,
       'Side': '1',
       'OrderQty': e.qty * 1e8,
-      'Price': e.price * 1e5
+      'Price': e.price * 1e8
     };
     order_manager.processExecutionReport(pendingOrderMessage);
   });
@@ -277,7 +330,7 @@ bitex.app.bitex = function( url ) {
       'Symbol': e.symbol,
       'Side': '2',
       'OrderQty': e.qty * 1e8,
-      'Price': e.price * 1e5
+      'Price': e.price * 1e8
     };
     order_manager.processExecutionReport(pendingOrderMessage);
   });
@@ -306,6 +359,15 @@ bitex.app.bitex = function( url ) {
     model.set('Username', msg['Username']);
     model.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
     model.set('BtcAddress', msg['BtcAddress']);
+    model.set('IsBroker', msg['IsBroker'] );
+
+    buy_order_entry.setBrokerMode(model.get('IsBroker')  );
+    sell_order_entry.setBrokerMode(model.get('IsBroker')  );
+    if (! msg['IsBroker'] ) {
+      buy_order_entry.setClientID(model.get('UserID'));
+      sell_order_entry.setClientID(model.get('UserID'));
+    }
+
 
     if (goog.isDefAndNotNull(order_book_bid)) {
       order_book_bid.dispose() ;
@@ -330,15 +392,15 @@ bitex.app.bitex = function( url ) {
     // Subscribe to MarketData
     bitEx.subscribeMarketData( 0, ['BTCBRL'], ['0','1','2'] );
 
-    // Request Boleto Options
-    bitEx.requestBoletoOptions();
+    // Request Deposit Options
+    bitEx.requestDepositMethods();
 
     // set view to Trading
     router.setView('trading');
   });
 
   order_manager.addEventListener(bitex.ui.OrderManager.EventType.CANCEL, function(e){
-    bitEx.cancelOrder( undefined, e.order_id );
+    bitEx.cancelOrder( e.client_order_id , e.order_id );
   });
 
   bitEx.addEventListener(bitex.api.BitEx.EventType.EXECUTION_REPORT, function(e){
@@ -499,31 +561,30 @@ bitex.app.bitex = function( url ) {
   bitEx.addEventListener('ob_new_order',  function(e) {
     var msg = e.data;
     var index = msg['MDEntryPositionNo'] - 1;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(5);
     var qty = (msg['MDEntrySize']/1e8).toFixed(8);
     var username = msg['Username'];
+    var broker = msg['Broker'];
     var orderId =  msg['OrderID'];
     var side = msg['MDEntryType'];
 
     if (side == '0') {
       if (index === 0) {
         model.set('formatted_best_bid_brl', price);
-        price_changed(price);
       }
 
-      order_book_bid.insertOrder(index, orderId, price, qty, username );
+      order_book_bid.insertOrder(index, orderId, price, qty, username, broker );
     } else if (side == '1') {
       if (index === 0) {
         model.set('formatted_best_offer_brl', price);
-        price_changed(price);
       }
 
 
-      order_book_offer.insertOrder(index, orderId, price, qty, username );
+      order_book_offer.insertOrder(index, orderId, price, qty, username, broker );
     }
   });
 
-
+  /*
   function price_changed(price) {
     var new_px = price.toString().trim();
     var old_px = goog.dom.getTextContent(goog.dom.getElement('formatted_quote_brl'));
@@ -542,6 +603,7 @@ bitex.app.bitex = function( url ) {
       goog.dom.setTextContent(goog.dom.getElement('formatted_order_total'), total);
     }
   }
+  */
 
   goog.events.listen(goog.dom.getElement('id_order_qty'),goog.events.EventType.BLUR,function(e) {
     var new_px = goog.dom.forms.getValue( goog.dom.getElement("id_price") );
@@ -563,8 +625,8 @@ bitex.app.bitex = function( url ) {
 
   bitEx.addEventListener('trade',  function(e) {
     var msg = e.data;
-    var price =  (msg['MDEntryPx']/1e5).toFixed(5);
-    price_changed(price);
+    var price =  (msg['MDEntryPx']/1e8).toFixed(5);
+    //price_changed(price);
   });
 
   bitEx.addEventListener('balance_response',  function(e) {
@@ -573,7 +635,7 @@ bitex.app.bitex = function( url ) {
     model.set('balance_brl', msg['balance_brl']);
     model.set('balance_btc', msg['balance_btc']);
 
-    var formatted_brl = (msg['balance_brl']/1e5).toFixed(2);
+    var formatted_brl = (msg['balance_brl']/1e8).toFixed(2);
     var formatted_btc = (msg['balance_btc']/1e8).toFixed(8);
     model.set('formatted_balance_brl', formatted_brl);
     model.set('formatted_balance_btc', formatted_btc);
@@ -619,6 +681,7 @@ bitex.app.bitex = function( url ) {
     var email = goog.dom.forms.getValue( goog.dom.getElement("id_signup_email") );
     var password = goog.dom.forms.getValue( goog.dom.getElement("id_signup_password") );
     var password2 = goog.dom.forms.getValue( goog.dom.getElement("id_signup_password2") );
+    var broker = goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement("id_signup_broker")));
 
 
     if (goog.string.isEmpty(username) || !goog.string.isAlphaNumeric(username) ) {
@@ -650,7 +713,7 @@ bitex.app.bitex = function( url ) {
         return;
       }
       goog.events.listenOnce( bitEx, 'opened', function(e){
-        bitEx.signUp(username, password, email);
+        bitEx.signUp(username, password, email, broker);
       });
 
     } else {
@@ -821,60 +884,60 @@ bitex.app.bitex = function( url ) {
 
   });
 
-  var boleto_buttons = goog.dom.getElementsByClass('boleto-options-group');
-  goog.array.forEach( boleto_buttons, function( boleto_button ) {
-    goog.events.listen( boleto_button, 'click', function(e) {
+  var deposit_buttons = goog.dom.getElementsByClass('deposit-methods-group');
+  goog.array.forEach( deposit_buttons, function( deposit_button ) {
+    goog.events.listen( deposit_button, 'click', function(e) {
       e.stopPropagation();
       e.preventDefault();
 
       var element = e.target;
 
-      var value = goog.dom.forms.getValue( goog.dom.getElement("id_boleto_value") );
-      var boleto_id = element.getAttribute('data-boleto-id');
+      var value = goog.dom.forms.getValue( goog.dom.getElement("id_deposit_value") );
+      var deposit_id = element.getAttribute('data-deposit-id');
 
-      if (goog.isDefAndNotNull(boleto_id)) {
+      if (goog.isDefAndNotNull(deposit_id)) {
         if (goog.string.isEmpty(value) || !goog.string.isNumeric(value) || parseInt(value,10) <= 0 ) {
-          alert('Por favor, preencha o valor do boleto a ser gerado');
+          alert('Por favor, preencha o valor do deposit a ser gerado');
           return;
         }
 
-        bitEx.generateBoleto(boleto_id,value);
+        bitEx.generateDeposit(deposit_id,value);
       }
     });
   });
 
-  bitEx.addEventListener( bitex.api.BitEx.EventType.BOLETO_OPTIONS_RESPONSE, function(e) {
+  bitEx.addEventListener( bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, function(e) {
     var msg = e.data;
 
-    //boleto-options-group
-    var boleto_options_group_elements = goog.dom.getElementsByClass('boleto-options-group');
-    goog.array.forEach( boleto_options_group_elements, function( boleto_options_group_element ) {
-      goog.dom.removeChildren(boleto_options_group_element);
-      goog.array.forEach( msg['BoletoOptionGrp'], function(boleto_option) {
-        var boleto_id = boleto_option['BoletoId'];
-        var description = boleto_option['Description'];
+    //deposit-methods-group
+    var deposit_methods_group_elements = goog.dom.getElementsByClass('deposit-methods-group');
+    goog.array.forEach( deposit_methods_group_elements, function( deposit_methods_group_element ) {
+      goog.dom.removeChildren(deposit_methods_group_element);
+      goog.array.forEach( msg['DepositMethodGrp'], function(deposit_method) {
+        var deposit_method_id = deposit_method['DepositMethodGrp'];
+        var description = deposit_method['Description'];
 
-        var boleto_btn_attributes = {
-          "data-boleto-id": boleto_id,
-          "class" : "btn btn-primary btn-boleto"
+        var deposit_btn_attributes = {
+          "data-deposit-id": deposit_method_id,
+          "class" : "btn btn-primary btn-deposit"
         };
-        var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, boleto_btn_attributes, description  );
+        var buttonElement = goog.dom.createDom( goog.dom.TagName.BUTTON, deposit_btn_attributes, description  );
 
-        goog.dom.appendChild(boleto_options_group_element, buttonElement);
+        goog.dom.appendChild(deposit_methods_group_element, buttonElement);
       });
 
     });
 
   });
 
-  bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_BOLETO_RESPONSE, function(e) {
+  bitEx.addEventListener( bitex.api.BitEx.EventType.GENERATE_DEPOSIT_RESPONSE, function(e) {
     var msg = e.data;
 
     var dlg = new bootstrap.Dialog();
-    dlg.setTitle('Boleto');
-    dlg.setContent('<a  target="_blank" href="/print_boleto?boleto_id=' +  msg['BoletoId']
-             + '" class="btn btn-primary">Imprimir boleto</a> ou fazer <a href="/print_boleto?download=1&boleto_id='
-             +  msg['BoletoId'] + '">download do boleto</a> em seu computador');
+    dlg.setTitle('Deposit');
+    dlg.setContent('<a  target="_blank" href="/print_deposit?deposit_id=' +  msg['DepositID']
+             + '" class="btn btn-primary">Imprimir deposit</a> ou fazer <a href="/print_deposit?download=1&deposit_id='
+             +  msg['DepositID'] + '">download do deposit</a> em seu computador');
 
     dlg.setButtonSet( goog.ui.Dialog.ButtonSet.createOk());
     dlg.setVisible(true);

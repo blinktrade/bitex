@@ -1,6 +1,8 @@
 goog.provide('bitex.model.Model');
 goog.provide('bitex.model.Model.EventType');
 goog.provide('bitex.model.ModelEvent');
+goog.provide('bitex.model.OrderBookCurrencyModel');
+goog.provide('bitex.model.OrderBookInstrumentModel');
 
 
 goog.require('goog.structs.Map');
@@ -10,6 +12,18 @@ goog.require('goog.dom');
 
 goog.require('goog.Timer');
 goog.require('goog.dom.classes');
+
+
+/**
+ * @typedef {{ code:String, format:String, description:String, sign:String, pip:number, is_crypto:Boolean  }}
+ */
+bitex.model.OrderBookCurrencyModel;
+
+/**
+ * @typedef {{ symbol:String, currency:String, description:String }}
+ */
+bitex.model.OrderBookInstrumentModel;
+
 
 /**
  * @param {Element} element
@@ -64,6 +78,20 @@ bitex.model.Model.prototype.get = function(key, opt_val) {
   return this.map_.get(key, opt_val);
 };
 
+
+bitex.model.Model.prototype.updateDom = function() {
+
+  var elements = goog.dom.getElementsByClass('bitex-model', this.element_);
+
+  goog.array.forEach( elements, function(el) {
+    var model_key = el.getAttribute('data-model-key');
+    if (goog.isDefAndNotNull(model_key)) {
+      var current_value = goog.dom.getTextContent(el);
+      goog.dom.setTextContent( el, current_value );
+    }
+  });
+};
+
 /**
  * Adds a key-value pair to the map.
  * @param {*} key The key.
@@ -72,9 +100,7 @@ bitex.model.Model.prototype.get = function(key, opt_val) {
 bitex.model.Model.prototype.set = function(key, value) {
   this.map_.set(key, value);
 
-
   var elements = goog.dom.getElementsByClass('bitex-model', this.element_);
-
   goog.array.forEach( elements, function(el) {
     var model_key = el.getAttribute('data-model-key');
     if (model_key === key) {
@@ -96,7 +122,6 @@ bitex.model.Model.prototype.set = function(key, value) {
           }, blink_delay , this);
 
         }
-
       }
     }
   });

@@ -11,6 +11,67 @@ goog.require('goog.dom.TagName');
 
 
 /**
+ * @desc Column ID of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID = goog.getMsg('ID');
+
+/**
+ * @desc Column Status of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS = goog.getMsg('Status');
+
+/**
+ * @desc Column Side of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE = goog.getMsg('Side');
+
+/**
+ * @desc Column Qty of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_QTY = goog.getMsg('Qty');
+
+/**
+ * @desc Column Price of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_PRICE = goog.getMsg('Price');
+
+/**
+ * @desc Column  Leaves Qty of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_LEAVES_QTY = goog.getMsg('Leaves Qty');
+
+/**
+ * @desc Column  Cum Qty of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_CUM_QTY = goog.getMsg('Cum Qty');
+
+/**
+ * @desc Column Average Price of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_AVG_PX = goog.getMsg('Average Price');
+
+
+/**
+ * @desc Column Order Date of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ORDER_DATE = goog.getMsg('Date/Time');
+
+/**
+ * @desc Column Actions of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME = goog.getMsg('Actions');
+
+/**
+ * @desc Column Buy Side of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_BUY = goog.getMsg('Buy');
+
+/**
+ * @desc Column Sell Side of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_SELL = goog.getMsg('Sell');
+
+/**
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
@@ -20,64 +81,70 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
   var grid_columns = [
     {
       'property': 'OrderID',
-      'label': 'ID',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-id'); }
     },{
       'property': 'OrdStatus',
-      'label': 'Status',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS,
       'sortable': false,
       'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'status'); }
     },{
       'property': 'Side',
-      'label': 'C/V',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE,
       'sortable': false,
       'formatter': function(s){
         switch(s){
-          case '1': return 'C';
-          case '2': return 'V';
+          case '1': return MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_BUY;
+          case '2': return MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_SELL;
         }
         return '';
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'side'); }
     },{
       'property': 'OrderQty',
-      'label': 'Vol. BTC',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_QTY,
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-qty'); }
     },{
       'property': 'Price',
-      'label': 'Preço R$',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_PRICE,
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'price'); }
     },{
       'property': 'LeavesQty',
-      'label': 'BTC em aberto',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_LEAVES_QTY,
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'leaves_qty'); }
     },{
       'property': 'CumQty',
-      'label': 'BTC executado',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_CUM_QTY,
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'cum-qty'); }
     },{
       'property': 'AvgPx',
-      'label': 'Preço médio',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_AVG_PX,
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'ClOrdID',
-      'label': 'Ações',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME,
       'sortable': false,
       'formatter': function(id, row_set_obj){
         var classes = "icon-remove";
-        var i =goog.dom.createDom( 'i', { 'class':classes, 'data-order-id':row_set_obj["OrderID"] });
+        var attributes = { 'class':classes, 'data-client-order-id': id } ;
+
+        if ( goog.isDefAndNotNull(row_set_obj) ) {
+          attributes['data-order-id'] = row_set_obj["OrderID"];
+        }
+
+        var i =goog.dom.createDom( 'i', attributes );
         return goog.dom.createDom( 'a', { 'class':"text-error", "href":"#" }, i);
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
@@ -90,15 +157,41 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
 };
 goog.inherits(bitex.ui.OrderManager, bitex.ui.DataGrid);
 
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_PENDING = goog.getMsg('Pending');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_NEW = goog.getMsg('New');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_PARTIALL_FILL = goog.getMsg('Partially filled');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_FILL = goog.getMsg('Filled');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_CXL = goog.getMsg('Cancelled');
+
 /**
  * @enum {string}
  */
 bitex.ui.OrderManager.Status = {
-  '-': 'pendente',
-  '0': 'nova',
-  '1': 'exec. parcial',
-  '2': 'executada',
-  '4': 'cancelada'
+  '-': MSG_ORDER_MANAGER_STATUS_PENDING,
+  '0': MSG_ORDER_MANAGER_STATUS_NEW,
+  '1': MSG_ORDER_MANAGER_STATUS_PARTIALL_FILL,
+  '2': MSG_ORDER_MANAGER_STATUS_FILL,
+  '4': MSG_ORDER_MANAGER_STATUS_CXL
 };
 
 /**
@@ -174,10 +267,10 @@ bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_repo
 
   if (goog.isDefAndNotNull(tr_element)) {
     goog.object.forEach(execution_report_msg, function(value,column, obj) {
-      var td_element = this.setColumnValue( tr_element, column, value );
+      var td_element = this.setColumnValue( tr_element, column, value  );
       if (goog.isDefAndNotNull( td_element)) {
 
-        var blink_class = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
+        var blink_class = 'warning'; //goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
         goog.dom.classes.add( td_element,  blink_class );
         goog.Timer.callOnce( function(){
           goog.dom.classes.remove( td_element,  blink_class );
@@ -257,10 +350,10 @@ bitex.ui.OrderManager.prototype.insertOrder = function(clientOrderId,
 
   // Let's update the order
   orderQty   = (orderQty/1e8).toFixed(8);
-  price      = (price/1e5).toFixed(5);
+  price      = (price/1e8).toFixed(5);
   leavesQty  = (leavesQty/1e8).toFixed(8);
   var cumQty = (opt_cumQty|0/1e8).toFixed(8);
-  var avgPx  = (opt_avgPrice|0/1e5).toFixed(5);
+  var avgPx  = (opt_avgPrice|0/1e8).toFixed(5);
   var orderId = opt_orderId|'';
 
   var status_desc = bitex.ui.OrderManager.Status[status];
@@ -295,6 +388,9 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
     var order_id = e.target.getAttribute('data-order-id');
     if (goog.isDefAndNotNull(order_id)) {
       this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, order_id) );
+    } else {
+      var client_order_id = e.target.getAttribute('data-client-order-id');
+      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, undefined, client_order_id) );
     }
   });
 };
@@ -303,17 +399,24 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
 /**
  *
  * @param {string} type
- * @param {string} order_id
+ * @param {=string} opt_order_id
+ * @param {=string} opt_client_order_id
  * @extends {goog.events.Event}
  * @constructor
  */
-bitex.ui.OrderManagerEvent = function(type, order_id) {
+bitex.ui.OrderManagerEvent = function(type, opt_order_id, opt_client_order_id) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
-  this.order_id = order_id;
+  this.order_id = opt_order_id;
+
+  /**
+   * @type {string}
+   */
+  this.client_order_id = opt_client_order_id;
+
 };
 goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);
 
