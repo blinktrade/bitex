@@ -125,6 +125,7 @@ bitex.api.BitEx.EventType = {
   BROKER_LIST_RESPONSE: 'broker_list',
   CUSTOMER_LIST_RESPONSE: 'customer_list',
   CUSTOMER_DETAIL_RESPONSE: 'customer_detail',
+  VERIFY_CUSTOMER_RESPONSE: 'verify_customer_response',
 
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
@@ -388,6 +389,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_WITHDRAW_RESPONSE, msg ) );
       break;
 
+    case 'B9': // Verification Customer Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE + '.' + msg['VerifyCustomerReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE, msg ) );
+      break;
 
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
@@ -771,6 +776,26 @@ bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clien
   return requestId;
 };
 
+
+/**
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number} clientId
+ * @param {boolean} verify
+ * @param {string} verificationData
+ */
+bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, verify, verificationData){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'B8',
+    'VerifyCustomerReqID': requestId,
+    'ClientID': clientId,
+    'Verify':  verify ? 1:0,
+    'VerificationData': verificationData
+  };
+  this.sendMessage(msg);
+  return requestId;
+};
 
 /**
  * @param {number=} opt_requestId. Defaults to random generated number
@@ -1231,6 +1256,8 @@ goog.exportProperty(BitEx.prototype, 'confirmWithdraw', bitex.api.BitEx.prototyp
 
 goog.exportProperty(BitEx.prototype, 'requestCustomerList', bitex.api.BitEx.prototype.requestCustomerList);
 goog.exportProperty(BitEx.prototype, 'requestCustomerDetails', bitex.api.BitEx.prototype.requestCustomerDetails);
+goog.exportProperty(BitEx.prototype, 'verifyCustomer', bitex.api.BitEx.prototype.verifyCustomer);
+
 
 goog.exportProperty(BitEx.prototype, 'requestBrokerList', bitex.api.BitEx.prototype.requestBrokerList );
 

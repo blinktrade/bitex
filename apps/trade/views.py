@@ -726,7 +726,7 @@ def processCustomerListRequest(session, msg):
 
   result_set = []
   columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,
-              'Created'         , 'LastLogin'      , 'Verified'          , 'TwoFactorEnabled' ]
+              'Created'         , 'LastLogin'      , 'Verified'          , 'VerificationData'   , 'TwoFactorEnabled' ]
 
   for entity in user_list:
     result_set.append( [
@@ -738,6 +738,7 @@ def processCustomerListRequest(session, msg):
       entity.created              ,
       entity.last_login           ,
       entity.verified             ,
+      entity.verification_data    ,
       entity.two_factor_enabled
     ])
 
@@ -776,6 +777,31 @@ def processCustomerDetailRequest(session, msg):
     'MsgType'           : 'B5',
     'CustomerReqID'     : msg.get('CustomerReqID'),
     'Username'          : client.username
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+
+
+@login_required
+@broker_user_required
+def processVerifyCustomer(session, msg):
+  client = User.get_user( application.db_session, user_id= msg.get('ClientID') )
+  if not client:
+    raise NotAuthorizedError()
+
+  if client.broker_id != session.user.id:
+    raise NotAuthorizedError()
+
+  verified = client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
+  application.db_session.commit()
+
+  response_msg = {
+    'MsgType'             : 'B9',
+    'VerifyCustomerReqID' : msg.get('VerifyCustomerReqID'),
+    'ClientID'            : msg.get('ClientID'),
+    'Username'            : client.username,
+    'Verified'            : verified,
+    'VerificationData'    : msg.get('VerificationData')
   }
   return json.dumps(response_msg, cls=JsonEncoder)
 

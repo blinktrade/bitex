@@ -507,9 +507,21 @@
 /**
   * @param msg_customer_detail
   */
+{template .AccountOverviewHeaderVerifiedData}
+ {if $msg_customer_detail['Verified']}
+    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span> {$msg_customer_detail['VerificationData']}
+ {else}
+    <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span> <a
+      href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>
+ {/if}
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
 {template .AccountOverviewHeader}
   <h4>{msg desc="Details sub title for the account overview view"}Details{/msg}</h4>
-  <table class="table table-striped" style="width: 350px">
+  <table class="table table-striped account-overview-table" style="width: 350px">
     <tbody>
       <tr>
         <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
@@ -537,7 +549,11 @@
       </tr>
       <tr>
          <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
-         <td>{$msg_customer_detail['Verified']}</td>
+         <td class="account-overview-val account-overview-verified">
+          {call .AccountOverviewHeaderVerifiedData}
+            {param msg_customer_detail: $msg_customer_detail /}
+          {/call}
+         </td>
       </tr>
       <tr>
          <td><strong>{msg desc="label on  overview header"}Has two step authentication{/msg}</strong></td>
@@ -549,6 +565,22 @@
       </tr>
     </tbody>
   </table>
+{/template}
+
+
+/**
+  * @param clientID
+  */
+{template .EnterVerificationDataDialogContent}
+  <form class="form-horizontal" data-deposit-status="prepare">
+    <input type="hidden" name="ClientID" value="{$clientID}">
+    <div class="control-group">
+      <label class="control-label"> {msg desc="label on  overview header"}Verification data{/msg} </label>
+      <div class="controls">
+        <input type="text" class="input-xlarge" size="16" name="VerificationData">
+      </div>
+    </div>
+  </form>
 {/template}
 
 /**

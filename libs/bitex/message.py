@@ -159,9 +159,11 @@ class JsonMessage(BaseMessage):
       'B3':  'CustomerListResponse',
       'B4':  'CustomerRequest',
       'B5':  'CustomerResponse',
-
       'B6':  'ProcessWithdraw',
       'B7':  'ProcessWithdrawResponse',
+
+      'B8':  'VerifyCustomerRequest',
+      'B9':  'VerifyCustomerResponse',
 
       # Administrative messages
       'A0':  'DbQueryRequest',
@@ -442,6 +444,27 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_greater_than_zero('WithdrawID')
 
       self.raise_exception_if_required_tag_is_missing('Status')
+
+    elif self.type == 'B8': # Verify Customer Request
+      self.raise_exception_if_required_tag_is_missing('VerifyCustomerReqID')
+      self.raise_exception_if_required_tag_is_missing('ClientID')
+      self.raise_exception_if_required_tag_is_missing('Verify')
+      self.raise_exception_if_required_tag_is_missing('VerificationData')
+
+      self.raise_exception_if_not_a_integer('VerifyCustomerReqID')
+      self.raise_exception_if_not_greater_than_zero('VerifyCustomerReqID')
+
+      self.raise_exception_if_not_a_integer('Verify')
+      self.raise_exception_if_not_in('Verify', [0,1])
+
+      self.raise_exception_if_not_a_integer('ClientID')
+      self.raise_exception_if_not_greater_than_zero('ClientID')
+
+      self.raise_exception_if_empty('VerificationData')
+
+
+    elif self.type == 'B9': # Verify Customer Response
+      self.raise_exception_if_required_tag_is_missing('VerifyCustomerReqID')
 
 
   def has(self, attr):

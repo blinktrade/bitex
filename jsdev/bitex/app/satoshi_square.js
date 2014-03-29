@@ -509,6 +509,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(this.views_, bitex.view.View.EventType.SHOW_QR, this.onUserShowQr_);
   handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
+  handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_ );
 
   this.connectBitEx();
 };
@@ -935,6 +936,18 @@ bitex.app.SatoshiSquare.prototype.onUserConfirmWithdraw_ = function(e){
   this.conn_.confirmWithdraw(e.target.getConfirmationToken());
 };
 
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onBrokerSetUserAsVerified_ = function(e){
+  var request_id = e.target.getRequestId();
+  var client_id = e.target.getClientID();
+  var verification_data = e.target.getVerificationData();
+
+  this.conn_.verifyCustomer(request_id, client_id, true, verification_data );
+};
 
 /**
  * @param {goog.events.Event} e

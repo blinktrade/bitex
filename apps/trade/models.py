@@ -135,17 +135,18 @@ class User(Base):
   username        = Column(String(15), nullable=False, index=True, unique=True )
   email           = Column(String(75), nullable=False, index=True, unique=True)
 
-  broker_id       = Column(Integer, ForeignKey('users.id'))
+  broker_id       = Column(Integer, ForeignKey('users.id'), index=True )
   broker          = relationship("User", remote_side=[id])
 
-  state           = Column(String(30))
-  country_code    = Column(String(2),     nullable=False)
+  state           = Column(String(30), index=True )
+  country_code    = Column(String(2),     nullable=False, index=True)
 
   password_algo   = Column(String(8), nullable=False)
   password_salt   = Column(String(128), nullable=False)
   password        = Column(String(128), nullable=False)
 
-  verified        = Column(Integer, nullable=False, default=0)
+  verified        = Column(Integer, nullable=False, default=0, index=True)
+  verification_data = Column(String(255), index=True )
   is_staff        = Column(Boolean, nullable=False, default=False)
   is_system       = Column(Boolean, nullable=False, default=False)
   is_broker       = Column(Boolean, nullable=False, default=False)
@@ -161,11 +162,11 @@ class User(Base):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
            u" password_algo=%r, password_salt=%r, password=%r,"\
            u" state=%r, country_code=%r, "\
-           u" verified=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, last_login=%r )>" \
+           u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, last_login=%r )>" \
           % (self.id, self.username, self.email, self.broker_id,
              self.password_algo, self.password_salt, self.password,
              self.state, self.country_code,
-             self.verified, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login)
+             self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login)
 
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
@@ -175,6 +176,7 @@ class User(Base):
   @property
   def account_id(self):
     return self.id
+
 
   def set_password(self, raw_password):
     import random
@@ -264,92 +266,18 @@ class User(Base):
   def request_reset_password(self, session):
     UserPasswordReset.create( session, self.id )
 
-  def deposit(self, session, currency, amount, origin):
-    deposit = Deposit( user_id=self.id,
-                       account_id=self.account_id,
-                       currency=currency.upper(),
-                       amount=amount,
-                       origin=origin,
-                       status=2)
-    session.add(deposit)
+  def set_verified(self, session, verified, verification_data = None ):
+    if self.verified != verified:
+      self.verified = verified
 
-    Balance.update_balance(session, 'CREDIT', self.account_id, self.broker_id, currency, amount)
-    deposit.status = '2'
+      if verification_data:
+        self.verification_data = verification_data
 
-    session.flush()
+      session.add(self)
+      session.flush()
 
-    formatted_amount = Currency.format_number( session, currency, amount / 1.e8 )
-
-    msg = u"Depósito de " + formatted_amount + u" realizado em sua conta."
-    UserEmail.create( session = session,
-                      user_id = self.id,
-                      subject = msg )
-
-    return deposit
-
-  def withdraw_btc(self, session, amount, wallet):
-    obsolete_code = """
-    if self.daily_withdraw_btc < self.daily_withdraw_btc_limit:
-      if not self.last_withdraw_btc:
-        self.last_withdraw_btc = datetime.datetime.now()
-
-      if self.last_withdraw_btc.date() == datetime.datetime.now().date():
-        self.daily_withdraw_btc += amount
-      else:
-        self.last_withdraw_btc = datetime.datetime.now()
-        self.daily_withdraw_btc = amount
-
-    session.flush()
-
-    # Check if the user has exceed his daily limit for the hot wallet
-    if self.daily_withdraw_btc < self.daily_withdraw_btc_limit:
-      # Initiate the BTC transfer
-      btc_hot_wallet_transfer_msg = {
-        'MsgType'     : 'U10',
-        'TransferId'  : withdraw_btc.id,
-        'to'          : wallet,
-        'amount'      : amount,
-        'when'        : withdraw_btc.created
-      }
-
-      application.publish( self.id, btc_hot_wallet_transfer_msg )
-
-    """
-
-  def withdraw_brl(self, session, amount, bank_number,bank_name,account_name,
-                   account_number,account_branch,cpf_cnpj ):
-
-    obsolete_code = """
-    UserEmail.create( session = session,
-                      user_id = self.id,
-                      subject = u"Registrado pedido de saque de R$ número %r." % withdraw_brl.id )
-
-    if self.daily_withdraw_brl < self.daily_withdraw_brl_limit:
-      if not self.last_withdraw_brl:
-        self.last_withdraw_brl = datetime.datetime.now()
-
-      if self.last_withdraw_brl.date() == datetime.datetime.now().date():
-        self.daily_withdraw_brl += amount
-      else:
-        self.last_withdraw_brl = datetime.datetime.now()
-        self.daily_withdraw_brl = amount
-
-    session.flush()
-
-    # Check if the user has exceed his daily limit for the hot wallet
-    if self.daily_withdraw_brl < self.daily_withdraw_brl_limit:
-      # Initiate the BTC transfer
-      brl_bank_transfer_msg = {
-        'MsgType'     : 'U10',
-        'TransferId'  : withdraw_brl.id,
-        'to'          : account_number,
-        'amount'      : amount,
-        'when'        : withdraw_brl.created
-      }
-
-      application.publish( self.id, brl_bank_transfer_msg )
-
-    """
+      return True
+    return False
 
 class Balance(Base):
   __tablename__         = 'balances'

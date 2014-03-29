@@ -44,8 +44,9 @@ bitex.view.View.EventType = {
   PROCESS_DEPOSIT: 'process_deposit',
 
   SHOW_QR: 'show_qr',
-  UPLOAD_RECEIPT: 'upload_receipt'
+  UPLOAD_RECEIPT: 'upload_receipt',
 
+  SET_VERIFIED: 'set_verified'
 };
 
 

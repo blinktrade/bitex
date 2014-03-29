@@ -71,6 +71,17 @@ bitex.view.AccountOverview.prototype.qr_data_;
 bitex.view.AccountOverview.prototype.qr_data_verb_;
 
 /**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.client_id_;
+
+/**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.verification_data_;
+
+
+/**
  * @param {string} username
  */
 bitex.view.AccountOverview.prototype.enterView = function(username) {
@@ -179,7 +190,17 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
     this.withdraw_list_table_.dispose();
   }
 
+
   var account_overview_header_el = goog.dom.getElement('account_overview_header_id');
+  handler.unlisten(account_overview_header_el,
+                   goog.events.EventType.CLICK,
+                   this.onAccountOverviewHeaderClick_ );
+
+  handler.unlisten(this.getApplication().getBitexConnection(),
+                   bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE + '.' + this.request_id_,
+                   this.onVerifyCustomerResponse_);
+
+
   goog.dom.removeChildren(account_overview_header_el);
 
   this.withdraw_list_table_ = null;
@@ -288,6 +309,14 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
                  goog.events.EventType.CLICK,
                  this.onWithdrawListTableClick_);
 
+  handler.listen(account_overview_header_el,
+                 goog.events.EventType.CLICK,
+                 this.onAccountOverviewHeaderClick_ );
+
+  handler.listen(this.getApplication().getBitexConnection(),
+                 bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE + '.' + this.request_id_,
+                 this.onVerifyCustomerResponse_);
+
   this.getApplication().getBitexConnection().requestBalances( customer['ID'] );
 };
 
@@ -322,10 +351,26 @@ bitex.view.AccountOverview.prototype.getQrData = function() {
 };
 
 /**
- * @return {Object}
+ * @return {String}
  */
 bitex.view.AccountOverview.prototype.getQrDataVerb = function() {
   return this.qr_data_verb_;
+};
+
+
+/**
+ * @return {String}
+ */
+bitex.view.AccountOverview.prototype.getClientID = function() {
+  return this.client_id_;
+};
+
+
+/**
+ * @return {String}
+ */
+bitex.view.AccountOverview.prototype.getVerificationData = function() {
+  return this.verification_data_;
 };
 
 
@@ -387,6 +432,72 @@ bitex.view.AccountOverview.prototype.onDepositListResponse_ = function(e) {
 };
 
 
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.AccountOverview.prototype.onVerifyCustomerResponse_ = function(e) {
+  var msg = e.data;
+
+  var new_verified_data_el = soy.renderAsElement( bitex.templates.AccountOverviewHeaderVerifiedData,
+                                                  {msg_customer_detail: msg } );
+
+  var verified_data_el = goog.dom.getElementByClass('account-overview-verified',
+                                                 goog.dom.getElement('account_overview_header_id') );
+
+  goog.dom.removeChildren(verified_data_el);
+  goog.dom.appendChild(verified_data_el, new_verified_data_el);
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e) {
+  var element = e.target;
+  if (element.tagName  === goog.dom.TagName.I ) {
+    element = goog.dom.getParentElement(element);
+  }
+  var data_action = element.getAttribute('data-action');
+  if (goog.isDefAndNotNull(data_action)) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var handler = this.getHandler();
+
+    switch( data_action ) {
+      case 'SET_VERIFIED':
+        var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+        /** @desc Verification Data Dialog content title */
+        var MSG_VERIFICATION_DATA_DIALOG_TITLE = goog.getMsg('Enter verification data');
+
+        var dlg_content = bitex.templates.EnterVerificationDataDialogContent({clientID: selectedCustomer['ID'] });
+
+        var dlg = this.getApplication().showDialog(dlg_content,
+                                                   MSG_VERIFICATION_DATA_DIALOG_TITLE,
+                                                   bootstrap.Dialog.ButtonSet.createOkCancel());
+        handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+          if (e.key == 'ok') {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var verification_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+            console.log(goog.debug.deepExpose(verification_data));
+
+            if ( goog.isDefAndNotNull(verification_data['VerificationData']) &&
+                !goog.string.isEmpty(verification_data['VerificationData']) ) {
+              this.client_id_ =  goog.string.toNumber(verification_data['ClientID']);
+              this.verification_data_ = verification_data['VerificationData'];
+              this.dispatchEvent(bitex.view.View.EventType.SET_VERIFIED);
+
+              dlg.dispose();
+            }
+          }
+        });
+
+
+        break;
+    }
+  }
+};
 
 /**
  * @param {goog.events.Event} e
