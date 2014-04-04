@@ -686,22 +686,8 @@ bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
         volume = volume / 1e8;
 
         var volume_key = 'volume_' +  currency.toLowerCase();
-        //var min_key = 'min_' +  currency.toLowerCase();
-        //var max_key = 'max_' +  currency.toLowerCase();
-        //var avg_key = 'avg_' +  currency.toLowerCase();
-        //var bid_key = 'best_bid_' +  currency.toLowerCase();
-        //var offer_key = 'best_offer_' +  currency.toLowerCase();
-        //var last_price = 'last_price_' +  currency.toLowerCase();
-
         app.model_.set( volume_key , volume );
         app.model_.set('formatted_' + volume_key, app.formatCurrency(volume, currency));
-
-        //app.model_.set('formatted_' + min_key, app.formatCurrency(0, currency));
-        //app.model_.set('formatted_' + max_key, app.formatCurrency(0, currency));
-        //app.model_.set('formatted_' + avg_key, app.formatCurrency(0, currency));
-        //app.model_.set('formatted_' + bid_key, app.formatCurrency(0, currency));
-        //app.model_.set('formatted_' + offer_key, app.formatCurrency(0, currency));
-        //app.model_.set('formatted_' + last_price, app.formatCurrency(0, currency));
       });
     } catch(str) {}
 };
@@ -1680,6 +1666,23 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
     var balance_key = 'balance_' +  currency['Code'];
     this.model_.set( balance_key , 0 );
     this.model_.set('formatted_' + balance_key, this.formatCurrency(0, currency['Code']));
+
+    var currency_key = currency['Code'].toLowerCase();
+    var volume_key = 'volume_' +  currency_key;
+    var min_key = 'min_' +  currency_key;
+    var max_key = 'max_' +  currency_key;
+    var avg_key = 'avg_' +  currency_key;
+    var bid_key = 'best_bid_' +  currency_key;
+    var offer_key = 'best_offer_' +  currency_key;
+    var last_price = 'last_price_' +  currency_key;
+
+    this.model_.set('formatted_' + volume_key, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + min_key, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + max_key, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + avg_key, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + bid_key, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + offer_key, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + last_price, this.formatCurrency(0, currency['Code']));
   }, this);
 
   var symbols = [];
