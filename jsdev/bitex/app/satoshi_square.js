@@ -83,7 +83,6 @@ bitex.app.SatoshiSquare = function() {
     this.model_   = new bitex.model.Model(document.body);
     this.conn_    = new bitex.api.BitEx();
     this.views_   = new goog.ui.Component();
-    this.last_trades = new bitex.ui.LastTrades();
     this.pricemin_ = 0;
     this.pricemax_ = 0;
   } catch ( error) {
@@ -364,12 +363,12 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var withdrawView        = new bitex.view.WithdrawView(this);
   var customersView       = new bitex.view.CustomersView(this);
   var accountOverviewView = new bitex.view.AccountOverview(this);
-  var sideBarView         = new bitex.view.SideBarView(this);
   var brokerView          = new bitex.view.BrokerView(this);
   var marketView          = new bitex.view.MarketView(this);
   var tradingView         = new bitex.view.NullView(this);
-
   var toolBarView         = new bitex.view.ToolBarView(this);
+  var sideBarView         = new bitex.view.SideBarView(this);
+
 
   this.views_.addChild( toolBarView         );
   this.views_.addChild( sideBarView         );
@@ -456,8 +455,6 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
 
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADE_CLEAR, goog.bind(  this.onBitexTradesClear_, this ) );
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADE, goog.bind(  this.onBitexTrade_, this ) );
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, goog.bind(  this.onBitexTradingSessionStatus_, this ) );
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, goog.bind(  this.onBitexOrderBookNewOrder_, this ) );
@@ -607,46 +604,6 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 
 };
 
-bitex.app.SatoshiSquare.prototype.onBitexTradesClear_ = function(e) {
-  this.last_trades.clear();
-}
-
-bitex.app.SatoshiSquare.prototype.onBitexTrade_ = function(e) {
-    var msg = e.data;
-    
-    var price =  (msg['MDEntryPx']/1e8);
-    var size =  (msg['MDEntrySize']/1e8);
-
-    // Workaround for satoshi square USD market
-    var symbol = msg['Symbol'];
-    var price_currency  = symbol.substr(3,3);
-    var size_currency   = symbol.substr(0,3);
-
-    this.last_trades.publishTrade(msg['MDEntryDate'],
-                             msg['MDEntryTime'],
-                             symbol,
-                             msg['Side'],
-                             this.formatCurrency(price, price_currency),
-                             this.formatCurrency(size, size_currency),
-                             msg['MDEntryBuyer'],
-                             msg['MDEntrySeller'] );
-
-
-    var last_price_key = 'last_price_' +  price_currency.toLowerCase();
-    this.model_.set('formatted_' + last_price_key, this.formatCurrency(price, price_currency));
-
-    if (( this.pricemin_ == 0 ) || ( price < this.pricemin_ )) {
-      var min_key = 'min_' +  price_currency.toLowerCase();
-      this.model_.set('formatted_' + min_key, this.formatCurrency(price, price_currency));
-      this.pricemin_ = price;
-    }
-
-    if (( this.pricemax_ == 0 ) || ( price > this.pricemax_ )) {
-      var max_key = 'max_' +  price_currency.toLowerCase();
-      this.model_.set('formatted_' + max_key, this.formatCurrency(price, price_currency));
-      this.pricemax_ = price;
-    }
-}
 
 bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
     var msg = e.data;
@@ -1676,6 +1633,7 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
     var offer_key = 'best_offer_' +  currency_key;
     var last_price = 'last_price_' +  currency_key;
 
+console.log(this);
     this.model_.set('formatted_' + volume_key, this.formatCurrency(0, currency['Code']));
     this.model_.set('formatted_' + min_key, this.formatCurrency(0, currency['Code']));
     this.model_.set('formatted_' + max_key, this.formatCurrency(0, currency['Code']));
@@ -1698,16 +1656,6 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
   }, this );
 
   this.model_.set('SecurityList', msg);
-
-  if (goog.isDefAndNotNull(this.subscription)) {
-    this.conn_.unSubscribeMarketData(this.subscription);
-  }
-
-  this.subscription = this.conn_.subscribeMarketData(0,
-                                 symbols,
-                                 ['4','1','2'] );
-
-  this.last_trades.decorate( goog.dom.getElement('last_trades_id') );
 };
 
 /**

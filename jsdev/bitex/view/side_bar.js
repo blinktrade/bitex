@@ -25,6 +25,7 @@ bitex.view.SideBarView.EventType = {
 };
 
 bitex.view.SideBarView.prototype.enterDocument = function() {
+
   goog.base(this, 'enterDocument');
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
@@ -50,6 +51,8 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
       var el = goog.dom.createDom('option', {'value': instrument['Symbol'] }, instrument['Description']);
       goog.dom.appendChild( goog.dom.getElement('id_instrument_1'), el );
     }, this);
+
+    this.dispatchEvent(bitex.view.SideBarView.EventType.CHANGE_MARKET);
   },this);
 
 
@@ -76,3 +79,4 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
 bitex.view.SideBarView.prototype.getSymbol = function() {
   return goog.dom.forms.getValue(goog.dom.getElement('id_instrument_1') );
 };
+

@@ -182,8 +182,8 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
 
-
   handler.listen( model,  bitex.model.Model.EventType.SET + 'SelectedSymbol', function(e) {
+
     var selected_symbol = model.get('SelectedSymbol');
     var symbol = selected_symbol.symbol;
 
@@ -191,12 +191,20 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
     var sell_order_entry = this.getChildAt(1);
 
     buy_order_entry.setSymbol(symbol);
-    buy_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
-    buy_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+    if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
+      buy_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
+    }
+    if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
+      buy_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+    }
 
     sell_order_entry.setSymbol(symbol);
-    sell_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
-    sell_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+    if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
+      sell_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
+    }
+    if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
+      sell_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+    }
 
     var market = null;
     if (goog.isDefAndNotNull(model.get('AllowedMarkets'))) {
@@ -210,6 +218,8 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
     sell_order_entry.setBrokerMode(model.get('IsBroker'));
 
     this.recreateOrderBookComponents_(selected_symbol);
+
+
   }, this);
 };
 
