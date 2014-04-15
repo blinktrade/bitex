@@ -76,9 +76,6 @@ class Session(object):
     elif msg.type == 'U30': # Deposit List Request
       return  processDepositListRequest(self, msg)
 
-    elif msg.type == 'U32': # Trade History Request
-      return  processTradeHistoryRequest(self, msg)
-
     elif msg.type == 'B0':  # Deposit Payment Confirmation
       return processProcessDeposit(self, msg)
 

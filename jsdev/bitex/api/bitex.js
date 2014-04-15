@@ -124,7 +124,6 @@ bitex.api.BitEx.EventType = {
   /* Trade History */
   TRADE_HISTORY: 'trade_history',
   TRADE_HISTORY_RESPONSE: 'trade_history_response',
-  TRADE_HISTORY_REFRESH: 'trade_history_refresh',
 
   /* Brokers */
   BROKER_LIST_RESPONSE: 'broker_list',

@@ -1478,10 +1478,14 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
       case 'signin':
       case 'signup':
       case 'tos':
-      case 'market':
       case 'forgot_password':
       case 'set_new_password':
         break;
+      case 'market':
+        if ( !this.conn_.isConnected() )
+          this.router_.setView('start');
+        break;
+
       default:
         // redirect non-logged users to the signin page
         this.router_.setView('start');

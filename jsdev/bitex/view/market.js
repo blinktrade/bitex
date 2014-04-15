@@ -49,11 +49,6 @@ bitex.view.MarketView.prototype.enterView = function() {
                  bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE + '.' + this.market_data_subscription_id_,
                  this.onTradeHistoryReponse_);
 
-  handler.listen(this.getApplication().getBitexConnection(),
-                 bitex.api.BitEx.EventType.TRADE_HISTORY_REFRESH + '.' + this.market_data_subscription_id_,
-                 this.onTradeHistoryRefresh_);
-
-
   this.last_trades_table_.decorate(el);
 };
 
@@ -68,11 +63,6 @@ bitex.view.MarketView.prototype.exitView = function() {
     handler.unlisten(this.getApplication().getBitexConnection(),
                      bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE + '.' + this.market_data_subscription_id_,
                      this.onTradeHistoryReponse_);
-
-
-    handler.unlisten(this.getApplication().getBitexConnection(),
-                     bitex.api.BitEx.EventType.TRADE_HISTORY_REFRESH + '.' + this.market_data_subscription_id_,
-                     this.onTradeHistoryRefresh_);
 
     handler.unlisten(this.last_trades_table_.getElement(),
                      goog.events.EventType.CLICK,
@@ -127,6 +117,7 @@ bitex.view.MarketView.prototype.recreateComponents_ = function( symbol ) {
 
   handler.listen( conn , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS + '.' + this.market_data_subscription_id_, this.onBitexTradingSessionStatus_ );
   handler.listen( conn , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER + '.' + this.market_data_subscription_id_, this.onBitexOrderBookNewOrder_ );
+  handler.listen( conn , bitex.api.BitEx.EventType.TRADE + '.' + this.market_data_subscription_id_, this.onBitexTrade_ );
 
   this.dispatchEvent(bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE);
 };
@@ -143,6 +134,7 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
 
     handler.unlisten( conn , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS + '.' + this.market_data_subscription_id_, this.onBitexTradingSessionStatus_ );
     handler.unlisten( conn , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER + '.' + this.market_data_subscription_id_, this.onBitexOrderBookNewOrder_ );
+    handler.unlisten( conn , bitex.api.BitEx.EventType.TRADE + '.' + this.market_data_subscription_id_, this.onBitexTrade_ );
 
     this.dispatchEvent(bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE);
     this.market_data_subscription_id_ = null;
@@ -162,17 +154,29 @@ bitex.view.MarketView.prototype.onTradeHistoryTableRequestData_ = function(e) {
   conn.requestTradeHistory(this.market_data_subscription_id_, page, limit, undefined, filter );
 };
 
+
 /**
  * @param {goog.events.Event} e
  */
-bitex.view.MarketView.prototype.onTradeHistoryRefresh_ = function(e) {
-  var msg = e.data;
-
+bitex.view.MarketView.prototype.onBitexTrade_ = function(e) {
   if (!goog.isDefAndNotNull(this.last_trades_table_) ) {
     return;
   }
-  this.last_trades_table_.insertOrUpdateRecord(msg, 0);
+  var msg = e.data;
+  var record = []; 
+
+  record["TradeID"] = msg["TradeID"];
+  record["Market"] = msg["Symbol"];
+  record["Size"] = msg['MDEntrySize'];
+  record["Price"] = msg['MDEntryPx'];
+  record["Side"] = msg['Side'];
+  record["Buyer"] = msg['MDEntryBuyer'];
+  record["Seller"] = msg['MDEntrySeller'];
+  record["Created"] = '-';
+
+  this.last_trades_table_.insertOrUpdateRecord(record, 0);
 };
+
 
 /**
  * @param {goog.events.Event} e
@@ -183,7 +187,6 @@ bitex.view.MarketView.prototype.onTradeHistoryReponse_ = function(e) {
   }
 
   var msg = e.data;
-
   this.last_trades_table_.setResultSet( msg['TradeHistoryGrp'], msg['Columns'] );
 };
 
