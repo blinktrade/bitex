@@ -279,7 +279,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
         offset      = page * page_size
 
-        columns = [ 'TradeID'           , 'Market',  'Side', 'Size', 'Price', 
+        columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size', 
                     'Buyer'             , 'Seller', 'Created' ]
 
         trade_list = generate_trade_history(page_size, offset)
