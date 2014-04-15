@@ -191,7 +191,7 @@ bitex.view.MarketView.prototype.onTradeHistoryReponse_ = function(e) {
 };
 
 
-bitex.app.MarketView.prototype.onBitexOrderBookNewOrder_ = function(e) {
+bitex.view.MarketView.prototype.onBitexOrderBookNewOrder_ = function(e) {
     var msg = e.data;
 
     var symbol = msg['Symbol'];
@@ -217,7 +217,7 @@ bitex.app.MarketView.prototype.onBitexOrderBookNewOrder_ = function(e) {
     }
 }
 
-bitex.app.MarketView.prototype.onBitexTradingSessionStatus_ = function(e) {
+bitex.view.MarketView.prototype.onBitexTradingSessionStatus_ = function(e) {
     try {
       //  {"BRL": 52800000000, "MDEntryType": "4", "BTC": 66000000}
       var msg = e.data;
