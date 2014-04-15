@@ -26,7 +26,13 @@ signal_publish_md_status = Signal()
 class MarketDataSubscriber(object):
     """" MarketDataSubscriber. """
 
-    def __init__(self, symbol):
+    @classmethod
+    def instance(cls):
+        if not hasattr(cls, "_instance"):
+          cls._instance = cls()
+        return cls._instance
+
+    def __init__(self, symbol = "ALL"):
         self.symbol = str(symbol)
         self.buy_side = []
         self.sell_side = []
@@ -35,7 +41,6 @@ class MarketDataSubscriber(object):
         self.volume_dict = {}
         self.md_pub_socket = None
         self.md_pub_socket_stream = None
-
         from models import ENGINE, db_bootstrap
         self.db_session = scoped_session(sessionmaker(bind=ENGINE))
         db_bootstrap(self.db_session)
@@ -327,6 +332,23 @@ class MarketDataPublisher(object):
             md["MDIncGrp"] = self.entry_list_order_depth
             self.handler(sender, md)
             self.entry_list_order_depth = []
+
+def generate_trade_history(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+    md = MarketDataSubscriber.instance();
+    trades = Trade.get_last_trades(md.db_session, page_size, offset, sort_column, sort_order)
+    trade_list = []
+    for trade in  trades:
+        trade_list.append([ 
+          trade.id,
+          trade.symbol,
+          trade.side,
+          trade.price,
+          trade.size,
+          trade.buyer_username,
+          trade.seller_username,
+          trade.created
+        ])
+    return trade_list
 
 
 def generate_md_full_refresh(symbol, market_depth, entries, req_id):

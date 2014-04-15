@@ -885,31 +885,6 @@ def processProcessDeposit(session, msg):
   return json.dumps(result, cls=JsonEncoder)
 
 
-
-def processTradeHistoryRequest(session, msg):
-  page        = msg.get('Page', 0)
-  page_size   = msg.get('PageSize', 100)
-  filter      = msg.get('Filter')
-
-  offset      = page * page_size
-
-  deposit_list = []
-  columns = [ 'TradeID'           , 'Market',  'Side'         , 'Price', 
-              'Buyer'             ,
-              'Created'           , 'Seller' ]
-
-  response_msg = {
-    'MsgType'           : 'U33', # TradeHistoryResponse
-    'TradeHistoryReqID' : msg.get('TradeHistoryReqID'),
-    'Page'              : page,
-    'PageSize'          : page_size,
-    'Columns'           : columns,
-    'TradeHistoryGrp'   : deposit_list
-  }
-
-  return json.dumps(response_msg, cls=JsonEncoder)
-
-
 @login_required
 def processDepositListRequest(session, msg):
   page        = msg.get('Page', 0)

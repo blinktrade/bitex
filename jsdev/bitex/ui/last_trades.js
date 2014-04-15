@@ -58,20 +58,29 @@ bitex.ui.TradeHistory = function (opt_domHelper) {
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'market'); }
     },{
-      'property': 'Created',
-      'label': MSG_TRADE_HISTORY_COLUMN_CREATED,
-      'sortable': false,
-      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'created'); }
-    },{
       'property': 'Side',
       'label': MSG_TRADE_HISTORY_COLUMN_SIDE,
       'sortable': false,
+      'formatter': function(s){
+        switch(s){
+          case '1': return 'C';
+          case '2': return 'V';
+        }
+        return '';
+      },
       'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'side'); }
     },{
       'property': 'Price',
       'label': MSG_TRADE_HISTORY_COLUMN_PRICE,
       'sortable': false,
+      'formatter': function(value){return (value/1e8).toFixed(8);},      
       'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'price'); }
+    },{
+      'property': 'Size',
+      'label': MSG_TRADE_HISTORY_COLUMN_SIZE,
+      'sortable': false,
+      'formatter': function(value){return (value/1e8).toFixed(8);},      
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'size'); }
     },{
       'property':'Buyer',
       'label': MSG_TRADE_HISTORY_COLUMN_BUYER,
@@ -82,6 +91,11 @@ bitex.ui.TradeHistory = function (opt_domHelper) {
       'label': MSG_TRADE_HISTORY_COLUMN_SELLER,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'seller');}
+    },{
+      'property': 'Created',
+      'label': MSG_TRADE_HISTORY_COLUMN_CREATED,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'created');}
     }
   ];
 

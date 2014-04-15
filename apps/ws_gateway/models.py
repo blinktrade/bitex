@@ -46,12 +46,25 @@ class Trade(BASE):
         return None
 
     @staticmethod
-    def get_last_trades(session):
+    def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+
         today = datetime.utcnow().date()
         timestamp = datetime(today.year, today.month, today.day, 0, 0)
+        
         trades = session.query(Trade).filter(
             Trade.created >= timestamp).order_by(
             Trade.created.desc())
+
+        if page_size:
+            trades = trades.limit(page_size)
+        if offset:
+            trades = trades.offset(offset)
+        if sort_column:
+            if sort_order == 'ASC':
+                trades = trades.order(sort_column)
+            else:
+                trades = trades.order(sort_column).desc()
+
         return trades
 
     @staticmethod
