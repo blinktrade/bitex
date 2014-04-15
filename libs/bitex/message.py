@@ -151,6 +151,8 @@ class JsonMessage(BaseMessage):
       'U30': 'DepositListRequest',
       'U31': 'DepositListResponse',
 
+      'U32': 'LedgerListRequest',
+      'U33': 'LedgerListResponse',
 
       # Broker messages
       'B0':  'ProcessDeposit',
@@ -399,6 +401,14 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U31': # DepositList Response
       self.raise_exception_if_required_tag_is_missing('DepositListReqID')
       self.raise_exception_if_empty('DepositListReqID')
+
+    elif self.type == 'U32': # LedgerList Request
+      self.raise_exception_if_required_tag_is_missing('LedgerListReqID')
+      self.raise_exception_if_empty('LedgerListReqID')
+
+    elif self.type == 'U33': # LedgerList Response
+      self.raise_exception_if_required_tag_is_missing('LedgerListReqID')
+      self.raise_exception_if_empty('LedgerListReqID')
 
     elif self.type == 'B0': # Deposit Payment Confirmation
       self.raise_exception_if_required_tag_is_missing('ProcessDepositReqID')

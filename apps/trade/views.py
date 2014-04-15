@@ -884,6 +884,33 @@ def processProcessDeposit(session, msg):
   result['ProcessDepositReqID'] = msg.get('ProcessDepositReqID')
   return json.dumps(result, cls=JsonEncoder)
 
+@login_required
+def processLedgerListRequest(session, msg):
+  page            = msg.get('Page', 0)
+  page_size       = msg.get('PageSize', 100)
+  operation_list  = msg.get('OperationList', ['C', 'D', 'F'] )
+  currency        = msg.get('Currency')
+  filter          = msg.get('Filter')
+  offset          = page * page_size
+
+  user = session.user
+
+  if user.is_broker:
+    if msg.has('ClientID'):
+      records = Ledger.get_list(application.db_session, user.id, int(msg.get('ClientID')), operation_list, page_size, offset, currency, filter  )
+    else:
+      records = Ledger.get_list(application.db_session, user.id, None, operation_list, page_size, offset, currency, filter  )
+  else:
+    records = Ledger.get_list(application.db_session, user.broker_id, user.id, operation_list, page_size, offset, currency, filter  )
+
+  record_list = []
+  columns = [ 'LedgerID',       'Currency',     'Operation',
+              'AccountID',      'BrokerID',     'PayeeID',
+              'PayeeBrokerID',  'Amount',       'Balance',
+              'Reference',      'Created',      'Description']
+
+  for rec in records:
+    pass
 
 
 @login_required

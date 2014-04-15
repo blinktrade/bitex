@@ -357,6 +357,40 @@ class Ledger(Base):
       self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payee_broker_id,
       self.operation, self.amount, self.balance, self.reference, self.created, self.description)
 
+
+  @staticmethod
+  def get_list(session, broker_id, account_id, operation_list, page_size, offset, currency=None, filter=None):
+    query = session.query(Ledger).filter( Ledger.operation.in_( operation_list ) ).filter(Ledger.broker_id==broker_id)
+
+    if currency:
+      query = query.filter( Ledger.currency == currency)
+
+    if account_id:
+      query = query.filter( Ledger.account_id == account_id  )
+
+
+    if filter:
+      if filter.isdigit():
+        query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
+                                   Ledger.reference == filter,
+                                   Ledger.amount == int(filter) * 1e8,
+                                   Ledger.balance == int(filter) * 1e8
+                                   ))
+      else:
+        query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
+                                   Ledger.reference == filter
+                                   ))
+
+    query = query.order_by(Ledger.created.desc())
+
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+
+    return query
+
+
   @staticmethod
   def deposit(session, account_id, payee_id, broker_id, payee_broker_id, currency, amount, reference=None, description=None):
     balance = Balance.update_balance(session, 'CREDIT', account_id, broker_id, currency, amount)

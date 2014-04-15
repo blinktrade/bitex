@@ -137,7 +137,7 @@ bitex.view.MarketView.prototype.onBitexTrade_ = function(e) {
       this.getApplication().getModel().set('formatted_' + max_key, this.getApplication().formatCurrency(price, price_currency));
       this.pricemax_ = price;
     }
-}
+};
 
 /**
  * @return {number}
