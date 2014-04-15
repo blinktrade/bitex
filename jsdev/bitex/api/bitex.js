@@ -121,6 +121,11 @@ bitex.api.BitEx.EventType = {
   /* Securities */
   SECURITY_LIST: 'security_list',
 
+  /* Trade History */
+  TRADE_HISTORY: 'trade_history',
+  TRADE_HISTORY_RESPONSE: 'trade_history_response',
+  TRADE_HISTORY_REFRESH: 'trade_history_refresh',
+
   /* Brokers */
   BROKER_LIST_RESPONSE: 'broker_list',
   CUSTOMER_LIST_RESPONSE: 'customer_list',
@@ -365,9 +370,14 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, msg ) );
       break;
 
-    case 'U31': // Withdraw List Response
+    case 'U31': // Deposit List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE + '.' + msg['DepositListReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'U33': // Trade History Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE + '.' + msg['TradeHistoryReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE, msg ) );
       break;
 
     case 'B1': // Process Deposit Reponse
@@ -682,7 +692,39 @@ bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page,
   return requestId;
 };
 
+/**
+ * Request trade history
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {number=} opt_clientID
+ * @param {string=} opt_filter
+ */
+bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
 
+  var msg = {
+    'MsgType': 'U32',
+    'TradeHistoryReqID': requestId,
+    'Page': page,
+    'PageSize': limit
+  };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
+    msg['ClientID'] = opt_clientID;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+    msg['Filter'] = opt_filter;
+  }
+
+
+  this.sendMessage(msg);
+
+  return requestId;
+};
 
 
 /**

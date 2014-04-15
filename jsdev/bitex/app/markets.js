@@ -7,7 +7,7 @@ goog.require('bitex.ui.OrderBook');
 goog.require('bitex.ui.OrderBook.Side');
 goog.require('bitex.ui.OrderBook.EventType');
 goog.require('bitex.ui.OrderBookEvent');
-goog.require('bitex.ui.LastTrades');
+//goog.require('bitex.ui.LastTrades');
 
 goog.require('goog.events');
 goog.require('goog.dom.forms');

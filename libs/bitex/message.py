@@ -89,6 +89,7 @@ class JsonMessage(BaseMessage):
     if len(raw_message) > self.MAX_MESSAGE_LENGTH:
       raise InvalidMessageLengthException(raw_message)
 
+
     # parse the message
     self.message = json.loads(raw_message)
 
@@ -151,6 +152,9 @@ class JsonMessage(BaseMessage):
       'U30': 'DepositListRequest',
       'U31': 'DepositListResponse',
 
+      'U32': 'TradeHistoryRequest',
+      'U33': 'TradeHistoryResponse',
+
 
       # Broker messages
       'B0':  'ProcessDeposit',
@@ -181,6 +185,7 @@ class JsonMessage(BaseMessage):
     for k,v in self.valid_message_types.iteritems():
       _method = make_helper_is_message_type(k)
       setattr(JsonMessage, 'is' + v, _method)
+
 
     #validate Type
     if self.type not in self.valid_message_types:
@@ -399,6 +404,14 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U31': # DepositList Response
       self.raise_exception_if_required_tag_is_missing('DepositListReqID')
       self.raise_exception_if_empty('DepositListReqID')
+
+    elif self.type == 'U32': # Trade History Request
+      self.raise_exception_if_required_tag_is_missing('TradeHistoryReqID')
+      self.raise_exception_if_empty('TradeHistoryReqID')
+
+    elif self.type == 'U33': # Trade History Response
+      self.raise_exception_if_required_tag_is_missing('TradeHistoryReqID')
+      self.raise_exception_if_empty('TradeHistoryReqID')
 
     elif self.type == 'B0': # Deposit Payment Confirmation
       self.raise_exception_if_required_tag_is_missing('ProcessDepositReqID')

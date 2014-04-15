@@ -1,10 +1,46 @@
-goog.provide('bitex.ui.LastTrades');
+goog.provide('bitex.ui.TradeHistory');
 
-goog.require('goog.ui.Component');
 goog.require('goog.dom.classes');
 goog.require('goog.object');
 
 goog.require('goog.Timer');
+
+goog.require('bitex.ui.DataGrid');
+
+/**
+ * @desc Column Market Pair
+ */
+var MSG_TRADE_HISTORY_COLUMN_MARKET = goog.getMsg('Market');
+
+/**
+ * @desc Column Time 
+ */
+var MSG_TRADE_HISTORY_COLUMN_CREATED = goog.getMsg('Date/Hour');
+
+/**
+ * @desc Column Side
+ */
+var MSG_TRADE_HISTORY_COLUMN_SIDE = goog.getMsg('Side');
+
+/**
+ * @desc Column Price
+ */
+var MSG_TRADE_HISTORY_COLUMN_PRICE = goog.getMsg('Price');
+
+/**
+ * @desc Column Size
+ */
+var MSG_TRADE_HISTORY_COLUMN_SIZE = goog.getMsg('Size');
+
+/**
+ * @desc Column Buyer
+ */
+var MSG_TRADE_HISTORY_COLUMN_BUYER = goog.getMsg('Buyer');
+
+/**
+ * @desc Column Seller
+ */
+var MSG_TRADE_HISTORY_COLUMN_SELLER = goog.getMsg('Seller');
 
 /**
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
@@ -13,92 +49,93 @@ goog.require('goog.Timer');
  * @extends {goog.ui.Component}
  * @constructor
  */
-bitex.ui.LastTrades = function (  opt_blinkDelay, opt_domHelper) {
-  goog.base(this, opt_domHelper);
+bitex.ui.TradeHistory = function (opt_domHelper) {
 
-  this.blink_delay_ = opt_blinkDelay || 700;
+  var grid_columns = [
+    {
+      'property': 'Market',
+      'label': MSG_TRADE_HISTORY_COLUMN_MARKET,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'market'); }
+    },{
+      'property': 'Created',
+      'label': MSG_TRADE_HISTORY_COLUMN_CREATED,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'created'); }
+    },{
+      'property': 'Side',
+      'label': MSG_TRADE_HISTORY_COLUMN_SIDE,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'side'); }
+    },{
+      'property': 'Price',
+      'label': MSG_TRADE_HISTORY_COLUMN_PRICE,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'price'); }
+    },{
+      'property':'Buyer',
+      'label': MSG_TRADE_HISTORY_COLUMN_BUYER,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'buyer'); }
+    },{
+      'property': 'Seller',
+      'label': MSG_TRADE_HISTORY_COLUMN_SELLER,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'seller');}
+    }
+  ];
+
+  this.selected_trade_ = null;
+
+  bitex.ui.DataGrid.call(this,  { 'rowIDFn':this.getRowId, 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
 };
-goog.inherits( bitex.ui.LastTrades, goog.ui.Component);
+goog.inherits(bitex.ui.TradeHistory, bitex.ui.DataGrid);
 
 /**
- * @type {number}
- * @private
- */
-bitex.ui.LastTrades.prototype.blink_delay_;
-
-/**
- * @type {Element}
- * @private
- */
-bitex.ui.LastTrades.prototype.bodyEl_;
-
-
-/**
- * Name of base CSS class
  * @type {string}
- * @private
  */
-bitex.ui.LastTrades.BASE_CSS_CLASS_ = goog.getCssName('last-trades');
-
-bitex.ui.LastTrades.prototype.getBaseCssClass = function() {
-  return bitex.ui.LastTrades.BASE_CSS_CLASS_;
-};
-
-/** @override */
-bitex.ui.LastTrades.prototype.decorateInternal = function(element) {
-  this.setElementInternal(element);
-  var dom = this.getDomHelper();
-  this.bodyEl_ = dom.getElementsByTagNameAndClass('tbody', undefined, element)[0];
-};
+bitex.ui.TradeHistory.CSS_CLASS = goog.getCssName('trade-history');
 
 
-bitex.ui.LastTrades.prototype.clear  = function(){
-  var dom = this.getDomHelper();
-  goog.dom.removeChildren(this.bodyEl_);
+/**
+ * @param {Object} row_set
+ * @return {string}
+ */
+bitex.ui.TradeHistory.prototype.getRowId = function(row_set) {
+  return this.makeId(row_set['TradeID'] );
 };
 
 /**
- * @param {string} date
- * @param {string} time
- * @param {string} symbol
- * @param {number} side
- * @param {number} size
- * @param {number} price
- * @param {string} buyer
- * @param {string} seller
+ * @param {Object} row_set
+ * @return {Array.<string>|string|Object}
  */
-bitex.ui.LastTrades.prototype.publishTrade = function( date, time, symbol, side, price, size, buyer, seller ) {
-  var dom = this.getDomHelper();
+bitex.ui.TradeHistory.prototype.getRowClass = function(row_set) {
+  var side =  row_set['Status'];
 
-  if (side == 1) {
-    side = "Buy";
-  } else if (side == 2) {
-    side = "Sell";
+  var class_status;
+  switch(side) {
+    case '0':
+      class_status = goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'unconfirmed');
+      break;
+    case '1':
+      class_status = goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'pending');
+      break;
+    case '2':
+      class_status = goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'processing');
+      break;
+    case '4':
+      class_status = goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'complete');
+      break;
+    case '8':
+      class_status = goog.getCssName(bitex.ui.TradeHistory.CSS_CLASS, 'cancelled');
+      break;
   }
-
-
-  var dateEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'date') , date);
-  var timeEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'time') , time);
-  var sideEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'side') , side);
-  var priceEl  = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'price') , price);
-  var sizeEl   = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'size'), size);
-  var buyerEl  = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'buyer'), buyer);
-  var sellerEl = dom.createDom( 'td', goog.getCssName(this.getBaseCssClass(), 'seller'), seller);
-
-  var td_list = [ timeEl, sideEl,  priceEl, sizeEl, buyerEl, sellerEl ];
-
-  var tr_properties = {
-    'class': goog.getCssName(this.getBaseCssClass(), 'row')
-  };
-
-  var rowEl = dom.createDom( 'tr', tr_properties , td_list );
-  dom.insertChildAt(this.bodyEl_, rowEl, 0);
-
-  var blink_class = 'warning';
-  goog.dom.classes.add( rowEl,  blink_class );
-
-  goog.Timer.callOnce( function(){
-    goog.dom.classes.remove( rowEl,  blink_class );
-  }, this.blink_delay_ , this);
+  return  class_status;
 };
 
+
+goog.ui.registry.setDecoratorByClassName(
+  bitex.ui.TradeHistory.CSS_CLASS,
+  function() {
+    return new bitex.ui.TradeHistory();
+  });

@@ -178,6 +178,7 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   // Create all datagrids
   goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_deposit_list'));
+  goog.dom.removeChildren( goog.dom.getElement('id_trade_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
   goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
   goog.dom.removeChildren( goog.dom.getElement('account_overview_balances_id'));
@@ -210,6 +211,11 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
   });
 
+  goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
+    id: 'id_trade_list_table',
+    title: 'Last Trades',
+    show_search: false
+  });
 
   /**
    * @desc Title  for the customers table
@@ -455,16 +461,12 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
 
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, goog.bind(  this.onBitexTradingSessionStatus_, this ) );
-
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, goog.bind(  this.onBitexOrderBookNewOrder_, this ) );
-
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.EXECUTION_REPORT, this.onBitexExecutionReport_);
 
-  //handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
-  //handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
@@ -582,6 +584,7 @@ bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol = function(symbol) {
 
 
 bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
+
   var symbol = e.target.getSymbol();
   var qtyCurrency = this.getQtyCurrencyFromSymbol(symbol);
   var priceCurrency = this.getPriceCurrencyFromSymbol(symbol);
@@ -605,49 +608,6 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 };
 
 
-bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
-    var msg = e.data;
-
-    var symbol = msg['Symbol'];
-    var index = msg['MDEntryPositionNo'] - 1;
-    var price =  msg['MDEntryPx']/1e8;
-    var qty = msg['MDEntrySize']/1e8;
-    var username = msg['Username'];
-    var broker = msg['Broker'];
-    var orderId =  msg['OrderID'];
-    var side = msg['MDEntryType'];
-    var currency = symbol.substr(3,3);
-
-    if (side == '0') {
-      if (index === 0) {
-        var bid_key = 'best_bid_' +  currency.toLowerCase();
-        this.model_.set('formatted_' + bid_key, this.formatCurrency(price, currency));
-      }
-    } else if (side == '1') {
-      if (index === 0) {
-        var offer_key = 'best_offer_' +  currency.toLowerCase();
-        this.model_.set('formatted_' + offer_key, this.formatCurrency(price, currency));
-      }
-    }
-  }
-
-bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
-    try {
-      //  {"BRL": 52800000000, "MDEntryType": "4", "BTC": 66000000}
-      var msg = e.data;
-      delete msg['MDEntryType'];
-      delete msg['MDReqID'];
-
-      var app = this;
-      goog.object.forEach( msg, function(volume, currency) {
-        volume = volume / 1e8;
-
-        var volume_key = 'volume_' +  currency.toLowerCase();
-        app.model_.set( volume_key , volume );
-        app.model_.set('formatted_' + volume_key, app.formatCurrency(volume, currency));
-      });
-    } catch(str) {}
-};
 
 bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
@@ -1633,7 +1593,6 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
     var offer_key = 'best_offer_' +  currency_key;
     var last_price = 'last_price_' +  currency_key;
 
-console.log(this);
     this.model_.set('formatted_' + volume_key, this.formatCurrency(0, currency['Code']));
     this.model_.set('formatted_' + min_key, this.formatCurrency(0, currency['Code']));
     this.model_.set('formatted_' + max_key, this.formatCurrency(0, currency['Code']));
