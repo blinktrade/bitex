@@ -121,6 +121,10 @@ bitex.api.BitEx.EventType = {
   /* Securities */
   SECURITY_LIST: 'security_list',
 
+  /* Trade History */
+  TRADE_HISTORY: 'trade_history',
+  TRADE_HISTORY_RESPONSE: 'trade_history_response',
+
   /* Brokers */
   BROKER_LIST_RESPONSE: 'broker_list',
   CUSTOMER_LIST_RESPONSE: 'customer_list',
@@ -365,9 +369,14 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, msg ) );
       break;
 
-    case 'U31': // Withdraw List Response
+    case 'U31': // Deposit List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE + '.' + msg['DepositListReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'U33': // Trade History Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE + '.' + msg['TradeHistoryReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE, msg ) );
       break;
 
     case 'B1': // Process Deposit Reponse
@@ -682,7 +691,76 @@ bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page,
   return requestId;
 };
 
+/**
+ * Request trade history
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {number=} opt_clientID
+ * @param {string=} opt_filter
+ */
+bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
 
+  var msg = {
+    'MsgType': 'U32',
+    'TradeHistoryReqID': requestId,
+    'Page': page,
+    'PageSize': limit
+  };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
+    msg['ClientID'] = opt_clientID;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+    msg['Filter'] = opt_filter;
+  }
+
+
+  this.sendMessage(msg);
+
+  return requestId;
+};
+
+
+/**
+ * Request trade history
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {number=} opt_clientID
+ * @param {string=} opt_filter
+ */
+bitex.api.BitEx.prototype.requestLedgerHistory = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+  var operation_list = ['C','D', 'F', 'T'];
+
+  var msg = {
+    'MsgType': 'U34',
+    'LedgerListReqID': requestId,
+    'OperationList': operation_list,
+    'Page': page,
+    'PageSize': limit
+  };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
+    msg['ClientID'] = opt_clientID;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+    msg['Filter'] = opt_filter;
+  }
+
+
+  this.sendMessage(msg);
+
+  return requestId;
+};
 
 
 /**
@@ -840,8 +918,10 @@ bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, with
  * @param {number=} opt_reasonId
  * @param {string=} opt_reason
  * @param {number=} opt_amount
+ * @param {number=} opt_percent_fee
+ * @param {number=} opt_fixed_fee
  */
-bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_secret, opt_depositId, opt_reasonId, opt_reason, opt_amount){
+bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_secret, opt_depositId, opt_reasonId, opt_reason, opt_amount, opt_percent_fee, opt_fixed_fee ){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
@@ -864,8 +944,12 @@ bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_s
   if (goog.isDefAndNotNull(opt_amount)){
     msg['Amount'] = opt_amount;
   }
-
-
+  if (goog.isDefAndNotNull(opt_percent_fee)){
+    msg['PercentFee'] = opt_percent_fee;
+  }
+  if (goog.isDefAndNotNull(opt_fixed_fee)){
+    msg['FixedFee'] = opt_fixed_fee;
+  }
   this.sendMessage(msg);
   return requestId;
 };
@@ -1242,7 +1326,7 @@ goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototyp
 
 goog.exportProperty(BitEx.prototype, 'requestSecurityList', bitex.api.BitEx.prototype.requestSecurityList);
 goog.exportProperty(BitEx.prototype, 'requestDepositMethods', bitex.api.BitEx.prototype.requestDepositMethods);
-
+goog.exportProperty(BitEx.prototype, 'requestLedgerHistory', bitex.api.BitEx.prototype.requestLedgerHistory);
 
 goog.exportProperty(BitEx.prototype, 'requestDeposit', bitex.api.BitEx.prototype.requestDeposit);
 goog.exportProperty(BitEx.prototype, 'processDeposit', bitex.api.BitEx.prototype.processDeposit);

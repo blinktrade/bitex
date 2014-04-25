@@ -137,6 +137,7 @@ class User(Base):
 
   broker_id       = Column(Integer, ForeignKey('users.id'), index=True )
   broker          = relationship("User", remote_side=[id])
+  broker_username = Column(String(15), index=True)
 
   state           = Column(String(30), index=True )
   country_code    = Column(String(2),     nullable=False, index=True)
@@ -157,15 +158,17 @@ class User(Base):
   two_factor_enabled  = Column(Boolean, nullable=False, default=False)
   two_factor_secret   = Column(String(50), nullable=True, index=False)
 
+  transaction_fee_buy   = Column(Integer, nullable=True)
+  transaction_fee_sell  = Column(Integer, nullable=True)
 
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
            u" password_algo=%r, password_salt=%r, password=%r,"\
-           u" state=%r, country_code=%r, "\
+           u" state=%r, country_code=%r, transaction_fee_buy=%r, transaction_fee_sell=%r,"\
            u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, last_login=%r )>" \
           % (self.id, self.username, self.email, self.broker_id,
              self.password_algo, self.password_salt, self.password,
-             self.state, self.country_code,
+             self.state, self.country_code, self.transaction_fee_buy, self.transaction_fee_sell,
              self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login)
 
   def __init__(self, *args, **kwargs):
@@ -341,9 +344,13 @@ class Ledger(Base):
   id                    = Column(Integer,       primary_key=True)
   currency              = Column(String(4),     ForeignKey('currencies.code'),nullable=False)
   account_id            = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  account_name          = Column(String,        nullable=False)
   broker_id             = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  broker_name           = Column(String,        nullable=False)
   payee_id              = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payee_name            = Column(String,        nullable=False)
   payee_broker_id       = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payee_broker_name     = Column(String,        nullable=False)
   operation             = Column(String(1),     nullable=False)
   amount                = Column(Integer,       nullable=False)
   balance               = Column(Integer,       nullable=False)
@@ -392,13 +399,17 @@ class Ledger(Base):
 
 
   @staticmethod
-  def deposit(session, account_id, payee_id, broker_id, payee_broker_id, currency, amount, reference=None, description=None):
+  def deposit(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
     balance = Balance.update_balance(session, 'CREDIT', account_id, broker_id, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
+                     account_name     = account_name,
                      payee_id         = payee_id,
+                     payee_name       = payee_name,
                      broker_id        = broker_id,
+                     broker_name      = broker_name,
                      payee_broker_id  = payee_broker_id,
+                     payee_broker_name= payee_broker_name,
                      operation        = 'C',
                      amount           = amount,
                      balance          = balance,
@@ -408,13 +419,17 @@ class Ledger(Base):
 
 
   @staticmethod
-  def withdraw(session, account_id, payee_id, broker_id, payee_broker_id, currency, amount, reference=None, description=None):
+  def withdraw(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
     balance = Balance.update_balance(session, 'DEBIT', account_id, broker_id, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
+                     account_name     = account_name,
                      payee_id         = payee_id,
+                     payee_name       = payee_name,
                      broker_id        = broker_id,
+                     broker_name      = broker_name,
                      payee_broker_id  = payee_broker_id,
+                     payee_broker_name= payee_broker_name,
                      operation        = 'D',
                      amount           = amount,
                      balance          = balance,
@@ -429,14 +444,18 @@ class Ledger(Base):
 
       # adjust balances
     to_symbol = symbol[:3].upper()   #BTC
-    from_symbol = symbol[3:].upper() #BRL
+    from_symbol = symbol[3:].upper() #USD
 
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.broker_id, from_symbol, total_value )
     order_record_debit = Ledger( currency         = from_symbol,
                                  account_id       = order.account_id,
+                                 account_name     = order.account_username,
                                  broker_id        = order.broker_id,
+                                 broker_name      = order.broker_username,
                                  payee_id         = counter_order.account_id,
+                                 payee_name       = counter_order.account_username,
                                  payee_broker_id  = counter_order.broker_id,
+                                 payee_broker_name= counter_order.broker_username,
                                  operation        = 'D'  if order.is_buy else 'C',
                                  amount           = total_value,
                                  balance          = balance,
@@ -448,9 +467,13 @@ class Ledger(Base):
     balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, counter_order.broker_id, from_symbol, total_value )
     counter_order_record_credit = Ledger(currency     = from_symbol,
                                          account_id   = counter_order.account_id,
+                                         account_name = counter_order.account_username,
                                          broker_id    = counter_order.broker_id,
+                                         broker_name  = counter_order.broker_username,
                                          payee_id     = order.account_id,
+                                         payee_name   = order.account_username,
                                          payee_broker_id = order.broker_id,
+                                         payee_broker_name= order.broker_username,
                                          operation    = 'C'  if order.is_buy else 'D',
                                          amount       = total_value,
                                          balance      = balance,
@@ -462,9 +485,13 @@ class Ledger(Base):
     balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.broker_id, to_symbol, qty )
     order_record_credit = Ledger(currency     = to_symbol,
                                  account_id   = order.account_id,
+                                 account_name = order.account_username,
                                  broker_id    = order.broker_id,
+                                 broker_name  = order.broker_username,
                                  payee_id     = counter_order.account_id,
+                                 payee_name   = counter_order.account_username,
                                  payee_broker_id = counter_order.broker_id,
+                                 payee_broker_name = counter_order.broker_username,
                                  operation    = 'C'  if order.is_buy else 'D',
                                  amount       = qty,
                                  balance      = balance,
@@ -475,15 +502,69 @@ class Ledger(Base):
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.broker_id, to_symbol, qty )
     counter_order_record_debit = Ledger(currency     = to_symbol,
                                         account_id   = counter_order.account_id,
+                                        account_name = counter_order.account_username,
                                         broker_id    = counter_order.broker_id,
+                                        broker_name  = counter_order.broker_username,
                                         payee_id     = order.account_id,
+                                        payee_name   = order.account_username,
                                         payee_broker_id = order.broker_id,
+                                        payee_broker_name= order.broker_username,
                                         operation    = 'D' if order.is_buy else 'C',
                                         amount       = qty,
                                         balance      = balance,
                                         reference    = trade_id,
                                         description  = 'T')
     session.add(counter_order_record_debit)
+
+    def process_execution_fee(session,trade_id, order, currency, amount ):
+      balance = Balance.update_balance(session, 'DEBIT', order.account_id, order.broker_id, currency, amount )
+      order_fee_record = Ledger(currency          = currency,
+                                account_id        = order.account_id,
+                                account_name      = order.account_username,
+                                broker_id         = order.broker_id,
+                                broker_name       = order.broker_username,
+                                payee_id          = order.broker_id,
+                                payee_name        = order.broker_username,
+                                payee_broker_id   = order.broker_id,
+                                payee_broker_name = order.broker_username,
+                                operation         = 'D',
+                                amount            = amount,
+                                balance           = balance,
+                                reference         = trade_id,
+                                description       = 'TF')
+      session.add(order_fee_record)
+
+      balance = Balance.update_balance(session, 'CREDIT', order.broker_id, order.broker_id, currency, amount )
+      broker_fee_record  = Ledger(currency          = currency,
+                                  account_id        = order.broker_id,
+                                  account_name      = order.broker_username,
+                                  broker_id         = order.broker_id,
+                                  broker_name       = order.broker_username,
+                                  payee_id          = order.account_id,
+                                  payee_name        = order.account_username,
+                                  payee_broker_id   = order.broker_id,
+                                  payee_broker_name = order.broker_username,
+                                  operation         = 'C',
+                                  amount            = amount,
+                                  balance           = balance,
+                                  reference         = trade_id,
+                                  description       = 'TF')
+      session.add(broker_fee_record)
+
+    order_fee_currency = to_symbol if order.is_buy else from_symbol
+    order_fee_base_amount = qty if order.is_buy else total_value
+    order_fee_amount =  order_fee_base_amount * (order.fee / 10000.)
+    if order_fee_amount:
+      process_execution_fee(session, trade_id, order,order_fee_currency, order_fee_amount )
+
+
+    counter_order_fee_currency = to_symbol if counter_order.is_buy else from_symbol
+    counter_order_fee_base_amount = qty if counter_order.is_buy else total_value
+    counter_order_fee_amount =  counter_order_fee_base_amount * (counter_order.fee / 10000.)
+    if counter_order_fee_amount:
+      process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount )
+
+
 
 
 class Broker(Base):
@@ -515,8 +596,6 @@ class Broker(Base):
   fee_structure         = Column(Text,          nullable=False)
   transaction_fee_buy   = Column(Integer,       nullable=False, default=0)
   transaction_fee_sell  = Column(Integer,       nullable=False, default=0)
-
-
 
   status                = Column(String(1),     nullable=False, default='0', index=True)
   ranking               = Column(Integer,       nullable=False, default=0, index=True)
@@ -666,6 +745,7 @@ class Withdraw(Base):
   user_id         = Column(Integer,       ForeignKey('users.id'))
   account_id      = Column(Integer,       ForeignKey('users.id'))
   broker_id       = Column(Integer,       ForeignKey('users.id'))
+  broker_username = Column(String,        nullable=False)
   username        = Column(String,        nullable=False)
   currency        = Column(String,        nullable=False, index=True)
   amount          = Column(Integer,       nullable=False, index=True)
@@ -710,9 +790,13 @@ class Withdraw(Base):
     self.status = '2'
     Ledger.withdraw(session,
                     self.account_id,
+                    self.username,
                     self.account_id,
+                    self.username,
                     self.broker_id,
+                    self.broker_username,
                     self.broker_id,
+                    self.broker_username,
                     self.currency,
                     self.amount,
                     str(self.id),
@@ -741,9 +825,13 @@ class Withdraw(Base):
       #deposit the money back :)
       Ledger.deposit(session,
                       self.account_id,
+                      self.username,
                       self.account_id,
+                      self.username,
                       self.broker_id,
+                      self.broker_username, # broker name
                       self.broker_id,
+                      self.broker_username, # payee_broker_name
                       self.currency,
                       self.amount,
                       str(self.id),
@@ -813,6 +901,7 @@ class Withdraw(Base):
                                account_id         = user.id,
                                username           = user.username,
                                broker_id          = user.broker_id,
+                               broker_username    = user.broker_username,
                                method             = method,
                                currency           = currency,
                                amount             = amount,
@@ -838,10 +927,10 @@ class Withdraw(Base):
 
   def __repr__(self):
     return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount='%r', " \
-           u"data=%r,  "\
+           u"broker_username=%r, data=%r,  "\
            u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r)>" % (
       self.id, self.user_id, self.account_id, self.broker_id, self.username, self.currency, self.method,self.amount,
-      self.data,
+      self.broker_username, self.data,
       self.confirmation_token, self.status, self.created, self.reason_id, self.reason)
 
 
@@ -1076,8 +1165,9 @@ class Deposit(Base):
   deposit_option_id       = Column(Integer,    ForeignKey('deposit_options.id'))
   deposit_option_name     = Column(String(15), nullable=False)
   username                = Column(String,     nullable=False)
+  broker_username         = Column(String,     nullable=False)
   broker_deposit_ctrl_num = Column(Integer,    index=True)
-  secret                  = Column(String(10), index=True )
+  secret                  = Column(String(10), index=True)
 
   type                    = Column(String(3),  nullable=False, index=True)
   currency                = Column(String(3),  nullable=False, index=True)
@@ -1087,14 +1177,17 @@ class Deposit(Base):
   data                    = Column(Text,       nullable=False, index=True)
   created                 = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
 
+  percent_fee             = Column(Integer,    nullable=False, default=0)
+  fixed_fee               = Column(Integer,    nullable=False, default=0)
+
   reason_id               = Column(Integer)
   reason                  = Column(String)
 
   def __repr__(self):
     return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
-           u"secret=%r,  type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, data=%r)>" % (
+           u"secret=%r,  type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, fixed_fee=%r, percent_fee=%r, data=%r)>" % (
       self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id, self.deposit_option_name, self.broker_deposit_ctrl_num,
-      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.data )
+      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.fixed_fee, self.percent_fee, self.data )
 
   @staticmethod
   def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret ):
@@ -1107,10 +1200,13 @@ class Deposit(Base):
       user_id                 = user.id,
       account_id              = user.id,
       username                = user.username,
+      broker_username         = user.broker_username,
       broker_id               = user.broker_id,
       type                    = 'CRY',
       currency                = currency,
       secret                  = secret,
+      percent_fee             = 0,
+      fixed_fee               = 0,
       data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } )
     )
 
@@ -1169,9 +1265,13 @@ class Deposit(Base):
     if self.status == '4':
       Ledger.withdraw(session,
                      self.account_id,       # account_id
+                     self.username,         # account_name
                      self.account_id,       # payee_id
+                     self.username,         # payee_name
                      self.broker_id,        # broker_id
+                     self.broker_username,  # broker_name
                      self.broker_id,        # payee_broker_id
+                     self.broker_username,  # payee_broker_name
                      self.currency,         # currency
                      self.paid_value,       # amount
                      self.id,               # reference
@@ -1193,7 +1293,7 @@ class Deposit(Base):
     session.flush()
 
 
-  def process_confirmation(self, session, amount, data=None ):
+  def process_confirmation(self, session, amount, percent_fee=0, fixed_fee=0, data=None ):
     should_update = False
     new_data = {}
     new_data.update(json.loads(self.data))
@@ -1204,6 +1304,7 @@ class Deposit(Base):
 
     should_confirm = False
     self.paid_value = amount
+
     if self.type == 'CRY' and data:
       broker = Broker.get_broker( session, self.broker_id  )
       broker_crypto_currencies = json.loads(broker.crypto_currencies)
@@ -1230,10 +1331,13 @@ class Deposit(Base):
     should_adjust_ledger = False
     if should_confirm and self.status != '4':
       self.paid_value = amount
+      self.percent_fee = percent_fee
+      self.fixed_fee = fixed_fee
       self.status = '4'
       should_adjust_ledger = True
-
       should_update = True
+
+
     elif  should_confirm and self.status == '4':
       # The user probably saved the deposit address and he is sending to the same address
       if self.type == 'CRY' and self.paid_value != amount:
@@ -1243,15 +1347,52 @@ class Deposit(Base):
 
 
     if should_adjust_ledger:
+      total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (self.percent_fee/10000.0))
+      total_fees = total_percent_fee_value + self.fixed_fee
+
       Ledger.deposit(session,
                      self.account_id,       # account_id
+                     self.username,         # account_name
                      self.account_id,       # payee_id
+                     self.username,         # payee_name
                      self.broker_id,        # broker_id
+                     self.broker_username,  # broker_name
                      self.broker_id,        # payee_broker_id
+                     self.broker_username,  # payee_broker_name
                      self.currency,         # currency
                      self.paid_value,       # amount
                      self.id,               # reference
                      'D')                   # description
+
+      if total_fees:
+        Ledger.withdraw(session,
+                        self.account_id,       # account_id
+                        self.username,         # account_name
+                        self.broker_id,        # payee_id
+                        self.broker_username,  # payee_name
+                        self.broker_id,        # broker_id
+                        self.broker_username,  # broker_name
+                        self.broker_id,        # payee_broker_id
+                        self.broker_username,  # payee_broker_name
+                        self.currency,         # currency
+                        total_fees,            # amount
+                        self.id,               # reference
+                        'DF')                  # description
+
+        Ledger.deposit(session,
+                       self.broker_id,        # account_id
+                       self.broker_username,  # account_name
+                       self.account_id,       # payee_id
+                       self.username,         # payee_name
+                       self.broker_id,        # broker_id
+                       self.broker_username,  # broker_name
+                       self.broker_id,        # payee_broker_id
+                       self.broker_username,  # payee_broker_name
+                       self.currency,         # currency
+                       total_fees,            # amount
+                       self.id,               # reference
+                       'DF')                  # description
+
 
     if should_update:
       self.data = json.dumps(new_data)
@@ -1269,11 +1410,15 @@ class DepositMethods(Base):
   type                      = Column(String(3),  nullable=False)
   broker_deposit_ctrl_num   = Column(Integer,    nullable=False)
   currency                  = Column(String(3),  nullable=False)
+  percent_fee               = Column(Integer,    nullable=False, default=0)
+  fixed_fee                 = Column(Integer,    nullable=False, default=0)
   parameters                = Column(Text,       nullable=False)
 
   def __repr__(self):
-    return u"<DepositMethods(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ,type=%r, broker_deposit_ctrl_num=%r, currency=%r,parameters=%r)>"\
-    % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type, self.broker_deposit_ctrl_num, self.currency, self.parameters)
+    return u"<DepositMethods(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ," \
+           u"type=%r, broker_deposit_ctrl_num=%r, currency=%r,percent_fee=%r, fixed_fee=%r, parameters=%r)>"\
+    % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type,
+       self.broker_deposit_ctrl_num, self.currency, self.percent_fee, self.fixed_fee, self.parameters)
 
   @staticmethod
   def get_deposit_method(session, deposit_option_id):
@@ -1293,12 +1438,15 @@ class DepositMethods(Base):
       user_id                 = user.id,
       account_id              = user.id,
       username                = user.username,
+      broker_username         = user.broker_username,
       broker_id               = self.broker_id,
       deposit_option_id       = self.id,
       deposit_option_name     = self.name,
       type                    = self.type,
       currency                = self.currency,
       broker_deposit_ctrl_num = self.broker_deposit_ctrl_num,
+      fixed_fee               = self.fixed_fee,
+      percent_fee             = self.percent_fee,
       value                   = value
     )
 
@@ -1326,7 +1474,7 @@ Base.metadata.create_all(engine)
 def db_bootstrap(session):
   import  json
   if not User.get_user(session, 'admin'):
-    e = User(id=0, username='admin', email='admin@bitex.com.br',  broker_id=None, password='abc12345',
+    e = User(id=0, username='admin', email='admin@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
              country_code='', state='',
              verified=1, is_staff=True, is_system=False, is_broker=True)
 
@@ -1334,8 +1482,10 @@ def db_bootstrap(session):
     session.commit()
 
   if not User.get_user(session, 'nybitcoincenter'):
-    e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=None, password='abc12345',
+    e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=None, broker_username=None, password='abc12345',
              country_code='US', state='NY',
+             transaction_fee_buy=20, # 0.2%
+             transaction_fee_sell=20, # 0.2%
              verified=1, is_staff=False, is_system=False, is_broker=True)
 
     session.add(e)
@@ -1379,6 +1529,8 @@ def db_bootstrap(session):
                      'method':'bitcoin',
                      'description':'Saque em Bitcoins',
                      'disclaimer': 'Processamento instantâneo para valores menores do que 0.1 BTC. Acima deste valor, processamento manual ao final do dia',
+                     'percent_fee':0,
+                     'fixed_fee':0,
                      'fields': [
                          {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
                          {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
@@ -1391,6 +1543,8 @@ def db_bootstrap(session):
                      'method':'ted_doc',
                      'description':'Saque via TED ou DOC',
                      'disclaimer':'Processamento no final dia somente. Taxa de 1% + R$ 8,00 ( exceto Itaú )',
+                     'percent_fee': 50, # 0.5 percent
+                     'fixed_fee': int(8.9 * 1e8), # 8.90 USD
                      'fields': [
                          {'side':'client', 'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
                          {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
@@ -1403,7 +1557,9 @@ def db_bootstrap(session):
                    }, {
                      'method':'paypal',
                      'description':'Saque direto via paypal',
-                     'disclaimer':'Realizado na hora. Taxa de 2.3% do paypal',
+                     'disclaimer':'Realizado na hora. O Paypal poderá cobrar taxas adicionais',
+                     'percent_fee': 30, # 0.3 percent
+                     'fixed_fee': 0,
                      'fields': [
                          {'side':'client',  'name': 'Email'          ,  'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
                          {'side':'broker',  'name': 'TransactionID'  ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
@@ -1427,11 +1583,14 @@ def db_bootstrap(session):
                fee_structure=json.dumps([
                  { "Operation" : "Deposito via TED",             "Fee":"0,3%"             , "Terms":"20 minutos após confirmação" },
                  { "Operation" : "Deposito via DOC",             "Fee":"0,3%"             , "Terms":"1 dia útil" },
-                 { "Operation" : "Depósito via Deposit bancário", "Fee":"R$ 4,00"          , "Terms":"1 dia útil se pago no mesmo banco emissor caso contrário 3 dias úteis" },
+                 { "Operation" : "Depósito via Deposit bancário", "Fee":"R$ 4,00"         , "Terms":"1 dia útil se pago no mesmo banco emissor caso contrário 3 dias úteis" },
                  { "Operation" : "Saque via TED",                "Fee":"0,3% + R$8,00"    , "Terms":"Realizados ao final do dia" },
-                 { "Operation" : "Saque via  Transf. Banco Itaú","Fee":"0,3"              , "Terms":"Realizados ao final do dia" },
+                 { "Operation" : "Saque via  Transf. Banco Itaú","Fee":"0,3%"             , "Terms":"Realizados ao final do dia" },
                ]),
-               transaction_fee_buy=0,transaction_fee_sell=0, status='1', ranking=1)
+               transaction_fee_buy=20, # 0.2%
+               transaction_fee_sell=20, # 0.2%
+               status='1',
+               ranking=1)
     session.add(e)
     session.commit()
 
@@ -1444,10 +1603,8 @@ def db_bootstrap(session):
     [ 'GBP' , u'\u00a3' , 'Pound'    ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
     [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1          , '{:,.2f}', u'\u00a4 #,0;(\u00a4 #0)'  ],
     [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100        , '{:,.2f}', u'\u00a5 #,##0.00;(\u00a5 #,##0.00)'  ],
-
     #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)'],
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)']
-
     [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
     [ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
   ]
@@ -1472,15 +1629,15 @@ def db_bootstrap(session):
   # create 1000 test users for the NYC Bitcoin Center - Satoshi square
   for x in xrange(2, 2000):
     if not User.get_user(session, str(x)):
-      e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, password='password' + str(x),
+      e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, broker_username='nybitcoincenter', password='password' + str(x),
                country_code='US', state='NY',
                verified=1, is_staff=False, is_system=False, is_broker=False)
       session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      Ledger.deposit(session, x, x, 9000001, 9000001, 'BTC', 100e8   , 'BONUS' )
-      Ledger.deposit(session, x, x, 9000001, 9000001, 'USD', 100000e8, 'BONUS' )
-      session.commit()
+      #Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
+      #Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'USD', 100000e8, 'BONUS' )
+      #session.commit()
 
 
   if not DepositMethods.get_deposit_method(session, 1 ):
@@ -1491,6 +1648,8 @@ def db_bootstrap(session):
                        disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                        type='BBS',
                        broker_deposit_ctrl_num=50034,
+                       percent_fee=50,  # 0.5
+                       fixed_fee=int(2.9 * 1e8),  # 2.90
                        currency='USD',
                        parameters= json.dumps( {
                          'download_filename': 'deposit_itau_{{id}}.pdf',
@@ -1543,6 +1702,8 @@ def db_bootstrap(session):
                        description=u'Depósito Bancário - Banco Itaú',
                        disclaimer=u'Entre 10 minutos até 4 horas após a confirmação de recebimento.',
                        type='BTI',
+                       percent_fee=120,  # 1.2
+                       fixed_fee=0,
                        broker_deposit_ctrl_num=90001,
                        currency='USD',
                        parameters= json.dumps( {

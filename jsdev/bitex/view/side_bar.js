@@ -52,7 +52,6 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
       goog.dom.appendChild( goog.dom.getElement('id_instrument_1'), el );
     }, this);
 
-    this.dispatchEvent(bitex.view.SideBarView.EventType.CHANGE_MARKET);
   },this);
 
 

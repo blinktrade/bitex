@@ -90,7 +90,7 @@ tornado.options.parse_config_file(
         "ws_gateway.conf"))
 tornado.options.parse_command_line()
 
-from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh
+from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history
 
 #from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
 from deposit_hander import DepositHandler
@@ -157,6 +157,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
             print 'in_message ,', self.trade_client.connection_id, ' , ***LOGIN***'
         else:
             print 'in_message ,', self.trade_client.connection_id, ',', raw_message
+
+        if req_msg.isTradeHistoryRequest():  # Trade History request
+            self.on_trade_history_request(req_msg)
+            return
 
         if req_msg.isMarketDataRequest():  # Market Data Request
             self.on_market_data_request(req_msg)
@@ -267,6 +271,29 @@ class WebSocketHandler(websocket.WebSocketHandler):
         print 'on_close', self.trade_client.connection_id
         self.application.unregister_connection(self)
         self.trade_client.close()
+
+    def on_trade_history_request(self, msg):
+        page        = msg.get('Page', 0)
+        page_size   = msg.get('PageSize', 100)
+        filter      = msg.get('Filter')
+
+        offset      = page * page_size
+
+        columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size', 
+                    'Buyer'             , 'Seller', 'Created' ]
+
+        trade_list = generate_trade_history(page_size, offset)
+
+        response_msg = {
+            'MsgType'           : 'U33', # TradeHistoryResponse
+            'TradeHistoryReqID' : msg.get('TradeHistoryReqID'),
+            'Page'              : page,
+            'PageSize'          : page_size,
+            'Columns'           : columns,
+            'TradeHistoryGrp'   : trade_list
+        }
+
+        self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
 
     def on_market_data_request(self, msg):
         # Generate a FullRefresh

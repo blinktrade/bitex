@@ -519,7 +519,7 @@ bitex.ui.DepositList.prototype.getRowClass = function(row_set) {
 };
 
 
-goog.ui.registry.setDecoratorByClassName(
+  goog.ui.registry.setDecoratorByClassName(
     bitex.ui.DepositList.CSS_CLASS,
     function() {
       return new bitex.ui.DepositList();

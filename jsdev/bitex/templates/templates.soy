@@ -25,12 +25,18 @@
 
 /**
   * @param id_value
+  * @param percentFeeID
+  * @param fixedFeeID
+  * @param totalFeesID
+  * @param netValueID
   * @param controlNumber
   * @param currencySign
   * @param value
+  * @param percentFee
+  * @param fixedFee
   */
 {template .BrokerConfirmDepositContent}
-  <form class="form-horizontal">
+  <form class="form-horizontal broker-confirm-deposit">
     <div class="control-group">
       <label class="control-label">{msg desc="Control number label"}Control number{/msg}</label>
       <div class="controls">
@@ -46,6 +52,38 @@
         </div>
       </div>
     </div>
+    <div class="control-group">
+      <label class="control-label">{msg desc="Fee percentage label"}Fees:{/msg}</label>
+      <div class="controls">
+        <div class="row-fluid">
+          <div class="span4">
+            <div class="input-append">
+              <input id="{$percentFeeID}" type="text" class="input-mini" size="16" name="Fee" value="{$percentFee}">
+              <span class="add-on">%</span>
+            </div>
+          </div>
+
+          <div class="span4">
+            <div class="input-prepend">
+              <span class="add-on">{$currencySign}</span>
+              <input id="{$fixedFeeID}" type="text" class="input-mini" size="16" name="Fee" value="{$fixedFee}">
+            </div>
+          </div>
+
+          <div class="span4">
+            <label id="{$totalFeesID}" class="control-label broker-confirm-deposit-fee" style="text-align: left;"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">{msg desc="Net amount"}Net amount{/msg}</label>
+      <div class="controls">
+        <label id="{$netValueID}" class="control-label broker-confirm-deposit-net-amount" style="text-align: left;"></label>
+      </div>
+    </div>
+
   </form>
 {/template}
 
@@ -84,18 +122,18 @@
           <tr>
             <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
             <td>{$msg_broker['TransactionFeeBuy']}</td>
-            <td>{msg desc="label in broker fees table"}Instantaneous{/msg}</td>
+            <td></td>
           </tr>
         {else}
           <tr>
             <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
             <td>{$msg_broker['TransactionFeeBuy']}</td>
-            <td>{msg desc="label in broker fees table"}Instantaneous{/msg}</td>
+            <td></td>
           </tr>
           <tr>
             <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
-            <td>{$msg_broker['TransactionFeeSell']}</td>
-            <td>{msg desc="label in broker fees table"}Instantaneous{/msg}</td>
+            <td>{$msg_broker['TransactionFeeSell']} %</td>
+            <td></td>
           </tr>
         {/if}
         {foreach $fee in $msg_broker['FeeStructure']}
@@ -372,16 +410,19 @@
   */
 {template .DepositSlipContentDialog}
   <div class="row-fluid" data-deposit-status="done">
-    <h5 class="text-center">
-       {msg desc="deposit done dialog msg"}done{/msg}
-    </h5>
   </div>
 
   <div class="row-fluid">
-    <div class="span6 offset3">
+    <div class="span12 text-center">
+        {msg desc="Print deposit button in deposit dialog"}You can {/msg}
          <a  target="_blank" href="/get_deposit?deposit_id={$deposit_id}" class="btn btn-primary">
-           {msg desc="Print deposit button in deposit dialog"}Print{/msg}
-           </a>  or  <a href="/get_deposit?download=1&deposit_id={$deposit_id}">{msg desc="Download deposit button in deposit dialog"}Download{/msg}</a>
+           {msg desc="Print deposit button in deposit dialog"} Print {/msg}
+         </a>
+         {msg desc="Print deposit button in deposit dialog"} or {/msg}
+         <a href="/get_deposit?download=1&deposit_id={$deposit_id}">
+            {msg desc="Download deposit button in deposit dialog"} Download {/msg}
+         </a>
+         {msg desc="Print deposit button in deposit dialog"} the deposit slip{/msg}
     </div>
   </div>
 {/template}

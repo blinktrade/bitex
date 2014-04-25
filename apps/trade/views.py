@@ -8,7 +8,7 @@ from bitex.json_encoder import  JsonEncoder
 import json
 
 from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
-  NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance
+  NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance, Ledger
 
 from execution import OrderMatcher
 
@@ -132,6 +132,12 @@ def processNewOrderSingle(session, msg):
   if not broker_user:
     raise NotAuthorizedError()
 
+  fee = 0
+  if msg.get('Side') in ('1', '3'): # Buy or Buy Minus ( To be implemented )
+    fee = broker_user.transaction_fee_buy
+  else:
+    fee = broker_user.transaction_fee_sell
+
   # process the new order.
   order = Order( user_id          = session.user.id,
                  account_id       = msg.get('ClientID', account_id ),
@@ -146,7 +152,8 @@ def processNewOrderSingle(session, msg):
                  side             = msg.get('Side'),
                  type             = msg.get('OrdType'),
                  price            = msg.get('Price'),
-                 order_qty        = msg.get('OrderQty'))
+                 order_qty        = msg.get('OrderQty'),
+                 fee              = fee)
 
 
   application.db_session.add( order)
@@ -251,7 +258,8 @@ def processSignup(session, msg):
             password            = msg.get('Password'),
             state               = msg.get('State'),
             country_code        = msg.get('CountryCode'),
-            broker_id           = msg.get('BrokerID'))
+            broker_id           = msg.get('BrokerID'),
+            broker_username     = broker.username)
 
   application.db_session.add(u)
   application.db_session.commit()
@@ -505,6 +513,8 @@ def depositRecordToDepositMessage( deposit ):
   deposit_message['Status']              = deposit.status
   deposit_message['ReasonID']            = deposit.reason_id
   deposit_message['Reason']              = deposit.reason
+  deposit_message['PercentFee']          = deposit.percent_fee
+  deposit_message['FixedFee']            = deposit.fixed_fee
   return deposit_message
 
 @login_required
@@ -849,6 +859,9 @@ def processProcessDeposit(session, msg):
 
     deposit_id   = msg.get('DepositID')
     deposit = Deposit.get_deposit(application.db_session, deposit_id=deposit_id)
+
+    if deposit.broker_id != session.user.id:
+      raise NotAuthorizedError()
   else:
     deposit = Deposit.get_deposit( application.db_session, secret=secret)
 
@@ -866,7 +879,16 @@ def processProcessDeposit(session, msg):
   elif msg.get('Action') == 'COMPLETE':
     amount      = int(msg.get('Amount'))
     data        = msg.get('Data')
-    deposit.process_confirmation(application.db_session, amount, data)
+    percent_fee = msg.get('PercentFee')
+    fixed_fee   = msg.get('FixedFee')
+
+    if percent_fee > deposit.percent_fee:
+      raise NotAuthorizedError() # Broker tried to raise their  fees manually
+
+    if fixed_fee > deposit.fixed_fee:
+      raise NotAuthorizedError() # Broker tried to raise their  fees manually
+
+    deposit.process_confirmation(application.db_session, amount, percent_fee, fixed_fee, data)
 
 
   application.db_session.commit()
@@ -912,7 +934,6 @@ def processLedgerListRequest(session, msg):
   for rec in records:
     pass
 
-
 @login_required
 def processDepositListRequest(session, msg):
   page        = msg.get('Page', 0)
@@ -934,12 +955,11 @@ def processDepositListRequest(session, msg):
     deposits = Deposit.get_list(application.db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
 
 
-
   deposit_list = []
   columns = [ 'DepositID'    , 'DepositMethodID', 'DepositMethodName' ,
               'Type'         , 'Currency'       , 'Value'             ,
               'PaidValue'    , 'Data'           , 'Created'           ,
-              'ControlNumber',
+              'ControlNumber', 'PercentFee'     , 'FixedFee'           ,
               'Status'       , 'ReasonID'       , 'Reason'             ]
 
   for deposit in deposits:
@@ -954,6 +974,8 @@ def processDepositListRequest(session, msg):
       json.loads(deposit.data),
       deposit.created,
       deposit.broker_deposit_ctrl_num,
+      deposit.percent_fee,
+      deposit.fixed_fee,
       deposit.status,
       deposit.reason_id,
       deposit.reason

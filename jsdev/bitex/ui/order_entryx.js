@@ -256,8 +256,9 @@ bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_ = function(e) {
   }
 
   if (e.ctrlKey ||
-      !e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO &&
-          e.keyCode <= goog.events.KeyCodes.NINE ||
+      !e.shiftKey && (
+          (e.keyCode >= goog.events.KeyCodes.ZERO && e.keyCode <= goog.events.KeyCodes.NINE) ||
+          (e.keyCode >= goog.events.KeyCodes.NUM_ZERO && e.keyCode <= goog.events.KeyCodes.NUM_NINE ) ) ||
       !goog.events.KeyCodes.isTextModifyingKeyEvent(e)) {
     return;
   }

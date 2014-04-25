@@ -138,7 +138,7 @@ class TradeApplication(object):
           try:
             msg = JsonMessage(json_raw_message)
           except InvalidMessageException, e:
-            self.log('IN', 'TRADE_IN_REQ',  raw_message)
+            self.log('IN', 'TRADE_IN_REQ_ERROR',  raw_message)
             raise InvalidMessageError()
 
           # never write passwords in the log file

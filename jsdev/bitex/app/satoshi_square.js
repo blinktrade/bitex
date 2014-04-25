@@ -28,6 +28,8 @@ goog.require('bitex.ui.Customers');
 goog.require('goog.fx');
 goog.require('goog.fx.dom');
 
+goog.require('goog.events.InputHandler');
+
 goog.require('goog.events');
 goog.require('goog.dom.forms');
 goog.require('goog.dom.classes');
@@ -178,6 +180,7 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   // Create all datagrids
   goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_deposit_list'));
+  goog.dom.removeChildren( goog.dom.getElement('id_trade_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
   goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
   goog.dom.removeChildren( goog.dom.getElement('account_overview_balances_id'));
@@ -210,6 +213,11 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
   });
 
+  goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
+    id: 'id_trade_list_table',
+    title: 'Last Trades',
+    show_search: false
+  });
 
   /**
    * @desc Title  for the customers table
@@ -455,16 +463,12 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
 
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS, goog.bind(  this.onBitexTradingSessionStatus_, this ) );
-
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER, goog.bind(  this.onBitexOrderBookNewOrder_, this ) );
-
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_REFRESH, this.onBitexWithdrawIncrementalUpdate_);
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.EXECUTION_REPORT, this.onBitexExecutionReport_);
 
-  //handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
-  //handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
@@ -582,6 +586,7 @@ bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol = function(symbol) {
 
 
 bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
+
   var symbol = e.target.getSymbol();
   var qtyCurrency = this.getQtyCurrencyFromSymbol(symbol);
   var priceCurrency = this.getPriceCurrencyFromSymbol(symbol);
@@ -605,49 +610,6 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 };
 
 
-bitex.app.SatoshiSquare.prototype.onBitexOrderBookNewOrder_ = function(e) {
-    var msg = e.data;
-
-    var symbol = msg['Symbol'];
-    var index = msg['MDEntryPositionNo'] - 1;
-    var price =  msg['MDEntryPx']/1e8;
-    var qty = msg['MDEntrySize']/1e8;
-    var username = msg['Username'];
-    var broker = msg['Broker'];
-    var orderId =  msg['OrderID'];
-    var side = msg['MDEntryType'];
-    var currency = symbol.substr(3,3);
-
-    if (side == '0') {
-      if (index === 0) {
-        var bid_key = 'best_bid_' +  currency.toLowerCase();
-        this.model_.set('formatted_' + bid_key, this.formatCurrency(price, currency));
-      }
-    } else if (side == '1') {
-      if (index === 0) {
-        var offer_key = 'best_offer_' +  currency.toLowerCase();
-        this.model_.set('formatted_' + offer_key, this.formatCurrency(price, currency));
-      }
-    }
-  }
-
-bitex.app.SatoshiSquare.prototype.onBitexTradingSessionStatus_ = function(e) {
-    try {
-      //  {"BRL": 52800000000, "MDEntryType": "4", "BTC": 66000000}
-      var msg = e.data;
-      delete msg['MDEntryType'];
-      delete msg['MDReqID'];
-
-      var app = this;
-      goog.object.forEach( msg, function(volume, currency) {
-        volume = volume / 1e8;
-
-        var volume_key = 'volume_' +  currency.toLowerCase();
-        app.model_.set( volume_key , volume );
-        app.model_.set('formatted_' + volume_key, app.formatCurrency(volume, currency));
-      });
-    } catch(str) {}
-};
 
 bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
@@ -1087,6 +1049,72 @@ bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
 };
 
 /**
+ * @param {string} paid_value_element_id
+ * @param {string} fixed_fee_element_id
+ * @param {string} percent_fee_element_id
+ * @param {string} currency
+ * @param {string} opt_fee_value_element_id
+ * @param {string} opt_net_value_element_id
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.doCalculateFees_ = function(paid_value_element_id,
+                                                              fixed_fee_element_id,
+                                                              percent_fee_element_id,
+                                                              currency,
+                                                              opt_fee_value_element_id,
+                                                              opt_net_value_element_id){
+  var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
+  var pos = [0];
+  var raw_paid_value = goog.dom.forms.getValue( goog.dom.getElement(paid_value_element_id) );
+  var paid_value = valueFormatter.parse(raw_paid_value , pos );
+  if (pos[0] != raw_paid_value.length || isNaN(paid_value) || paid_value <= 0 ) {
+    return;
+  }
+  paid_value = paid_value * 1e8;
+
+
+  var percent_fee = goog.dom.forms.getValue( goog.dom.getElement(percent_fee_element_id) );
+  pos = [0];
+  var percent_fee_value = valueFormatter.parse(percent_fee, pos);
+  if (isNaN(percent_fee_value)) {
+    percent_fee_value = 0;
+  }
+
+
+  var fixed_fee = goog.dom.forms.getValue( goog.dom.getElement(fixed_fee_element_id) );
+  pos = [0];
+  var fixed_fee_value = valueFormatter.parse(fixed_fee, pos);
+  if (isNaN(fixed_fee_value)) {
+    fixed_fee_value = 0;
+  }
+  fixed_fee = fixed_fee * 1e8;
+
+  var total_percent_fee_value = ((paid_value - fixed_fee) * (percent_fee_value/100.0));
+  var total_fixed_fee_value = fixed_fee;
+  var total_fees = total_percent_fee_value + total_fixed_fee_value;
+  var net_amount = paid_value - total_fees;
+
+  console.log('net_amount: ' + net_amount +
+                  ' - paid_value: ' + paid_value +
+                  ' - fixed_fee_value:' + fixed_fee_value +
+                  ' - percent_fee_value:' + percent_fee_value +
+                  ' - total_percent_fee_value: ' + total_percent_fee_value +
+                  ' - total_fees:' + total_fees) ;
+
+  if (goog.isDefAndNotNull(opt_fee_value_element_id)) {
+    var formatted_total_fee = this.formatCurrency(total_fees/1e8, currency);
+    goog.dom.setTextContent( goog.dom.getElement(opt_fee_value_element_id) , formatted_total_fee);
+  }
+  if (goog.isDefAndNotNull(opt_net_value_element_id)) {
+    var formatted_net_amount = this.formatCurrency(net_amount/1e8, currency);
+    goog.dom.setTextContent(goog.dom.getElement(opt_net_value_element_id), formatted_net_amount);
+  }
+
+  return [ paid_value, percent_fee_value, fixed_fee ];
+};
+
+/**
  * @param {goog.events.Event} e
  * @private
  */
@@ -1154,6 +1182,10 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
   } else if (action === 'COMPLETE') {
     var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
     var paid_value_element_id = goog.string.getRandomString();
+    var fixed_fee_element_id = goog.string.getRandomString();
+    var percent_fee_element_id = goog.string.getRandomString();
+    var total_fees_element_id = goog.string.getRandomString();
+    var net_value_element_id = goog.string.getRandomString();
 
     var control_number  = deposit_data['ControlNumber'];
     if (deposit_data['Type'] == 'CRY') {
@@ -1162,9 +1194,15 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
 
     var confirm_deposit_dialog_content = bitex.templates.BrokerConfirmDepositContent({
       id_value:paid_value_element_id,
+      fixedFeeID: fixed_fee_element_id,
+      percentFeeID: percent_fee_element_id,
+      totalFeesID: total_fees_element_id,
+      netValueID: net_value_element_id,
       controlNumber:control_number ,
       currencySign:this.getCurrencySign(deposit_data['Currency']),
-      value: valueFormatter.format(deposit_data['Value']/1e8)
+      value: valueFormatter.format(deposit_data['Value']/1e8),
+      percentFee: valueFormatter.format(deposit_data['PercentFee']/100.0),
+      fixedFee: valueFormatter.format(deposit_data['FixedFee']/1e8)
     });
 
     /**
@@ -1175,6 +1213,44 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
     var confirmDepositDlg = this.showDialog(confirm_deposit_dialog_content,
                                             MSG_DLG_TITLE_GET_DEPOSIT_PAID_VALUE,
                                             bootstrap.Dialog.ButtonSet.createOkCancel());
+
+
+    this.doCalculateFees_ (paid_value_element_id,
+                           fixed_fee_element_id,
+                           percent_fee_element_id,
+                           deposit_data['Currency'],
+                           total_fees_element_id,
+                           net_value_element_id );
+
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(paid_value_element_id) ),
+        goog.events.InputHandler.EventType.INPUT,
+        goog.bind(this.doCalculateFees_, this,
+                  paid_value_element_id,
+                  fixed_fee_element_id,
+                  percent_fee_element_id,
+                  deposit_data['Currency'],
+                  total_fees_element_id,
+                  net_value_element_id));
+
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(percent_fee_element_id) ),
+        goog.events.InputHandler.EventType.INPUT,
+        goog.bind(this.doCalculateFees_, this,
+                  paid_value_element_id,
+                  fixed_fee_element_id,
+                  percent_fee_element_id,
+                  deposit_data['Currency'],
+                  total_fees_element_id,
+                  net_value_element_id));
+
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(fixed_fee_element_id) ),
+        goog.events.InputHandler.EventType.INPUT,
+        goog.bind(this.doCalculateFees_, this,
+                  paid_value_element_id,
+                  fixed_fee_element_id,
+                  percent_fee_element_id,
+                  deposit_data['Currency'],
+                  total_fees_element_id,
+                  net_value_element_id));
 
     handler.listen(confirmDepositDlg, goog.ui.Dialog.EventType.SELECT, function(e) {
       if (e.key == 'ok') {
@@ -1190,13 +1266,46 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
         }
         paid_value = paid_value * 1e8;
 
+
+        var percent_fee = goog.dom.forms.getValue( goog.dom.getElement(percent_fee_element_id) );
+        pos = [0];
+        var percent_fee_value = valueFormatter.parse(percent_fee, pos);
+        if (isNaN(percent_fee_value)) {
+          percent_fee_value = 0;
+        }
+        if (pos[0] != percent_fee.length || isNaN(percent_fee_value) || percent_fee_value < 0 ) {
+          e.stopPropagation();
+          e.preventDefault();
+          goog.dom.getElement(percent_fee_element_id).focus();
+          return;
+        }
+        percent_fee_value = percent_fee_value * 100;
+
+
+        var fixed_fee = goog.dom.forms.getValue( goog.dom.getElement(fixed_fee_element_id) );
+        pos = [0];
+        var fixed_fee_value = valueFormatter.parse(fixed_fee, pos);
+        if (isNaN(fixed_fee_value)) {
+          fixed_fee_value = 0;
+        }
+
+        if (pos[0] != fixed_fee.length || isNaN(fixed_fee_value) || fixed_fee_value < 0 ) {
+          e.stopPropagation();
+          e.preventDefault();
+          goog.dom.getElement(fixed_fee_element_id).focus();
+          return;
+        }
+        fixed_fee_value = fixed_fee_value * 1e8;
+
         this.getBitexConnection().processDeposit (request_id,
                                                   action,
                                                   undefined, // opt_secret
                                                   deposit_data['DepositID'],
                                                   undefined, // opt_reasonId
                                                   undefined, // opt_reason
-                                                  paid_value);
+                                                  paid_value, // opt_amount
+                                                  percent_fee_value,
+                                                  fixed_fee_value);
 
       }
     }, this);
@@ -1285,7 +1394,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
                               bootstrap.Dialog.ButtonSet.createOkCancel());
 
 
-  handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+  handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
     if (e.key == 'ok') {
       e.preventDefault();
       e.stopPropagation();
@@ -1316,6 +1425,8 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
           goog.soy.renderElement(deposit_form_el,
                                  bitex.templates.DepositSlipContentDialog,
                                  {deposit_id:msg['DepositID'] } );
+
+          dlg.setButtonSet(bootstrap.Dialog.ButtonSet.createOk());
         });
       }
     }
@@ -1518,10 +1629,14 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
       case 'signin':
       case 'signup':
       case 'tos':
-      case 'market':
       case 'forgot_password':
       case 'set_new_password':
         break;
+      case 'market':
+        if ( !this.conn_.isConnected() )
+          this.router_.setView('start');
+        break;
+
       default:
         // redirect non-logged users to the signin page
         this.router_.setView('start');
@@ -1633,7 +1748,6 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
     var offer_key = 'best_offer_' +  currency_key;
     var last_price = 'last_price_' +  currency_key;
 
-console.log(this);
     this.model_.set('formatted_' + volume_key, this.formatCurrency(0, currency['Code']));
     this.model_.set('formatted_' + min_key, this.formatCurrency(0, currency['Code']));
     this.model_.set('formatted_' + max_key, this.formatCurrency(0, currency['Code']));

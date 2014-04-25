@@ -32,5 +32,13 @@ bitex.view.BrokerView.prototype.enterDocument = function() {
  */
 bitex.view.BrokerView.prototype.onModelSetBroker_ = function(e) {
   var broker = e.data;
+
+  var fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.PERCENT);
+  fmt.setMaximumFractionDigits(2);
+  fmt.setMinimumFractionDigits(2);
+
+  broker['TransactionFeeBuy'] = fmt.format(broker['TransactionFeeBuy'] / 10000);
+  broker['TransactionFeeSell'] = fmt.format(broker['TransactionFeeSell'] / 10000);
+
   goog.soy.renderElement(goog.dom.getElement('my_broker'), bitex.templates.BrokerView, {msg_broker:broker});
 };

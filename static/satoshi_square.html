@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt_BR">
 <head>
   <meta charset="utf-8">
@@ -464,65 +464,91 @@
 <div id="market" class="page row">
     <div class="row-fluid">
         <div class="page-header">
-            <h2>Market</h2>
+            <h2>Market history</h2>
         </div>
     </div>
 
     <div class="row-fluid">
 
-              <div style="width:55%;overflow:auto;float:left;" >
-                <div class="row-fluid">
-                  <div class="span6">
-                    <div class="text-center"><h4>Sell orders</h4></div>
-                    <table id="order_book_bid" class="table">
-                      <thead>
-                      <tr>
-                        <th class="order-book-username">Buyer</th>
-                        <th class="order-book-amount">Amount</th>
-                        <th class="order-book-price">Price</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="span6">
-                    <div class="text-center"><h4>Buy orders</h4></div>
-                    <table id="order_book_offer" class="table">
-                      <thead>
-                      <tr>
-                        <th class="order-book-price">Price</th>
-                        <th class="order-book-amount">Amount</th>
-                        <th class="order-book-username">Seller</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div style="width:44%;overflow:auto;float:left;border-left: 1px solid #111111;" >
-                <div class="text-center"><h4>Last Trades</h4></div>
-                <div style="height: 450px;width:100%;margin-bottom:20px;overflow:auto; ">
-                  <table id="last_trades_id" class="table last-trades">
+        <div id="id_trade_list">
+            <div id="id_trade_list_table" class="fuelux " style="width:100%;">
+                <table class="table table-bordered datagrid datagrid-stretch-header">
                     <thead>
-                    <tr>
-                      <th>Time</th>
-                      <th>Side</th>
-                      <th>Price</th>
-                      <th>Size</th>
-                      <th>Buyer</th>
-                      <th>Seller</th>
-                    </tr>
+                        <tr>
+                            <th colspan="6">
+                                <span class="datagrid-header-title">
+                                    <strong>Last Trades</strong>
+                                </span>
+                                <div class="datagrid-header-left">
+                                </div>
+                                <div class="datagrid-header-right">
+                                </div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th data-property="Created">Time</th>
+                            <th data-property="Status">Side</th>
+                            <th data-property="Value">Price</th>
+                            <th data-property="ControlNumber">Size</th>
+                            <th data-property="Data">Buyer</th>
+                            <th data-property="DepositID">Seller</th>
+                        </tr>
                     </thead>
-                    <tbody><tr class="last-trades-row"><td class="last-trades-time">01:02:40</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:33</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 5.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:26</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:15</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 3.330</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:57</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:20:36</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:11:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 597.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:03:21</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 598.00</td><td class="last-trades-size">฿ 0.250</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr></tbody>
-                  </table>
+                </table>
+                <div class="datagrid-stretch-wrapper" style="height:360px;">
+                    <table class="table table-bordered datagrid">
+                        <tbody></tbody>
+                    </table>
                 </div>
-              </div>
+                <table class="table table-bordered datagrid datagrid-stretch-footer">
+                    <tfoot>
+                        <tr>
+                            <th colspan="4">
+                                <div class="datagrid-footer-left" style="visibility: visible;">
+                                    <div class="grid-controls">
+                                        <span>
+                                            <span class="grid-start">1</span> -<span class="grid-end">100</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="datagrid-footer-right" style="visibility: visible;">
+                                    <div class="grid-pager">
+                                        <button type="button" class="btn grid-prevpage">
+                                            <i class="icon-chevron-left">
+                                            </i>
+                                        </button>
+                                        <button type="button" class="btn grid-nextpage">
+                                            <i class="icon-chevron-right">
+                                            </i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
-          </div>
+        </div>
+            <div class="well" style="display:none;">
+            <div class="text-center"><h4>Last Trades</h4></div>
+            <div style="height: 450px;width:100%;margin-bottom:20px;overflow:auto; ">
+                <table id="last_trades_id" class="table last-trades">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Side</th>
+                    <th>Price</th>
+                    <th>Size</th>
+                    <th>Buyer</th>
+                    <th>Seller</th>
+                </tr>
+                </thead>
+                <tbody><tr class="last-trades-row"><td class="last-trades-time">01:02:40</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:33</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 5.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:26</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">01:02:15</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 3.330</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:57</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:41:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 595.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:20:36</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 600.00</td><td class="last-trades-size">฿ 2.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:11:53</td><td class="last-trades-side">Sell</td><td class="last-trades-price">$ 597.00</td><td class="last-trades-size">฿ 1.000</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr><tr class="last-trades-row"><td class="last-trades-time">00:03:21</td><td class="last-trades-side">Buy</td><td class="last-trades-price">$ 598.00</td><td class="last-trades-size">฿ 0.250</td><td class="last-trades-buyer">998</td><td class="last-trades-seller">999</td></tr></tbody>
+                </table>
+            </div>
+            </div>
+    </div>
 
 </div>
 
@@ -555,7 +581,12 @@
 </script>
 
 
+
 </body>
 
 </html>
+
+
+
+
 

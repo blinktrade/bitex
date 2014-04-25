@@ -184,7 +184,7 @@ bitex.view.DepositView.prototype.destroyComponents_ = function( ) {
                      this.onDepositListTableRequestData_);
 
     handler.unlisten(this.getApplication().getBitexConnection(),
-                     bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE,
+                     bitex.api.BitEx.EventType.DEPOSIT_LIST_RESPONSE  + '.' + this.request_id_,
                      this.onDepositListReponse_);
 
 
