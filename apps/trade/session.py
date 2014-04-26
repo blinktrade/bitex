@@ -2,6 +2,7 @@
 from errors import *
 from views import *
 
+
 class Session(object):
   def __init__(self, session_id, remote_ip=None, client_version=None):
     self.session_id     = session_id
@@ -19,7 +20,13 @@ class Session(object):
     if self.user:
       raise UserAlreadyLogged
     self.user = user
-    self.broker = user.broker
+
+    from models import Broker
+
+    if user.is_broker:
+      self.broker = Broker.get_broker( application.db_session,user.id)
+    else:
+      self.broker = Broker.get_broker( application.db_session,user.broker.id)
 
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest

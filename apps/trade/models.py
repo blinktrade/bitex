@@ -587,6 +587,11 @@ class Broker(Base):
   verification_jotform  = Column(String(255),    nullable=False)
   upload_jotform        = Column(String(255),    nullable=False)
 
+  # emails
+  withdraw_confirmation_email           = Column(String(255),    nullable=False)
+  withdraw_confirmation_email_subject   = Column(String(255),    nullable=False)
+
+
   withdraw_structure    = Column(Text,          nullable=False)
 
   currencies            = Column(String(255),   nullable=False)
@@ -621,13 +626,13 @@ class Broker(Base):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
            u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
-           u"fee_structure=%r, withdraw_structure=%r," \
+           u"fee_structure=%r, withdraw_structure=%r, withdraw_confirmation_email=%r,withdraw_confirmation_email_subject=%r , " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
-      self.fee_structure , self.withdraw_structure,
+      self.fee_structure , self.withdraw_structure, self.withdraw_confirmation_email, self.withdraw_confirmation_email_subject,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking )
 
@@ -721,6 +726,7 @@ class UserEmail(Base):
       'Template':'',
       'Params':'{}'
     }
+    application.publish( user_id, msg )
 
     if body:
       msg['RawData'] = body
@@ -732,7 +738,6 @@ class UserEmail(Base):
     if params:
       msg['Params'] = params
 
-    application.publish( user_id, msg )
 
     application.publish( 'EMAIL' , msg )
 
@@ -758,6 +763,9 @@ class Withdraw(Base):
   created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
   reason_id       = Column(Integer)
   reason          = Column(String)
+
+  percent_fee     = Column(Integer,    nullable=False, default=0)
+  fixed_fee       = Column(Integer,    nullable=False, default=0)
 
   def as_dict(self):
     import json
@@ -804,7 +812,7 @@ class Withdraw(Base):
     session.add(self)
     session.flush()
 
-  def set_as_complete(self, session, data=None):
+  def set_as_complete(self, session, percent_fee, fixed_fee, data=None):
     if self.status != '2':
       return
 
@@ -816,12 +824,23 @@ class Withdraw(Base):
         self.data = json.dumps(new_data)
 
     self.status = '4' # COMPLETE
+    self.percent_fee = percent_fee
+    self.fixed_fee = fixed_fee
+
+    # fee processing
+    total_percent_fee_value = ((self.amount - self.fixed_fee) * (self.percent_fee/10000.0))
+    total_fees = total_percent_fee_value + self.fixed_fee
+
+
 
     session.add(self)
     session.flush()
 
   def cancel(self, session, reason_id = None, reason=None):
-    if self.status in ('2', '4'): # in progress or completed
+    if self.status == '4':
+      return  self
+
+    if self.status == '2': # in progress or completed
       #deposit the money back :)
       Ledger.deposit(session,
                       self.account_id,
@@ -889,13 +908,20 @@ class Withdraw(Base):
 
     return query
 
-
-
-
   @staticmethod
-  def create(session, user,  currency, amount, method, data):
+  def create(session, user, broker,  currency, amount, method, data):
     import uuid
     confirmation_token = uuid.uuid4().hex
+
+    percent_fee = 0
+    fixed_fee = 0
+
+    withdraw_structure = json.loads(broker.withdraw_structure)
+    for withdraw_method in withdraw_structure[currency]:
+      if method == withdraw_method['method']:
+        percent_fee = withdraw_method['percent_fee']
+        fixed_fee = withdraw_method['fixed_fee']
+        break
 
     withdraw_record = Withdraw(user_id            = user.id,
                                account_id         = user.id,
@@ -906,20 +932,21 @@ class Withdraw(Base):
                                currency           = currency,
                                amount             = amount,
                                confirmation_token = confirmation_token,
-                               data               = data)
-
+                               percent_fee        = percent_fee,
+                               fixed_fee          = fixed_fee,
+                               data               = data )
     session.add(withdraw_record)
     session.flush()
 
     formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
 
-    template_name       = "withdraw_confirmation_%s_ptBR.txt" % withdraw_record.method.lower()
+    template_name       = broker.withdraw_confirmation_email.replace('{method}', withdraw_record.method.lower())
     template_parameters =  withdraw_record.as_dict()
     template_parameters['amount'] = formatted_amount
 
     UserEmail.create( session = session,
                       user_id = user.id,
-                      subject = u"[BitEx] Confirm withdraw operation.",
+                      subject =  broker.withdraw_confirmation_email_subject.replace('{currency}', currency),
                       template=template_name,
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
 
@@ -927,10 +954,10 @@ class Withdraw(Base):
 
   def __repr__(self):
     return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount='%r', " \
-           u"broker_username=%r, data=%r,  "\
+           u"broker_username=%r, data=%r, percent_fee=%r, fixed_fee-%r, "\
            u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r)>" % (
       self.id, self.user_id, self.account_id, self.broker_id, self.username, self.currency, self.method,self.amount,
-      self.broker_username, self.data,
+      self.broker_username, self.data, self.percent_fee, self.fixed_fee,
       self.confirmation_token, self.status, self.created, self.reason_id, self.reason)
 
 
@@ -1510,6 +1537,8 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
+               withdraw_confirmation_email='',
+               withdraw_confirmation_email_subject='',
                tos_url=u'http://localhost/tos',
                fee_structure="[]",
                transaction_fee_buy=0,transaction_fee_sell=0, status=u'1', ranking=0)
@@ -1579,6 +1608,8 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
                fee_structure=json.dumps([
                  { "Operation" : "Deposito via TED",             "Fee":"0,3%"             , "Terms":"20 minutos após confirmação" },

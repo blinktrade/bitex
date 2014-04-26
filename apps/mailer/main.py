@@ -61,8 +61,8 @@ def main():
     mail_logger.info('START')
 
     def log(command, key, value=None):
-        #log_msg = u'%s, %s, %s' %(command, key, value if value else None)
-        #mail_logger.info(unicode(log_msg))
+        log_msg = u'%s, %s, %s' %(command, key, value if value else None)
+        mail_logger.info(unicode(log_msg))
         pass
 
     log('PARAM', 'BEGIN')

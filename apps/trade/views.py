@@ -59,39 +59,33 @@ def processLogin(session, msg):
     'UserStatus':       1,
     'IsBroker':         session.user.is_broker,
   }
-  broker = None
 
-  if session.user.is_broker:
-    broker = Broker.get_broker( application.db_session,session.user.id)
-  elif session.broker:
-    broker = Broker.get_broker( application.db_session,session.broker.id)
-
-  if broker:
-    login_response['BrokerID'] = broker.id
+  if session.broker:
+    login_response['BrokerID'] = session.broker.id
     login_response['Broker'] =  {
-      'BrokerID'           : broker.id                   ,
-      'ShortName'          : broker.short_name           ,
-      'BusinessName'       : broker.business_name        ,
-      'Address'            : broker.address              ,
-      'ZipCode'            : broker.zip_code             ,
-      'City'               : broker.city                 ,
-      'State'              : broker.state                ,
-      'Country'            : broker.country              ,
-      'PhoneNumber1'       : broker.phone_number_1       ,
-      'PhoneNumber2'       : broker.phone_number_2       ,
-      'Skype'              : broker.skype                ,
-      'Email'              : broker.email                ,
-      'Currencies'         : broker.currencies           ,
-      'VerificationForm'   : broker.verification_jotform ,
-      'UploadForm'         : broker.upload_jotform       ,
-      'TosUrl'             : broker.tos_url              ,
-      'FeeStructure'       : json.loads(broker.fee_structure),
-      'WithdrawStructure'  : json.loads(broker.withdraw_structure),
-      'TransactionFeeBuy'  : broker.transaction_fee_buy  ,
-      'TransactionFeeSell' : broker.transaction_fee_sell ,
-      'Status'             : broker.status               ,
-      'ranking'            : broker.ranking              ,
-      'CryptoCurrencies'   : json.loads(broker.crypto_currencies)
+      'BrokerID'           : session.broker.id                   ,
+      'ShortName'          : session.broker.short_name           ,
+      'BusinessName'       : session.broker.business_name        ,
+      'Address'            : session.broker.address              ,
+      'ZipCode'            : session.broker.zip_code             ,
+      'City'               : session.broker.city                 ,
+      'State'              : session.broker.state                ,
+      'Country'            : session.broker.country              ,
+      'PhoneNumber1'       : session.broker.phone_number_1       ,
+      'PhoneNumber2'       : session.broker.phone_number_2       ,
+      'Skype'              : session.broker.skype                ,
+      'Email'              : session.broker.email                ,
+      'Currencies'         : session.broker.currencies           ,
+      'VerificationForm'   : session.broker.verification_jotform ,
+      'UploadForm'         : session.broker.upload_jotform       ,
+      'TosUrl'             : session.broker.tos_url              ,
+      'FeeStructure'       : json.loads(session.broker.fee_structure),
+      'WithdrawStructure'  : json.loads(session.broker.withdraw_structure),
+      'TransactionFeeBuy'  : session.broker.transaction_fee_buy  ,
+      'TransactionFeeSell' : session.broker.transaction_fee_sell ,
+      'Status'             : session.broker.status               ,
+      'ranking'            : session.broker.ranking              ,
+      'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
     }
   return json.dumps(login_response, cls=JsonEncoder)
 
@@ -523,6 +517,7 @@ def processWithdrawRequest(session, msg):
 
   withdraw_record = Withdraw.create(application.db_session,
                                     session.user,
+                                    session.broker,
                                     msg.get('Currency'),
                                     msg.get('Amount'),
                                     msg.get('Method'),
@@ -825,12 +820,24 @@ def processProcessWithdraw(session, msg):
     raise  NotAuthorizedError()
 
   if msg.get('Action') == 'CANCEL':
+    if withdraw.status == '4' or withdraw == '8':
+      raise NotAuthorizedError()  # trying to cancel a completed operation or a cancelled operation
+
     withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
     withdraw.set_in_progress( application.db_session)
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
-    withdraw.set_as_complete( application.db_session, data)
+    percent_fee = msg.get('PercentFee')
+    fixed_fee   = msg.get('FixedFee')
+
+    if percent_fee > withdraw.percent_fee:
+      raise NotAuthorizedError() # Broker tried to raise their  fees manually
+
+    if fixed_fee > withdraw.fixed_fee:
+      raise NotAuthorizedError() # Broker tried to raise their  fees manually
+
+    withdraw.set_as_complete( application.db_session, percent_fee, fixed_fee, data)
 
   application.db_session.commit()
 
