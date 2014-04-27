@@ -404,7 +404,9 @@ def processRequestDepositMethods(session, msg):
       'Description': deposit_option.description,
       'Disclaimer': deposit_option.disclaimer,
       'Type': deposit_option.type,
-      'Currency': deposit_option.currency
+      'Currency': deposit_option.currency,
+      'PercentFee': deposit_option.percent_fee,
+      'FixedFee': deposit_option.fixed_fee
     } )
 
   response = {
@@ -828,8 +830,8 @@ def processProcessWithdraw(session, msg):
     withdraw.set_in_progress( application.db_session)
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
-    percent_fee = msg.get('PercentFee')
-    fixed_fee   = msg.get('FixedFee')
+    percent_fee = msg.get('PercentFee',0)
+    fixed_fee   = msg.get('FixedFee',0)
 
     if percent_fee > withdraw.percent_fee:
       raise NotAuthorizedError() # Broker tried to raise their  fees manually

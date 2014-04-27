@@ -882,8 +882,10 @@ bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, ver
  * @param {number=} opt_reasonId
  * @param {string=} opt_reason
  * @param {Object=} opt_data
+ * @param {number=} opt_percent_fee
+ * @param {number=} opt_fixed_fee
  */
-bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, withdrawId, opt_reasonId, opt_reason, opt_data){
+bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, withdrawId, opt_reasonId, opt_reason, opt_data,opt_percent_fee,opt_fixed_fee){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
@@ -903,6 +905,13 @@ bitex.api.BitEx.prototype.processWithdraw = function(opt_requestId, action, with
 
   if (goog.isDefAndNotNull(opt_data)){
     msg['Data'] = opt_data;
+  }
+
+  if (goog.isDefAndNotNull(opt_percent_fee)){
+    msg['PercentFee'] = opt_percent_fee;
+  }
+  if (goog.isDefAndNotNull(opt_fixed_fee)){
+    msg['FixedFee'] = opt_fixed_fee;
   }
 
   this.sendMessage(msg);

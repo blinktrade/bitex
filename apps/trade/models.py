@@ -812,7 +812,7 @@ class Withdraw(Base):
     session.add(self)
     session.flush()
 
-  def set_as_complete(self, session, percent_fee, fixed_fee, data=None):
+  def set_as_complete(self, session, percent_fee=0, fixed_fee=0, data=None):
     if self.status != '2':
       return
 

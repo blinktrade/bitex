@@ -434,6 +434,13 @@
   * @param currency
   * @param currency_sign
   * @param methods
+  * @param methodID
+  * @param amountID
+  * @param? amount
+  * @param percentFeeID
+  * @param fixedFeeID
+  * @param totalFeesID
+  * @param netValueID
   */
 {template .DepositWithdrawDialogContent}
   <form class="form-horizontal" data-deposit-status="prepare">
@@ -445,10 +452,12 @@
         <div class="controls">
           <div class="input-prepend">
             <span class="add-on">{$currency_sign}</span>
-            <input type="text" class="input-small" size="16" name="Amount">
+            <input id="{$amountID}" type="text" class="input-small" size="16" name="Amount">
           </div>
         </div>
       </div>
+    {else}
+      <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
     {/if}
 
     {if not $force_method}
@@ -456,16 +465,22 @@
         <div class="control-group">
           <label class="control-label">Method</label>
           <div class="controls">
-            <select name="Method" class="withdraw-method-selector">
+            <select id="{$methodID}" name="Method" class="withdraw-method-selector">
               {foreach $method in $methods }
-               <option {if isFirst($method)}selected{/if} value="{$method['method']}" >{$method['description']}</option>
+               <option {if isFirst($method)}selected{/if} value="{$method['method']}"
+                    data-net-value="{$netValueID}"
+                    data-percent-fee="{$method['method']}_{$percentFeeID}"
+                    data-fixed-fee="{$method['method']}_{$fixedFeeID}">{$method['description']}</option>
               {/foreach}
             </select>
           </div>
         </div>
       {else}
         {foreach $method in $methods }
-          <input type="hidden" name="Method" value="{$method['method']}">
+          <input  id="{$methodID}" type="hidden" name="Method"  value="{$method['method']}"
+                data-net-value="{$netValueID}"
+                data-percent-fee="{$method['method']}_{$percentFeeID}"
+                data-fixed-fee="{$method['method']}_{$fixedFeeID}">
         {/foreach}
       {/if}
     {/if}
@@ -484,17 +499,56 @@
                 </div>
               {/if}
             {/foreach}
-            <div class="control-group" style="margin-bottom: 5px;">
-              <div class="controls">
-                <label>{$method['disclaimer']}</label>
+            {if $side == 'client'}
+              <div class="control-group" style="margin-bottom: 5px;">
+                <div class="controls">
+                  <label>{$method['disclaimer']}</label>
+                </div>
               </div>
-            </div>
+            {else}
+              {if $side == 'broker'}
+                <div class="control-group" style="margin-bottom: 5px;">
+                  <div class="controls">
+                    <label>{$method['disclaimer']}</label>
+                  </div>
+                </div>
+
+                <div class="control-group">
+                  <label class="control-label">{msg desc="Fee percentage label"}Fees:{/msg}</label>
+                  <div class="controls">
+                    <div class="row-fluid">
+                      <div class="span4">
+                        <div class="input-append">
+                          <input id="{$method['method']}_{$percentFeeID}" type="text" class="input-mini" size="16" name="Fee" value="{$method['percent_fee']/100.0 }">
+                          <span class="add-on">%</span>
+                        </div>
+                      </div>
+
+                      <div class="span4">
+                        <div class="input-prepend">
+                          <span class="add-on">{$currency_sign}</span>
+                          <input id="{$method['method']}_{$fixedFeeID}" type="text" class="input-mini" size="16" name="Fee" value="{$method['fixed_fee']/1e8}">
+                        </div>
+                      </div>
+
+                      <div class="span4">
+                        <label id="{$method['method']}_{$totalFeesID}" class="control-label broker-confirm-deposit-fee" style="text-align: left;"></label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {/if}
+            {/if}
+
           {/if}
         {else}
           <div class="withdraw-method" data-withdraw-method="{$method['method']}" style="{if not isFirst($method)}display:none;{/if}" >
             <div class="control-group" style="margin-bottom: 5px;">
               <div class="controls">
                 <label>{$method['disclaimer']}</label>
+                <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']/100.0}">
+                <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']/1e8}">
+                <label id="{$method['method']}_{$totalFeesID}" class="control-label" style="text-align: left;"></label>
               </div>
             </div>
 
@@ -511,6 +565,13 @@
           </div>
         {/if}
      {/foreach}
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">{msg desc="Net amount"}Net amount{/msg}</label>
+      <div class="controls">
+        <label id="{$netValueID}" class="control-label broker-confirm-deposit-net-amount" style="text-align: left;"></label>
+      </div>
     </div>
 
     <div class="control-group dlg-response-group">

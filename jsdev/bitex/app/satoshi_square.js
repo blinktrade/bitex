@@ -621,12 +621,16 @@ bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
     var disclaimer = deposit_method['Disclaimer'];
     var type = deposit_method['Type'];
     var currency = deposit_method['Currency'];
+    var percent_fee = deposit_method['PercentFee'];
+    var fixed_fee = deposit_method['FixedFee'];
 
     deposit_methods.push( { id:deposit_method_id,
                            description:description,
                            disclaimer:disclaimer,
                            type: type,
-                           currency:currency
+                           currency:currency,
+                           percent_fee: percent_fee,
+                           fixed_fee: fixed_fee
                          } );
   });
 
@@ -887,12 +891,26 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
     var model = this.getModel();
     var withdraw_methods = model.get('Broker')['WithdrawStructure'][withdraw_data['Currency'] ];
 
+    var method_element_id = goog.string.getRandomString();
+    var withdraw_amount_element_id = goog.string.getRandomString();
+    var fixed_fee_element_id = goog.string.getRandomString();
+    var percent_fee_element_id = goog.string.getRandomString();
+    var total_fees_element_id = goog.string.getRandomString();
+    var net_value_element_id = goog.string.getRandomString();
+
     var dialogContent = bitex.templates.DepositWithdrawDialogContent({
       side: 'broker',
       currency: withdraw_data['Currency'],
       currency_sign: this.getCurrencySign(withdraw_data['Currency']),
       force_method: withdraw_data['Method'],
-      methods: withdraw_methods
+      amount: withdraw_data['Amount'],
+      methods: withdraw_methods,
+      methodID: method_element_id,
+      amountID: withdraw_amount_element_id,
+      fixedFeeID: fixed_fee_element_id,
+      percentFeeID: percent_fee_element_id,
+      totalFeesID: total_fees_element_id,
+      netValueID: net_value_element_id
     });
 
 
@@ -907,10 +925,80 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
                                MSG_CURRENCY_BROKER_WITHDRAW_DIALOG_TITLE,
                                bootstrap.Dialog.ButtonSet.createOkCancel());
 
+    this.doCalculateFees_ (withdraw_amount_element_id,
+                           withdraw_data['Method'] + '_' + fixed_fee_element_id,
+                           withdraw_data['Method'] + '_' + percent_fee_element_id,
+                           withdraw_data['Currency'],
+                           withdraw_data['Method'] + '_' + total_fees_element_id,
+                           net_value_element_id );
+
+
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),
+                    goog.events.InputHandler.EventType.INPUT,
+                    goog.bind(this.doCalculateFees_, this,
+                              withdraw_amount_element_id,
+                              withdraw_data['Method'] + '_' + fixed_fee_element_id,
+                              withdraw_data['Method'] + '_' + percent_fee_element_id,
+                              withdraw_data['Currency'],
+                              withdraw_data['Method'] + '_' + total_fees_element_id,
+                              net_value_element_id));
+
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_data['Method'] + '_' + percent_fee_element_id) ),
+                    goog.events.InputHandler.EventType.INPUT,
+                    goog.bind(this.doCalculateFees_, this,
+                              withdraw_amount_element_id,
+                              withdraw_data['Method'] + '_' + fixed_fee_element_id,
+                              withdraw_data['Method'] + '_' + percent_fee_element_id,
+                              withdraw_data['Currency'],
+                              withdraw_data['Method'] + '_' + total_fees_element_id,
+                              net_value_element_id));
+
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_data['Method'] + '_' + fixed_fee_element_id) ),
+                    goog.events.InputHandler.EventType.INPUT,
+                    goog.bind(this.doCalculateFees_, this,
+                              withdraw_amount_element_id,
+                              withdraw_data['Method'] + '_' + fixed_fee_element_id,
+                              withdraw_data['Method'] + '_' + percent_fee_element_id,
+                              withdraw_data['Currency'],
+                              withdraw_data['Method'] + '_' + total_fees_element_id,
+                              net_value_element_id));
+
 
     handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
       if (e.key == 'ok') {
         var broker_withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+
+
+
+        var percent_fee = goog.dom.forms.getValue( goog.dom.getElement(percent_fee_element_id) );
+        pos = [0];
+        var percent_fee_value = valueFormatter.parse(percent_fee, pos);
+        if (isNaN(percent_fee_value)) {
+          percent_fee_value = 0;
+        }
+        if (pos[0] != percent_fee.length || isNaN(percent_fee_value) || percent_fee_value < 0 ) {
+          e.stopPropagation();
+          e.preventDefault();
+          goog.dom.getElement(percent_fee_element_id).focus();
+          return;
+        }
+        percent_fee_value = percent_fee_value * 100;
+
+
+        var fixed_fee = goog.dom.forms.getValue( goog.dom.getElement(fixed_fee_element_id) );
+        pos = [0];
+        var fixed_fee_value = valueFormatter.parse(fixed_fee, pos);
+        if (isNaN(fixed_fee_value)) {
+          fixed_fee_value = 0;
+        }
+
+        if (pos[0] != fixed_fee.length || isNaN(fixed_fee_value) || fixed_fee_value < 0 ) {
+          e.stopPropagation();
+          e.preventDefault();
+          goog.dom.getElement(fixed_fee_element_id).focus();
+          return;
+        }
+        fixed_fee_value = fixed_fee_value * 1e8;
 
 
         this.getBitexConnection().processWithdraw(request_id,
@@ -918,7 +1006,9 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
                                                   withdraw_data['WithdrawID'],
                                                   undefined,
                                                   undefined,
-                                                  broker_withdraw_data);
+                                                  broker_withdraw_data,
+                                                  percent_fee_value,
+                                                  fixed_fee_value);
       }
     }, this);
 
@@ -1376,22 +1466,70 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
                               'method': deposit_method.id,
                               'description': deposit_method.description,
                               'disclaimer': deposit_method.disclaimer,
+                              'percent_fee': deposit_method.percent_fee,
+                              'fixed_fee': deposit_method.fixed_fee,
                               'fields': []
                             } );
     }
   }, this);
 
+  var method_element_id = goog.string.getRandomString();
+  var withdraw_amount_element_id = goog.string.getRandomString();
+  var fixed_fee_element_id = goog.string.getRandomString();
+  var percent_fee_element_id = goog.string.getRandomString();
+  var total_fees_element_id = goog.string.getRandomString();
+  var net_value_element_id = goog.string.getRandomString();
+
   var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
     side: 'client',
     currency: currency,
     currency_sign: this.getCurrencySign(currency),
-    methods: deposit_methods
+    methods: deposit_methods,
+    methodID: method_element_id,
+    amountID: withdraw_amount_element_id,
+    fixedFeeID: fixed_fee_element_id,
+    percentFeeID: percent_fee_element_id,
+    totalFeesID: total_fees_element_id,
+    netValueID: net_value_element_id
   });
 
 
   var dlg =  this.showDialog(dialogContent,
                               MSG_CURRENCY_DEPOSIT_DIALOG_TITLE,
                               bootstrap.Dialog.ButtonSet.createOkCancel());
+
+  this.doCalculateFees_(
+      withdraw_amount_element_id,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+      currency,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
+      net_value_element_id);
+
+
+  handler.listen(goog.dom.getElement(method_element_id), goog.events.EventType.CHANGE, function(e){
+    this.doCalculateFees_(
+        withdraw_amount_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+        currency,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
+        net_value_element_id);
+  });
+
+  handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,
+    function(e) {
+      this.doCalculateFees_(
+          withdraw_amount_element_id,
+          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
+          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+          currency,
+          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
+          net_value_element_id);
+    });
+
+
+
 
 
   handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
