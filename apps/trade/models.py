@@ -766,6 +766,7 @@ class Withdraw(Base):
 
   percent_fee     = Column(Integer,    nullable=False, default=0)
   fixed_fee       = Column(Integer,    nullable=False, default=0)
+  paid_amount     = Column(Integer,    nullable=False, default=0, index=True)
 
   def as_dict(self):
     import json
@@ -786,12 +787,20 @@ class Withdraw(Base):
 
     return  withdraw_data
 
-  def set_in_progress(self, session):
+  def set_in_progress(self, session, percent_fee=0, fixed_fee=0):
     if self.status != '1':
       return
 
+    self.percent_fee = percent_fee
+    self.fixed_fee = fixed_fee
+
+    total_percent_fee_value = ((self.amount - self.fixed_fee) * (self.percent_fee/10000.0))
+    total_fees = total_percent_fee_value + self.fixed_fee
+    self.paid_amount = self.amount + total_fees
+
+
     current_balance = Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
-    if self.amount >= current_balance:
+    if self.paid_amount > current_balance:
       self.cancel(session, -1 ) # Insufficient funds
       return
 
@@ -799,8 +808,8 @@ class Withdraw(Base):
     Ledger.withdraw(session,
                     self.account_id,
                     self.username,
-                    self.account_id,
-                    self.username,
+                    self.broker_id,
+                    self.broker_username,
                     self.broker_id,
                     self.broker_username,
                     self.broker_id,
@@ -809,10 +818,39 @@ class Withdraw(Base):
                     self.amount,
                     str(self.id),
                     'W')
+
+    if total_fees:
+      Ledger.withdraw(session,
+                      self.account_id,
+                      self.username,
+                      self.broker_id,
+                      self.broker_username,
+                      self.broker_id,
+                      self.broker_username,
+                      self.broker_id,
+                      self.broker_username,
+                      self.currency,
+                      total_fees,
+                      str(self.id),
+                      'WF')
+      Ledger.deposit(session,
+                     self.broker_id,
+                     self.broker_username,
+                     self.account_id,
+                     self.username,
+                     self.broker_id,
+                     self.broker_username,
+                     self.broker_id,
+                     self.broker_username,
+                     self.currency,
+                     total_fees,
+                     str(self.id),
+                     'WF')
+
     session.add(self)
     session.flush()
 
-  def set_as_complete(self, session, percent_fee=0, fixed_fee=0, data=None):
+  def set_as_complete(self, session, data=None):
     if self.status != '2':
       return
 
@@ -824,13 +862,6 @@ class Withdraw(Base):
         self.data = json.dumps(new_data)
 
     self.status = '4' # COMPLETE
-    self.percent_fee = percent_fee
-    self.fixed_fee = fixed_fee
-
-    # fee processing
-    total_percent_fee_value = ((self.amount - self.fixed_fee) * (self.percent_fee/10000.0))
-    total_fees = total_percent_fee_value + self.fixed_fee
-
 
 
     session.add(self)
@@ -845,8 +876,8 @@ class Withdraw(Base):
       Ledger.deposit(session,
                       self.account_id,
                       self.username,
-                      self.account_id,
-                      self.username,
+                      self.broker_id,
+                      self.broker_username,
                       self.broker_id,
                       self.broker_username, # broker name
                       self.broker_id,
@@ -855,6 +886,35 @@ class Withdraw(Base):
                       self.amount,
                       str(self.id),
                       'W')
+
+      if self.amount != self.paid_amount:
+        Ledger.withdraw(session,
+                        self.broker_id,
+                        self.broker_username,
+                        self.account_id,
+                        self.username,
+                        self.broker_id,
+                        self.broker_username, # broker name
+                        self.broker_id,
+                        self.broker_username, # payee_broker_name
+                        self.currency,
+                        self.paid_amount - self.amount,
+                        str(self.id),
+                        'WF')
+
+        Ledger.deposit(session,
+                       self.account_id,
+                       self.username,
+                       self.broker_id,
+                       self.broker_username,
+                       self.broker_id,
+                       self.broker_username, # broker name
+                       self.broker_id,
+                       self.broker_username, # payee_broker_name
+                       self.currency,
+                       self.paid_amount - self.amount,
+                       str(self.id),
+                       'WF')
 
     self.status = '8' # CANCELLED
     self.reason_id = reason_id
@@ -955,10 +1015,10 @@ class Withdraw(Base):
   def __repr__(self):
     return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount='%r', " \
            u"broker_username=%r, data=%r, percent_fee=%r, fixed_fee-%r, "\
-           u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r)>" % (
+           u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r, paid_amount=%r)>" % (
       self.id, self.user_id, self.account_id, self.broker_id, self.username, self.currency, self.method,self.amount,
       self.broker_username, self.data, self.percent_fee, self.fixed_fee,
-      self.confirmation_token, self.status, self.created, self.reason_id, self.reason)
+      self.confirmation_token, self.status, self.created, self.reason_id, self.reason, self.paid_amount)
 
 
 class Order(Base):

@@ -547,6 +547,9 @@ def withdrawRecordToWithdrawMessage( withdraw ):
   withdraw_message['Status']              = withdraw.status
   withdraw_message['ReasonID']            = withdraw.reason_id
   withdraw_message['Reason']              = withdraw.reason
+  withdraw_message['PercentFee']          = withdraw.percent_fee
+  withdraw_message['FixedFee']            = withdraw.fixed_fee
+  withdraw_message['PaidAmount']          = withdraw.paid_amount
   return withdraw_message
 
 @login_required
@@ -601,7 +604,8 @@ def processWithdrawListRequest(session, msg):
 
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Method'   , 'Currency'     , 'Amount' , 'Data',
-              'Created'      , 'Status'   , 'ReasonID'     , 'Reason'    ]
+              'Created'      , 'Status'   , 'ReasonID'     , 'Reason' , 'PercentFee',
+              'FixedFee'     , 'PaidAmount' ]
 
   for withdraw in withdraws:
     withdraw_list.append( [
@@ -613,7 +617,10 @@ def processWithdrawListRequest(session, msg):
       withdraw.created,
       withdraw.status,
       withdraw.reason_id,
-      withdraw.reason
+      withdraw.reason,
+      withdraw.percent_fee,
+      withdraw.fixed_fee,
+      withdraw.paid_amount
     ])
 
   response_msg = {
@@ -827,19 +834,20 @@ def processProcessWithdraw(session, msg):
 
     withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
-    withdraw.set_in_progress( application.db_session)
-  elif msg.get('Action') == 'COMPLETE':
-    data        = msg.get('Data')
     percent_fee = msg.get('PercentFee',0)
     fixed_fee   = msg.get('FixedFee',0)
 
     if percent_fee > withdraw.percent_fee:
-      raise NotAuthorizedError() # Broker tried to raise their  fees manually
+      raise NotAuthorizedError() # Broker tried to raise their fees manually
 
     if fixed_fee > withdraw.fixed_fee:
-      raise NotAuthorizedError() # Broker tried to raise their  fees manually
+      raise NotAuthorizedError() # Broker tried to raise their fees manually
 
-    withdraw.set_as_complete( application.db_session, percent_fee, fixed_fee, data)
+    withdraw.set_in_progress( application.db_session, percent_fee, fixed_fee)
+  elif msg.get('Action') == 'COMPLETE':
+    data        = msg.get('Data')
+
+    withdraw.set_as_complete( application.db_session, data)
 
   application.db_session.commit()
 

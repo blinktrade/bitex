@@ -157,14 +157,16 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
   var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
     side: 'client',
     currency: currency,
-    currency_sign: this.getApplication().getCurrencySign(currency),
+    currencySign: this.getApplication().getCurrencySign(currency),
     methods: withdraw_methods,
     methodID: method_element_id,
+    showFeeDataEntry:false,
     amountID: withdraw_amount_element_id,
     fixedFeeID: fixed_fee_element_id,
     percentFeeID: percent_fee_element_id,
     totalFeesID: total_fees_element_id,
-    netValueID: net_value_element_id
+    netValueID: net_value_element_id,
+    hideNetAmount:true
   });
 
 
@@ -187,7 +189,8 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
       goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
       currency,
       goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-      net_value_element_id);
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+      true);
 
 
   handler.listen(goog.dom.getElement(method_element_id), goog.events.EventType.CHANGE, function(e){
@@ -197,7 +200,8 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
         currency,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-        net_value_element_id);
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+        true);
   });
 
   handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,
@@ -208,7 +212,8 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
                         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
                         currency,
                         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-                        net_value_element_id);
+                        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+                        true);
                   });
 
   handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {

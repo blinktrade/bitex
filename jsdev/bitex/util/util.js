@@ -24,6 +24,10 @@ bitex.util.getFormAsJSON = function(element){
     }
 
     var name = el.name;
+    if (goog.string.isEmpty(name)) {
+      continue;
+    }
+
     var type = el.type.toLowerCase();
     switch (type) {
       case 'file':
