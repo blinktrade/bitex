@@ -539,6 +539,7 @@ def withdrawRecordToWithdrawMessage( withdraw ):
   withdraw_message['WithdrawID']          = withdraw.id
   withdraw_message['UserID']              = withdraw.user_id
   withdraw_message['BrokerID']            = withdraw.broker_id
+  withdraw_message['Username']            = withdraw.username
   withdraw_message['Method']              = withdraw.method
   withdraw_message['Currency']            = withdraw.currency
   withdraw_message['Amount']              = withdraw.amount
@@ -605,7 +606,7 @@ def processWithdrawListRequest(session, msg):
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Method'   , 'Currency'     , 'Amount' , 'Data',
               'Created'      , 'Status'   , 'ReasonID'     , 'Reason' , 'PercentFee',
-              'FixedFee'     , 'PaidAmount' ]
+              'FixedFee'     , 'PaidAmount', 'UserID'      , 'Username', 'BrokerID' ]
 
   for withdraw in withdraws:
     withdraw_list.append( [
@@ -620,7 +621,10 @@ def processWithdrawListRequest(session, msg):
       withdraw.reason,
       withdraw.percent_fee,
       withdraw.fixed_fee,
-      withdraw.paid_amount
+      withdraw.paid_amount,
+      withdraw.user_id,
+      withdraw.username,
+      withdraw.broker_id
     ])
 
   response_msg = {
@@ -976,8 +980,9 @@ def processDepositListRequest(session, msg):
   columns = [ 'DepositID'    , 'DepositMethodID', 'DepositMethodName' ,
               'Type'         , 'Currency'       , 'Value'             ,
               'PaidValue'    , 'Data'           , 'Created'           ,
-              'ControlNumber', 'PercentFee'     , 'FixedFee'           ,
-              'Status'       , 'ReasonID'       , 'Reason'             ]
+              'ControlNumber', 'PercentFee'     , 'FixedFee'          ,
+              'Status'       , 'ReasonID'       , 'Reason'            ,
+              'Username'     , 'UserID'         , 'BrokerID']
 
   for deposit in deposits:
     deposit_list.append( [
@@ -995,7 +1000,10 @@ def processDepositListRequest(session, msg):
       deposit.fixed_fee,
       deposit.status,
       deposit.reason_id,
-      deposit.reason
+      deposit.reason,
+      deposit.username,
+      deposit.user_id,
+      deposit.broker_id
     ])
 
   response_msg = {

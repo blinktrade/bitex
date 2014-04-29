@@ -904,7 +904,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
        netValueID: net_value_element_id,
        fixedFee: withdraw_data['FixedFee'],
        percentFee: withdraw_data['PercentFee']
-     });
+    });
 
     /**
      * @desc Crypto Currency Withdraw accordion title
@@ -1332,7 +1332,7 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
       fixedFeeID: fixed_fee_element_id,
       percentFeeID: percent_fee_element_id,
       totalFeesID: total_fees_element_id,
-      netValueID: amount_element_id,
+      netValueID: net_value_element_id,
       controlNumber:control_number ,
       currencySign:this.getCurrencySign(deposit_data['Currency']),
       value: valueFormatter.format(deposit_data['Value']/1e8),

@@ -53,18 +53,29 @@ var MSG_DEPOSIT_TABLE_COLUMN_ACTIONS = goog.getMsg('Actions');
  */
 var MSG_DEPOSIT_TABLE_COLUMN_DETAIL = goog.getMsg('Details');
 
+/**
+ * @desc Column Username of the Deposit List
+ */
+var MSG_DEPOSIT_TABLE_COLUMN_USERNAME = goog.getMsg('Username');
+
 
 /**
  * @param {Array.<Object>} crypto_currencies_def
  * @param {boolean} opt_broker_mode
+ * @param {boolean} opt_show_customers
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_domHelper) {
+bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_show_customers ,opt_domHelper) {
   var broker_mode = false;
   if (opt_broker_mode === true) {
-    broker_mode = true;
+    broker_mode = opt_broker_mode;
+  }
+
+  var show_customers = false;
+  if (opt_show_customers === true ) {
+    show_customers = opt_show_customers;
   }
 
   var grid_columns = [
@@ -293,6 +304,15 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode,  opt_do
    */
   var MSG_DEPOSIT_TABLE_COLUMN_ACTION_COMPLETE = goog.getMsg('Set as complete');
 
+
+  if (show_customers) {
+    grid_columns.push({
+      'property': 'Username',
+      'label': MSG_DEPOSIT_TABLE_COLUMN_USERNAME,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'username'); }
+    });
+  }
 
   if (broker_mode ){
     grid_columns.push({

@@ -219,7 +219,7 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
 
   var el = goog.dom.getElement('id_deposit_list_table');
   var broker = model.get('Broker');
-  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'] );
+  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], model.get('IsBroker'), model.get('IsBroker') );
 
   handler.listen(this.deposit_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,

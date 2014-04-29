@@ -72,18 +72,30 @@ var MSG_WITHDRAW_TABLE_COLUMN_ACTIONS = goog.getMsg('Actions');
  */
 var MSG_WITHDRAW_TABLE_COLUMN_DETAIL = goog.getMsg('Details');
 
+/**
+ * @desc Column Username of the Withdraw List
+ */
+var MSG_WITHDRAW_TABLE_COLUMN_USERNAME = goog.getMsg('Username');
+
+
 
 /**
  * @param {Object} methodDescriptionObj
  * @param {boolean} opt_broker_mode
+ * @param {boolean} opt_show_customers
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.WithdrawList = function( methodDescriptionObj, opt_broker_mode,  opt_domHelper) {
+bitex.ui.WithdrawList = function( methodDescriptionObj, opt_broker_mode,  opt_show_customers, opt_domHelper) {
   var broker_mode = false;
   if (opt_broker_mode === true) {
-    broker_mode = true;
+    broker_mode = opt_broker_mode;
+  }
+
+  var show_customers = false;
+  if (opt_show_customers === true ) {
+    show_customers = opt_show_customers;
   }
 
   var grid_columns = [
@@ -131,37 +143,40 @@ bitex.ui.WithdrawList = function( methodDescriptionObj, opt_broker_mode,  opt_do
           var MSG_WITHDRAW_REASON_OVER_LIMIT = goog.getMsg('Amount exceeded your daily withdraw limit');
 
 
-          var status_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ],  label_class_text[1] );
+          var status_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ] );
           var reason_el;
           switch(reason_id) {
             case 0:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], reason );
+              reason_el = goog.dom.createDom('abbr', {'title': reason},  label_class_text[1] );
               break;
             case -1:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_INSUFFICIENT_FUNDS );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_INSUFFICIENT_FUNDS},  label_class_text[1] );
               break;
             case -2:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_ACCOUNT_NOT_VERIFIED );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_ACCOUNT_NOT_VERIFIED},  label_class_text[1] );
               break;
             case -3:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_SUSPICION_OF_FRAUD );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_SUSPICION_OF_FRAUD},  label_class_text[1] );
               break;
             case -4:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_DIFFERENT_ACCOUNT );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_DIFFERENT_ACCOUNT},  label_class_text[1] );
               break;
             case -5:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_INVALID_WALLET );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_INVALID_WALLET},  label_class_text[1] );
               break;
             case -6:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_INVALID_BANK_ACCOUNT );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_INVALID_BANK_ACCOUNT},  label_class_text[1] );
               break;
             case -7:
-              reason_el = goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ], MSG_WITHDRAW_REASON_OVER_LIMIT );
+              reason_el = goog.dom.createDom('abbr', {'title': MSG_WITHDRAW_REASON_OVER_LIMIT},  label_class_text[1] );
               break;
+            default:
+              return goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ],  label_class_text[1]  );
           }
-          return [status_el, goog.dom.createDom('br'),  reason_el ];
+          goog.dom.appendChild(status_el, reason_el);
+          return status_el;
         } else {
-          return goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ],  label_class_text[1] );
+          return goog.dom.createDom('span', ['label', 'label-' + label_class_text[0] ],  label_class_text[1]  );
         }
       },
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'status'); }
@@ -329,6 +344,15 @@ bitex.ui.WithdrawList = function( methodDescriptionObj, opt_broker_mode,  opt_do
       'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'details');}
     }
   ];
+
+  if (show_customers) {
+    grid_columns.push({
+                        'property': 'Username',
+                        'label': MSG_WITHDRAW_TABLE_COLUMN_USERNAME,
+                        'sortable': false,
+                        'classes': function() { return goog.getCssName(bitex.ui.WithdrawList.CSS_CLASS, 'username'); }
+                      });
+  }
 
   if (broker_mode ){
     grid_columns.push({

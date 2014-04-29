@@ -18,7 +18,8 @@ bitex.view.WithdrawView = function(app, opt_domHelper) {
   bitex.view.View.call(this, app, opt_domHelper);
 
   this.request_id_ = null;
-  this.confirmation_token_ = null
+  this.confirmation_token_ = null;
+  this.withdraw_action_ = null;
   this.qr_data_ = null;
   this.qr_data_verb_ = null;
 };
@@ -48,6 +49,11 @@ bitex.view.WithdrawView.prototype.decorateInternal = function(element) {
  * @type {number}
  */
 bitex.view.WithdrawView.prototype.request_id_;
+
+/**
+ * @type {string}
+ */
+bitex.view.AccountOverview.prototype.withdraw_action_;
 
 /**
  * @type {string}
@@ -122,22 +128,45 @@ bitex.view.WithdrawView.prototype.enterDocument = function() {
 };
 
 
+/**
+ * @return {number}
+ */
 bitex.view.WithdrawView.prototype.getRequestId = function() {
   return this.request_id_;
 };
 
+/**
+ * @return {number}
+ */
 bitex.view.WithdrawView.prototype.getAmount = function() {
   return this.amount_;
 };
 
+/**
+ * @return {string}
+ */
 bitex.view.WithdrawView.prototype.getCurrency = function() {
   return this.currency_;
 };
 
+/**
+ * @return {string}
+ */
 bitex.view.WithdrawView.prototype.getMethod = function() {
   return this.method_;
 };
 
+/**
+ * @return {string}
+ */
+bitex.view.WithdrawView.prototype.getWithdrawAction = function() {
+  return this.withdraw_action_;
+};
+
+
+/**
+ * @return {Object}
+ */
 bitex.view.WithdrawView.prototype.getWithdrawData = function() {
   return this.data_;
 };
@@ -318,6 +347,19 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
                      goog.events.EventType.CLICK,
                      this.onWithdrawListTableClick_);
 
+    handler.unlisten(this.withdraw_list_table_,
+                     bitex.ui.WithdrawList.EventType.CANCEL,
+                     this.onUserCancelWithdraw_ );
+
+    handler.unlisten(this.withdraw_list_table_,
+                     bitex.ui.WithdrawList.EventType.PROGRESS,
+                     this.onUserSetWithdrawInProgress_ );
+
+    handler.unlisten(this.withdraw_list_table_,
+                     bitex.ui.WithdrawList.EventType.COMPLETE,
+                     this.onUserSetWithdrawComplete_ );
+
+
 
     this.withdraw_list_table_.dispose();
   }
@@ -350,8 +392,9 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
     } );
   });
 
-
-  this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj);
+  this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj,
+                                                         model.get('IsBroker'),
+                                                         model.get('IsBroker'));
 
   handler.listen(this.withdraw_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -364,6 +407,20 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   handler.listen(this.getApplication().getBitexConnection(),
                  bitex.api.BitEx.EventType.WITHDRAW_REFRESH + '.' + model.get('UserID'),
                  this.onWithdrawRefresh_);
+
+
+
+  handler.listen(this.withdraw_list_table_,
+                 bitex.ui.WithdrawList.EventType.CANCEL,
+                 this.onUserCancelWithdraw_ );
+
+  handler.listen(this.withdraw_list_table_,
+                 bitex.ui.WithdrawList.EventType.PROGRESS,
+                 this.onUserSetWithdrawInProgress_ );
+
+  handler.listen(this.withdraw_list_table_,
+                 bitex.ui.WithdrawList.EventType.COMPLETE,
+                 this.onUserSetWithdrawComplete_ );
 
 
   this.withdraw_list_table_.decorate(el);
@@ -405,6 +462,36 @@ bitex.view.WithdrawView.prototype.onWithdrawListTableRequestData_ = function(e) 
   conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8'], undefined, filter  );
 };
 
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.WithdrawView.prototype.onUserCancelWithdraw_ = function(e) {
+  this.withdraw_action_ = 'CANCEL';
+  this.data_ = this.withdraw_list_table_.getWithdrawData();
+  this.dispatchEvent(bitex.view.View.EventType.PROCESS_WITHDRAW);
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.WithdrawView.prototype.onUserSetWithdrawInProgress_ = function(e) {
+  this.withdraw_action_ = 'PROGRESS';
+  this.data_ = this.withdraw_list_table_.getWithdrawData();
+  this.dispatchEvent(bitex.view.View.EventType.PROCESS_WITHDRAW);
+
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.WithdrawView.prototype.onUserSetWithdrawComplete_ = function(e) {
+  this.withdraw_action_ = 'COMPLETE';
+  this.data_ = this.withdraw_list_table_.getWithdrawData();
+  this.dispatchEvent(bitex.view.View.EventType.PROCESS_WITHDRAW);
+};
 
 
 /**
