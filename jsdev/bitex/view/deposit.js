@@ -203,9 +203,6 @@ bitex.view.DepositView.prototype.destroyComponents_ = function( ) {
   this.request_id_ = null;
 };
 
-
-
-
 /**
  * @private
  */

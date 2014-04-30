@@ -68,6 +68,7 @@ goog.require('bitex.view.AccountOverview');
 goog.require('bitex.view.BrokerView');
 goog.require('bitex.view.ToolBarView');
 goog.require('bitex.view.MarketView');
+goog.require('bitex.view.LedgerView');
 
 goog.require('bitex.app.markets');
 
@@ -180,6 +181,7 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   // Create all datagrids
   goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_deposit_list'));
+  goog.dom.removeChildren( goog.dom.getElement('id_ledger_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_trade_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
   goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
@@ -206,16 +208,33 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   var MSG_DEPOSIT_TABLE_TITLE  = goog.getMsg('Deposits');
 
 
+  /**
+   * @desc deposit table title
+   */
+  var MSG_LEDGER_TABLE_TITLE  = goog.getMsg('Ledger');
+
+  /**
+   * @desc last trades table title
+   */
+  var MSG_LAST_TRADES_TABLE_TITLE  = goog.getMsg('Last trades');
+
+
   goog.soy.renderElement(goog.dom.getElement('id_deposit_list'), bitex.templates.DataGrid, {
     id: 'id_deposit_list_table',
-    title: 'Deposits',
+    title: MSG_DEPOSIT_TABLE_TITLE,
     show_search: true,
     search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
   });
 
+  goog.soy.renderElement(goog.dom.getElement('id_ledger_list'), bitex.templates.DataGrid, {
+    id: 'id_ledger_list_table',
+    title: MSG_LEDGER_TABLE_TITLE,
+    show_search: false
+  });
+
   goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
     id: 'id_trade_list_table',
-    title: 'Last Trades',
+    title: MSG_LAST_TRADES_TABLE_TITLE,
     show_search: false
   });
 
@@ -376,6 +395,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var tradingView         = new bitex.view.NullView(this);
   var toolBarView         = new bitex.view.ToolBarView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
+  var ledgerView          = new bitex.view.LedgerView(this);
 
 
   this.views_.addChild( toolBarView         );
@@ -397,6 +417,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   this.views_.addChild( enableTwoFactorView );
   this.views_.addChild( brokerView          );
   this.views_.addChild( marketView          );
+  this.views_.addChild( ledgerView          );
 
   startView.decorate(goog.dom.getElement('start'));
   setNewPasswordView.decorate(goog.dom.getElement('set_new_password'));
@@ -417,6 +438,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   toolBarView.decorate(goog.dom.getElement('id_toolbar') );
   brokerView.decorate(goog.dom.getElement('my_broker'));
   marketView.decorate(goog.dom.getElement('market'));
+  ledgerView.decorate(goog.dom.getElement('ledger'));
 
   this.views_.decorate(document.body);
 
@@ -438,6 +460,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   this.router_.addView( '(enable_two_factor)'           , enableTwoFactorView );
   this.router_.addView( '(my_broker)'                   , brokerView          );
   this.router_.addView( '(market)'                      , marketView          );
+  this.router_.addView( '(ledger)'                      , ledgerView          );
 
   this.router_.setView('start');
   this.router_.init();

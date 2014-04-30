@@ -23,7 +23,7 @@ goog.inherits(bitex.view.CustomersView, bitex.view.View);
 
 
 /**
- * @type {bitex.ui.AccountActivity}
+ * @type {bitex.ui.Customers}
  */
 bitex.view.CustomersView.prototype.customers_table_;
 

@@ -118,12 +118,15 @@ bitex.api.BitEx.EventType = {
   HEARTBEAT: 'heartbeat',
   EXECUTION_REPORT: 'execution_report',
 
+
   /* Securities */
   SECURITY_LIST: 'security_list',
 
   /* Trade History */
   TRADE_HISTORY: 'trade_history',
   TRADE_HISTORY_RESPONSE: 'trade_history_response',
+
+  LEDGER_LIST_RESPONSE: 'ledger_list',
 
   /* Brokers */
   BROKER_LIST_RESPONSE: 'broker_list',
@@ -377,6 +380,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
     case 'U33': // Trade History Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE + '.' + msg['TradeHistoryReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_HISTORY_RESPONSE, msg ) );
+      break;
+
+    case 'U35': // Ledger List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE + '.' + msg['LedgerListReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE, msg ) );
       break;
 
     case 'B1': // Process Deposit Reponse
@@ -734,11 +742,11 @@ bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page
  * @param {number=} opt_clientID
  * @param {string=} opt_filter
  */
-bitex.api.BitEx.prototype.requestLedgerHistory = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
+bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
-  var operation_list = ['C','D', 'F', 'T'];
+  var operation_list = ['C','D'];
 
   var msg = {
     'MsgType': 'U34',
@@ -1335,7 +1343,7 @@ goog.exportProperty(BitEx.prototype, 'requestBalances', bitex.api.BitEx.prototyp
 
 goog.exportProperty(BitEx.prototype, 'requestSecurityList', bitex.api.BitEx.prototype.requestSecurityList);
 goog.exportProperty(BitEx.prototype, 'requestDepositMethods', bitex.api.BitEx.prototype.requestDepositMethods);
-goog.exportProperty(BitEx.prototype, 'requestLedgerHistory', bitex.api.BitEx.prototype.requestLedgerHistory);
+goog.exportProperty(BitEx.prototype, 'requestLedgerList', bitex.api.BitEx.prototype.requestLedgerList);
 
 goog.exportProperty(BitEx.prototype, 'requestDeposit', bitex.api.BitEx.prototype.requestDeposit);
 goog.exportProperty(BitEx.prototype, 'processDeposit', bitex.api.BitEx.prototype.processDeposit);

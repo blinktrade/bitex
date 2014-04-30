@@ -206,6 +206,7 @@ ul.parsley-error-list li {
 /* Active view */
 #my_broker,
 #customers,
+#ledger,
 #account_overview,
 #withdraw_requests,
 #deposit_list,
@@ -233,6 +234,7 @@ ul.parsley-error-list li {
 
 .active-view-my_broker #my_broker,
 .active-view-customers #customers,
+.active-view-ledger #ledger,
 .active-view-account_overview #account_overview,
 .active-view-withdraw_requests #withdraw_requests,
 .active-view-order_book_btcbrl #order_book_btcbrl,
@@ -519,3 +521,11 @@ keyframes notification {
   content: 'x';
 }
 
+
+.ledger-activity-credit {
+  background-color: lightcyan;
+}
+
+.ledger-activity-debit {
+  background-color: lightpink;
+}

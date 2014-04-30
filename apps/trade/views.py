@@ -931,7 +931,7 @@ def processProcessDeposit(session, msg):
 def processLedgerListRequest(session, msg):
   page            = msg.get('Page', 0)
   page_size       = msg.get('PageSize', 100)
-  operation_list  = msg.get('OperationList', ['C', 'D', 'F'] )
+  operation_list  = msg.get('OperationList', ['C', 'D'] )
   currency        = msg.get('Currency')
   filter          = msg.get('Filter')
   offset          = page * page_size
@@ -950,10 +950,36 @@ def processLedgerListRequest(session, msg):
   columns = [ 'LedgerID',       'Currency',     'Operation',
               'AccountID',      'BrokerID',     'PayeeID',
               'PayeeBrokerID',  'Amount',       'Balance',
-              'Reference',      'Created',      'Description']
+              'Reference',      'Created',      'Description',
+              'PayeeName',      'AccountName']
 
   for rec in records:
-    pass
+    record_list.append([
+      rec.id,
+      rec.currency,
+      rec.operation,
+      rec.account_id,
+      rec.broker_id,
+      rec.payee_id,
+      rec.payee_broker_id,
+      rec.amount,
+      rec.balance,
+      rec.reference,
+      rec.created,
+      rec.description,
+      rec.payee_name,
+      rec.account_name
+    ])
+
+  response_msg = {
+    'MsgType'           : 'U35', # LedgerListResponse
+    'LedgerListReqID'   : msg.get('LedgerListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'LedgerListGrp'     : record_list
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
 
 @login_required
 def processDepositListRequest(session, msg):

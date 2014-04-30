@@ -83,10 +83,8 @@ class Session(object):
     elif msg.type == 'U30': # Deposit List Request
       return  processDepositListRequest(self, msg)
 
-
-    elif msg.type == 'U32': # Ledger List Request
+    elif msg.type == 'U34': # Ledger List Request
       return  processLedgerListRequest(self, msg)
-
 
     elif msg.type == 'B0':  # Deposit Payment Confirmation
       return processProcessDeposit(self, msg)

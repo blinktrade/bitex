@@ -388,7 +388,7 @@ class Ledger(Base):
                                    Ledger.reference == filter
                                    ))
 
-    query = query.order_by(Ledger.created.desc())
+    query = query.order_by(Ledger.created)
 
     if page_size:
       query = query.limit(page_size)
