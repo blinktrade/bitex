@@ -584,7 +584,7 @@ def processWithdrawListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
   status_list = msg.get('StatusList', ['1', '2'] )
-  filter      = msg.get('Filter')
+  filter      = msg.get('Filter',[])
   offset      = page * page_size
 
   user = session.user
@@ -933,7 +933,7 @@ def processLedgerListRequest(session, msg):
   page_size       = msg.get('PageSize', 100)
   operation_list  = msg.get('OperationList', ['C', 'D'] )
   currency        = msg.get('Currency')
-  filter          = msg.get('Filter')
+  filter          = msg.get('Filter',[])
   offset          = page * page_size
 
   user = session.user
@@ -986,7 +986,7 @@ def processDepositListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
   status_list = msg.get('StatusList', ['0', '1', '2', '4', '8'] )
-  filter      = msg.get('Filter')
+  filter      = msg.get('Filter',[])
 
 
   offset      = page * page_size

@@ -36,6 +36,7 @@ bitex.ui.DataGrid = function (options, opt_domHelper) {
   this.sort_column_ = "";
   this.sort_direction_ = "up";
   this.filter_ = null;
+  this.select_filter_ = null;
 
   this.loading_data_ = goog.dom.createDom('div', ['progress', 'progress-striped', 'active' ],
                                           goog.dom.createDom('div', 'bar' ));
@@ -341,7 +342,7 @@ bitex.ui.DataGrid.prototype.render_ = function() {
   }
 
   var filter = this.getFilter();
-  if (goog.isDefAndNotNull(filter) && !goog.string.isEmpty(filter)) {
+  if (goog.isDefAndNotNull(filter) && filter.length > 0 ) {
     options['Filter'] = filter;
   }
 
@@ -367,6 +368,8 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
 
   handler.listen(this.search_btn_, goog.events.EventType.CLICK, this.handleSearchBtnClick_ );
 
+  handler.listen(this.getElement(), goog.events.EventType.CLICK, this.handleDataGridClick_);
+
   handler.listen( new goog.events.InputHandler(this.search_input_),
                   goog.events.InputHandler.EventType.INPUT,
                   this.onChangeFilter_ );
@@ -376,10 +379,61 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
 
 
 /**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.ui.DataGrid.prototype.handleDataGridClick_ = function(e) {
+  var element = e.target;
+  var is_filter_click = false;
+  var data_value = null;
+
+  if (element.tagName  === goog.dom.TagName.A ) {
+    element = goog.dom.getParentElement(element);
+  }
+  if (element.tagName  === goog.dom.TagName.LI ) {
+    data_value = element.getAttribute('data-value');
+  }
+
+  if (!goog.isDefAndNotNull( data_value) ) {
+    return;
+  }
+
+  var filter_element = goog.dom.getAncestorByClass( element, 'filter');
+  if (goog.isDefAndNotNull(filter_element)) {
+    is_filter_click = true;
+  }
+
+  if (is_filter_click) {
+    // user is cleaning the filter
+    if (data_value === 'all') {
+      if (goog.isDefAndNotNull(this.select_filter_)){
+        this.select_filter_ = null;
+        this.current_page_ = 0;
+        this.render_();
+      }
+    } else {
+      if (this.select_filter_ !== data_value ) {
+        this.select_filter_ = data_value;
+        this.current_page_ = 0;
+        this.render_();
+      }
+    }
+  }
+};
+
+/**
  * @return {string}
  */
 bitex.ui.DataGrid.prototype.getFilter = function(){
-  return this.filter_;
+  var res = [];
+
+  if (goog.isDefAndNotNull(this.filter_) && !goog.string.isEmpty(this.filter_)) {
+    res.push(this.filter_)
+  }
+  if (goog.isDefAndNotNull(this.select_filter_) && !goog.string.isEmpty(this.filter_)) {
+    res.push(this.select_filter_)
+  }
+  return res;
 };
 
 /**

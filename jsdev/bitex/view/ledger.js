@@ -59,6 +59,8 @@ bitex.view.LedgerView.prototype.destroyComponents_ = function( ) {
 
   this.ledger_table_ = null;
   this.request_id_ = null;
+
+  goog.dom.removeChildren( goog.dom.getElement('id_ledger_list'));
 };
 
 
@@ -67,8 +69,39 @@ bitex.view.LedgerView.prototype.destroyComponents_ = function( ) {
  */
 bitex.view.LedgerView.prototype.recreateComponents_ = function() {
   var handler = this.getHandler();
+  var model = this.getApplication().getModel();
 
   this.destroyComponents_();
+
+
+  /**
+   * @desc deposit table title
+   */
+  var MSG_LEDGER_TABLE_TITLE  = goog.getMsg('Ledger');
+
+  /**
+   * @desc placeholder for the search input text in the customers table
+   */
+  var MSG_LEDGER_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
+
+  /**
+   * @desc All currencies filter label on ledger table filters
+   */
+  var MSG_LEDGER_TABLE_SEARCH_ALL_CURRENCIES = goog.getMsg('All currencies');
+
+  var broker_currencies = model.get('BrokerCurrencies');
+  var button_filters = [ {'label': MSG_LEDGER_TABLE_SEARCH_ALL_CURRENCIES, 'value':'all' } ];
+  goog.array.forEach(broker_currencies, function(currency_code){
+    button_filters.push( { 'label':this.getApplication().getCurrencyDescription(currency_code), 'value':'CURRENCY=' + currency_code });
+  }, this );
+
+  goog.soy.renderElement(goog.dom.getElement('id_ledger_list'), bitex.templates.DataGrid, {
+    id: 'id_ledger_list_table',
+    title: MSG_LEDGER_TABLE_TITLE,
+    show_search: true,
+    search_placeholder: MSG_LEDGER_TABLE_SEARCH_PLACEHOLDER,
+    button_filters: button_filters
+  });
 
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
@@ -115,9 +148,22 @@ bitex.view.LedgerView.prototype.balanceFormatter_ = function(value, rowSet) {
 bitex.view.LedgerView.prototype.onLedgerTableRequestData_ = function(e) {
   var page = e.options['Page'];
   var limit = e.options['Limit'];
+  var filters_param = e.options['Filter'];
+
+  var currency;
+  var filters = [];
+  if (goog.isArrayLike(filters_param)) {
+    goog.array.forEach(filters_param, function(filter){
+      if (filter.substr(0,9) == 'CURRENCY=') {
+        currency = filter.substr(9);
+      } else {
+        filters.push(filter);
+      }
+    }, this);
+  }
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestLedgerList(this.request_id_, page, limit);
+  conn.requestLedgerList(this.request_id_, page, limit, undefined, currency, filters);
 };
 
 

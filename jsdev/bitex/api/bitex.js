@@ -633,7 +633,7 @@ bitex.api.BitEx.prototype.confirmWithdraw = function( confirmation_token  ) {
  * @param {number=} opt_limit. Defaults to 100
  * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
  * @param {number=} opt_clientID
- * @param {string=} opt_filter
+ * @param {Array.<string>=} opt_filter
  */
 bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page, opt_limit, opt_status, opt_clientID, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
@@ -653,7 +653,7 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
     msg['ClientID'] = opt_clientID;
   }
 
-  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+  if (goog.isDefAndNotNull(opt_filter) && opt_filter.length > 0 ) {
     msg['Filter'] = opt_filter;
   }
 
@@ -669,7 +669,7 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
  * @param {number=} opt_limit. Defaults to 100
  * @param {Array.<string>=} opt_status. Defaults to ['1', '2'] ( all operations )
  * @param {number=} opt_clientID
- * @param {string=} opt_filter
+ * @param {Array.<string>=} opt_filter
  */
 bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page, opt_limit, opt_status, opt_clientID, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
@@ -689,7 +689,7 @@ bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page,
     msg['ClientID'] = opt_clientID;
   }
 
-  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+  if (goog.isDefAndNotNull(opt_filter) && opt_filter.length > 0 ) {
     msg['Filter'] = opt_filter;
   }
 
@@ -705,7 +705,7 @@ bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page,
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
  * @param {number=} opt_clientID
- * @param {string=} opt_filter
+ * @param {Array.<string>=} opt_filter
  */
 bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
@@ -723,7 +723,7 @@ bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page
     msg['ClientID'] = opt_clientID;
   }
 
-  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+  if (goog.isDefAndNotNull(opt_filter) && opt_filter.length > 0 ) {
     msg['Filter'] = opt_filter;
   }
 
@@ -740,9 +740,10 @@ bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
  * @param {number=} opt_clientID
- * @param {string=} opt_filter
+ * @param {string=} opt_currency
+ * @param {Array.<string>=} opt_filter
  */
-bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
+bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, opt_limit, opt_clientID,opt_currency, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
@@ -760,7 +761,11 @@ bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, 
     msg['ClientID'] = opt_clientID;
   }
 
-  if (goog.isDefAndNotNull(opt_filter) && !goog.string.isEmpty(opt_filter)) {
+  if (goog.isDefAndNotNull(opt_currency) && !goog.string.isEmpty(opt_currency)){
+    msg['Currency'] = opt_currency;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && opt_filter.length > 0 ) {
     msg['Filter'] = opt_filter;
   }
 

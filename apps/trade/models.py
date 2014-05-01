@@ -366,7 +366,7 @@ class Ledger(Base):
 
 
   @staticmethod
-  def get_list(session, broker_id, account_id, operation_list, page_size, offset, currency=None, filter=None):
+  def get_list(session, broker_id, account_id, operation_list, page_size, offset, currency=None, filter_array=[]):
     query = session.query(Ledger).filter( Ledger.operation.in_( operation_list ) ).filter(Ledger.broker_id==broker_id)
 
     if currency:
@@ -375,18 +375,18 @@ class Ledger(Base):
     if account_id:
       query = query.filter( Ledger.account_id == account_id  )
 
-
-    if filter:
-      if filter.isdigit():
-        query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
-                                   Ledger.reference == filter,
-                                   Ledger.amount == int(filter) * 1e8,
-                                   Ledger.balance == int(filter) * 1e8
-                                   ))
-      else:
-        query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
-                                   Ledger.reference == filter
-                                   ))
+    for filter in filter_array:
+      if filter:
+        if filter.isdigit():
+          query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
+                                     Ledger.reference == filter,
+                                     Ledger.amount == int(filter) * 1e8,
+                                     Ledger.balance == int(filter) * 1e8
+                                     ))
+        else:
+          query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
+                                     Ledger.reference == filter
+                                     ))
 
     query = query.order_by(Ledger.created)
 
@@ -943,21 +943,22 @@ class Withdraw(Base):
 
 
   @staticmethod
-  def get_list(session, broker_id, account_id, status_list, page_size, offset, filter) :
+  def get_list(session, broker_id, account_id, status_list, page_size, offset, filter_array) :
     query = session.query(Withdraw).filter( Withdraw.status.in_( status_list ) ).filter(Withdraw.broker_id==broker_id)
 
     if account_id:
       query = query.filter( Withdraw.account_id == account_id  )
 
-    if filter:
-      if filter.isdigit():
-        query = query.filter( or_( Withdraw.data.like('%' + filter + '%' ),
-                                   Withdraw.currency == filter,
-                                   Withdraw.amount == int(filter) * 1e8,
-                                   ))
-      else:
-        query = query.filter( or_( Withdraw.data.like('%' + filter + '%'),
-                                   Withdraw.currency == filter ) )
+    for filter in filter_array:
+      if filter:
+        if filter.isdigit():
+          query = query.filter( or_( Withdraw.data.like('%' + filter + '%' ),
+                                     Withdraw.currency == filter,
+                                     Withdraw.amount == int(filter) * 1e8,
+                                     ))
+        else:
+          query = query.filter( or_( Withdraw.data.like('%' + filter + '%'),
+                                     Withdraw.currency == filter ) )
 
     query = query.order_by(Withdraw.created.desc())
 
@@ -1304,25 +1305,26 @@ class Deposit(Base):
     return deposit
 
   @staticmethod
-  def get_list(session, broker_id, account_id, status_list, page_size, offset, filter=None):
+  def get_list(session, broker_id, account_id, status_list, page_size, offset, filter_array=[]):
     query = session.query(Deposit).filter( Deposit.status.in_( status_list ) ).filter(Deposit.broker_id==broker_id)
 
     if account_id:
       query = query.filter( Deposit.account_id == account_id  )
 
-    if filter:
-      if filter.isdigit():
-        query = query.filter( or_( Deposit.data.like('%' + filter + '%' ),
-                                   Deposit.currency == filter,
-                                   Deposit.deposit_option_name == filter,
-                                   Deposit.value == int(filter) * 1e8,
-                                   Deposit.paid_value == int(filter) * 1e8,
-                                   Deposit.broker_deposit_ctrl_num == int(filter),
-                                   ))
-      else:
-        query = query.filter( or_( Deposit.data.like('%' + filter + '%'),
-                                   Deposit.currency == filter,
-                                   Deposit.deposit_option_name == filter ) )
+    if filter_array:
+      for filter in filter_array:
+        if filter.isdigit():
+          query = query.filter( or_( Deposit.data.like('%' + filter + '%' ),
+                                     Deposit.currency == filter,
+                                     Deposit.deposit_option_name == filter,
+                                     Deposit.value == int(filter) * 1e8,
+                                     Deposit.paid_value == int(filter) * 1e8,
+                                     Deposit.broker_deposit_ctrl_num == int(filter),
+                                     ))
+        else:
+          query = query.filter( or_( Deposit.data.like('%' + filter + '%'),
+                                     Deposit.currency == filter,
+                                     Deposit.deposit_option_name == filter ) )
 
     query = query.order_by(Deposit.created.desc())
 

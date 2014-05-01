@@ -48,6 +48,7 @@ goog.require('bitex.model.Model.EventType');
 goog.require('bootstrap.Dialog');
 goog.require('bootstrap.Dialog.ButtonSet');
 goog.require('bootstrap.Alert');
+goog.require('bootstrap.Dropdown');
 
 goog.require('goog.debug');
 
@@ -70,7 +71,6 @@ goog.require('bitex.view.ToolBarView');
 goog.require('bitex.view.MarketView');
 goog.require('bitex.view.LedgerView');
 
-goog.require('bitex.app.markets');
 
 /**
  * @constructor
@@ -78,6 +78,9 @@ goog.require('bitex.app.markets');
  */
 bitex.app.SatoshiSquare = function() {
   goog.events.EventTarget.call(this);
+
+  bootstrap.Dropdown.install();
+
   this.dialog_ = null;
   this.error_message_alert_timeout_ = 5000;
 
@@ -207,12 +210,6 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
    */
   var MSG_DEPOSIT_TABLE_TITLE  = goog.getMsg('Deposits');
 
-
-  /**
-   * @desc deposit table title
-   */
-  var MSG_LEDGER_TABLE_TITLE  = goog.getMsg('Ledger');
-
   /**
    * @desc last trades table title
    */
@@ -224,12 +221,6 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     title: MSG_DEPOSIT_TABLE_TITLE,
     show_search: true,
     search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_ledger_list'), bitex.templates.DataGrid, {
-    id: 'id_ledger_list_table',
-    title: MSG_LEDGER_TABLE_TITLE,
-    show_search: false
   });
 
   goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
@@ -2217,4 +2208,21 @@ bitex.app.satoshi_square = function( url ) {
   app.run(url );
 };
 
-goog.exportSymbol('bitex.app.satoshi_square', bitex.app.satoshi_square );
+
+goog.exportSymbol('App', bitex.app.SatoshiSquare);
+goog.exportProperty(App.prototype, 'showNotification', bitex.app.SatoshiSquare.prototype.showNotification);
+goog.exportProperty(App.prototype, 'showDialog', bitex.app.SatoshiSquare.prototype.showDialog);
+goog.exportProperty(App.prototype, 'getHandler', bitex.app.SatoshiSquare.prototype.getHandler);
+goog.exportProperty(App.prototype, 'getCurrencyDescription', bitex.app.SatoshiSquare.prototype.getCurrencyDescription);
+goog.exportProperty(App.prototype, 'getCurrencySign', bitex.app.SatoshiSquare.prototype.getCurrencySign);
+goog.exportProperty(App.prototype, 'isCryptoCurrency', bitex.app.SatoshiSquare.prototype.isCryptoCurrency);
+goog.exportProperty(App.prototype, 'formatCurrency', bitex.app.SatoshiSquare.prototype.formatCurrency);
+goog.exportProperty(App.prototype, 'getBrokerByCountry', bitex.app.SatoshiSquare.prototype.getBrokerByCountry);
+goog.exportProperty(App.prototype, 'getModel', bitex.app.SatoshiSquare.prototype.getModel);
+goog.exportProperty(App.prototype, 'getQtyCurrencyFromSymbol', bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol);
+goog.exportProperty(App.prototype, 'getPriceCurrencyFromSymbol', bitex.app.SatoshiSquare.prototype.getPriceCurrencyFromSymbol);
+goog.exportProperty(App.prototype, 'setView', bitex.app.SatoshiSquare.prototype.setView);
+goog.exportProperty(App.prototype, 'getBitexConnection', bitex.app.SatoshiSquare.prototype.getBitexConnection);
+goog.exportProperty(App.prototype, 'connectBitEx', bitex.app.SatoshiSquare.prototype.connectBitEx);
+goog.exportProperty(App.prototype, 'run', bitex.app.SatoshiSquare.prototype.run);
+

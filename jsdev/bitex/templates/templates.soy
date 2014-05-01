@@ -873,6 +873,7 @@
   * @param? base_class
   * @param? show_search
   * @param? search_placeholder
+  * @param? button_filters
   */
 {template .DataGrid}
   <div {if $id}id="{$id}"{/if}  class="fuelux {if $base_class}{$base_class}{/if}" style="width:100%;">
@@ -889,8 +890,25 @@
                 </div>
             </div>
 
-            <div class="datagrid-header-right"></div>
-
+            <div class="datagrid-header-right">
+              {if $button_filters}
+                <div class="select filter" data-resize="auto">
+                  <button type="button" data-toggle="dropdown" class="btn dropdown-toggle">
+                    {foreach $button in $button_filters}
+                      {if isFirst($button)}
+                        <span class="dropdown-label" style="width: 111px;">{$button['label']}</span>
+                      {/if}
+                    {/foreach}
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {foreach $button in $button_filters}
+                      <li data-value="{$button['value']}"><a href="#">{$button['label']}</a></li>
+                    {/foreach}
+                  </ul>
+                </div>
+              {/if}
+            </div>
           </th>
         </tr>
       </thead>
