@@ -387,6 +387,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   var toolBarView         = new bitex.view.ToolBarView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
   var ledgerView          = new bitex.view.LedgerView(this);
+  var brokerApplicationView= new bitex.view.NullView(this);
 
 
   this.views_.addChild( toolBarView         );
@@ -409,6 +410,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   this.views_.addChild( brokerView          );
   this.views_.addChild( marketView          );
   this.views_.addChild( ledgerView          );
+  this.views_.addChild( brokerApplicationView    );
 
   startView.decorate(goog.dom.getElement('start'));
   setNewPasswordView.decorate(goog.dom.getElement('set_new_password'));
@@ -430,6 +432,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   brokerView.decorate(goog.dom.getElement('my_broker'));
   marketView.decorate(goog.dom.getElement('market'));
   ledgerView.decorate(goog.dom.getElement('ledger'));
+  brokerApplicationView.decorate(goog.dom.getElement('broker_application'));
 
   this.views_.decorate(document.body);
 
@@ -452,6 +455,7 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   this.router_.addView( '(my_broker)'                   , brokerView          );
   this.router_.addView( '(market)'                      , marketView          );
   this.router_.addView( '(ledger)'                      , ledgerView          );
+  this.router_.addView( '(broker_application)'          , brokerApplicationView);
 
   this.router_.setView('start');
   this.router_.init();
@@ -1837,6 +1841,7 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
       case 'tos':
       case 'forgot_password':
       case 'set_new_password':
+      case 'broker_application':
         break;
       case 'market':
         if ( !this.conn_.isConnected() )

@@ -204,6 +204,7 @@ ul.parsley-error-list li {
 
 
 /* Active view */
+#broker_application,
 #my_broker,
 #customers,
 #ledger,
@@ -232,6 +233,7 @@ ul.parsley-error-list li {
   display: none;
 }
 
+.active-view-broker_application #broker_application,
 .active-view-my_broker #my_broker,
 .active-view-customers #customers,
 .active-view-ledger #ledger,

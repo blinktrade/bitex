@@ -45,18 +45,6 @@
         "></a>
 
       <ul class="nav navbar-nav pull-right">
-
-          <li> <a href="" data-switch-view="market">
-            Volume BTC: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_volume_btc" data-blink-class="md-blink"></span>
-            / USD: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_volume_usd" data-blink-class="md-blink"></span>
-            Last Price: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_last_price_usd" data-blink-class="md-blink"></span>
-            Bid: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_bid_usd" data-blink-class="md-blink"></span>
-            Ask: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_best_offer_usd" data-blink-class="md-blink"></span>
-            Low: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_min_usd" data-blink-class="md-blink"></span>
-            High: <span class="bitex-model" data-switch-view="trading" data-model-key="formatted_max_usd" data-blink-class="md-blink"></span>
-          </a></li>
-
-
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Market</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
@@ -74,8 +62,13 @@
 
   <header class="jumbotron">
     <img src="/images/bitex2.png" style="">
-    <p class="lead">Live bitcoin exchange</p>
+    <p class="lead">The first decentralized bitcoin exchange</p>
+
+    <p class="lead">Onw your own bitcoin exchange. Be a BitEx broker.
+      <a href="#" data-switch-view="broker_application" >Apply here</a>.</p>
   </header>
+
+
 
   <div class="row bitex-hide-if-logged" style="text-align: center;">
     <form action="" class="form-inline">
@@ -94,6 +87,9 @@
     <h1>Register</h1>
   </div>
   <p>Already registered? <a href="#" data-switch-view="signin" >Login</a>.</p>
+
+  <p>Are you looking to be a broker in your state/country ?<a href="#" data-switch-view="broker_application" >Broker application</a>.</p>
+
 
   <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
 
@@ -202,7 +198,41 @@
   </form>
 </div>
 
+<div id="broker_application" class="page row">
+  <div class="page-header">
+    <h1>Broker Application Form</h1>
+  </div>
 
+  <iframe id="JotFormIFrame2"
+          onload="window.parent.scrollTo(0,0)"
+          allowtransparency="true"
+          src="https://secure.jotform.us/form/41205503470139"
+          frameborder="0"
+          style="width:100%; height:5392px; border:none;"
+          scrolling="no"></iframe>
+  <script type="text/javascript">
+    window.handleIFrameMessage = function(e) {
+      var args = e.data.split(":");
+      var iframe = document.getElementById("JotFormIFrame2");
+      if (!iframe)
+        return;
+      switch (args[0]) {
+        case "scrollIntoView":
+          iframe.scrollIntoView();
+          break;
+        case "setHeight":
+          iframe.style.height = args[1] + "px";
+          break;
+      }
+    };
+
+    if (window.addEventListener) {
+      window.addEventListener("message", handleIFrameMessage, false);
+    } else if (window.attachEvent) {
+      window.attachEvent("onmessage", handleIFrameMessage);
+    }</script>
+</div>
+  
 <div id="set_new_password" class="page  row">
   <div class="page-header">
     <h1>Set new password</h1>
@@ -493,7 +523,7 @@
   </div>
   <!-- Main content -->
   <div class="well">
-    [NONE.]
+    [TODO.]
   </div>
 </div>
 
