@@ -305,8 +305,8 @@ bitex.view.DepositView.prototype.valuePriceFormatter_ = function(value, rowSet) 
     /**
      * @desc value abbrev title when paid value differs from declared value
      */
-    var MSG_DEPOSIT_DIFFERENT_DECLARED_PAID_VALUE = goog.getMsg('declared / paid in {$currencyDesc}' , {
-      currencyDesc:currency_description});
+    var MSG_DEPOSIT_DIFFERENT_DECLARED_PAID_VALUE =
+        goog.getMsg('declared / paid in {$currencydesc}' , { 'currencydesc' : currency_description});
 
     return goog.dom.createDom('abbr', {'title': MSG_DEPOSIT_DIFFERENT_DECLARED_PAID_VALUE  },
                               formatted_value + ' / ' + formatted_paid_value  );

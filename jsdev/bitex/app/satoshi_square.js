@@ -1489,7 +1489,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
   if (this.isCryptoCurrency(currency)) {
 
     var confirmDialogContent = bitex.templates.ConfirmDepositCryptoCurrencyContentDialog({
-      currency_description: this.getCurrencyDescription(currency)
+      currencydescription: this.getCurrencyDescription(currency)
     });
 
     var dlgConfirm =  this.showDialog(confirmDialogContent,

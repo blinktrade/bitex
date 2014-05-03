@@ -144,10 +144,11 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
               /**
                * @desc status message for confirming crypto coin deposits
                */
-              var MSG_PROGRESS_MESSAGE_FOR_CRYPTO_CURRENCY = goog.getMsg('{$confirmations} of {$necessaryConfirmations} confirmations',{
-                confirmations: number_of_confirmations,
-                necessaryConfirmations: number_of_necessary_confirmations
-              });
+              var MSG_PROGRESS_MESSAGE_FOR_CRYPTO_CURRENCY =
+                  goog.getMsg('{$confirmations} of {$necessaryconfirmations} confirmations',{
+                    'confirmations': number_of_confirmations,
+                    'necessaryconfirmations': number_of_necessary_confirmations
+                  });
 
               progress_message = MSG_PROGRESS_MESSAGE_FOR_CRYPTO_CURRENCY;
             }
