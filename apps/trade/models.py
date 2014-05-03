@@ -604,6 +604,7 @@ class Broker(Base):
 
   status                = Column(String(1),     nullable=False, default='0', index=True)
   ranking               = Column(Integer,       nullable=False, default=0, index=True)
+  support_url           = Column(String(255),   nullable=False)
 
 
   @staticmethod
@@ -628,13 +629,13 @@ class Broker(Base):
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
            u"fee_structure=%r, withdraw_structure=%r, withdraw_confirmation_email=%r,withdraw_confirmation_email_subject=%r , " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
-           u"status=%r, ranking=%r )>"% (
+           u"status=%r, ranking=%r, support_url=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure, self.withdraw_confirmation_email, self.withdraw_confirmation_email_subject,
       self.transaction_fee_buy, self.transaction_fee_sell,
-      self.status, self.ranking )
+      self.status, self.ranking, self.support_url )
 
 
 class UserPasswordReset(Base):
@@ -1599,6 +1600,7 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
+               support_url='https://www.facebook.com/groups/bitex.support/',
                withdraw_confirmation_email='',
                withdraw_confirmation_email_subject='',
                tos_url=u'http://localhost/tos',
@@ -1614,6 +1616,7 @@ def db_bootstrap(session):
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
                upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
                currencies='USD',
+               support_url='https://www.facebook.com/groups/bitex.support/',
                withdraw_structure=json.dumps( {
                  'BTC': [
                      {

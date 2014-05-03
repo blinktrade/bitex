@@ -85,6 +85,7 @@ def processLogin(session, msg):
       'TransactionFeeSell' : session.broker.transaction_fee_sell ,
       'Status'             : session.broker.status               ,
       'ranking'            : session.broker.ranking              ,
+      'SupportURL'         : session.broker.support_url          ,
       'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
     }
   return json.dumps(login_response, cls=JsonEncoder)
@@ -651,7 +652,7 @@ def processBrokerListRequest(session, msg):
               'ZipCode'         , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'             ,
               'Currencies'      , 'TosUrl'         , 'FeeStructure'      , 'TransactionFeeBuy'  , 'TransactionFeeSell',
               'Status'          , 'ranking'        , 'Email'             , 'CountryCode'        , 'CryptoCurrencies'  ,
-              'WithdrawStructure']
+              'WithdrawStructure','SupportURL']
 
   for broker in brokers:
     broker_list.append( [
@@ -676,7 +677,8 @@ def processBrokerListRequest(session, msg):
       broker.email                ,
       broker.country_code         ,
       json.loads(broker.crypto_currencies),
-      json.loads(broker.withdraw_structure)
+      json.loads(broker.withdraw_structure),
+      broker.support_url
     ])
 
   response_msg = {
