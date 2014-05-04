@@ -158,8 +158,8 @@ class User(Base):
   two_factor_enabled  = Column(Boolean, nullable=False, default=False)
   two_factor_secret   = Column(String(50), nullable=True, index=False)
 
-  transaction_fee_buy   = Column(Integer, nullable=True)
-  transaction_fee_sell  = Column(Integer, nullable=True)
+  transaction_fee_buy   = Column(Integer, nullable=True, default=0)
+  transaction_fee_sell  = Column(Integer, nullable=True, default=0)
 
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
@@ -604,6 +604,7 @@ class Broker(Base):
 
   status                = Column(String(1),     nullable=False, default='0', index=True)
   ranking               = Column(Integer,       nullable=False, default=0, index=True)
+  support_url           = Column(String(255),   nullable=False)
 
 
   @staticmethod
@@ -628,13 +629,13 @@ class Broker(Base):
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
            u"fee_structure=%r, withdraw_structure=%r, withdraw_confirmation_email=%r,withdraw_confirmation_email_subject=%r , " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
-           u"status=%r, ranking=%r )>"% (
+           u"status=%r, ranking=%r, support_url=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure, self.withdraw_confirmation_email, self.withdraw_confirmation_email_subject,
       self.transaction_fee_buy, self.transaction_fee_sell,
-      self.status, self.ranking )
+      self.status, self.ranking, self.support_url )
 
 
 class UserPasswordReset(Base):
@@ -1562,32 +1563,47 @@ Base.metadata.create_all(engine)
 
 def db_bootstrap(session):
   import  json
-  if not User.get_user(session, 'admin'):
-    e = User(id=0, username='admin', email='admin@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
-             country_code='', state='',
+  if not User.get_user(session, 'bitex'):
+    e = User(id=0, username='bitex', email='bitex@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
+             country_code='BR', state='SP',
              verified=1, is_staff=True, is_system=False, is_broker=True)
 
     session.add(e)
     session.commit()
 
   if not User.get_user(session, 'nybitcoincenter'):
-    e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=None, broker_username=None, password='abc12345',
+    e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=0, broker_username='bitex', password='abc12345',
              country_code='US', state='NY',
-             transaction_fee_buy=20, # 0.2%
-             transaction_fee_sell=20, # 0.2%
+             transaction_fee_buy=0,
+             transaction_fee_sell=0,
              verified=1, is_staff=False, is_system=False, is_broker=True)
 
     session.add(e)
     session.commit()
 
   if not Broker.get_broker(session, 0):
-    e = Broker(id=0, short_name=u'None', business_name=u'None',
-               address=u'', state=u'', zip_code=u'', city='', country='', country_code='',
-               phone_number_1='+1 (917) 753-1359', phone_number_2=None, skype='blinktrade', email=None,
-               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
+    e = Broker(id=0, short_name=u'BitEX', business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
+               address=u'Praça Dom José Gaspar, 76 - sl 81', state=u'SP', zip_code=u'01047-010',
+               city=u'São Paulo', country='Brazil', country_code='BR',
+               phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
+               verification_jotform='https://secure.jotform.us/form/41205503470139?user_id=%s&username=%s',
                upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
-               currencies='XXX',
-               withdraw_structure=json.dumps({ }),
+               currencies='BTC',
+               withdraw_structure=json.dumps({
+               'BTC': [
+                     {
+                     'method':'bitcoin',
+                     'description':'Bitcoin withdraw',
+                     'disclaimer': 'All withdraws are processed at 23:00 GMT.',
+                     'percent_fee':0,
+                     'fixed_fee':0,
+                     'fields': [
+                         {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                         {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                     ]
+                   }
+               ]}),
                crypto_currencies=json.dumps([
                  {
                    "CurrencyCode": "BTC",
@@ -1599,11 +1615,12 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
-               withdraw_confirmation_email='',
-               withdraw_confirmation_email_subject='',
-               tos_url=u'http://localhost/tos',
+               support_url='https://www.facebook.com/groups/bitex.support/',
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}_enUS.txt',
+               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               tos_url=u'/tos.html',
                fee_structure="[]",
-               transaction_fee_buy=0,transaction_fee_sell=0, status=u'1', ranking=0)
+               transaction_fee_buy=0,transaction_fee_sell=0, status=u'0', ranking=0)
     session.add(e)
     session.commit()
 
@@ -1670,6 +1687,7 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
+               support_url='https://www.facebook.com/groups/bitex.support/',
                withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
@@ -1689,17 +1707,18 @@ def db_bootstrap(session):
 
 
   currencies = [
-    [ 'USD' , '$'       , 'Dollar'   ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    [ 'BRL' , 'R$'      , 'Real'     ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    [ 'EUR' , u'\u20ac' , 'Euro'     ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    [ 'ARS' , '$'       , 'Peso'     ,  False, 100        , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'  ],
-    [ 'GBP' , u'\u00a3' , 'Pound'    ,  False, 100        , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1          , '{:,.2f}', u'\u00a4 #,0;(\u00a4 #0)'  ],
-    [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100        , '{:,.2f}', u'\u00a5 #,##0.00;(\u00a5 #,##0.00)'  ],
-    #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)'],
+    [ 'USD' , '$'       , 'Dollar'   ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
+    [ 'BRL' , 'R$'      , 'Real'     ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
+    [ 'EUR' , u'\u20ac' , 'Euro'     ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
+    [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)'  ],
+    [ 'GBP' , u'\u00a3' , 'Pound'    ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
+    [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1000000    , '{:,.6f}', u'\u00a4 #,##0.000000;(\u00a4 #,##0.000000)'  ],
+    [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100000000  , '{:,.8f}', u'\u00a5 #,##0.00000000;(\u00a5 #,##0.00000000)'  ],
+    [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)'],
+    # Ny Bitcoin Center settings
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)']
-    [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
-    [ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
+    #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
+    #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
   ]
   for c in currencies:
     if Currency.get_currency(session,c[0]) :
