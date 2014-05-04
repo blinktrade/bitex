@@ -254,7 +254,7 @@ def processSignup(session, msg):
             state               = msg.get('State'),
             country_code        = msg.get('CountryCode'),
             broker_id           = msg.get('BrokerID'),
-            broker_username     = broker.username)
+            broker_username     = broker.user.username)
 
   application.db_session.add(u)
   application.db_session.commit()
@@ -652,7 +652,7 @@ def processBrokerListRequest(session, msg):
               'ZipCode'         , 'Country'        , 'PhoneNumber1'      , 'PhoneNumber2'       , 'Skype'             ,
               'Currencies'      , 'TosUrl'         , 'FeeStructure'      , 'TransactionFeeBuy'  , 'TransactionFeeSell',
               'Status'          , 'ranking'        , 'Email'             , 'CountryCode'        , 'CryptoCurrencies'  ,
-              'WithdrawStructure','SupportURL']
+              'WithdrawStructure','SupportURL'     , 'SignupLabel'       , 'AcceptCustomersFrom', 'IsBrokerHub']
 
   for broker in brokers:
     broker_list.append( [
@@ -678,7 +678,10 @@ def processBrokerListRequest(session, msg):
       broker.country_code         ,
       json.loads(broker.crypto_currencies),
       json.loads(broker.withdraw_structure),
-      broker.support_url
+      broker.support_url          ,
+      broker.signup_label         ,
+      json.loads(broker.accept_customers_from),
+      broker.is_broker_hub
     ])
 
   response_msg = {

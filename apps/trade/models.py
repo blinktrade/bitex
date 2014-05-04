@@ -573,6 +573,7 @@ class Broker(Base):
   user                  = relationship("User",  backref=backref('brokers', order_by=id))
   short_name            = Column(String(30),    primary_key=True)
   business_name         = Column(String(30),    nullable=False)
+  signup_label          = Column(String(30),    nullable=False)
   address               = Column(String(255),   nullable=False)
   city                  = Column(String(30),    nullable=False)
   state                 = Column(String(30),    nullable=False)
@@ -606,6 +607,8 @@ class Broker(Base):
   ranking               = Column(Integer,       nullable=False, default=0, index=True)
   support_url           = Column(String(255),   nullable=False)
 
+  accept_customers_from = Column(Text,   nullable=False)
+  is_broker_hub         = Column(Boolean, nullable=False, default=False)
 
   @staticmethod
   def get_broker(session, broker_id):
@@ -629,13 +632,13 @@ class Broker(Base):
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
            u"fee_structure=%r, withdraw_structure=%r, withdraw_confirmation_email=%r,withdraw_confirmation_email_subject=%r , " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
-           u"status=%r, ranking=%r, support_url=%r )>"% (
+           u"status=%r, ranking=%r, support_url=%r, is_broker_hub=%r ,accept_customers_from=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure, self.withdraw_confirmation_email, self.withdraw_confirmation_email_subject,
       self.transaction_fee_buy, self.transaction_fee_sell,
-      self.status, self.ranking, self.support_url )
+      self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from )
 
 
 class UserPasswordReset(Base):
@@ -1564,10 +1567,16 @@ Base.metadata.create_all(engine)
 def db_bootstrap(session):
   import  json
   if not User.get_user(session, 'bitex'):
-    e = User(id=0, username='bitex', email='bitex@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
+    e = User(id=-1, username='bitex', email='bitex@bitex.com.br',  broker_id=None, broker_username=None, password=base64.b32encode(os.urandom(10)),
+             country_code='BR', state='SP',
+             verified=1, is_staff=False, is_system=False, is_broker=True)
+    session.add(e)
+    session.commit()
+
+  if not User.get_user(session, 'bitex_broker'):
+    e = User(id=0, username='bitex_broker', email='bitex.broker@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
              country_code='BR', state='SP',
              verified=1, is_staff=True, is_system=False, is_broker=True)
-
     session.add(e)
     session.commit()
 
@@ -1577,18 +1586,55 @@ def db_bootstrap(session):
              transaction_fee_buy=0,
              transaction_fee_sell=0,
              verified=1, is_staff=False, is_system=False, is_broker=True)
+    session.add(e)
+    session.commit()
 
+  if not Broker.get_broker(session, -1):
+    e = Broker(id=-1,
+               short_name=u'BitEx',
+               business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
+               address=u'Praça Dom José Gaspar, 76 - sl 81',
+               signup_label='{MSG_NOTIFY_NEW_BROKER}',
+               state=u'SP',
+               zip_code=u'01047-010',
+               city=u'São Paulo',
+               country='Brazil',
+               country_code='BR',
+               phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
+               verification_jotform='https://secure.jotform.us/form/41205503470139?user_id=%s&username=%s',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
+               currencies='',
+               withdraw_structure=json.dumps({}),
+               crypto_currencies=json.dumps([]),
+               accept_customers_from=json.dumps([['*'],[]]),
+               is_broker_hub=True,
+               support_url='https://www.facebook.com/groups/bitex.support/',
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}_enUS.txt',
+               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               tos_url=u'/tos.html',
+               fee_structure="[]",
+               transaction_fee_buy=0,
+               transaction_fee_sell=0,
+               status=u'1',
+               ranking=0)
     session.add(e)
     session.commit()
 
   if not Broker.get_broker(session, 0):
-    e = Broker(id=0, short_name=u'BitEX', business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
-               address=u'Praça Dom José Gaspar, 76 - sl 81', state=u'SP', zip_code=u'01047-010',
-               city=u'São Paulo', country='Brazil', country_code='BR',
+    e = Broker(id=0,
+               short_name=u'BitEx Brokers',
+               business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
+               address=u'Praça Dom José Gaspar, 76 - sl 81',
+               signup_label='{MSG_BROKER_APPLY}',
+               state=u'SP',
+               zip_code=u'01047-010',
+               city=u'São Paulo',
+               country='Brazil',
+               country_code='BR',
                phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
                verification_jotform='https://secure.jotform.us/form/41205503470139?user_id=%s&username=%s',
                upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
-               currencies='BTC',
+               currencies='',
                withdraw_structure=json.dumps({
                'BTC': [
                      {
@@ -1615,18 +1661,31 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
+               accept_customers_from=json.dumps([['*'],[]]),
+               is_broker_hub=True,
                support_url='https://www.facebook.com/groups/bitex.support/',
                withdraw_confirmation_email = 'withdraw_confirmation_{method}_enUS.txt',
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url=u'/tos.html',
                fee_structure="[]",
-               transaction_fee_buy=0,transaction_fee_sell=0, status=u'0', ranking=0)
+               transaction_fee_buy=0,
+               transaction_fee_sell=0,
+               status=u'1',
+               ranking=0)
     session.add(e)
     session.commit()
 
   if not Broker.get_broker(session, 9000001):
-    e = Broker(id=9000001, short_name=u'NyBitcoinCenter', business_name=u'Bitcoin Center NYC',
-               address=u'40 Broad Street', city='New York', state='NY', zip_code='10004', country_code='US', country='United States',
+    e = Broker(id=9000001,
+               short_name=u'NyBitcoinCenter',
+               business_name=u'Bitcoin Center NYC',
+               address=u'40 Broad Street',
+               signup_label='New York Bitcoin Center Broker',
+               city='New York',
+               state='NY',
+               zip_code='10004',
+               country_code='US',
+               country='United States',
                phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='joann.f.', email='NYCBitcoinCenter@gmail.com',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
                upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
@@ -1687,6 +1746,16 @@ def db_bootstrap(session):
                    ]
                  }
                ]),
+               accept_customers_from=json.dumps([
+                 [ "*", 'US_NY'],  # everywhere, including US_NY
+                 [ "US",  # except US and all other states
+                   "US_AL","US_AK","US_AZ","US_AR","US_CA","US_CO","US_CT","US_DE","US_DC","US_FL",
+                   "US_GA","US_HI","US_ID","US_IL","US_IN","US_IA","US_KS","US_KY","US_LA","US_ME",
+                   "US_MD","US_MA","US_MI","US_MN","US_MS","US_MO","US_MT","US_NE","US_NV","US_NH",
+                   "US_NJ","US_NM","US_NC","US_ND","US_OH","US_OK","US_OR","US_PA","US_RI","US_SC",
+                   "US_SD","US_TN","US_TX","US_UT","US_VE","US_VA","US_WA","US_WV","US_WI","US_WY"]
+               ]) ,
+               is_broker_hub=False,
                support_url='https://www.facebook.com/groups/bitex.support/',
                withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',

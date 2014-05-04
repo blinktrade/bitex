@@ -89,12 +89,15 @@
 
 
 /**
+  * @param show_title
   * @param msg_broker
   */
 {template .BrokerView}
+  {if $show_title}
   <div class="section-title">
     <h3>{msg desc="Title for the Broker view"}My broker{/msg}</h3>
   </div>
+  {/if}
 
   <div class="content">
     <address>

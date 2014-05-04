@@ -40,5 +40,8 @@ bitex.view.BrokerView.prototype.onModelSetBroker_ = function(e) {
   broker['TransactionFeeBuy'] = fmt.format(broker['TransactionFeeBuy'] / 10000);
   broker['TransactionFeeSell'] = fmt.format(broker['TransactionFeeSell'] / 10000);
 
-  goog.soy.renderElement(goog.dom.getElement('my_broker'), bitex.templates.BrokerView, {msg_broker:broker});
+  goog.soy.renderElement(goog.dom.getElement('my_broker'), bitex.templates.BrokerView, {
+    show_title: true,
+    msg_broker:broker
+  });
 };

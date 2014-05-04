@@ -91,72 +91,79 @@
   <p>Are you looking to be a broker in your state/country ?<a href="#" data-switch-view="broker_application" >Broker application</a>.</p>
 
 
-  <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
+    <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
+      <div class="control-group">
+        <label class="control-label">Username</label>
+        <div class="controls">
+          <input id="id_signup_username" name="Username" size="30" type="text" placeholder="">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Email address</label>
+        <div class="controls">
+          <input id="id_signup_email" name="Email" size="30" type="text" placeholder="eg.: joe@doe.com">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Password</label>
+        <div class="controls">
+          <input id="id_signup_password" name="Password" size="30" type="password">
+          <p class="help-block">At least 8 characters</p>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Confirm your password</label>
+        <div class="controls">
+          <input id="id_signup_password2" name="Password2" size="30" type="password">
+        </div>
+      </div>
+
+      <div class="control-group" style="">
+        <label class="control-label">Country</label>
+        <div class="controls">
+          <select id="id_signup_country" name="country"></select>
+        </div>
+      </div>
+
+      <div id="id_signup_state_group" class="control-group" style="display: none">
+        <label class="control-label">State or Province</label>
+        <div class="controls">
+          <select id="id_signup_state" name="state"></select>
+        </div>
+      </div>
+
+      <div class="control-group" style="">
+        <label class="control-label">Broker</label>
+        <div class="controls">
+          <select id="id_signup_broker" name="broker"></select>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">Broker info</label>
+        <div class="controls">
+          <div id="signup_broker_details"></div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Terms of service</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input id="user_agreed_tos" name="" type="checkbox" checked>
+            I agree with <a href="#" data-switch-view="tos">terms terms of service</a>.
+          </label>
+        </div>
+      </div>
+    </form>
 
     <div class="control-group">
-      <label class="control-label">Username</label>
       <div class="controls">
-        <input id="id_signup_username" name="Username" size="30" type="text" placeholder="">
+        <button id="id_btn_signup" class="btn btn-primary">Register</button>
       </div>
     </div>
-
-    <div class="control-group">
-      <label class="control-label">Email address</label>
-      <div class="controls">
-        <input id="id_signup_email" name="Email" size="30" type="text" placeholder="eg.: joe@doe.com">
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">Password</label>
-      <div class="controls">
-        <input id="id_signup_password" name="Password" size="30" type="password">
-        <p class="help-block">At least 8 characters</p>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">Confirm your password</label>
-      <div class="controls">
-        <input id="id_signup_password2" name="Password2" size="30" type="password">
-      </div>
-    </div>
-
-    <div class="control-group" style="">
-      <label class="control-label">Country</label>
-      <div class="controls">
-        <select id="id_signup_country" name="country"></select>
-      </div>
-    </div>
-
-    <div id="id_signup_state_group" class="control-group" style="display: none">
-      <label class="control-label">State or Province</label>
-      <div class="controls">
-        <select id="id_signup_state" name="state"></select>
-      </div>
-    </div>
-
-    <div class="control-group" style="">
-      <label class="control-label">Broker</label>
-      <div class="controls">
-        <select id="id_signup_broker" name="broker"></select>
-        <span id="id_signup_broker_warning" style="display: none">There are no brokers in your area. We will send you an email once we have a broker in your area.</span>
-      </div>
-    </div>
-
-    <div class="control-group">
-      <label class="control-label">Terms of service</label>
-      <div class="controls">
-
-        <label class="checkbox">
-          <input id="user_agreed_tos" name="" type="checkbox" checked>
-          I agree with <a href="#" data-switch-view="tos">terms terms of service</a>.
-        </label>
-      </div>
-    </div>
-  </form>
-
-  <button id="id_btn_signup" class="btn btn-primary">Register</button>
 </div>
 
 <div id="signin" class="page  row-fluid">
@@ -356,15 +363,7 @@
 
 </div>
 
-<div id="my_broker">
-  <div class="section-title">
-    <h3>My broker</h3>
-  </div>
-
-  <div class="content">
-    <div id="id_broker_wallets"></div>
-  </div>
-</div>
+<div id="my_broker"></div>
 
 <div id="account_overview">
   <div class="section-title">
@@ -535,6 +534,8 @@
 
 <footer class="footer">
   <div class="container">
+    <a href="#" class="btn" data-toggle="popover" data-placement="right" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." title="" data-original-title="Popover on right">Popover on right</a>
+
     <p>
       © 2014 BitEx | Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
       Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a>

@@ -50,6 +50,7 @@ goog.require('bootstrap.Dialog.ButtonSet');
 goog.require('bootstrap.Alert');
 goog.require('bootstrap.Dropdown');
 
+
 goog.require('goog.debug');
 
 goog.require('bitex.view.NullView');
@@ -73,10 +74,12 @@ goog.require('bitex.view.LedgerView');
 
 
 /**
+ * @param {string=} opt_default_country
+ * @param {number=} opt_default_broker_id
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-bitex.app.SatoshiSquare = function() {
+bitex.app.SatoshiSquare = function(opt_default_country, opt_default_broker_id) {
   goog.events.EventTarget.call(this);
 
   bootstrap.Dropdown.install();
@@ -95,10 +98,16 @@ bitex.app.SatoshiSquare = function() {
     this.showDialog(error);
   }
 
+  if (goog.isDefAndNotNull(opt_default_country)) {
+    this.model_.set('DefaultCountry', opt_default_country);
+  }
+
+  if (goog.isDefAndNotNull(opt_default_broker_id)) {
+    this.model_.set('DefaultBrokerID', opt_default_broker_id);
+  }
 
   this.currency_info_       = {};
   this.all_markets_         = {};
-  this.brokers_by_country_  = {};
 };
 goog.inherits(bitex.app.SatoshiSquare, goog.events.EventTarget);
 goog.addSingletonGetter(bitex.app.SatoshiSquare);
@@ -139,12 +148,6 @@ bitex.app.SatoshiSquare.prototype.currency_info_;
  * @private
  */
 bitex.app.SatoshiSquare.prototype.all_markets_;
-
-/**
- * @type {Object}
- * @private
- */
-bitex.app.SatoshiSquare.prototype.brokers_by_country_;
 
 
 /**
@@ -1875,8 +1878,46 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
   goog.dom.classes.add( document.body, 'active-view-' + view_id );
 };
 
-bitex.app.SatoshiSquare.prototype.getBrokerByCountry = function(country) {
-  return this.brokers_by_country_[country];
+/**
+ *
+ * @param {string} country
+ * @param {string=} opt_state
+ * @return {Array.<Object>}
+ */
+bitex.app.SatoshiSquare.prototype.getBrokersByCountry = function(country, opt_state) {
+  var brokers = this.getModel().get('BrokerList');
+
+  var response = [];
+
+  var query = country;
+  if (goog.isDefAndNotNull(opt_state)) {
+    query += '_' + opt_state;
+  }
+
+  goog.array.forEach(brokers, function(broker){
+    var broker_accept_array = broker['AcceptCustomersFrom'][0];
+    var broker_reject_array = broker['AcceptCustomersFrom'][1];
+
+    var is_explicit_accepted = goog.array.findIndex( broker_accept_array, function(accept_data){
+      return (accept_data === query || accept_data === country);
+    }) >= 0;
+
+    var is_accepted = is_explicit_accepted ||  (broker_accept_array[0] === "*" );
+
+    var is_explicit_rejected = goog.array.findIndex( broker_reject_array, function(accept_data){
+      return (accept_data === query || accept_data === country);
+    }) >= 0;
+
+    var is_rejected = is_explicit_rejected ||  (broker_reject_array[0] === "*" );
+
+    if (is_explicit_accepted) {
+      response.push(broker);
+    } else if (is_accepted && !is_rejected ) {
+      response.push(broker);
+    }
+  });
+
+  return response;
 };
 
 /**
@@ -2028,20 +2069,38 @@ bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
 bitex.app.SatoshiSquare.prototype.onBrokerListResponse_ =  function(e){
   var msg = e.data;
 
+  var broker_list = [];
   goog.array.forEach(msg['BrokerListGrp'], function( broker_array )  {
     var broker_info = {};
     goog.array.forEach(msg['Columns'], function( column, index )  {
       broker_info[column] = broker_array[index];
     }, this);
-    if (broker_info['CountryCode'] in this.brokers_by_country_) {
-      this.brokers_by_country_[broker_info['CountryCode'] ].push(broker_info);
-    } else {
-      this.brokers_by_country_[broker_info['CountryCode'] ] = [broker_info];
+
+    /**
+     * @desc label for broker selection on signup form
+     */
+    var MSG_APPLY_TO_BE_BROKER = goog.getMsg('Apply to be a broker');
+
+    /**
+     * @desc label for broker selection on signup form
+     */
+    var MSG_NOTIFY_ME_WHEN_A_NEW_BROKER_ARRIVE = goog.getMsg('Notify me when a new broker arrive in my region');
+
+    switch(broker_info['SignupLabel']) {
+      case '{MSG_BROKER_APPLY}':
+        broker_info['SignupLabel'] = MSG_APPLY_TO_BE_BROKER;
+        break;
+
+      case '{MSG_NOTIFY_NEW_BROKER}':
+        broker_info['SignupLabel'] = MSG_NOTIFY_ME_WHEN_A_NEW_BROKER_ARRIVE;
+        break;
     }
+
+    broker_list.push(broker_info);
   }, this );
 
 
-  this.model_.set('BrokerList', msg);
+  this.model_.set('BrokerList', broker_list);
 };
 
 /**
@@ -2222,7 +2281,7 @@ goog.exportProperty(App.prototype, 'getCurrencyDescription', bitex.app.SatoshiSq
 goog.exportProperty(App.prototype, 'getCurrencySign', bitex.app.SatoshiSquare.prototype.getCurrencySign);
 goog.exportProperty(App.prototype, 'isCryptoCurrency', bitex.app.SatoshiSquare.prototype.isCryptoCurrency);
 goog.exportProperty(App.prototype, 'formatCurrency', bitex.app.SatoshiSquare.prototype.formatCurrency);
-goog.exportProperty(App.prototype, 'getBrokerByCountry', bitex.app.SatoshiSquare.prototype.getBrokerByCountry);
+goog.exportProperty(App.prototype, 'getBrokersByCountry', bitex.app.SatoshiSquare.prototype.getBrokersByCountry);
 goog.exportProperty(App.prototype, 'getModel', bitex.app.SatoshiSquare.prototype.getModel);
 goog.exportProperty(App.prototype, 'getQtyCurrencyFromSymbol', bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol);
 goog.exportProperty(App.prototype, 'getPriceCurrencyFromSymbol', bitex.app.SatoshiSquare.prototype.getPriceCurrencyFromSymbol);
