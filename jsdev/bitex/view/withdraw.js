@@ -182,8 +182,10 @@ bitex.view.WithdrawView.prototype.showCurrencyWithdrawDialog = function(currency
   var percent_fee_element_id = goog.string.getRandomString();
   var total_fees_element_id = goog.string.getRandomString();
   var net_value_element_id = goog.string.getRandomString();
+  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
 
   var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
+    fmt:fmt,
     side: 'client',
     currency: currency,
     currencySign: this.getApplication().getCurrencySign(currency),

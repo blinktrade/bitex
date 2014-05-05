@@ -56,7 +56,7 @@ bitex.view.SignupView.prototype.enterDocument = function(){
   handler.listen(signup_state_el, goog.events.EventType.CHANGE, this.onChangeState_);
   handler.listen(broker_el, goog.events.EventType.CHANGE, this.onChangeBroker_);
 
-                 handler.listen( this.getApplication().getModel(), bitex.model.Model.EventType.SET + "BrokerList", this.onBrokerList_ );
+  handler.listen( this.getApplication().getModel(), bitex.model.Model.EventType.SET + "BrokerList", this.onBrokerList_ );
 
   var button_signup = new goog.ui.Button();
   button_signup.decorate(goog.dom.getElement('id_btn_signup'));
@@ -168,13 +168,27 @@ bitex.view.SignupView.prototype.onBrokerList_ = function(e) {
   }
 
   goog.dom.removeChildren(goog.dom.getElement('id_signup_broker'));
-  goog.object.forEach(this.getApplication().getBrokersByCountry(''), function(broker_info) {
+
+
+  if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
+    var broker_info = goog.array.find(broker_list, function(broker_info) {
+      if (broker_info['BrokerID'] === model.get('DefaultBrokerID')) {
+        return true;
+      }
+    });
     var el = goog.dom.createDom('option', {'value': broker_info['BrokerID'] }, broker_info['SignupLabel']);
     goog.dom.appendChild( goog.dom.getElement('id_signup_broker'), el );
+  }
+
+  goog.object.forEach(this.getApplication().getBrokersByCountry(''), function(broker_info) {
+    if (model.get('DefaultBrokerID') != broker_info['BrokerID']) {
+      var el = goog.dom.createDom('option', {'value': broker_info['BrokerID'] }, broker_info['SignupLabel']);
+      goog.dom.appendChild( goog.dom.getElement('id_signup_broker'), el );
+    }
   }, this);
 
   if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
-    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), model.get('DefaultBrokerID') );
+    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'),  '' + model.get('DefaultBrokerID') );
     this.onChangeBroker_();
   }
 
@@ -237,16 +251,18 @@ bitex.view.SignupView.prototype.onChangeBroker_ = function(e){
   var selected_broker = goog.dom.forms.getValue(goog.dom.getElement('id_signup_broker') ) ;
 
   var broker_list = model.get('BrokerList');
-  var broker = goog.array.find(broker_list, function(broker){
-    if (broker['BrokerID'] == selected_broker) {
-      return true;
-    }
-  });
+  if (goog.isDefAndNotNull(broker_list)) {
+    var broker = goog.array.find(broker_list, function(broker){
+      if (broker['BrokerID'] == selected_broker) {
+        return true;
+      }
+    });
 
-  goog.soy.renderElement(goog.dom.getElement('signup_broker_details'), bitex.templates.BrokerView, {
-    show_title: false,
-    msg_broker:broker
-  });
+    goog.soy.renderElement(goog.dom.getElement('signup_broker_details'), bitex.templates.BrokerView, {
+      show_title: false,
+      msg_broker:broker
+    });
+  }
 };
 
 /**
@@ -317,7 +333,7 @@ bitex.view.SignupView.prototype.onSelectCountry_ = function(selected_country) {
   }, this);
 
   if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
-    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), model.get('DefaultBrokerID') );
+    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + model.get('DefaultBrokerID') );
   } else if (number_of_brokers_in_same_country == 1) {
     goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + last_available_broker );
   }
@@ -350,7 +366,7 @@ bitex.view.SignupView.prototype.onSelectState_ = function( selected_country, sel
   }, this);
 
   if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
-    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), model.get('DefaultBrokerID') );
+    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + model.get('DefaultBrokerID') );
   } if (number_of_brokers_in_same_country_state == 1) {
     goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + last_available_broker );
   }

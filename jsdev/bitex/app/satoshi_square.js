@@ -635,6 +635,7 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
 
+  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var deposit_methods = [];
   goog.array.forEach( msg['DepositMethodGrp'], function(deposit_method) {
     var deposit_method_id = deposit_method['DepositMethodID'];
@@ -642,8 +643,8 @@ bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
     var disclaimer = deposit_method['Disclaimer'];
     var type = deposit_method['Type'];
     var currency = deposit_method['Currency'];
-    var percent_fee = deposit_method['PercentFee'];
-    var fixed_fee = deposit_method['FixedFee'];
+    var percent_fee = fmt.format(deposit_method['PercentFee']/100.0);
+    var fixed_fee = fmt.format(deposit_method['FixedFee']/1e8);
 
     deposit_methods.push( { id:deposit_method_id,
                            description:description,
@@ -849,6 +850,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerSetUserAsVerified_ = function(e){
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
+  var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_data = e.target.getWithdrawData();
   var request_id = e.target.getRequestId();
   var action = e.target.getWithdrawAction();
@@ -923,8 +925,8 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
        percentFeeID: percent_fee_element_id,
        totalFeesID: total_fees_element_id,
        netValueID: net_value_element_id,
-       fixedFee: withdraw_data['FixedFee'],
-       percentFee: withdraw_data['PercentFee']
+       fixedFee: valueFormatter.format(withdraw_data['FixedFee']/100),
+       percentFee: valueFormatter(withdraw_data['PercentFee']/1e8)
     });
 
     /**
@@ -984,7 +986,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
     handler.listen(feeDlg, goog.ui.Dialog.EventType.SELECT, function(e) {
       if (e.key == 'ok') {
         var form_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(feeDlg.getContentElement()));
-        var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
 
         var percent_fee = form_data['PercentFee'];
         pos = [0];
@@ -1027,7 +1029,9 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
     });
 
   } else if (action === 'COMPLETE') {
+    var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
     var dialogContent = bitex.templates.DepositWithdrawDialogContent({
+      fmt: fmt,
       side: 'broker',
       currency: withdraw_data['Currency'],
       currencySign: this.getCurrencySign(withdraw_data['Currency']),
@@ -1529,17 +1533,18 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
     return;
   }
 
+
   var deposit_methods = [];
   goog.array.forEach(this.getModel().get('DepositMethods'), function(deposit_method){
     if (deposit_method.currency == currency) {
-      deposit_methods.push( {
+      deposit_methods.push({
                               'method': deposit_method.id,
                               'description': deposit_method.description,
                               'disclaimer': deposit_method.disclaimer,
                               'percent_fee': deposit_method.percent_fee,
                               'fixed_fee': deposit_method.fixed_fee,
                               'fields': []
-                            } );
+                            });
     }
   }, this);
 
@@ -1549,6 +1554,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
   var percent_fee_element_id = goog.string.getRandomString();
   var total_fees_element_id = goog.string.getRandomString();
   var net_value_element_id = goog.string.getRandomString();
+
 
   var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
     side: 'client',
@@ -1755,6 +1761,16 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.model_.set('Username',         msg['Username']);
   this.model_.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
   this.model_.set('IsBroker',         msg['IsBroker'] );
+
+  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+  var withdraw_structure = msg['Broker']['WithdrawStructure'];
+  goog.object.forEach(withdraw_structure,  function(withdraw_methods, currency) {
+    goog.array.forEach( withdraw_methods, function(method) {
+      method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
+      method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
+    });
+  });
+  console.log(goog.debug.deepExpose(msg['Broker']));
   this.model_.set('Broker',           msg['Broker']);
 
   if (msg['IsBroker'] ) {
@@ -1885,8 +1901,6 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
  * @return {Array.<Object>}
  */
 bitex.app.SatoshiSquare.prototype.getBrokersByCountry = function(country, opt_state) {
-  var brokers = this.getModel().get('BrokerList');
-
   var response = [];
 
   var query = country;
@@ -1894,28 +1908,32 @@ bitex.app.SatoshiSquare.prototype.getBrokersByCountry = function(country, opt_st
     query += '_' + opt_state;
   }
 
-  goog.array.forEach(brokers, function(broker){
-    var broker_accept_array = broker['AcceptCustomersFrom'][0];
-    var broker_reject_array = broker['AcceptCustomersFrom'][1];
+  var brokers = this.getModel().get('BrokerList');
+  if (goog.isDefAndNotNull(brokers)) {
+    goog.array.forEach(brokers, function(broker){
+      var broker_accept_array = broker['AcceptCustomersFrom'][0];
+      var broker_reject_array = broker['AcceptCustomersFrom'][1];
 
-    var is_explicit_accepted = goog.array.findIndex( broker_accept_array, function(accept_data){
-      return (accept_data === query || accept_data === country);
-    }) >= 0;
+      var is_explicit_accepted = goog.array.findIndex( broker_accept_array, function(accept_data){
+        return (accept_data === query || accept_data === country);
+      }) >= 0;
 
-    var is_accepted = is_explicit_accepted ||  (broker_accept_array[0] === "*" );
+      var is_accepted = is_explicit_accepted ||  (broker_accept_array[0] === "*" );
 
-    var is_explicit_rejected = goog.array.findIndex( broker_reject_array, function(accept_data){
-      return (accept_data === query || accept_data === country);
-    }) >= 0;
+      var is_explicit_rejected = goog.array.findIndex( broker_reject_array, function(accept_data){
+        return (accept_data === query || accept_data === country);
+      }) >= 0;
 
-    var is_rejected = is_explicit_rejected ||  (broker_reject_array[0] === "*" );
+      var is_rejected = is_explicit_rejected ||  (broker_reject_array[0] === "*" );
 
-    if (is_explicit_accepted) {
-      response.push(broker);
-    } else if (is_accepted && !is_rejected ) {
-      response.push(broker);
-    }
-  });
+      if (is_explicit_accepted) {
+        response.push(broker);
+      } else if (is_accepted && !is_rejected ) {
+        response.push(broker);
+      }
+    });
+  }
+
 
   return response;
 };
@@ -2033,6 +2051,9 @@ bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
   var allowed_markets = {};
 
   var broker_currencies = broker['Currencies'].split(',');
+  if (broker_currencies.length === 1 && goog.string.isEmpty(broker_currencies[0])) {
+    broker_currencies = [];
+  }
 
   goog.array.forEach( broker['CryptoCurrencies'], function(crypto_currency){
     broker_currencies.push(crypto_currency['CurrencyCode']);

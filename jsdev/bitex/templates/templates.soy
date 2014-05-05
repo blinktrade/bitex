@@ -109,86 +109,94 @@
       <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
     </address>
 
-    <h4>
-      {msg desc="Fee section subtitle on Broker view"}Fees{/msg}
-    </h4>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>{msg desc="Operation column on Broker fees table"}Operation{/msg}</th>
-          <th>{msg desc="Fees column on Broker fees table"}Fee{/msg}</th>
-          <th>{msg desc="Terms column on Broker fees table"}Terms{/msg}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {if $msg_broker['TransactionFeeBuy'] == $msg_broker['TransactionFeeSell']}
-          <tr>
-            <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
-            <td>{$msg_broker['TransactionFeeBuy']}</td>
-            <td></td>
-          </tr>
-        {else}
-          <tr>
-            <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
-            <td>{$msg_broker['TransactionFeeBuy']}</td>
-            <td></td>
-          </tr>
-          <tr>
-            <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
-            <td>{$msg_broker['TransactionFeeSell']} %</td>
-            <td></td>
-          </tr>
-        {/if}
-        {foreach $fee in $msg_broker['FeeStructure']}
-          <tr>
-            <td>{$fee['Operation']}</td>
-            <td>{$fee['Fee']}</td>
-            <td>{$fee['Terms']}</td>
-          </tr>
-        {/foreach}
-      </tbody>
-    </table>
+    {if $msg_broker['BrokerID'] >= 0 }
+      {if length($msg_broker['FeeStructure']) > 0 }
+        <h4>
+          {msg desc="Fee section subtitle on Broker view"}Fees{/msg}
+        </h4>
 
-
-    <h4>
-      {msg desc="Wallet section subtitle on Broker view"}Wallets{/msg}
-    </h4>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>{msg desc="Coin  column on Broker wallet table"}Coin{/msg}</th>
-          <th>{msg desc="type  column on Broker wallet table"}Type{/msg}</th>
-          <th>{msg desc="address column type on Broker wallet table"}Address{/msg}</th>
-          <th>{msg desc="multisig column type on Broker wallet table"}Multi signature{/msg}</th>
-          <th>{msg desc="managed by column on Broker wallet table"}Managed by{/msg}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {foreach $crypto_currencies in $msg_broker['CryptoCurrencies']}
-          {foreach $wallets in $crypto_currencies['Wallets'] }
+        <table class="table table-bordered">
+          <thead>
             <tr>
-              <td>{$crypto_currencies['CurrencyDescription']}</td>
-              <td>{$wallets['type'] }</td>
-              <td>
-              {if $crypto_currencies['CurrencyCode'] == 'BTC' }
-                <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
-              {else}
-                {$wallets['address'] }
-              {/if}
-              </td>
-              <td>
-                {if $wallets['multisig']}
-                  {msg desc="Multisig true"}Yes{/msg}
-                {else}
-                  {msg desc="Multisig false"}No{/msg}
-                {/if}
-              </td>
-              <td>{$wallets['managed_by'] }</td>
+              <th>{msg desc="Operation column on Broker fees table"}Operation{/msg}</th>
+              <th>{msg desc="Fees column on Broker fees table"}Fee{/msg}</th>
+              <th>{msg desc="Terms column on Broker fees table"}Terms{/msg}</th>
             </tr>
+          </thead>
+          <tbody>
+            {if not $msg_broker['IsBrokerHub'] }
+              {if $msg_broker['TransactionFeeBuy'] == $msg_broker['TransactionFeeSell']}
+                <tr>
+                  <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
+                  <td>{$msg_broker['TransactionFeeBuy']}</td>
+                  <td></td>
+                </tr>
+              {else}
+                <tr>
+                  <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
+                  <td>{$msg_broker['TransactionFeeBuy']}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
+                  <td>{$msg_broker['TransactionFeeSell']} %</td>
+                  <td></td>
+                </tr>
+              {/if}
+            {/if}
+            {foreach $fee in $msg_broker['FeeStructure']}
+              <tr>
+                <td>{$fee['Operation']}</td>
+                <td>{$fee['Fee']}</td>
+                <td>{$fee['Terms']}</td>
+              </tr>
+            {/foreach}
+          </tbody>
+        </table>
+      {/if}
+    {/if}
+
+    {if not $msg_broker['IsBrokerHub'] }
+      <h4>
+        {msg desc="Wallet section subtitle on Broker view"}Wallets{/msg}
+      </h4>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>{msg desc="Coin  column on Broker wallet table"}Coin{/msg}</th>
+            <th>{msg desc="type  column on Broker wallet table"}Type{/msg}</th>
+            <th>{msg desc="address column type on Broker wallet table"}Address{/msg}</th>
+            <th>{msg desc="multisig column type on Broker wallet table"}Multi signature{/msg}</th>
+            <th>{msg desc="managed by column on Broker wallet table"}Managed by{/msg}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {foreach $crypto_currencies in $msg_broker['CryptoCurrencies']}
+            {foreach $wallets in $crypto_currencies['Wallets'] }
+              <tr>
+                <td>{$crypto_currencies['CurrencyDescription']}</td>
+                <td>{$wallets['type'] }</td>
+                <td>
+                {if $crypto_currencies['CurrencyCode'] == 'BTC' }
+                  <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                {else}
+                  {$wallets['address'] }
+                {/if}
+                </td>
+                <td>
+                  {if $wallets['multisig']}
+                    {msg desc="Multisig true"}Yes{/msg}
+                  {else}
+                    {msg desc="Multisig false"}No{/msg}
+                  {/if}
+                </td>
+                <td>{$wallets['managed_by'] }</td>
+              </tr>
+            {/foreach}
           {/foreach}
-        {/foreach}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    {/if}
 
     <h4>
       {msg desc="Terms of service section subtitle on Broker view"}Terms of service{/msg}
@@ -446,7 +454,7 @@
     <div class="row-fluid">
       <div class="span3">
         <div class="input-append">
-          <input id="{$percentFeeID}" type="text" class="input-mini" size="16"  style="width: 40px;" name="PercentFee" value="{$percentFee/100.0}">
+          <input id="{$percentFeeID}" type="text" class="input-mini" size="16"  style="width: 40px;" name="PercentFee" value="{$percentFee}">
           <span class="add-on">%</span>
         </div>
         <span style="font-style: italic;">{msg desc="Fee percentage label"}Percent fee{/msg}</span>
@@ -458,7 +466,7 @@
       <div class="span3">
         <div class="input-prepend">
           <span class="add-on">{$currencySign}</span>
-          <input id="{$fixedFeeID}" type="text" class="input-mini" size="16" style="width: 40px;" name="FixedFee" value="{$fixedFee/1e8}">
+          <input id="{$fixedFeeID}" type="text" class="input-mini" size="16" style="width: 40px;" name="FixedFee" value="{$fixedFee}">
         </div>
         <span style="font-style: italic;">{msg desc="Fee fixed label"}Fixed fee{/msg}</span>
       </div>
@@ -594,8 +602,8 @@
               <div class="control-group" style="margin-bottom: 5px;">
                 <div class="controls">
                   <label>{$method['disclaimer']}</label>
-                  <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']/100.0}">
-                  <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']/1e8}">
+                  <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']}">
+                  <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']}">
                 </div>
               </div>
 
@@ -640,8 +648,8 @@
             <div class="control-group" style="margin-bottom: 5px;">
               <div class="controls">
                 <label>{$method['disclaimer']}</label>
-                <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']/100.0}">
-                <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']/1e8}">
+                <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']}">
+                <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']}">
               </div>
             </div>
             <div class="control-group">

@@ -1589,6 +1589,15 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
+  if not User.get_user(session, 'bitcointoyou'):
+    e = User(id=9000002, username='bitcointoyou', email='andre@bitcointoyou.com',  broker_id=0, broker_username='bitcointoyou', password='abc12345',
+             country_code='BR', state='MG',
+             transaction_fee_buy=60,
+             transaction_fee_sell=60,
+             verified=1, is_staff=False, is_system=False, is_broker=True)
+    session.add(e)
+    session.commit()
+
   if not Broker.get_broker(session, -1):
     e = Broker(id=-1,
                short_name=u'BitEx',
@@ -1601,7 +1610,7 @@ def db_bootstrap(session):
                country='Brazil',
                country_code='BR',
                phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
-               verification_jotform='https://secure.jotform.us/form/41205503470139?user_id=%s&username=%s',
+               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
                upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
                currencies='',
                withdraw_structure=json.dumps({}),
@@ -1686,7 +1695,7 @@ def db_bootstrap(session):
                zip_code='10004',
                country_code='US',
                country='United States',
-               phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='joann.f.', email='NYCBitcoinCenter@gmail.com',
+               phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='XXXXX', email='NYCBitcoinCenter@gmail.com',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
                upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
                currencies='USD',
@@ -1774,6 +1783,87 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
+  if not Broker.get_broker(session, 9000002):
+    e = Broker(id=9000002,
+               short_name=u'bitcointoyou',
+               business_name=u'Bitcoin to you - VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
+               address=u'Rua João Pinheiro, 22 – Sala 104',
+               signup_label='Bitcoin to you',
+               city='Betim',
+               state='MG',
+               zip_code='32600-072',
+               country_code='BR',
+               country='Brazil',
+               phone_number_1='+55 (31) 2571-5791', phone_number_2=None, skype='andreluizhorta', email='atendimento@vivarti.com.br',
+               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
+               currencies='BRL',
+               withdraw_structure=json.dumps( {
+                 'BTC': [
+                     {
+                     'method':'bitcoin',
+                     'description':'Saque em Bitcoins',
+                     'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
+                     'percent_fee':0,
+                     'fixed_fee':0,
+                     'fields': [
+                         {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                         {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                     ]
+                   }
+                 ],
+                 'BRL': [
+                     {
+                     'method':'ted_doc',
+                     'description':'Saque para conta bancária no Brasil',
+                     'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                     'percent_fee': 165, # 1.65 percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                         {'side':'client', 'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                         {'side':'client', 'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   }
+                 ]
+               }),
+               crypto_currencies=json.dumps([
+                   {
+                   "CurrencyCode": "BTC",
+                   "CurrencyDescription":"Bitcoin",
+                   "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                   "Wallets": [
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                   ]
+                 }
+               ]),
+               accept_customers_from=json.dumps([
+                 ["BR"],  # Only in Brazil
+                 [ "*" ]
+               ]) ,
+               is_broker_hub=False,
+               support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
+               fee_structure=json.dumps([
+                   { "Operation" : u"Depósito em Reais",           "Fee":"1,65%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+                   { "Operation" : u"Depósito em Bitcoin",         "Fee":"0%"               , "Terms":u"10 minutos após a confirmação de número 6 da rede Bitcoin" },
+                   { "Operation" : u"Saque em Bitcoin",            "Fee":"0%"               , "Terms":u"Automático e imediato ao utilizar autenticação em 2 passos para contas verificadas e feito manual com prazo de até 24 horas para contas não verificadas." },
+                   { "Operation" : u"Saque em Reais",              "Fee":"1,65%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+               ]),
+               transaction_fee_buy=60, # 0.6%
+               transaction_fee_sell=60, # 0.6%
+               status='1',
+               ranking=1)
+    session.add(e)
+    session.commit()
 
   currencies = [
     [ 'USD' , '$'       , 'Dollar'   ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
@@ -1798,6 +1888,7 @@ def db_bootstrap(session):
 
   instruments = [
     ['BTCUSD', 'USD', "BTC / USD" ],
+    ['BTCBRL', 'BRL', "BTC / BRL" ],
   ]
   for inst in instruments:
     if Instrument.get_instrument(session, inst[0]):
@@ -1908,3 +1999,67 @@ def db_bootstrap(session):
     session.add(bo)
     session.commit()
 
+
+  if not DepositMethods.get_deposit_method(session, 3 ):
+    bo = DepositMethods(id=3,
+                        broker_id=9000002,
+                        name="deposito_itau",
+                        description=u'Depósito Bancário - Banco Itaú',
+                        disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                        type='BTI',
+                        percent_fee=165,  # 1.65
+                        fixed_fee=0,
+                        broker_deposit_ctrl_num=90001,
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'instrucao_deposito_itau_{{id}}.html',
+                          'html_template':'brazilian_bank_transfer.html',
+                          'bank_number': '341',
+                          'bank_name': u'Banco Itaú',
+                          'currency':'R$',
+                          'value': '{{value}}',
+                          'current_date': '{{current_date}}',
+                          'control_number': '{{broker_deposit_ctrl_num}}',
+                          'account_branch' : '1582',
+                          'account_number' : '26736-3',
+                          'account_name': 'VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
+                          'account_id': '12.454.181/0001-05',
+                          'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
+                          'instructions': u'Após realizar o deposito, por favor enviar comprovante por email para: comprovante@bitex.com.br<br/> '
+                                          u'IMPORTANTE: O título do email deve ser: COMPROVANTE DE DEPOSITO {{broker_deposit_ctrl_num}}, '
+                                          u'e no corpo do email anexe uma foto do comprovante ou print screen do seu internet banking contendo o comprovante da operação. '
+                        } ) )
+    session.add(bo)
+    session.commit()
+
+  if not DepositMethods.get_deposit_method(session, 4 ):
+    bo = DepositMethods(id=4,
+                        broker_id=9000002,
+                        name="deposito_bradesco",
+                        description=u'Depósito Bancário - Banco Bradesco',
+                        disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                        type='BTI',
+                        percent_fee=165,  # 1.65
+                        fixed_fee=0,
+                        broker_deposit_ctrl_num=90001,
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'instrucao_deposito_itau_{{id}}.html',
+                          'html_template':'brazilian_bank_transfer.html',
+                          'bank_number': '237',
+                          'bank_name': u'Banco Bradesco',
+                          'currency':'R$',
+                          'value': '{{value}}',
+                          'current_date': '{{current_date}}',
+                          'control_number': '{{broker_deposit_ctrl_num}}',
+                          'account_branch' : '1463',
+                          'account_number' : '402101-0',
+                          'account_name': 'VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
+                          'account_id': '12.454.181/0001-05',
+                          'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
+                          'instructions': u'Após realizar o deposito, por favor enviar comprovante por email para: comprovante@bitex.com.br<br/> '
+                                          u'IMPORTANTE: O título do email deve ser: COMPROVANTE DE DEPOSITO {{broker_deposit_ctrl_num}}, '
+                                          u'e no corpo do email anexe uma foto do comprovante ou print screen do seu internet banking contendo o comprovante da operação. '
+                        } ) )
+    session.add(bo)
+    session.commit()
