@@ -10,12 +10,18 @@ goog.require('goog.string');
 
 /**
  * @param {*} app
+ * @param {boolean=} opt_requests_from_customers
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {bitex.view.View}
  */
-bitex.view.WithdrawView = function(app, opt_domHelper) {
+bitex.view.WithdrawView = function(app, opt_requests_from_customers, opt_domHelper) {
   bitex.view.View.call(this, app, opt_domHelper);
+
+  this.is_requests_from_customers_ = false;
+  if (opt_requests_from_customers === true) {
+    this.is_requests_from_customers_ = opt_requests_from_customers;
+  }
 
   this.request_id_ = null;
   this.confirmation_token_ = null;
@@ -44,6 +50,11 @@ bitex.view.WithdrawView.prototype.exitView = function() {
 bitex.view.WithdrawView.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
 };
+
+/**
+ * @type {boolean}
+ */
+bitex.view.DepositView.prototype.is_requests_from_customers_;
 
 /**
  * @type {number}
@@ -104,19 +115,19 @@ bitex.view.WithdrawView.prototype.enterDocument = function() {
                   bitex.api.BitEx.EventType.WITHDRAW_RESPONSE,
                   this.onBitexWithdrawResponse_);
 
+  if (!this.is_requests_from_customers_) {
+    handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
+      goog.dom.removeChildren( goog.dom.getElement("id_user_balances_well"));
 
-  handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
-    goog.dom.removeChildren( goog.dom.getElement("id_user_balances_well"));
+      var broker_currencies = model.get('BrokerCurrencies');
+      goog.soy.renderElement(goog.dom.getElement('id_user_balances_well'), bitex.templates.AccountBalances, {
+        currencies: broker_currencies,
+        action: 'withdraw'
+      });
 
-    var broker_currencies = model.get('BrokerCurrencies');
-    goog.soy.renderElement(goog.dom.getElement('id_user_balances_well'), bitex.templates.AccountBalances, {
-      currencies: broker_currencies,
-      action: 'withdraw'
+      model.updateDom();
     });
-
-    model.updateDom();
-  });
-
+  }
 
   handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
     if (e.target.getAttribute('data-action') === 'withdraw' ) {
@@ -384,8 +395,13 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
 
+  var el;
+  if (this.is_requests_from_customers_) {
+    el = goog.dom.getElement('id_withdraw_request_list_table');
+  } else {
+    el = goog.dom.getElement('id_withdraw_list_table');
+  }
 
-  var el = goog.dom.getElement('id_withdraw_list_table');
   var currency_method_description_obj = {};
   goog.object.forEach( model.get('Broker')['WithdrawStructure'], function(method_list, currency){
     currency_method_description_obj[ currency ] = {};

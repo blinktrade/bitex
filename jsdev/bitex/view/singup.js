@@ -215,12 +215,13 @@ bitex.view.SignupView.prototype.onBrokerList_ = function(e) {
   if (goog.isDefAndNotNull(model.get('DefaultCountry'))) {
     goog.dom.forms.setValue( goog.dom.getElement('id_signup_country'), model.get('DefaultCountry') );
     this.onSelectCountry_(model.get('DefaultCountry'));
+  } else if (number_of_countries === 1) {
+    goog.dom.forms.setValue( goog.dom.getElement('id_signup_country'), last_country_code );
+    this.onSelectCountry_(last_country_code);
   } else {
-    if (number_of_countries === 1) {
-      goog.dom.forms.setValue( goog.dom.getElement('id_signup_country'), last_country_code );
-      this.onSelectCountry_(last_country_code);
-    }
+    this.onChangeBroker_();
   }
+
 };
 
 /**
@@ -260,7 +261,8 @@ bitex.view.SignupView.prototype.onChangeBroker_ = function(e){
 
     goog.soy.renderElement(goog.dom.getElement('signup_broker_details'), bitex.templates.BrokerView, {
       show_title: false,
-      msg_broker:broker
+      msg_broker:broker,
+      broker_list: broker_list
     });
   }
 };

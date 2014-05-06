@@ -100,109 +100,128 @@
   {/if}
 
   <div class="content">
-    <address>
-      <strong>{$msg_broker['BusinessName']}</strong><br/>
-      {$msg_broker['Address']}<br/>
-      {$msg_broker['City']}, {$msg_broker['State']} {$msg_broker['ZipCode']} - {$msg_broker['Country']}<br/>
-      <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, $msg_broker['PhoneNumber2']{/if}<br/>
-      Skype: {$msg_broker['Skype']}<br/>
-      <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
-    </address>
+    {if $msg_broker['BrokerID'] == -1 }
+    {else}
+      <address>
+        <strong>{$msg_broker['BusinessName']}</strong><br/>
+        {$msg_broker['Address']}<br/>
+        {$msg_broker['City']}, {$msg_broker['State']} {$msg_broker['ZipCode']} - {$msg_broker['Country']}<br/>
+        <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, $msg_broker['PhoneNumber2']{/if}<br/>
+        Skype: {$msg_broker['Skype']}<br/>
+        <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
+      </address>
 
-    {if $msg_broker['BrokerID'] >= 0 }
-      {if length($msg_broker['FeeStructure']) > 0 }
+      {if $msg_broker['BrokerID'] > 0 }
+        <div class="row-fluid">
+          <div class="span3">
+            <h4>
+              {msg desc="Allowed markets section subtitle on broker view"}Markets{/msg}
+            </h4>
+            {foreach $allowed_market in keys($msg_broker['AllowedMarkets'])}
+              <div class="row-fluid">
+                <div class="span12">
+                  { $msg_broker['AllowedMarkets'][$allowed_market]['description']}
+                </div>
+              </div>
+            {/foreach}
+          </div>
+        </div>
+      {/if}
+
+      {if $msg_broker['BrokerID'] >= 0 }
+        {if length($msg_broker['FeeStructure']) > 0 }
+          <h4>
+            {msg desc="Fee section subtitle on Broker view"}Fees{/msg}
+          </h4>
+
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>{msg desc="Operation column on Broker fees table"}Operation{/msg}</th>
+                <th>{msg desc="Fees column on Broker fees table"}Fee{/msg}</th>
+                <th>{msg desc="Terms column on Broker fees table"}Terms{/msg}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {if not $msg_broker['IsBrokerHub'] }
+                {if $msg_broker['TransactionFeeBuy'] == $msg_broker['TransactionFeeSell']}
+                  <tr>
+                    <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
+                    <td>{$msg_broker['TransactionFeeBuy']}</td>
+                    <td></td>
+                  </tr>
+                {else}
+                  <tr>
+                    <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
+                    <td>{$msg_broker['TransactionFeeBuy']}</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
+                    <td>{$msg_broker['TransactionFeeSell']} %</td>
+                    <td></td>
+                  </tr>
+                {/if}
+              {/if}
+              {foreach $fee in $msg_broker['FeeStructure']}
+                <tr>
+                  <td>{$fee['Operation']}</td>
+                  <td>{$fee['Fee']}</td>
+                  <td>{$fee['Terms']}</td>
+                </tr>
+              {/foreach}
+            </tbody>
+          </table>
+        {/if}
+      {/if}
+
+      {if not $msg_broker['IsBrokerHub'] }
         <h4>
-          {msg desc="Fee section subtitle on Broker view"}Fees{/msg}
+          {msg desc="Wallet section subtitle on Broker view"}Wallets{/msg}
         </h4>
-
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>{msg desc="Operation column on Broker fees table"}Operation{/msg}</th>
-              <th>{msg desc="Fees column on Broker fees table"}Fee{/msg}</th>
-              <th>{msg desc="Terms column on Broker fees table"}Terms{/msg}</th>
+              <th>{msg desc="Coin  column on Broker wallet table"}Coin{/msg}</th>
+              <th>{msg desc="type  column on Broker wallet table"}Type{/msg}</th>
+              <th>{msg desc="address column type on Broker wallet table"}Address{/msg}</th>
+              <th>{msg desc="multisig column type on Broker wallet table"}Multi signature{/msg}</th>
+              <th>{msg desc="managed by column on Broker wallet table"}Managed by{/msg}</th>
             </tr>
           </thead>
           <tbody>
-            {if not $msg_broker['IsBrokerHub'] }
-              {if $msg_broker['TransactionFeeBuy'] == $msg_broker['TransactionFeeSell']}
+            {foreach $crypto_currencies in $msg_broker['CryptoCurrencies']}
+              {foreach $wallets in $crypto_currencies['Wallets'] }
                 <tr>
-                  <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
-                  <td>{$msg_broker['TransactionFeeBuy']}</td>
-                  <td></td>
+                  <td>{$crypto_currencies['CurrencyDescription']}</td>
+                  <td>{$wallets['type'] }</td>
+                  <td>
+                  {if $crypto_currencies['CurrencyCode'] == 'BTC' }
+                    <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                  {else}
+                    {$wallets['address'] }
+                  {/if}
+                  </td>
+                  <td>
+                    {if $wallets['multisig']}
+                      {msg desc="Multisig true"}Yes{/msg}
+                    {else}
+                      {msg desc="Multisig false"}No{/msg}
+                    {/if}
+                  </td>
+                  <td>{$wallets['managed_by'] }</td>
                 </tr>
-              {else}
-                <tr>
-                  <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
-                  <td>{$msg_broker['TransactionFeeBuy']}</td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
-                  <td>{$msg_broker['TransactionFeeSell']} %</td>
-                  <td></td>
-                </tr>
-              {/if}
-            {/if}
-            {foreach $fee in $msg_broker['FeeStructure']}
-              <tr>
-                <td>{$fee['Operation']}</td>
-                <td>{$fee['Fee']}</td>
-                <td>{$fee['Terms']}</td>
-              </tr>
+              {/foreach}
             {/foreach}
           </tbody>
         </table>
       {/if}
-    {/if}
 
-    {if not $msg_broker['IsBrokerHub'] }
       <h4>
-        {msg desc="Wallet section subtitle on Broker view"}Wallets{/msg}
+        {msg desc="Terms of service section subtitle on Broker view"}Terms of service{/msg}
       </h4>
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>{msg desc="Coin  column on Broker wallet table"}Coin{/msg}</th>
-            <th>{msg desc="type  column on Broker wallet table"}Type{/msg}</th>
-            <th>{msg desc="address column type on Broker wallet table"}Address{/msg}</th>
-            <th>{msg desc="multisig column type on Broker wallet table"}Multi signature{/msg}</th>
-            <th>{msg desc="managed by column on Broker wallet table"}Managed by{/msg}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {foreach $crypto_currencies in $msg_broker['CryptoCurrencies']}
-            {foreach $wallets in $crypto_currencies['Wallets'] }
-              <tr>
-                <td>{$crypto_currencies['CurrencyDescription']}</td>
-                <td>{$wallets['type'] }</td>
-                <td>
-                {if $crypto_currencies['CurrencyCode'] == 'BTC' }
-                  <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
-                {else}
-                  {$wallets['address'] }
-                {/if}
-                </td>
-                <td>
-                  {if $wallets['multisig']}
-                    {msg desc="Multisig true"}Yes{/msg}
-                  {else}
-                    {msg desc="Multisig false"}No{/msg}
-                  {/if}
-                </td>
-                <td>{$wallets['managed_by'] }</td>
-              </tr>
-            {/foreach}
-          {/foreach}
-        </tbody>
-      </table>
+      <iframe style="width:100%;height:400px;" src="{$msg_broker['TosUrl']}"></iframe>
     {/if}
-
-    <h4>
-      {msg desc="Terms of service section subtitle on Broker view"}Terms of service{/msg}
-    </h4>
-    <iframe style="width:100%;height:400px;" src="{$msg_broker['TosUrl']}"></iframe>
-
   </div>
 
 

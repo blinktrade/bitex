@@ -32,6 +32,8 @@ bitex.view.BrokerView.prototype.enterDocument = function() {
  */
 bitex.view.BrokerView.prototype.onModelSetBroker_ = function(e) {
   var broker = e.data;
+  var model = this.getApplication().getModel();
+  var broker_list = model.get('BrokerList');
 
   var fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.PERCENT);
   fmt.setMaximumFractionDigits(2);
@@ -42,6 +44,7 @@ bitex.view.BrokerView.prototype.onModelSetBroker_ = function(e) {
 
   goog.soy.renderElement(goog.dom.getElement('my_broker'), bitex.templates.BrokerView, {
     show_title: true,
-    msg_broker:broker
+    msg_broker:broker,
+    broker_list: broker_list
   });
 };

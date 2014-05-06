@@ -96,6 +96,7 @@
         <label class="control-label">Username</label>
         <div class="controls">
           <input id="id_signup_username" name="Username" size="30" type="text" placeholder="">
+          <p class="help-block">Your username will be public available to everybody.</p>
         </div>
       </div>
 
@@ -142,7 +143,7 @@
         </div>
       </div>
       <div class="control-group">
-        <label class="control-label">Broker info</label>
+        <label class="control-label"></label>
         <div class="controls">
           <div id="signup_broker_details"></div>
         </div>
@@ -404,6 +405,16 @@
   </div>
 </div>
 
+<div id="withdraw_requests">
+  <div class="section-title">
+    <h3>Withdrawals requests</h3>
+  </div>
+
+  <div class="content">
+    <div id="id_withdraw_request_list"></div>
+  </div>
+</div>
+
 <div id="deposit">
   <div class="section-title">
     <h3>Deposits</h3>
@@ -415,6 +426,17 @@
     <div id="id_deposit_list"></div>
   </div>
 </div>
+
+<div id="deposit_requests">
+  <div class="section-title">
+    <h3>Deposit requests</h3>
+  </div>
+
+  <div class="content">
+    <div id="id_deposit_request_list"></div>
+  </div>
+</div>
+
 
 <div id="ledger">
   <div class="section-title">
@@ -488,8 +510,11 @@
     <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
     <li style=""><a href="" data-switch-view="ledger"><i data-switch-view="ledger" class="icon-list"></i> Ledger</a></li>
 
-    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
-    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="deposit_requests"><i data-switch-view="deposit_requests" class="icon-plus"></i> Deposit requests</a></li>
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="withdraw_requests"><i data-switch-view="withdraw_requests" class="icon-minus"></i> Withdraw requests</a></li>
+
+    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> My Deposit</a></li>
+    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> My Withdrawals</a></li>
 
     <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> My customers</a></li>
 
