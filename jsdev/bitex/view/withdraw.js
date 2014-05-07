@@ -403,16 +403,27 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   }
 
   var currency_method_description_obj = {};
-  goog.object.forEach( model.get('Broker')['WithdrawStructure'], function(method_list, currency){
+  var broker = model.get('Broker');
+  if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
+    broker =  goog.array.find( model.get('BrokerList'), function(broker_obj) {
+      if (broker_obj['BrokerID'] ==  model.get('UserID')) {
+        return true;
+      }
+    });
+  }
+
+  goog.object.forEach( broker['WithdrawStructure'], function(method_list, currency){
     currency_method_description_obj[ currency ] = {};
     goog.array.forEach(method_list, function(method) {
       currency_method_description_obj[ currency ][method['method'] ] = method['description'];
     } );
   });
 
-  this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj,
-                                                         model.get('IsBroker'),
-                                                         model.get('IsBroker'));
+  if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
+    this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj,true, true);
+  } else {
+    this.withdraw_list_table_ =  new bitex.ui.WithdrawList(currency_method_description_obj,false, false);
+  }
 
   handler.listen(this.withdraw_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -477,7 +488,20 @@ bitex.view.WithdrawView.prototype.onWithdrawListTableRequestData_ = function(e) 
   var filter = e.options['Filter'];
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestWithdrawList(this.request_id_, page, limit, ['1', '2', '4', '8'], undefined, filter  );
+
+  var model = this.getApplication().getModel();
+  var clientID = undefined;
+  if (model.get('IsBroker') && (!this.is_requests_from_customers_ ) ) {
+    clientID = model.get('UserID');
+  }
+
+
+  conn.requestWithdrawList(this.request_id_,
+                           page,
+                           limit,
+                           ['1', '2', '4', '8'],
+                           clientID,
+                           filter  );
 };
 
 /**

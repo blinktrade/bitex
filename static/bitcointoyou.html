@@ -45,9 +45,9 @@
         "></a>
 
       <ul class="nav navbar-nav pull-right">
-        <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Market</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Mercado</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
-        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Register</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Criar conta</a></li>
         <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn-link" style="padding: 6px 15px 10px;" >connect <i class="icon-white icon-repeat"></i></button></li>
       </ul>
     </div>
@@ -81,9 +81,9 @@
 
 <div id="signup" class="page  row-fluid">
   <div class="page-header">
-    <h1>Register</h1>
+    <h1>Criar conta</h1>
   </div>
-  <p>Already registered? <a href="#" data-switch-view="signin" >Login</a>.</p>
+  <p>Já possui conta? <a href="#" data-switch-view="signin" >Login</a>.</p>
 
   <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
     <div class="control-group">
@@ -94,14 +94,14 @@
     </div>
 
     <div class="control-group">
-      <label class="control-label">Email address</label>
+      <label class="control-label">Email</label>
       <div class="controls">
         <input id="id_signup_email" name="Email" size="30" type="text" placeholder="eg.: joe@doe.com">
       </div>
     </div>
 
     <div class="control-group">
-      <label class="control-label">Password</label>
+      <label class="control-label">Senha</label>
       <div class="controls">
         <input id="id_signup_password" name="Password" size="30" type="password">
         <p class="help-block">At least 8 characters</p>
@@ -109,45 +109,45 @@
     </div>
 
     <div class="control-group">
-      <label class="control-label">Confirm your password</label>
+      <label class="control-label">Confirme sua senha</label>
       <div class="controls">
         <input id="id_signup_password2" name="Password2" size="30" type="password">
       </div>
     </div>
 
     <div class="control-group" style="display: none">
-      <label class="control-label">Country</label>
+      <label class="control-label">País</label>
       <div class="controls">
         <select id="id_signup_country" name="country"></select>
       </div>
     </div>
 
     <div id="id_signup_state_group" class="control-group" style="display: none">
-      <label class="control-label">State or Province</label>
+      <label class="control-label">Estado</label>
       <div class="controls">
         <select id="id_signup_state" name="state"></select>
       </div>
     </div>
 
     <div class="control-group" style="display: none">
-      <label class="control-label">Broker</label>
+      <label class="control-label">Corretora</label>
       <div class="controls">
         <select id="id_signup_broker" name="broker"></select>
       </div>
     </div>
     <div class="control-group">
-      <label class="control-label">Broker info</label>
+      <label class="control-label"></label>
       <div class="controls">
         <div id="signup_broker_details"></div>
       </div>
     </div>
 
     <div class="control-group">
-      <label class="control-label">Terms of service</label>
+      <label class="control-label">Termos de uso</label>
       <div class="controls">
         <label class="checkbox">
           <input id="user_agreed_tos" name="" type="checkbox" checked>
-          I agree with <a href="#" data-switch-view="tos">terms terms of service</a>.
+          Eu concordo com os <a href="#" data-switch-view="tos">termos de uso</a>.
         </label>
       </div>
     </div>
@@ -155,16 +155,18 @@
 
   <div class="control-group">
     <div class="controls">
-      <button id="id_btn_signup" class="btn btn-primary">Register</button>
+      <button id="id_btn_signup" class="btn btn-primary">Criar conta</button>
     </div>
   </div>
 </div>
+
+
 
 <div id="signin" class="page  row-fluid">
   <div class="page-header">
     <h1>Login</h1>
   </div>
-  <p>Don't have an account? <a href="#" data-switch-view="signup">Register</a></p>
+  <p>Ainda não tem uma conta? <a href="#" data-switch-view="signup">Criar conta</a></p>
 
   <form accept-charset="UTF-8" action="" method="post">
     <div class="clearfix">
@@ -172,10 +174,10 @@
       <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
     </div>
     <div class="clearfix">
-      <label for="id_password">Password</label>
+      <label for="id_password">Senha</label>
       <div class="input"><input id="id_password"  placeholder="" name="password" type="password"></div>
     </div>
-    <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
+    <p><a href="#" data-switch-view="forgot_password">Esqueceu a sua senha?</a></p>
     <div class="actions">
       <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Login">
     </div>
@@ -185,7 +187,7 @@
 
 <div id="forgot_password" class="page row">
   <div class="page-header">
-    <h1>Password recovery</h1>
+    <h1>Recuperar senha</h1>
   </div>
 
   <form accept-charset="UTF-8" action="" method="post">
@@ -201,7 +203,7 @@
 
 <div id="broker_application" class="page row">
   <div class="page-header">
-    <h1>Broker Application Form</h1>
+    <h1>Aplique para ser uma corretora</h1>
   </div>
 
   <iframe id="JotFormIFrame2"
@@ -236,21 +238,21 @@
 
 <div id="set_new_password" class="page  row">
   <div class="page-header">
-    <h1>Set new password</h1>
+    <h1>Definir nova senha</h1>
   </div>
   <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
 
     <div class="control-group">
-      <label class="control-label">Security code</label>
+      <label class="control-label">Código de segurança</label>
       <div class="controls">
         <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
-        <p class="help-block">We just sent a security code to your email.</p>
+        <p class="help-block">Nós enviamos um código de ativação para o seu email.</p>
       </div>
 
     </div>
 
     <div class="control-group">
-      <label class="control-label">New password</label>
+      <label class="control-label">Nova senha</label>
       <div class="controls">
         <input id="id_set_new_password_password" name="Password" size="30" type="password">
         <p class="help-block">At least 8 characters</p>
@@ -258,7 +260,7 @@
     </div>
 
     <div class="control-group">
-      <label class="control-label">Confirm your password</label>
+      <label class="control-label">Confirme a sua senha</label>
       <div class="controls">
         <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
       </div>
@@ -275,189 +277,210 @@
 
 <div  class="span9">
 
-  <div id="trading">
-    <div class="section-title">
-      <h3>Trading</h3>
-    </div>
-
-    <div id="trading_order_entry_content" class="row-fluid"></div>
-
-    <div id="id_tradingg_well"></div>
+<div id="trading">
+  <div class="section-title">
+    <h3>Trading</h3>
   </div>
 
-  <div id="offerbook">
-    <div class="section-title">
-      <h3>Order Book</h3>
-    </div>
+  <div id="trading_order_entry_content" class="row-fluid"></div>
 
-    <div id="offer_book_order_entry_content" class="row-fluid"></div>
+  <div id="id_tradingg_well"></div>
+</div>
 
-    <div class="well">
-      <div class="row-fluid">
-        <div id="id_order_book_bid_content" class="span6"></div>
-        <div id="id_order_book_ask_content" class="span6"></div>
-      </div>
-    </div>
+<div id="offerbook">
+  <div class="section-title">
+    <h3>Livro de ofertas</h3>
   </div>
 
-  <div id="customers">
-    <div class="section-title">
-      <h3>Customers</h3>
-    </div>
+  <div id="offer_book_order_entry_content" class="row-fluid"></div>
 
-    <div id="id_customers_well"></div>
+  <div class="well">
+    <div class="row-fluid">
+      <div id="id_order_book_bid_content" class="span6"></div>
+      <div id="id_order_book_ask_content" class="span6"></div>
+    </div>
+  </div>
+</div>
+
+<div id="customers">
+  <div class="section-title">
+    <h3>Clientes</h3>
   </div>
 
-  <div id="account_activity">
-    <div class="section-title">
-      <h3>History</h3>
-    </div>
+  <div id="id_customers_well"></div>
+</div>
 
-    <div id="id_trade_history_well"></div>
+<div id="account_activity">
+  <div class="section-title">
+    <h3>Histórico de ordens</h3>
   </div>
 
-  <div id="enable_two_factor">
-    <div class="section-title">
-      <h3>Enable or Disable Two steps authentication</h3>
-    </div>
+  <div id="id_trade_history_well"></div>
+</div>
 
-    <div class="content">
+<div id="enable_two_factor">
+  <div class="section-title">
+    <h3>Ativar/Desativar autenticação em duas etapas</h3>
+  </div>
 
-      <div class="well span6">
-        <form id="id_enable_two_factor_div" class="form-horizontal ">
+  <div class="content">
 
-          <div class="control-group">
-            <label class="control-label">Key</label>
-            <div class="controls">
-              <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
-            </div>
+    <div class="well span6">
+      <form id="id_enable_two_factor_div" class="form-horizontal ">
+
+        <div class="control-group">
+          <label class="control-label">Chave</label>
+          <div class="controls">
+            <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
           </div>
-
-          <div class="control-group">
-            <div class="controls">
-              <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label class="control-label">Authentication code</label>
-            <div class="controls">
-              <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
-            </div>
-          </div>
-
-        </form>
-
-        <button id="id_btn_enable_two_factor" class="btn btn-primary">Enable</button>
-        <button id="id_btn_disable_two_factor" class="btn btn-danger">Disable</button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  <div id="my_broker"></div>
-
-  <div id="account_overview">
-    <div class="section-title">
-      <h3>Account overview</h3>
-    </div>
-
-    <div class="content">
-
-      <div class="row-fluid">
-        <div class="span6">
-          <div id="account_overview_header_id"></div>
         </div>
-        <div class="span6">
-          <div id="account_overview_balances_id"></div>
+
+        <div class="control-group">
+          <div class="controls">
+            <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
+          </div>
         </div>
+
+        <div class="control-group">
+          <label class="control-label">Código de autenticação</label>
+          <div class="controls">
+            <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
+          </div>
+        </div>
+
+      </form>
+
+      <button id="id_btn_enable_two_factor" class="btn btn-primary">Habilitar</button>
+      <button id="id_btn_disable_two_factor" class="btn btn-danger">Desabilitar</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div id="my_broker"></div>
+
+<div id="account_overview">
+  <div class="section-title">
+    <h3>Visão geral da conta</h3>
+  </div>
+
+  <div class="content">
+
+    <div class="row-fluid">
+      <div class="span6">
+        <div id="account_overview_header_id"></div>
       </div>
-
-      <div id="account_overview_withdraw_requests_id"></div>
-
-      <div id="account_overview_deposits_id"></div>
-
-      <div id="account_overview_trades_id"></div>
-
-
+      <div class="span6">
+        <div id="account_overview_balances_id"></div>
+      </div>
     </div>
+
+    <div id="account_overview_withdraw_requests_id"></div>
+
+    <div id="account_overview_deposits_id"></div>
+
+    <div id="account_overview_trades_id"></div>
+
 
   </div>
 
-  <div id="withdraw">
-    <div class="section-title">
-      <h3>Withdrawals</h3>
-    </div>
+</div>
 
-    <div class="content">
-      <div id="id_user_balances_well"></div>
-
-      <div id="id_withdraw_list"></div>
-    </div>
+<div id="withdraw">
+  <div class="section-title">
+    <h3>Saques</h3>
   </div>
 
-  <div id="deposit">
-    <div class="section-title">
-      <h3>Deposits</h3>
-    </div>
+  <div class="content">
+    <div id="id_user_balances_well"></div>
 
-    <div class="content">
-      <div id="id_deposit_balances_container"></div>
+    <div id="id_withdraw_list"></div>
+  </div>
+</div>
 
-      <div id="id_deposit_list"></div>
-    </div>
+<div id="withdraw_requests">
+  <div class="section-title">
+    <h3>Solicitações de saques</h3>
   </div>
 
-  <div id="ledger">
-    <div class="section-title">
-      <h3>Ledger</h3>
-    </div>
+  <div class="content">
+    <div id="id_withdraw_request_list"></div>
+  </div>
+</div>
 
-    <div class="content">
-      <div id="id_ledger_balances_container"></div>
-
-      <div id="id_ledger_list"></div>
-    </div>
+<div id="deposit">
+  <div class="section-title">
+    <h3>Depósitos</h3>
   </div>
 
+  <div class="content">
+    <div id="id_deposit_balances_container"></div>
 
+    <div id="id_deposit_list"></div>
+  </div>
+</div>
 
-  <div id="settings">
-    <div class="section-title">
-      <h3>Configurações</h3>
-    </div>
+<div id="deposit_requests">
+  <div class="section-title">
+    <h3>Solicitação de depósitos</h3>
   </div>
 
-  <div id="verification">
-    <div class="section-title">
-      <h3>Verify your account</h3>
-    </div>
+  <div class="content">
+    <div id="id_deposit_request_list"></div>
+  </div>
+</div>
 
-    <iframe id="JotFormIFrame" onload="window.parent.scrollTo(0,0)" allowtransparency="true" src="" frameborder="0" style="width:100%; height:1550px; border:none;" scrolling="no"></iframe>
-    <script type="text/javascript">
-      window.handleIFrameMessage = function(e) {
-        var args = e.data.split(":");
-        var iframe = document.getElementById("JotFormIFrame");
-        if (!iframe)
-          return;
-        switch (args[0]) {
-          case "scrollIntoView":
-            iframe.scrollIntoView();
-            break;
-          case "setHeight":
-            iframe.style.height = (args[1] + 200 ) + "px";
-            break;
-        }
-      };
-      if (window.addEventListener) {
-        window.addEventListener("message", handleIFrameMessage, false);
-      } else if (window.attachEvent) {
-        window.attachEvent("onmessage", handleIFrameMessage);
+
+<div id="ledger">
+  <div class="section-title">
+    <h3>Livro contábil</h3>
+  </div>
+
+  <div class="content">
+    <div id="id_ledger_balances_container"></div>
+
+    <div id="id_ledger_list"></div>
+  </div>
+</div>
+
+
+
+<div id="settings">
+  <div class="section-title">
+    <h3>Configurações</h3>
+  </div>
+</div>
+
+<div id="verification">
+  <div class="section-title">
+    <h3>Verifique a sua conta</h3>
+  </div>
+
+  <iframe id="JotFormIFrame" onload="window.parent.scrollTo(0,0)" allowtransparency="true" src="" frameborder="0" style="width:100%; height:1550px; border:none;" scrolling="no"></iframe>
+  <script type="text/javascript">
+    window.handleIFrameMessage = function(e) {
+      var args = e.data.split(":");
+      var iframe = document.getElementById("JotFormIFrame");
+      if (!iframe)
+        return;
+      switch (args[0]) {
+        case "scrollIntoView":
+          iframe.scrollIntoView();
+          break;
+        case "setHeight":
+          iframe.style.height = (args[1] + 200 ) + "px";
+          break;
       }
-    </script>
-  </div>
+    };
+    if (window.addEventListener) {
+      window.addEventListener("message", handleIFrameMessage, false);
+    } else if (window.attachEvent) {
+      window.attachEvent("onmessage", handleIFrameMessage);
+    }
+  </script>
+</div>
 
 </div>
 
@@ -466,7 +489,7 @@
   <div id="account_balance" style="">
 
     <form class="form-inline">
-      <label class="control-label" for="id_instrument_1">Market: </label>
+      <label class="control-label" for="id_instrument_1">Mercado: </label>
       <select id="id_instrument_1">
         <option></option>
       </select>
@@ -476,26 +499,29 @@
   </div>
   <h6>Menu</h6>
   <ul class="nav nav-list">
-    <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i> My Broker info</a></li>
+    <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i> Informações da corretora</a></li>
 
 
-    <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
-    <li style=""><a href="" data-switch-view="ledger"><i data-switch-view="ledger" class="icon-list"></i> Ledger</a></li>
+    <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Livro de ofertas</a></li>
+    <li style=""><a href="" data-switch-view="ledger"><i data-switch-view="ledger" class="icon-list"></i> Livro contábil</a></li>
 
-    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Deposit</a></li>
-    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Withdraw</a></li>
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> Meus clientes</a></li>
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="deposit_requests"><i data-switch-view="deposit_requests" class="icon-plus"></i> Solicitações de depósitos</a></li>
+    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="withdraw_requests"><i data-switch-view="withdraw_requests" class="icon-minus"></i> Solicitações de saques</a></li>
 
-    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> My customers</a></li>
+    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Depósitos</a></li>
+    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Saques</a></li>
 
-    <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
-    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
-    <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
+
+    <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> Histórico de ordens</a></li>
+    <li style="" class="bitex-display-if-non-broker"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verificar conta</a></li>
+    <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Aumentar segurança</a></li>
 
     <li style="">
       <a href="" class="bitex-support-link" target="_blank" >
-        <i class="icon-envelope"></i> Suggestions & Support</a>
+        <i class="icon-envelope"></i> Suporte</a>
     </li>
-    <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
+    <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Sair</a></li>
   </ul>
 </div>
 </div>
@@ -503,7 +529,7 @@
 <div id="market" class="page row">
   <div class="row-fluid">
     <div class="page-header">
-      <h2>Market</h2>
+      <h2>Mercado</h2>
     </div>
   </div>
 
@@ -515,7 +541,7 @@
 
 <div id="tos" class="page row">
   <div class="page-header">
-    <h1>Terms of service</h1>
+    <h1>Termos de uso</h1>
   </div>
   <!-- Main content -->
   <div class="well">
@@ -529,18 +555,14 @@
 <footer class="footer">
   <div class="container">
     <p>
-      © 2014 BitEx | Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
-      Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a>
-      | <a href="https://github.com/pinhopro/bitex/tree/zeromq/" target="_blank">Proudly 100% open source</a>
-      | <a href="http://nytm.org/made-in-nyc/" target="_blank">Made  with <span style="/* background-color: red */color: #d11f0d;font-size: 19px;">♥</span> in NYC</a>
+      © 2013 Bitcoin to you | Corretora de bitcoins membro da <a href="http://www.bitex.com.com.br" target="_blank">BitEx</a>
     </p>
   </div>
 </footer>
 
 <script>
   var app = new App('BR', 9000002);
-  //app.run('wss://localhost/trade/');
-  app.run('wss://pinhopro.no-ip.org/trade/');
+  app.run('wss://localhost/trade/');
 </script>
 
 

@@ -234,7 +234,13 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
   }
 
   var broker = model.get('Broker');
-  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], model.get('IsBroker'), model.get('IsBroker') );
+  if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
+    this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], true, true );
+  } else {
+    this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], false, false );
+  }
+
+
 
   handler.listen(this.deposit_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -343,7 +349,19 @@ bitex.view.DepositView.prototype.onDepositListTableRequestData_ = function(e) {
   var filter = e.options['Filter'];
   
   var conn = this.getApplication().getBitexConnection();
-  conn.requestDepositList(this.request_id_, page, limit, ['0', '1', '2', '4', '8'] , undefined, filter );
+
+  var model = this.getApplication().getModel();
+  var clientID = undefined;
+  if (model.get('IsBroker') && (!this.is_requests_from_customers_ ) ) {
+    clientID = model.get('UserID');
+  }
+
+  conn.requestDepositList(this.request_id_,              // opt_requestId
+                          page,                          // opt_page
+                          limit,                         // opt_limit
+                          ['0', '1', '2', '4', '8'] ,    // opt_status,
+                          clientID,                      // opt_clientID
+                          filter );                      // opt_filter
 };
 
 

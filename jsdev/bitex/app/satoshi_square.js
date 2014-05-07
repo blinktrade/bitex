@@ -883,7 +883,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerSetUserAsVerified_ = function(e){
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
-  var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+  var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_data = e.target.getWithdrawData();
   var request_id = e.target.getRequestId();
   var action = e.target.getWithdrawAction();
@@ -1063,6 +1063,13 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
 
   } else if (action === 'COMPLETE') {
     var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
+    var broker = goog.array.find( model.get('BrokerList'), function(broker_obj) {
+      if (broker_obj['BrokerID'] ==  model.get('UserID')) {
+        return true;
+      }
+    });
+
     var dialogContent = bitex.templates.DepositWithdrawDialogContent({
       fmt: fmt,
       side: 'broker',
@@ -1070,7 +1077,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
       currencySign: this.getCurrencySign(withdraw_data['Currency']),
       force_method: withdraw_data['Method'],
       amount: withdraw_data['Amount'],
-      methods: model.get('Broker')['WithdrawStructure'][withdraw_data['Currency'] ],
+      methods: broker['WithdrawStructure'][withdraw_data['Currency'] ],
       methodID: method_element_id,
       showFeeDataEntry:false,
       amountID: withdraw_amount_element_id,

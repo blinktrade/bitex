@@ -589,7 +589,7 @@ def processWithdrawListRequest(session, msg):
   offset      = page * page_size
 
   user = session.user
-  if msg.has('ClientID'):
+  if msg.has('ClientID') and int(msg.get('ClientID')) != session.user.id :
     user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
     if user.broker_id  != session.user.id:
       raise NotAuthorizedError()
