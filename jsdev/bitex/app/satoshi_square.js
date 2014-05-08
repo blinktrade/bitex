@@ -2,6 +2,7 @@ goog.provide('bitex.app.SatoshiSquare');
 goog.provide('bitex.app.satoshi_square');
 
 goog.require('goog.structs.Map');
+goog.require('goog.structs.Set');
 
 goog.require('bitex.util');
 goog.require('bitex.api.BitEx');
@@ -1063,12 +1064,6 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
   } else if (action === 'COMPLETE') {
     var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
 
-    var broker = goog.array.find( model.get('BrokerList'), function(broker_obj) {
-      if (broker_obj['BrokerID'] ==  model.get('UserID')) {
-        return true;
-      }
-    });
-
     var dialogContent = bitex.templates.DepositWithdrawDialogContent({
       fmt: fmt,
       side: 'broker',
@@ -1076,7 +1071,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
       currencySign: this.getCurrencySign(withdraw_data['Currency']),
       force_method: withdraw_data['Method'],
       amount: withdraw_data['Amount'],
-      methods: broker['WithdrawStructure'][withdraw_data['Currency'] ],
+      methods: model.get('Profile')['WithdrawStructure'][withdraw_data['Currency'] ],
       methodID: method_element_id,
       showFeeDataEntry:false,
       amountID: withdraw_amount_element_id,
@@ -1794,11 +1789,13 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.model_.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
   this.model_.set('IsBroker',         msg['IsBroker'] );
 
-
+  var broker_currencies = new goog.structs.Set();
+  var allowed_markets = {};
   if (goog.isDefAndNotNull(msg['Broker'])) {
     var broker_info = this.adjustBrokerData_(msg['Broker']);
-    this.getModel().set('BrokerCurrencies', broker_info['BrokerCurrencies'] );
-    this.getModel().set('AllowedMarkets', broker_info['AllowedMarkets'] );
+    goog.object.extend(allowed_markets,  broker_info['AllowedMarkets']);
+    broker_currencies.addAll(broker_info['BrokerCurrencies']);
+
     this.model_.set('Broker', broker_info);
   }
 
@@ -1806,11 +1803,14 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   if (msg['IsBroker'] ) {
     goog.dom.classes.add( document.body, 'bitex-broker'  );
     profile = this.adjustBrokerData_(profile);
+    goog.object.extend(allowed_markets,  profile['AllowedMarkets']);
+    broker_currencies.addAll(profile['BrokerCurrencies']);
   } else {
     goog.dom.classes.add( document.body, 'bitex-non-broker');
   }
   this.model_.set('Profile',  profile);
-
+  this.model_.set('AllowedMarkets', allowed_markets);
+  this.model_.set('BrokerCurrencies', broker_currencies.getValues() );
 
   this.conn_.requestBalances();
 
