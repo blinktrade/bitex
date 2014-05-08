@@ -14,13 +14,18 @@ goog.require('goog.string');
 
 /**
  * @param {*} app
+ * @param {boolean=} opt_requests_from_customers
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {bitex.view.View}
  */
-bitex.view.DepositView = function(app, opt_domHelper) {
+bitex.view.DepositView = function(app, opt_requests_from_customers ,opt_domHelper) {
   bitex.view.View.call(this, app, opt_domHelper);
 
+  this.is_requests_from_customers_ = false;
+  if (opt_requests_from_customers === true) {
+    this.is_requests_from_customers_ = opt_requests_from_customers;
+  }
   this.request_id_ = null;
 };
 goog.inherits(bitex.view.DepositView, bitex.view.View);
@@ -39,6 +44,10 @@ bitex.view.DepositView.prototype.exitView = function() {
   this.destroyComponents_();
 };
 
+/**
+ * @type {boolean}
+ */
+bitex.view.DepositView.prototype.is_requests_from_customers_;
 
 /**
  * @type {number}
@@ -148,17 +157,19 @@ bitex.view.DepositView.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
 
-  handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
-    goog.dom.removeChildren( goog.dom.getElement("id_deposit_balances_container"));
+  if (!this.is_requests_from_customers_) {
+    handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
+      goog.dom.removeChildren( goog.dom.getElement("id_deposit_balances_container"));
 
-    var broker_currencies = model.get('BrokerCurrencies');
-    goog.soy.renderElement(goog.dom.getElement('id_deposit_balances_container'), bitex.templates.AccountBalances, {
-      currencies: broker_currencies,
-      action: 'deposit'
+      var broker_currencies = model.get('BrokerCurrencies');
+      goog.soy.renderElement(goog.dom.getElement('id_deposit_balances_container'), bitex.templates.AccountBalances, {
+        currencies: broker_currencies,
+        action: 'deposit'
+      });
+
+      model.updateDom();
     });
-
-    model.updateDom();
-  });
+  }
 
   handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
     if (e.target.getAttribute('data-action') === 'deposit' ) {
@@ -214,9 +225,22 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
 
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
-  var el = goog.dom.getElement('id_deposit_list_table');
+
+  var el;
+  if (this.is_requests_from_customers_){
+    el = goog.dom.getElement('id_deposit_request_list_table');
+  } else {
+    el = goog.dom.getElement('id_deposit_list_table');
+  }
+
   var broker = model.get('Broker');
-  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], model.get('IsBroker'), model.get('IsBroker') );
+  if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
+    this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], true, true );
+  } else {
+    this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], false, false );
+  }
+
+
 
   handler.listen(this.deposit_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -325,7 +349,19 @@ bitex.view.DepositView.prototype.onDepositListTableRequestData_ = function(e) {
   var filter = e.options['Filter'];
   
   var conn = this.getApplication().getBitexConnection();
-  conn.requestDepositList(this.request_id_, page, limit, ['0', '1', '2', '4', '8'] , undefined, filter );
+
+  var model = this.getApplication().getModel();
+  var clientID = undefined;
+  if (model.get('IsBroker') && (!this.is_requests_from_customers_ ) ) {
+    clientID = model.get('UserID');
+  }
+
+  conn.requestDepositList(this.request_id_,              // opt_requestId
+                          page,                          // opt_page
+                          limit,                         // opt_limit
+                          ['0', '1', '2', '4', '8'] ,    // opt_status,
+                          clientID,                      // opt_clientID
+                          filter );                      // opt_filter
 };
 
 

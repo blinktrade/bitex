@@ -23,7 +23,7 @@ class Session(object):
 
     from models import Broker
 
-    if user.is_broker:
+    if user.is_broker and user.broker_id is None:
       self.broker = Broker.get_broker( application.db_session,user.id)
     else:
       self.broker = Broker.get_broker( application.db_session,user.broker.id)
