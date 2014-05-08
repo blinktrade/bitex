@@ -553,7 +553,6 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(this.views_, bitex.view.View.EventType.DEPOSIT_REQUEST, this.onUserDepositRequest_ );
   handler.listen(this.views_, bitex.view.View.EventType.PROCESS_DEPOSIT, this.onProcessDeposit_ );
 
-  handler.listen(this.model_, bitex.model.Model.EventType.SET + 'Broker', this.onModelSetBroker_);
 
   handler.listen(this.views_, bitex.view.View.EventType.CONNECT_BITEX, this.onUserConnectBitEx_);
 
@@ -1795,21 +1794,23 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.model_.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
   this.model_.set('IsBroker',         msg['IsBroker'] );
 
-  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
-  var withdraw_structure = msg['Broker']['WithdrawStructure'];
-  goog.object.forEach(withdraw_structure,  function(withdraw_methods, currency) {
-    goog.array.forEach( withdraw_methods, function(method) {
-      method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
-      method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
-    });
-  });
-  this.model_.set('Broker',           msg['Broker']);
 
+  if (goog.isDefAndNotNull(msg['Broker'])) {
+    var broker_info = this.adjustBrokerData_(msg['Broker']);
+    this.getModel().set('BrokerCurrencies', broker_info['BrokerCurrencies'] );
+    this.getModel().set('AllowedMarkets', broker_info['AllowedMarkets'] );
+    this.model_.set('Broker', broker_info);
+  }
+
+  var profile = msg['Profile'];
   if (msg['IsBroker'] ) {
     goog.dom.classes.add( document.body, 'bitex-broker'  );
+    profile = this.adjustBrokerData_(profile);
   } else {
-    goog.dom.classes.add( document.body, 'bitex-non-broker'  );
+    goog.dom.classes.add( document.body, 'bitex-non-broker');
   }
+  this.model_.set('Profile',  profile);
+
 
   this.conn_.requestBalances();
 
@@ -2074,22 +2075,29 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
   this.model_.set('SecurityList', msg);
 };
 
-
-
 /**
- * @param {bitex.api.BitExEvent} e
+ * @param {Object} broker_info
+ * @return {Object}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
-  var broker = e.data;
-  var allowed_markets = {};
+bitex.app.SatoshiSquare.prototype.adjustBrokerData_ = function(broker_info) {
+  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+  var withdraw_structure = broker_info['WithdrawStructure'];
+  goog.object.forEach(withdraw_structure,  function(withdraw_methods) {
+    goog.array.forEach( withdraw_methods, function(method) {
+      method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
+      method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
+    });
+  });
 
-  var broker_currencies = broker['Currencies'].split(',');
-  if (broker_currencies.length === 1 && goog.string.isEmpty(broker_currencies[0])) {
-    broker_currencies = [];
+  broker_info['Currencies'] = broker_info['Currencies'].split(',');
+  if (broker_info['Currencies'].length === 1 && goog.string.isEmpty(broker_info['Currencies'][0])) {
+    broker_info['Currencies'] = [];
   }
 
-  goog.array.forEach( broker['CryptoCurrencies'], function(crypto_currency){
+  var allowed_markets = {};
+  var broker_currencies = goog.array.clone(broker_info['Currencies']);
+  goog.array.forEach( broker_info['CryptoCurrencies'], function(crypto_currency){
     broker_currencies.push(crypto_currency['CurrencyCode']);
 
     var market_crypto_currency = goog.object.findKey( this.all_markets_, function(market_info, symbol) {
@@ -2097,9 +2105,9 @@ bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
         return true;
       }
     });
-    if (goog.isDefAndNotNull(market_crypto_currency)) {
 
-      goog.array.forEach( broker['Currencies'].split(',') , function(currency) {
+    if (goog.isDefAndNotNull(market_crypto_currency)) {
+      goog.array.forEach( broker_info['Currencies'], function(currency) {
         var market_currency = goog.object.findKey( this.all_markets_, function(market_info, symbol) {
           if (symbol.indexOf(currency) >= 0)  {
             return true;
@@ -2108,13 +2116,13 @@ bitex.app.SatoshiSquare.prototype.onModelSetBroker_ = function(e) {
         if (goog.isDefAndNotNull(market_currency)) {
           allowed_markets[market_currency] = this.all_markets_[market_currency];
         }
-      },this );
+      },this);
     }
-  }, this);
+  },this);
+  broker_info['BrokerCurrencies'] = broker_currencies;
+  broker_info['AllowedMarkets'] = allowed_markets;
 
-
-  this.getModel().set('BrokerCurrencies',broker_currencies);
-  this.getModel().set('AllowedMarkets',allowed_markets);
+  return broker_info;
 };
 
 /**
@@ -2151,49 +2159,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerListResponse_ =  function(e){
         break;
     }
 
-
-    var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
-    var withdraw_structure = broker_info['WithdrawStructure'];
-    goog.object.forEach(withdraw_structure,  function(withdraw_methods, currency) {
-      goog.array.forEach( withdraw_methods, function(method) {
-        method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
-        method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
-      });
-    });
-
-    broker_info['Currencies'] = broker_info['Currencies'].split(',');
-    if (broker_info['Currencies'].length === 1 && goog.string.isEmpty(broker_info['Currencies'][0])) {
-      broker_info['Currencies'] = [];
-    }
-
-    var allowed_markets = {};
-    var broker_currencies = goog.array.clone(broker_info['Currencies']);
-    goog.array.forEach( broker_info['CryptoCurrencies'], function(crypto_currency){
-      broker_currencies.push(crypto_currency['CurrencyCode']);
-
-      var market_crypto_currency = goog.object.findKey( this.all_markets_, function(market_info, symbol) {
-        if (symbol.indexOf(crypto_currency['CurrencyCode']) >= 0)  {
-          return true;
-        }
-      });
-
-      if (goog.isDefAndNotNull(market_crypto_currency)) {
-        goog.array.forEach( broker_info['Currencies'], function(currency) {
-          var market_currency = goog.object.findKey( this.all_markets_, function(market_info, symbol) {
-            if (symbol.indexOf(currency) >= 0)  {
-              return true;
-            }
-          });
-          if (goog.isDefAndNotNull(market_currency)) {
-            allowed_markets[market_currency] = this.all_markets_[market_currency];
-          }
-        },this);
-      }
-    },this);
-    broker_info['BrokerCurrencies'] = broker_currencies;
-    broker_info['AllowedMarkets'] = allowed_markets;
-
-
+    broker_info = this.adjustBrokerData_(broker_info);
     broker_list.push(broker_info);
   }, this );
 

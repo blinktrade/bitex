@@ -10,6 +10,8 @@ class Session(object):
     self.client_version = client_version
 
     self.user           = None
+    self.is_broker      = False
+    self.profile        = None
     self.broker         = None
     self.should_end     = False
 
@@ -21,11 +23,15 @@ class Session(object):
       raise UserAlreadyLogged
     self.user = user
 
-    from models import Broker
+    self.is_broker = self.user.is_broker
 
-    if user.is_broker and user.broker_id is None:
-      self.broker = Broker.get_broker( application.db_session,user.id)
+    from models import Broker
+    if self.is_broker:
+      self.profile = Broker.get_broker( application.db_session,user.id)
     else:
+      self.profile = user
+
+    if user.broker_id is not None:
       self.broker = Broker.get_broker( application.db_session,user.broker.id)
 
   def process_message(self, msg):

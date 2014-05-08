@@ -140,7 +140,7 @@ class User(Base):
   broker_username = Column(String(15), index=True)
 
   state           = Column(String(30), index=True )
-  country_code    = Column(String(2),     nullable=False, index=True)
+  country_code    = Column(String(2),  nullable=False, index=True)
 
   password_algo   = Column(String(8), nullable=False)
   password_salt   = Column(String(128), nullable=False)

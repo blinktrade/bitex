@@ -52,42 +52,85 @@ def processLogin(session, msg):
 
   # Send the login response
   login_response = {
-    'MsgType':          'BF',
-    'UserID':           session.user.id,
-    'Username':         session.user.username,
-    'TwoFactorEnabled': session.user.two_factor_enabled,
-    'UserStatus':       1,
-    'IsBroker':         session.user.is_broker,
+    'MsgType'            :'BF',
+    'UserID'             : session.user.id,
+    'Username'           : session.user.username,
+    'TwoFactorEnabled'   : session.user.two_factor_enabled,
+    'UserStatus'         : 1,
+    'IsBroker'           : session.user.is_broker,
+    'BrokerID'           : session.broker.id,
+    'TransactionFeeBuy'  : session.user.transaction_fee_buy,
+    'TransactionFeeSell' : session.user.transaction_fee_sell,
+    'Broker': {
+        'BrokerID'           : session.broker.id                   ,
+        'ShortName'          : session.broker.short_name           ,
+        'BusinessName'       : session.broker.business_name        ,
+        'Address'            : session.broker.address              ,
+        'ZipCode'            : session.broker.zip_code             ,
+        'City'               : session.broker.city                 ,
+        'State'              : session.broker.state                ,
+        'Country'            : session.broker.country              ,
+        'PhoneNumber1'       : session.broker.phone_number_1       ,
+        'PhoneNumber2'       : session.broker.phone_number_2       ,
+        'Skype'              : session.broker.skype                ,
+        'Email'              : session.broker.email                ,
+        'Currencies'         : session.broker.currencies           ,
+        'VerificationForm'   : session.broker.verification_jotform ,
+        'UploadForm'         : session.broker.upload_jotform       ,
+        'TosUrl'             : session.broker.tos_url              ,
+        'FeeStructure'       : json.loads(session.broker.fee_structure),
+        'WithdrawStructure'  : json.loads(session.broker.withdraw_structure),
+        'TransactionFeeBuy'  : session.broker.transaction_fee_buy  ,
+        'TransactionFeeSell' : session.broker.transaction_fee_sell ,
+        'Status'             : session.broker.status               ,
+        'ranking'            : session.broker.ranking              ,
+        'SupportURL'         : session.broker.support_url          ,
+        'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
+      }
   }
 
-  if session.broker:
-    login_response['BrokerID'] = session.broker.id
-    login_response['Broker'] =  {
-      'BrokerID'           : session.broker.id                   ,
-      'ShortName'          : session.broker.short_name           ,
-      'BusinessName'       : session.broker.business_name        ,
-      'Address'            : session.broker.address              ,
-      'ZipCode'            : session.broker.zip_code             ,
-      'City'               : session.broker.city                 ,
-      'State'              : session.broker.state                ,
-      'Country'            : session.broker.country              ,
-      'PhoneNumber1'       : session.broker.phone_number_1       ,
-      'PhoneNumber2'       : session.broker.phone_number_2       ,
-      'Skype'              : session.broker.skype                ,
-      'Email'              : session.broker.email                ,
-      'Currencies'         : session.broker.currencies           ,
-      'VerificationForm'   : session.broker.verification_jotform ,
-      'UploadForm'         : session.broker.upload_jotform       ,
-      'TosUrl'             : session.broker.tos_url              ,
-      'FeeStructure'       : json.loads(session.broker.fee_structure),
-      'WithdrawStructure'  : json.loads(session.broker.withdraw_structure),
-      'TransactionFeeBuy'  : session.broker.transaction_fee_buy  ,
-      'TransactionFeeSell' : session.broker.transaction_fee_sell ,
-      'Status'             : session.broker.status               ,
-      'ranking'            : session.broker.ranking              ,
-      'SupportURL'         : session.broker.support_url          ,
-      'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
+  if session.user.is_broker:
+    login_response['Profile'] = {
+      'Type'               : 'BROKER',
+      'Verified'           : session.user.verified                ,
+      'VerificationData'   : session.user.verification_data       ,
+      'TwoFactorEnabled'   : session.user.two_factor_enabled      ,
+      'BrokerID'           : session.profile.id                   ,
+      'ShortName'          : session.profile.short_name           ,
+      'BusinessName'       : session.profile.business_name        ,
+      'Address'            : session.profile.address              ,
+      'ZipCode'            : session.profile.zip_code             ,
+      'City'               : session.profile.city                 ,
+      'State'              : session.profile.state                ,
+      'Country'            : session.profile.country              ,
+      'PhoneNumber1'       : session.profile.phone_number_1       ,
+      'PhoneNumber2'       : session.profile.phone_number_2       ,
+      'Skype'              : session.profile.skype                ,
+      'Email'              : session.profile.email                ,
+      'Currencies'         : session.profile.currencies           ,
+      'VerificationForm'   : session.profile.verification_jotform ,
+      'UploadForm'         : session.profile.upload_jotform       ,
+      'TosUrl'             : session.profile.tos_url              ,
+      'FeeStructure'       : json.loads(session.profile.fee_structure),
+      'WithdrawStructure'  : json.loads(session.profile.withdraw_structure),
+      'TransactionFeeBuy'  : session.profile.transaction_fee_buy  ,
+      'TransactionFeeSell' : session.profile.transaction_fee_sell ,
+      'Status'             : session.profile.status               ,
+      'ranking'            : session.profile.ranking              ,
+      'SupportURL'         : session.profile.support_url          ,
+      'CryptoCurrencies'   : json.loads(session.profile.crypto_currencies)
     }
+  else:
+    login_response['Profile'] = {
+      'Type'               : 'USER',
+      'Email'              : session.profile.email,
+      'State'              : session.profile.state,
+      'Country'            : session.profile.country_code,
+      'Verified'           : session.profile.verified,
+      'VerificationData'   : session.profile.verification_data,
+      'TwoFactorEnabled'   : session.profile.two_factor_enabled,
+    }
+
   return json.dumps(login_response, cls=JsonEncoder)
 
 @login_required
