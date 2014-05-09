@@ -309,17 +309,51 @@
 
 
 /**
-  * @param currencies
+  * @param accounts
   */
 {template .YourAccountSummary}
   <h6>{msg desc="Your account label in the right side bar"}Your account{/msg}</h6>
-  <table class="data">
-    <tbody>
-    {foreach $currency in $currencies}
-     <tr><td><span class="bitex-model" data-model-key="formatted_balance_{$currency}" data-blink-class="balance-info-blink"></span></td></tr>
+    {foreach $account in $accounts}
+      <table class="table table-bordered" >
+        <tbody>
+
+      {if length($accounts) > 1 and length($account['currencies']) > 0 }
+        <tr><td colspan="3"><strong>{$account['brokerName']}</strong></td></tr>
+      {/if}
+
+      {foreach $currency_info in $account['currencies']}
+        <tr>
+          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}"><strong>{$currency_info['currency']}</strong></td>
+          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}"><span class="bitex-model"
+                     data-model-key="formatted_balance_{$account['brokerID']}:{$account['clientID']}_{$currency_info['currency']}"
+                     data-blink-class="balance-info-blink">{$currency_info['formattedBalance']}</span></td>
+          <td style="padding: 4px;border-left:0;{if not isFirst($currency_info) }border-top: 0;{/if}">
+            {if $currency_info['showDeposit'] and  $currency_info['showWithdraw']}
+              <div class="btn-group">
+            {/if}
+
+            {if $currency_info['showDeposit'] }
+              <button class="btn btn-mini" data-action="deposit" data-currency="{$currency_info['currency']}">
+                <i data-action="deposit" data-currency="{$currency_info['currency']}" class="icon-plus"></i>
+              </button>
+            {/if}
+            {if $currency_info['showWithdraw'] }
+              <button class="btn btn-mini" data-action="withdraw" data-currency="{$currency_info['currency']}">
+                <i data-action="withdraw" data-currency="{$currency_info['currency']}" class="icon-minus"></i>
+              </button>
+            {/if}
+
+            {if $currency_info['showDeposit'] and  $currency_info['showWithdraw']}
+              </div>
+            {/if}
+
+          </td>
+        </tr>
+      {/foreach}
+
+        </tbody>
+      </table>
     {/foreach}
-    </tbody>
-  </table>
 {/template}
 
 /**

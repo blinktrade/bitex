@@ -24,6 +24,12 @@ bitex.view.SideBarView.EventType = {
   CHANGE_MARKET: 'changed_market'
 };
 
+/**
+ * @type {string}
+ */
+bitex.view.SideBarView.prototype.currency_;
+
+
 bitex.view.SideBarView.prototype.enterDocument = function() {
 
   goog.base(this, 'enterDocument');
@@ -32,14 +38,51 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
 
   handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
     goog.dom.removeChildren( goog.dom.getElement("id_account_summary_content"));
+    var accounts = [];
 
-    if (!model.get('IsBroker')) {
-      var broker_currencies = model.get('BrokerCurrencies');
-
-      goog.soy.renderElement(goog.dom.getElement('id_account_summary_content'), bitex.templates.YourAccountSummary, {
-        currencies: broker_currencies
+    accounts.push( {
+      'brokerID': model.get('Broker')['BrokerID'],
+      'brokerName': model.get('Broker')['ShortName'],
+      'clientID': model.get('UserID'),
+      'currencies': []
+    });
+    goog.array.forEach(model.get('Broker')['BrokerCurrencies'], function(currency) {
+      accounts[0]['currencies'].push({
+        'currency':currency,
+        'balance':0,
+        'formattedBalance': this.getApplication().formatCurrency(0,currency),
+        'showDeposit': true,
+        'showWithdraw': true
       });
+    }, this);
+
+    /**
+     * @desc My customers account balance label
+     */
+    var MSG_MY_CUSTOMERS_ACCOUNT_BALANCE_LABEL = goog.getMsg('My customers');
+
+    if (model.get('IsBroker')) {
+      accounts.push( {
+        'brokerID': model.get('Profile')['BrokerID'],
+        'brokerName': MSG_MY_CUSTOMERS_ACCOUNT_BALANCE_LABEL,
+        'clientID': model.get('UserID'),
+        'currencies': []
+      });
+      goog.array.forEach(model.get('Profile')['BrokerCurrencies'], function(currency) {
+        accounts[1]['currencies'].push({
+          'currency':currency,
+          'balance':0,
+          'formattedBalance': this.getApplication().formatCurrency(0,currency),
+          'showDeposit': false,
+          'showWithdraw': false
+        });
+      },this);
     }
+
+    goog.soy.renderElement(goog.dom.getElement('id_account_summary_content'), bitex.templates.YourAccountSummary, {
+      accounts: accounts
+    });
+
   });
 
 
@@ -68,6 +111,22 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
   handler.listen(goog.dom.getElement('id_instrument_1'), goog.events.EventType.CHANGE  , function(e) {
     this.dispatchEvent(bitex.view.SideBarView.EventType.CHANGE_MARKET);
   }, this);
+
+
+  handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
+    if (e.target.getAttribute('data-action') === 'deposit' ) {
+      this.currency_ = e.target.getAttribute('data-currency');
+      this.dispatchEvent(bitex.view.View.EventType.DEPOSIT_REQUEST);
+    }
+  }, this);
+
+  handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
+    if (e.target.getAttribute('data-action') === 'withdraw' ) {
+      this.currency_ = e.target.getAttribute('data-currency');
+      this.dispatchEvent(bitex.view.View.EventType.REQUEST_WITHDRAW);
+    }
+  }, this);
+
 
 };
 

@@ -308,7 +308,8 @@ def processSignup(session, msg):
 def processRequestForBalances(session, msg):
   user = session.user
   if msg.has('ClientID'):
-    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+    user = User.get_user(application.db_session,
+                         user_id= int(msg.get('ClientID')) )
 
     if not user:
       raise NotAuthorizedError()

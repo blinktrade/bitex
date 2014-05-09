@@ -832,11 +832,14 @@ bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
   delete msg['MsgType'];
   delete msg['BalanceReqID'];
 
+  var clientID = msg['ClientID'];
+
   goog.object.forEach(msg, function( balances, broker ) {
     goog.object.forEach(balances, function( balance, currency ) {
       balance = balance / 1e8;
 
-      var balance_key = 'balance_' +  currency;
+      // formatted_balance_9000001:2_USD
+      var balance_key = 'balance_' + broker + ':' + clientID + '_'  + currency;
       this.getModel().set( balance_key , balance );
       this.getModel().set('formatted_' + balance_key, this.formatCurrency(balance, currency));
     }, this);
@@ -849,11 +852,101 @@ bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onUserWithdrawRequest_ = function(e){
+  var currency = e.target.getCurrency();
+
+  var withdraw_methods = this.getModel().get('Broker')['WithdrawStructure'][currency];
+
+  var method_element_id = goog.string.getRandomString();
+  var withdraw_amount_element_id = goog.string.getRandomString();
+  var fixed_fee_element_id = goog.string.getRandomString();
+  var percent_fee_element_id = goog.string.getRandomString();
+  var total_fees_element_id = goog.string.getRandomString();
+  var net_value_element_id = goog.string.getRandomString();
+  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
+  var dialogContent = bitex.templates.DepositWithdrawDialogContent( {
+    fmt:fmt,
+    side: 'client',
+    currency: currency,
+    currencySign: this.getCurrencySign(currency),
+    methods: withdraw_methods,
+    methodID: method_element_id,
+    showFeeDataEntry:false,
+    amountID: withdraw_amount_element_id,
+    fixedFeeID: fixed_fee_element_id,
+    percentFeeID: percent_fee_element_id,
+    totalFeesID: total_fees_element_id,
+    netValueID: net_value_element_id,
+    hideNetAmount:true
+  });
+
+  /**
+   * @desc Crypto Currency Withdraw accordion title
+   */
+  var MSG_CURRENCY_WITHDRAW_DIALOG_TITLE =
+      goog.getMsg('{$currency} withdrawal', {currency :  this.getCurrencyDescription(currency) });
+
+  var dlg =  this.showDialog(dialogContent,
+                             MSG_CURRENCY_WITHDRAW_DIALOG_TITLE,
+                             bootstrap.Dialog.ButtonSet.createOkCancel());
+
+  this.doCalculateFees_(
+      withdraw_amount_element_id,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+      currency,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
+      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+      true);
+
+  var handler = this.getHandler();
+  handler.listen(goog.dom.getElement(method_element_id), goog.events.EventType.CHANGE, function(e){
+    this.doCalculateFees_(
+        withdraw_amount_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+        currency,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+        true);
+  }, this);
+
+  handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,function(e) {
+    this.doCalculateFees_(
+        withdraw_amount_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+        currency,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
+        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+        true);
+  }, this);
+
+  handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+    if (e.key == 'ok') {
+      var withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
+
+      var amount = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];
+      var method = withdraw_data['Method']; delete withdraw_data['Method'];
+      var currency = withdraw_data['Currency']; delete withdraw_data['Currency'];
+
+      this.conn_.requestWithdraw( e.target.getRequestId(),
+                                  amount,
+                                  method,
+                                  currency,
+                                  withdraw_data );
+    }
+  }, this);
+
+  /*
+
   this.conn_.requestWithdraw( e.target.getRequestId(),
                               e.target.getAmount(),
                               e.target.getMethod(),
                               e.target.getCurrency(),
                               e.target.getWithdrawData() );
+
+  */
 };
 
 
@@ -2037,10 +2130,6 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
       pip : currency['Pip'],
       is_crypto : currency['IsCrypto']
     };
-
-    var balance_key = 'balance_' +  currency['Code'];
-    this.model_.set( balance_key , 0 );
-    this.model_.set('formatted_' + balance_key, this.formatCurrency(0, currency['Code']));
 
     var currency_key = currency['Code'].toLowerCase();
     var volume_key = 'volume_' +  currency_key;

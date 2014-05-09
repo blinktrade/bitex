@@ -157,20 +157,6 @@ bitex.view.DepositView.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
 
-  if (!this.is_requests_from_customers_) {
-    handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
-      goog.dom.removeChildren( goog.dom.getElement("id_deposit_balances_container"));
-
-      var broker_currencies = model.get('BrokerCurrencies');
-      goog.soy.renderElement(goog.dom.getElement('id_deposit_balances_container'), bitex.templates.AccountBalances, {
-        currencies: broker_currencies,
-        action: 'deposit'
-      });
-
-      model.updateDom();
-    });
-  }
-
   handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
     if (e.target.getAttribute('data-action') === 'deposit' ) {
       this.currency_ = e.target.getAttribute('data-currency');

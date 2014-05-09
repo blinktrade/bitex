@@ -714,6 +714,7 @@ bitex.view.AccountOverview.prototype.onBalanceResponse_ = function(e) {
 
     currencies.push({ code: currency, model_key: currency + '.' + msg['ClientID'], balance: formatted_balance });
 
+
     var balance_key = 'balance_' +  currency + '.' + msg['ClientID'];
     model.set( balance_key , balance );
     model.set('formatted_' + balance_key, formatted_balance);
