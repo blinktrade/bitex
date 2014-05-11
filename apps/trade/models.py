@@ -823,6 +823,40 @@ class Withdraw(Base):
                     str(self.id),
                     'W')
 
+    Ledger.deposit(session,
+                   self.broker_id,
+                   self.broker_username,
+                   self.account_id,
+                   self.username,
+                   self.broker_id,
+                   self.broker_username,
+                   self.broker_id,
+                   self.broker_username,
+                   self.currency,
+                   self.amount,
+                   str(self.id),
+                   'W')
+
+
+    session.add(self)
+    session.flush()
+
+  def set_as_complete(self, session, data=None):
+    if self.status != '2':
+      return
+
+    new_data = {}
+    new_data.update(json.loads(self.data))
+    if data:
+      new_data.update( data )
+      if self.data != json.dumps(new_data):
+        self.data = json.dumps(new_data)
+
+    self.status = '4' # COMPLETE
+
+    total_percent_fee_value = ((self.amount - self.fixed_fee) * (self.percent_fee/10000.0))
+    total_fees = total_percent_fee_value + self.fixed_fee
+
     if total_fees:
       Ledger.withdraw(session,
                       self.account_id,
@@ -851,22 +885,6 @@ class Withdraw(Base):
                      str(self.id),
                      'WF')
 
-    session.add(self)
-    session.flush()
-
-  def set_as_complete(self, session, data=None):
-    if self.status != '2':
-      return
-
-    new_data = {}
-    new_data.update(json.loads(self.data))
-    if data:
-      new_data.update( data )
-      if self.data != json.dumps(new_data):
-        self.data = json.dumps(new_data)
-
-    self.status = '4' # COMPLETE
-
 
     session.add(self)
     session.flush()
@@ -876,7 +894,7 @@ class Withdraw(Base):
       return  self
 
     if self.status == '2': # in progress or completed
-      #deposit the money back :)
+      #revert the transaction
       Ledger.deposit(session,
                       self.account_id,
                       self.username,
@@ -891,34 +909,19 @@ class Withdraw(Base):
                       str(self.id),
                       'W')
 
-      if self.amount != self.paid_amount:
-        Ledger.withdraw(session,
-                        self.broker_id,
-                        self.broker_username,
-                        self.account_id,
-                        self.username,
-                        self.broker_id,
-                        self.broker_username, # broker name
-                        self.broker_id,
-                        self.broker_username, # payee_broker_name
-                        self.currency,
-                        self.paid_amount - self.amount,
-                        str(self.id),
-                        'WF')
-
-        Ledger.deposit(session,
-                       self.account_id,
-                       self.username,
-                       self.broker_id,
-                       self.broker_username,
-                       self.broker_id,
-                       self.broker_username, # broker name
-                       self.broker_id,
-                       self.broker_username, # payee_broker_name
-                       self.currency,
-                       self.paid_amount - self.amount,
-                       str(self.id),
-                       'WF')
+      Ledger.withdraw(session,
+                      self.broker_id,
+                      self.broker_username,
+                      self.account_id,
+                      self.username,
+                      self.broker_id,
+                      self.broker_username, # broker name
+                      self.broker_id,
+                      self.broker_username, # payee_broker_name
+                      self.currency,
+                      self.amount,
+                      str(self.id),
+                      'W')
 
     self.status = '8' # CANCELLED
     self.reason_id = reason_id
@@ -1357,8 +1360,22 @@ class Deposit(Base):
   def cancel(self, session, reason_id, reason=None):
     if self.status == '4':
       Ledger.withdraw(session,
-                     self.account_id,       # account_id
-                     self.username,         # account_name
+                      self.account_id,       # account_id
+                      self.username,         # account_name
+                      self.broker_id,        # payee_id
+                      self.broker_username,  # payee_name
+                      self.broker_id,        # broker_id
+                      self.broker_username,  # broker_name
+                      self.broker_id,        # payee_broker_id
+                      self.broker_username,  # payee_broker_name
+                      self.currency,         # currency
+                      self.paid_value,       # amount
+                      self.id,               # reference
+                      'D')                   # description
+
+      Ledger.deposit(session,
+                     self.broker_id,        # account_id
+                     self.broker_username,  # account_name
                      self.account_id,       # payee_id
                      self.username,         # payee_name
                      self.broker_id,        # broker_id
@@ -1369,6 +1386,7 @@ class Deposit(Base):
                      self.paid_value,       # amount
                      self.id,               # reference
                      'D')                   # description
+
 
     self.status = '8'
     self.reason_id = reason_id
@@ -1446,8 +1464,8 @@ class Deposit(Base):
       Ledger.deposit(session,
                      self.account_id,       # account_id
                      self.username,         # account_name
-                     self.account_id,       # payee_id
-                     self.username,         # payee_name
+                     self.broker_id,        # broker_id
+                     self.broker_username,  # broker_name
                      self.broker_id,        # broker_id
                      self.broker_username,  # broker_name
                      self.broker_id,        # payee_broker_id
@@ -1456,6 +1474,20 @@ class Deposit(Base):
                      self.paid_value,       # amount
                      self.id,               # reference
                      'D')                   # description
+
+      Ledger.withdraw(session,
+                      self.broker_id,        # account_id
+                      self.broker_username,  # account_name
+                      self.account_id,       # payee_id
+                      self.username,         # payee_name
+                      self.broker_id,        # broker_id
+                      self.broker_username,  # broker_name
+                      self.broker_id,        # payee_broker_id
+                      self.broker_username,  # payee_broker_name
+                      self.currency,         # currency
+                      self.paid_value,       # amount
+                      self.id,               # reference
+                      'D')                   # description
 
       if total_fees:
         Ledger.withdraw(session,
@@ -1600,7 +1632,7 @@ def db_bootstrap(session):
 
   if not Broker.get_broker(session, -1):
     e = Broker(id=-1,
-               short_name=u'BitEx',
+               short_name=u'BitEx Waiting for a broker',
                business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
                address=u'Praça Dom José Gaspar, 76 - sl 81',
                signup_label='{MSG_NOTIFY_NEW_BROKER}',
@@ -1631,7 +1663,7 @@ def db_bootstrap(session):
 
   if not Broker.get_broker(session, 0):
     e = Broker(id=0,
-               short_name=u'BitEx Brokers',
+               short_name=u'BitEX',
                business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
                address=u'Praça Dom José Gaspar, 76 - sl 81',
                signup_label='{MSG_BROKER_APPLY}',
@@ -1906,7 +1938,7 @@ def db_bootstrap(session):
       e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, broker_username='nybitcoincenter', password='password' + str(x),
                country_code='US', state='NY',
                verified=1, is_staff=False, is_system=False, is_broker=False)
-      session.add(e)
+      #session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
       #Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
