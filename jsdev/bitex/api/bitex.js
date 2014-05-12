@@ -739,11 +739,12 @@ bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {number=} opt_page. Defaults to 0
  * @param {number=} opt_limit. Defaults to 100
+ * @param {number=} opt_brokerID
  * @param {number=} opt_clientID
  * @param {string=} opt_currency
  * @param {Array.<string>=} opt_filter
  */
-bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, opt_limit, opt_clientID,opt_currency, opt_filter){
+bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, opt_limit, opt_brokerID, opt_clientID,opt_currency, opt_filter){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
@@ -756,6 +757,10 @@ bitex.api.BitEx.prototype.requestLedgerList = function(opt_requestId, opt_page, 
     'Page': page,
     'PageSize': limit
   };
+
+  if (goog.isDefAndNotNull(opt_brokerID) && goog.isNumber(opt_brokerID)){
+    msg['BrokerID'] = opt_brokerID;
+  }
 
   if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
     msg['ClientID'] = opt_clientID;

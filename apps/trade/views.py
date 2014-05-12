@@ -987,13 +987,22 @@ def processLedgerListRequest(session, msg):
 
   user = session.user
 
+  broker_id       = user.broker_id
+  account_id      = user.id
+
   if user.is_broker:
     if msg.has('ClientID'):
-      records = Ledger.get_list(application.db_session, user.id, int(msg.get('ClientID')), operation_list, page_size, offset, currency, filter  )
+      account_id = int(msg.get('ClientID'))
     else:
-      records = Ledger.get_list(application.db_session, user.id, None, operation_list, page_size, offset, currency, filter  )
-  else:
-    records = Ledger.get_list(application.db_session, user.broker_id, user.id, operation_list, page_size, offset, currency, filter  )
+      account_id = None
+
+    if msg.has('BrokerID'):
+      if int(msg.get('BrokerID')) != user.id and int(msg.get('BrokerID')) != user.broker_id:
+        raise  NotAuthorizedError()
+      broker_id = int(msg.get('BrokerID'))
+
+
+  records = Ledger.get_list(application.db_session, broker_id, account_id, operation_list, page_size, offset, currency, filter  )
 
   record_list = []
   columns = [ 'LedgerID',       'Currency',     'Operation',

@@ -4,6 +4,8 @@ goog.require('bitex.view.View');
 
 goog.require('bitex.ui.LedgerActivity');
 
+goog.require('goog.json');
+
 /**
  * @param {*} app
  * @param {goog.dom.DomHelper=} opt_domHelper
@@ -89,11 +91,43 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
    */
   var MSG_LEDGER_TABLE_SEARCH_ALL_CURRENCIES = goog.getMsg('All currencies');
 
-  var broker_currencies = model.get('BrokerCurrencies');
   var button_filters = [ {'label': MSG_LEDGER_TABLE_SEARCH_ALL_CURRENCIES, 'value':'all' } ];
-  goog.array.forEach(broker_currencies, function(currency_code){
-    button_filters.push( { 'label':this.getApplication().getCurrencyDescription(currency_code), 'value':'CURRENCY=' + currency_code });
-  }, this );
+  if (model.get('IsBroker')) {
+    button_filters = [];
+
+    goog.array.forEach(model.get('Broker')['BrokerCurrencies'], function(currency_code){
+      button_filters.push(
+          {
+            'label':model.get('Broker')['ShortName']  + ':' + this.getApplication().getCurrencyDescription(currency_code),
+            'value':goog.json.serialize( {'currency':currency_code, 'broker_id':model.get('Broker')['BrokerID']  } )
+          });
+    }, this );
+
+
+    /**
+     * @desc label on ledge filter
+     */
+    var MSG_MY_CUSTOMERS_LABEL = goog.getMsg('My customers');
+
+    goog.array.forEach(model.get('Profile')['BrokerCurrencies'], function(currency_code){
+      button_filters.push(
+          {
+            'label': MSG_MY_CUSTOMERS_LABEL + ':' + this.getApplication().getCurrencyDescription(currency_code),
+            'value':goog.json.serialize( {'currency':currency_code, 'broker_id':model.get('UserID') } )
+          });
+    }, this );
+
+
+  } else {
+    goog.array.forEach(model.get('BrokerCurrencies'), function(currency_code){
+      button_filters.push(
+          {
+            'label':this.getApplication().getCurrencyDescription(currency_code),
+            'value':goog.json.serialize( {'currency':currency_code, 'broker_id':model.get('Broker')['BrokerID']  } )
+          });
+    }, this );
+  }
+
 
   goog.soy.renderElement(goog.dom.getElement('id_ledger_list'), bitex.templates.DataGrid, {
     id: 'id_ledger_list_table',
@@ -152,18 +186,31 @@ bitex.view.LedgerView.prototype.onLedgerTableRequestData_ = function(e) {
 
   var currency;
   var filters = [];
+  var userID = this.getApplication().getModel().get('UserID');
+  var brokerID = this.getApplication().getModel().get('Broker')['BrokerID'];
+  if (this.getApplication().getModel().get('IsBroker')) {
+    brokerID = userID;
+  }
+
   if (goog.isArrayLike(filters_param)) {
     goog.array.forEach(filters_param, function(filter){
-      if (filter.substr(0,9) == 'CURRENCY=') {
-        currency = filter.substr(9);
-      } else {
+      try {
+        var filter_obj = goog.json.parse(filter);
+        if (goog.isDefAndNotNull(filter_obj['currency'])) {
+          currency = filter_obj['currency'];
+        }
+        if (goog.isDefAndNotNull(filter_obj['broker_id'])) {
+          brokerID = filter_obj['broker_id'];
+        }
+      } catch (ex) {
         filters.push(filter);
       }
     }, this);
   }
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestLedgerList(this.request_id_, page, limit, undefined, currency, filters);
+
+  conn.requestLedgerList(this.request_id_, page, limit, brokerID, userID, currency, filters);
 };
 
 

@@ -238,13 +238,36 @@ bitex.ui.DataGrid.prototype.decorateInternal = function(element) {
 
 
   this.element_start_counter_ = goog.dom.getElementByClass( 'grid-start', element );
-  this.element_end_counter_ = goog.dom.getElementByClass( 'grid-end', element );
-  this.element_prev_button_ = goog.dom.getElementByClass( 'grid-prevpage', element );
-  this.element_next_button_ = goog.dom.getElementByClass( 'grid-nextpage', element );
+  this.element_end_counter_   = goog.dom.getElementByClass( 'grid-end', element );
+  this.element_prev_button_   = goog.dom.getElementByClass( 'grid-prevpage', element );
+  this.element_next_button_   = goog.dom.getElementByClass( 'grid-nextpage', element );
 
   var search_div = goog.dom.getElementByClass('datagrid-search', element);
   this.search_input_ = goog.dom.getFirstElementChild(search_div);
   this.search_btn_ = goog.dom.getNextElementSibling(this.search_input_);
+
+
+  var filter_div = goog.dom.getElementByClass('datagrid-filter', element);
+  if (goog.isDefAndNotNull(filter_div)) {
+    var selected_filter_option_el =
+        goog.dom.getFirstElementChild(
+          goog.dom.getNextElementSibling(
+            goog.dom.getFirstElementChild(filter_div)));
+
+    if (goog.isDefAndNotNull(selected_filter_option_el)) {
+      this.select_filter_ = null;
+      var data_value = null;
+      if (selected_filter_option_el.tagName  === goog.dom.TagName.LI ) {
+        data_value = selected_filter_option_el.getAttribute('data-value');
+      }
+
+      if (goog.isDefAndNotNull( data_value) ) {
+        if (data_value !== 'all') {
+          this.select_filter_ = data_value;
+        }
+      }
+    }
+  }
 };
 
 

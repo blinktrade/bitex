@@ -397,6 +397,42 @@ class Ledger(Base):
 
     return query
 
+  @staticmethod
+  def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None):
+    balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_broker_id, currency, amount)
+    ledger = Ledger( currency         = currency,
+                     account_id       = from_account_id,
+                     account_name     = from_account_name,
+                     payee_id         = to_account_id,
+                     payee_name       = to_account_name,
+                     broker_id        = from_broker_id,
+                     broker_name      = from_broker_name,
+                     payee_broker_id  = to_broker_id,
+                     payee_broker_name= to_broker_name,
+                     operation        = 'D',
+                     amount           = amount,
+                     balance          = balance,
+                     reference        = reference,
+                     description      = description )
+    session.add(ledger)
+
+    balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_broker_id, currency, amount)
+    ledger = Ledger( currency         = currency,
+                     account_id       = to_account_id,
+                     account_name     = to_account_name,
+                     payee_id         = from_account_id,
+                     payee_name       = from_account_name,
+                     broker_id        = to_broker_id,
+                     broker_name      = to_broker_name,
+                     payee_broker_id  = from_broker_id,
+                     payee_broker_name= from_broker_name,
+                     operation        = 'C',
+                     amount           = amount,
+                     balance          = balance,
+                     reference        = reference,
+                     description      = description )
+    session.add(ledger)
+
 
   @staticmethod
   def deposit(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
@@ -809,33 +845,20 @@ class Withdraw(Base):
       return
 
     self.status = '2'
-    Ledger.withdraw(session,
-                    self.account_id,
-                    self.username,
-                    self.broker_id,
-                    self.broker_username,
-                    self.broker_id,
-                    self.broker_username,
-                    self.broker_id,
-                    self.broker_username,
-                    self.currency,
-                    self.amount,
-                    str(self.id),
-                    'W')
-
-    Ledger.deposit(session,
-                   self.broker_id,
-                   self.broker_username,
-                   self.account_id,
-                   self.username,
-                   self.broker_id,
-                   self.broker_username,
-                   self.broker_id,
-                   self.broker_username,
-                   self.currency,
-                   self.amount,
-                   str(self.id),
-                   'W')
+    Ledger.transfer(session,
+                    self.account_id,        # from_account_id
+                    self.username,          # from_account_name
+                    self.broker_id,         # from_broker_id
+                    self.broker_username,   # from_broker_name
+                    self.broker_id,         # to_account_id
+                    self.broker_username,   # to_account_name
+                    self.broker_id,         # to_broker_id
+                    self.broker_username,   # to_broker_name
+                    self.currency,          # currency
+                    self.amount,            # amount
+                    str(self.id),           # reference
+                    'W'                     # descriptions
+    )
 
 
     session.add(self)
@@ -858,32 +881,20 @@ class Withdraw(Base):
     total_fees = total_percent_fee_value + self.fixed_fee
 
     if total_fees:
-      Ledger.withdraw(session,
-                      self.account_id,
-                      self.username,
-                      self.broker_id,
-                      self.broker_username,
-                      self.broker_id,
-                      self.broker_username,
-                      self.broker_id,
-                      self.broker_username,
-                      self.currency,
-                      total_fees,
-                      str(self.id),
-                      'WF')
-      Ledger.deposit(session,
-                     self.broker_id,
-                     self.broker_username,
-                     self.account_id,
-                     self.username,
-                     self.broker_id,
-                     self.broker_username,
-                     self.broker_id,
-                     self.broker_username,
-                     self.currency,
-                     total_fees,
-                     str(self.id),
-                     'WF')
+      Ledger.transfer(session,
+                      self.account_id,        # from_account_id
+                      self.username,          # from_account_name
+                      self.broker_id,         # from_broker_id
+                      self.broker_username,   # from_broker_name
+                      self.broker_id,         # to_account_id
+                      self.broker_username,   # to_account_name
+                      self.broker_id,         # to_broker_id
+                      self.broker_username,   # to_broker_name
+                      self.currency,          # currency
+                      total_fees,             # amount
+                      str(self.id),           # reference
+                      'WF'                    # descriptions
+                      )
 
 
     session.add(self)
@@ -895,33 +906,20 @@ class Withdraw(Base):
 
     if self.status == '2': # in progress or completed
       #revert the transaction
-      Ledger.deposit(session,
-                      self.account_id,
-                      self.username,
-                      self.broker_id,
-                      self.broker_username,
-                      self.broker_id,
-                      self.broker_username, # broker name
-                      self.broker_id,
-                      self.broker_username, # payee_broker_name
-                      self.currency,
-                      self.amount,
-                      str(self.id),
-                      'W')
-
-      Ledger.withdraw(session,
-                      self.broker_id,
-                      self.broker_username,
-                      self.account_id,
-                      self.username,
-                      self.broker_id,
-                      self.broker_username, # broker name
-                      self.broker_id,
-                      self.broker_username, # payee_broker_name
-                      self.currency,
-                      self.amount,
-                      str(self.id),
-                      'W')
+      Ledger.transfer(session,
+                      self.broker_id,         # from_account_id
+                      self.broker_username,   # from_account_name
+                      self.broker_id,         # from_broker_id
+                      self.broker_username,   # from_broker_name
+                      self.account_id,        # to_account_id
+                      self.username,          # to_account_name
+                      self.broker_id,         # to_broker_id
+                      self.broker_username,   # to_broker_name
+                      self.currency,          # currency
+                      total_fees,             # amount
+                      str(self.id),           # reference
+                      'W'                     # descriptions
+      )
 
     self.status = '8' # CANCELLED
     self.reason_id = reason_id
@@ -1359,33 +1357,20 @@ class Deposit(Base):
 
   def cancel(self, session, reason_id, reason=None):
     if self.status == '4':
-      Ledger.withdraw(session,
-                      self.account_id,       # account_id
-                      self.username,         # account_name
-                      self.broker_id,        # payee_id
-                      self.broker_username,  # payee_name
-                      self.broker_id,        # broker_id
-                      self.broker_username,  # broker_name
-                      self.broker_id,        # payee_broker_id
-                      self.broker_username,  # payee_broker_name
-                      self.currency,         # currency
-                      self.paid_value,       # amount
-                      self.id,               # reference
-                      'D')                   # description
-
-      Ledger.deposit(session,
-                     self.broker_id,        # account_id
-                     self.broker_username,  # account_name
-                     self.account_id,       # payee_id
-                     self.username,         # payee_name
-                     self.broker_id,        # broker_id
-                     self.broker_username,  # broker_name
-                     self.broker_id,        # payee_broker_id
-                     self.broker_username,  # payee_broker_name
-                     self.currency,         # currency
-                     self.paid_value,       # amount
-                     self.id,               # reference
-                     'D')                   # description
+      Ledger.transfer(session,
+                      self.account_id,        # from_account_id
+                      self.username,          # from_account_name
+                      self.broker_id,         # from_broker_id
+                      self.broker_username,   # from_broker_name
+                      self.broker_id,         # to_account_id
+                      self.broker_username,   # to_account_name
+                      self.broker_id,         # to_broker_id
+                      self.broker_username,   # to_broker_name
+                      self.currency,          # currency
+                      self.paid_value,        # amount
+                      str(self.id),           # reference
+                      'D'                     # descriptions
+      )
 
 
     self.status = '8'
@@ -1461,63 +1446,36 @@ class Deposit(Base):
       total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (self.percent_fee/10000.0))
       total_fees = total_percent_fee_value + self.fixed_fee
 
-      Ledger.deposit(session,
-                     self.account_id,       # account_id
-                     self.username,         # account_name
-                     self.broker_id,        # broker_id
-                     self.broker_username,  # broker_name
-                     self.broker_id,        # broker_id
-                     self.broker_username,  # broker_name
-                     self.broker_id,        # payee_broker_id
-                     self.broker_username,  # payee_broker_name
-                     self.currency,         # currency
-                     self.paid_value,       # amount
-                     self.id,               # reference
-                     'D')                   # description
-
-      Ledger.withdraw(session,
-                      self.broker_id,        # account_id
-                      self.broker_username,  # account_name
-                      self.account_id,       # payee_id
-                      self.username,         # payee_name
-                      self.broker_id,        # broker_id
-                      self.broker_username,  # broker_name
-                      self.broker_id,        # payee_broker_id
-                      self.broker_username,  # payee_broker_name
-                      self.currency,         # currency
-                      self.paid_value,       # amount
-                      self.id,               # reference
-                      'D')                   # description
+      Ledger.transfer(session,
+                      self.broker_id,         # from_account_id
+                      self.broker_username,   # from_account_name
+                      self.broker_id,         # from_broker_id
+                      self.broker_username,   # from_broker_name
+                      self.account_id,        # to_account_id
+                      self.username,          # to_account_name
+                      self.broker_id,         # to_broker_id
+                      self.broker_username,   # to_broker_name
+                      self.currency,          # currency
+                      self.paid_value,        # amount
+                      str(self.id),           # reference
+                      'D'                     # descriptions
+      )
 
       if total_fees:
-        Ledger.withdraw(session,
-                        self.account_id,       # account_id
-                        self.username,         # account_name
-                        self.broker_id,        # payee_id
-                        self.broker_username,  # payee_name
-                        self.broker_id,        # broker_id
-                        self.broker_username,  # broker_name
-                        self.broker_id,        # payee_broker_id
-                        self.broker_username,  # payee_broker_name
-                        self.currency,         # currency
-                        total_fees,            # amount
-                        self.id,               # reference
-                        'DF')                  # description
-
-        Ledger.deposit(session,
-                       self.broker_id,        # account_id
-                       self.broker_username,  # account_name
-                       self.account_id,       # payee_id
-                       self.username,         # payee_name
-                       self.broker_id,        # broker_id
-                       self.broker_username,  # broker_name
-                       self.broker_id,        # payee_broker_id
-                       self.broker_username,  # payee_broker_name
-                       self.currency,         # currency
-                       total_fees,            # amount
-                       self.id,               # reference
-                       'DF')                  # description
-
+        Ledger.transfer(session,
+                        self.account_id,        # from_account_id
+                        self.username,          # from_account_name
+                        self.broker_id,         # from_broker_id
+                        self.broker_username,   # from_broker_name
+                        self.broker_id,         # to_account_id
+                        self.broker_username,   # to_account_name
+                        self.broker_id,         # to_broker_id
+                        self.broker_username,   # to_broker_name
+                        self.currency,          # currency
+                        total_fees,             # amount
+                        str(self.id),           # reference
+                        'DF'                    # descriptions
+        )
 
     if should_update:
       self.data = json.dumps(new_data)
