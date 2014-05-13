@@ -43,6 +43,17 @@ var MSG_TRADE_HISTORY_COLUMN_BUYER = goog.getMsg('Buyer');
 var MSG_TRADE_HISTORY_COLUMN_SELLER = goog.getMsg('Seller');
 
 /**
+ * @desc Column Side Buy
+ */
+var MSG_TRADE_HISTORY_COLUMN_SIDE_BUY = goog.getMsg('Buy');
+
+/**
+ * @desc Column Side Sell
+ */
+var MSG_TRADE_HISTORY_COLUMN_SIDE_SELL = goog.getMsg('Sell');
+
+
+/**
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper.
  *
@@ -68,8 +79,8 @@ bitex.ui.TradeHistory = function (opt_domHelper) {
       'sortable': false,
       'formatter': function(s){
         switch(s){
-          case '1': return 'C';
-          case '2': return 'V';
+          case '1': return MSG_TRADE_HISTORY_COLUMN_SIDE_BUY;
+          case '2': return MSG_TRADE_HISTORY_COLUMN_SIDE_SELL;
         }
         return '';
       },

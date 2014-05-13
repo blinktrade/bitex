@@ -86,7 +86,7 @@ def processLogin(session, msg):
         'ranking'            : session.broker.ranking              ,
         'SupportURL'         : session.broker.support_url          ,
         'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
-      }
+    }
   }
 
   if session.user.is_broker:

@@ -1896,12 +1896,12 @@ def db_bootstrap(session):
       e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, broker_username='nybitcoincenter', password='password' + str(x),
                country_code='US', state='NY',
                verified=1, is_staff=False, is_system=False, is_broker=False)
-      #session.add(e)
+      session.add(e)
 
       # credit each user with 100 BTC, 100k USD and 200k BRL
-      #Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
-      #Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'USD', 100000e8, 'BONUS' )
-      #session.commit()
+      Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
+      Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'USD', 100000e8, 'BONUS' )
+      session.commit()
 
 
   if not DepositMethods.get_deposit_method(session, 1 ):
