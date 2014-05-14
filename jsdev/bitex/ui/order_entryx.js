@@ -106,6 +106,12 @@ bitex.ui.OrderEntryX.prototype.typeEl_;
 bitex.ui.OrderEntryX.prototype.clientIdEl_;
 
 /**
+ * @type {Element}
+ * @private
+ */
+bitex.ui.OrderEntryX.prototype.brokerIdEl_;
+
+/**
  * @type {number}
  * @private
  */
@@ -132,6 +138,8 @@ bitex.ui.OrderEntryX.prototype.decorateInternal = function(element) {
   this.totalEl_        = dom.getElementByClass(goog.getCssName(this.getBaseCssClass(), 'total'), this.getElement());
   this.feeEl_          = dom.getElementByClass(goog.getCssName(this.getBaseCssClass(), 'fee'), this.getElement());
   this.clientIdEl_     = dom.getElementByClass(goog.getCssName(this.getBaseCssClass(), 'client-id'), this.getElement());
+  this.brokerIdEl_     = dom.getElementByClass(goog.getCssName(this.getBaseCssClass(), 'broker-id'), this.getElement());
+
 };
 
 
@@ -329,6 +337,23 @@ bitex.ui.OrderEntryX.prototype.setPriceCurrencySign = function(value){
     goog.dom.setTextContent(el, value);
   });
 };
+
+
+/**
+ * @return {number}
+ */
+bitex.ui.OrderEntryX.prototype.getBrokerID = function(){
+  return parseInt(goog.dom.forms.getValue(this.brokerIdEl_), 10);
+};
+
+/**
+ * @param {string|number} value
+ */
+bitex.ui.OrderEntryX.prototype.setBrokerID = function(value){
+  goog.dom.forms.setValue(this.brokerIdEl_, value);
+};
+
+
 
 
 /**

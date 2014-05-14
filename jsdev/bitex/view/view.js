@@ -32,6 +32,8 @@ goog.inherits(bitex.view.View, goog.ui.Component);
 bitex.view.View.EventType = {
   CONNECT_BITEX: 'connect_bitex',
 
+  CHANGE_BROKER: 'change_broker',
+
   MARKET_DATA_REQUEST: 'md_request',
   MARKET_DATA_SUBSCRIBE: 'md_subscribe',
   MARKET_DATA_UNSUBSCRIBE: 'md_unsubscribe',

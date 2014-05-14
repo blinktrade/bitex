@@ -29,12 +29,36 @@ bitex.view.SideBarView.EventType = {
  */
 bitex.view.SideBarView.prototype.currency_;
 
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.SideBarView.prototype.onSelectedBroker_ = function(e){
+  var model = this.getApplication().getModel();
+  var selectedBrokerID = model.get('SelectedBrokerID');
+  if (goog.isDefAndNotNull(selectedBrokerID)) {
+    var element_id = 'id_account_summary_' + selectedBrokerID;
+    var element =  goog.dom.getElement(element_id);
+    var broker_elements = goog.dom.getElementsByClass('account-summary-broker');
+
+    if (goog.isDefAndNotNull(broker_elements)) {
+      goog.array.forEach(broker_elements, function(broker_element) {
+        goog.dom.classes.remove(broker_element, 'account-summary-broker-selected');
+      }, this);
+    }
+
+    if (goog.isDefAndNotNull(element)) {
+      goog.dom.classes.add(element, 'account-summary-broker-selected');
+    }
+  }
+};
 
 bitex.view.SideBarView.prototype.enterDocument = function() {
 
   goog.base(this, 'enterDocument');
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
+
+  handler.listen(model, bitex.model.Model.EventType.SET + 'SelectedBrokerID', this.onSelectedBroker_);
 
   handler.listen( model, bitex.model.Model.EventType.SET + 'BrokerCurrencies', function(e){
     goog.dom.removeChildren( goog.dom.getElement("id_account_summary_content"));
@@ -83,7 +107,8 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
       accounts: accounts
     });
 
-  });
+    this.onSelectedBroker_(e);
+  }, this);
 
 
   handler.listen( model,  bitex.model.Model.EventType.SET + 'SecurityList', function(e){
@@ -114,20 +139,14 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
 
 
   handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
-    if (e.target.getAttribute('data-action') === 'deposit' ) {
+    if (e.target.getAttribute('data-action') === 'withdraw' ) {
+      this.currency_ = e.target.getAttribute('data-currency');
+      this.dispatchEvent(bitex.view.View.EventType.REQUEST_WITHDRAW);
+    } else if (e.target.getAttribute('data-action') === 'deposit' ) {
       this.currency_ = e.target.getAttribute('data-currency');
       this.dispatchEvent(bitex.view.View.EventType.DEPOSIT_REQUEST);
     }
   }, this);
-
-  handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
-    if (e.target.getAttribute('data-action') === 'withdraw' ) {
-      this.currency_ = e.target.getAttribute('data-currency');
-      this.dispatchEvent(bitex.view.View.EventType.REQUEST_WITHDRAW);
-    }
-  }, this);
-
-
 };
 
 

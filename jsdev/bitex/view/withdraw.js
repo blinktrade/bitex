@@ -294,7 +294,7 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
   var currency_method_description_obj = {};
   var broker = model.get('Broker');
   if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
-    broker = model.get('Profile')
+    broker = model.get('Profile');
     broker =  goog.array.find( model.get('BrokerList'), function(broker_obj) {
       if (broker_obj['BrokerID'] ==  model.get('UserID')) {
         return true;

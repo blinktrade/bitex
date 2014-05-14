@@ -315,7 +315,8 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     side:1,
     type:2,
     hide_fee:true,
-    hide_client_id:true
+    hide_client_id:true,
+    broker_id:''
   });
   var sell_order_entry_el = goog.soy.renderAsElement(bitex.templates.OrderEntry, {
     id: 'id_order_entry_sell',
@@ -323,7 +324,8 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     side:2,
     type:2,
     hide_fee:true,
-    hide_client_id:true
+    hide_client_id:true,
+    broker_id:''
   });
   goog.dom.appendChild(goog.dom.getElement('offer_book_order_entry_content'), buy_order_entry_el);
   goog.dom.appendChild(goog.dom.getElement('offer_book_order_entry_content'), sell_order_entry_el);
@@ -529,7 +531,6 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
 
 
-
   // Listen to the views
   handler.listen(signUpView, bitex.view.SignupView.EventType.SIGNUP, this.onUserSignupButton_ );
   handler.listen(loginView, bitex.view.LoginView.EventType.LOGIN, this.onUserLoginButtonClick_) ;
@@ -540,12 +541,13 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(setNewPasswordView, bitex.view.SetNewPasswordView.EventType.SET_NEW_PASSWORD, this.onUserSetNewPassword_);
   handler.listen(sideBarView, bitex.view.SideBarView.EventType.CHANGE_MARKET, this.onUserChangeMarket_ );
 
+
+  handler.listen(this.views_, bitex.view.View.EventType.CHANGE_BROKER, this.onUserChangeBroker_ );
+
   handler.listen(this.views_, bitex.ui.OrderEntryX.EventType.SUBMIT, this.onUserOrderEntry_ );
   handler.listen(this.views_, bitex.view.View.EventType.CANCEL_ORDER, this.onUserCancelOrder_ );
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE, this.onUserMarketDataSubscribe_);
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE, this.onUserMarketDataUnsubscribe_);
-
-  handler.listen(this.views_, bitex.ui.OrderEntryX.EventType.SUBMIT, this.onUserOrderEntry_ );
 
   handler.listen(this.views_, bitex.view.View.EventType.REQUEST_WITHDRAW, this.onUserWithdrawRequest_ );
   handler.listen(this.views_, bitex.view.View.EventType.CONFIRM_WITHDRAW, this.onUserConfirmWithdraw_ );
@@ -638,7 +640,18 @@ bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol = function(symbol) {
   return symbol.substr(0,3);
 };
 
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.app.SatoshiSquare.prototype.onUserChangeBroker_ = function(e) {
+  var brokerID = e.target.getBrokerID();
+  this.getModel().set('SelectedBrokerID', brokerID);
+};
 
+
+/**
+ * @param {goog.events.Event} e
+ */
 bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 
   var symbol = e.target.getSymbol();
@@ -1248,6 +1261,7 @@ bitex.app.SatoshiSquare.prototype.onUserOrderEntry_ = function(e){
                               e.target.getAmount(),
                               e.target.getPrice(),
                               e.target.getSide(),
+                              e.target.getBrokerID(),
                               e.target.getClientID());
 };
 
@@ -1831,6 +1845,19 @@ bitex.app.SatoshiSquare.prototype.onBodyClick_ =function(e){
 
     this.router_.setView(view_name );
   }
+
+  var model = this.getModel();
+  var model_set_element;
+  if (goog.dom.classes.has(e.target, 'model-action-set')){
+    model_set_element = e.target;
+  } else {
+    model_set_element = goog.dom.getAncestorByClass(e.target, 'model-action-set');
+  }
+  if (goog.isDefAndNotNull(model_set_element)) {
+    if ( goog.isDefAndNotNull(model_set_element.getAttribute('data-key'))) {
+      model.set(model_set_element.getAttribute('data-key'),model_set_element.getAttribute('data-value'));
+    }
+  }
 };
 
 /**
@@ -1877,33 +1904,51 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   goog.dom.classes.add( document.body, 'bitex-logged'  );
   goog.dom.classes.remove( document.body, 'bitex-not-logged' );
 
-  this.model_.set('UserID',           msg['UserID'] );
-  this.model_.set('Username',         msg['Username']);
-  this.model_.set('TwoFactorEnabled', msg['TwoFactorEnabled']);
-  this.model_.set('IsBroker',         msg['IsBroker'] );
+  this.getModel().set('UserID',           msg['UserID'] );
+  this.getModel().set('Username',         msg['Username']);
+  this.getModel().set('TwoFactorEnabled', msg['TwoFactorEnabled']);
+  this.getModel().set('IsBroker',         msg['IsBroker'] );
 
   var broker_currencies = new goog.structs.Set();
   var allowed_markets = {};
+  var user_brokers = {};
+  var broker_info;
   if (goog.isDefAndNotNull(msg['Broker'])) {
-    var broker_info = this.adjustBrokerData_(msg['Broker']);
+    broker_info = this.adjustBrokerData_(msg['Broker']);
     goog.object.extend(allowed_markets,  broker_info['AllowedMarkets']);
     broker_currencies.addAll(broker_info['BrokerCurrencies']);
 
-    this.model_.set('Broker', broker_info);
+    this.getModel().set('Broker', broker_info);
+
+
+    user_brokers[ broker_info['BrokerID'] ] = broker_info;
+    if (!msg['IsBroker'] ) {
+      this.getModel().set('UserBrokers', user_brokers);
+    }
   }
 
   var profile = msg['Profile'];
   if (msg['IsBroker'] ) {
-    goog.dom.classes.add( document.body, 'bitex-broker'  );
+    goog.dom.classes.add( document.body, 'bitex-broker');
     profile = this.adjustBrokerData_(profile);
+
+    user_brokers[ profile['BrokerID'] ] = profile;
+    this.getModel().set('UserBrokers', user_brokers);
+
     goog.object.extend(allowed_markets,  profile['AllowedMarkets']);
     broker_currencies.addAll(profile['BrokerCurrencies']);
   } else {
     goog.dom.classes.add( document.body, 'bitex-non-broker');
   }
-  this.model_.set('Profile',  profile);
-  this.model_.set('AllowedMarkets', allowed_markets);
-  this.model_.set('BrokerCurrencies', broker_currencies.getValues() );
+  this.getModel().set('Profile',  profile);
+  this.getModel().set('AllowedMarkets', allowed_markets);
+  this.getModel().set('BrokerCurrencies', broker_currencies.getValues() );
+
+  if (msg['IsBroker'] ) {
+    this.getModel().set('SelectedBrokerID', this.getModel().get('Profile')['BrokerID']);
+  } else if (goog.isDefAndNotNull(msg['Broker'])) {
+    this.getModel().set('SelectedBrokerID', this.getModel().get('Broker')['BrokerID']);
+  }
 
   this.conn_.requestBalances();
 

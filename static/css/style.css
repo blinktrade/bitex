@@ -533,3 +533,11 @@ keyframes notification {
 .ledger-activity-debit {
   background-color: lightpink;
 }
+
+.account-summary-broker {
+  cursor: pointer;
+}
+
+.account-summary-broker-selected {
+  background-color: gainsboro;
+}

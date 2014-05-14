@@ -314,12 +314,16 @@
 {template .YourAccountSummary}
   <h6>{msg desc="Your account label in the right side bar"}Your account{/msg}</h6>
     {foreach $account in $accounts}
-      <table class="table table-bordered" >
+      <table class="table table-bordered account-summary-table" >
         <tbody>
 
-      {if length($accounts) > 1 and length($account['currencies']) > 0 }
-        <tr><td colspan="3"><strong>{$account['brokerName']}</strong></td></tr>
-      {/if}
+      <tr id="id_account_summary_{$account['brokerID']}"
+          class='account-summary-broker model-action-set'
+          data-key="SelectedBrokerID"
+          data-value="{$account['brokerID']}"
+          {if length($accounts) <= 1 or length($account['currencies']) == 0 }style="display:none;"{/if}>
+            <td colspan="3"><strong>{$account['brokerName']}</strong></td>
+      </tr>
 
       {foreach $currency_info in $account['currencies']}
         <tr>
@@ -873,18 +877,20 @@
   * @param type
   * @param hide_fee
   * @param hide_client_id
+  * @param broker_id
   */
 {template .OrderEntry}
  <div id="{$id}" class="well span6 order-entry">
       <input type="hidden" name="symbol" class="order-entry-symbol" value="{$symbol}">
       <input type="hidden" name="side" class="order-entry-side" value="{$side}">
       <input type="hidden" name="type" class="order-entry-type" value="{$type}">
+      <input type="hidden" name="type" class="order-entry-broker-id" value="{$broker_id}">
+
       <div class="row-fluid">
         <div class="span5 order-entry-label"> <span>{msg desc="Amount label in Order Entry"}Amount:{/msg}</span>
         </div>
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
-
             <input class="input-block-level order-entry-amount" type="number" value="" required/>
           </div>
         </div>
@@ -894,7 +900,6 @@
         </div>
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
-
             <input class="input-block-level order-entry-price" type="number" required/>
           </div>
         </div>
@@ -904,7 +909,6 @@
         </div>
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
-
             <input class="input-block-level order-entry-total" type="number" required/>
           </div>
         </div>

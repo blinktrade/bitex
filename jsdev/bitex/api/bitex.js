@@ -1162,13 +1162,14 @@ bitex.api.BitEx.prototype.requestDepositMethods = function( opt_requestId ) {
  * @param {number} qty
  * @param {number} price
  * @param {string} side
+ * @param {number} broker_id
  * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @param {string=} opt_orderType Defaults to Limited Order
  * @return {number}
  *
  */
-bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_client_id, opt_clientOrderId, opt_orderType ){
+bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, broker_id, opt_client_id, opt_clientOrderId, opt_orderType ){
   var clientOrderId = opt_clientOrderId || parseInt( 1e7 * Math.random() , 10 );
   var orderType = '' + opt_orderType || '2';
   price = parseInt(price * 1e8, 10);
@@ -1181,7 +1182,8 @@ bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, opt_c
     'Side': side,
     'OrdType': orderType,
     'Price': price,
-    'OrderQty': qty
+    'OrderQty': qty,
+    'BrokerID': broker_id
   };
 
   if (goog.isDefAndNotNull(opt_client_id) && !goog.string.isEmpty(opt_client_id)) {
@@ -1268,12 +1270,13 @@ bitex.api.BitEx.prototype.sendMessage  = function(msg) {
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
+ * @param {number} broker_id
  * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @return {number}
  */
-bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, opt_client_id, opt_clientOrderId ){
-  return this.sendOrder_(symbol, qty, price, '1', opt_client_id, opt_clientOrderId, '2');
+bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, broker_id,opt_client_id, opt_clientOrderId ){
+  return this.sendOrder_(symbol, qty, price, '1', broker_id,opt_client_id, opt_clientOrderId, '2');
 };
 
 /**
@@ -1281,12 +1284,13 @@ bitex.api.BitEx.prototype.sendBuyLimitedOrder = function( symbol, qty, price, op
  * @param {string} symbol
  * @param {number} qty
  * @param {number} price
+ * @param {number} broker_id
  * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @return {number}
  */
-bitex.api.BitEx.prototype.sendSellLimitedOrder = function( symbol, qty, price, opt_client_id, opt_clientOrderId  ){
-  return this.sendOrder_(symbol, qty, price, '2', opt_client_id, opt_clientOrderId, '2');
+bitex.api.BitEx.prototype.sendSellLimitedOrder = function( symbol, qty, price, broker_id,opt_client_id, opt_clientOrderId  ){
+  return this.sendOrder_(symbol, qty, price, '2', broker_id,opt_client_id, opt_clientOrderId, '2');
 };
 
 /**
@@ -1295,12 +1299,13 @@ bitex.api.BitEx.prototype.sendSellLimitedOrder = function( symbol, qty, price, o
  * @param {number} qty
  * @param {number} price
  * @param {string} side
+ * @param {number} broker_id
  * @param {string=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @return {number}
  */
-bitex.api.BitEx.prototype.sendLimitedOrder = function( symbol, qty, price, side,  opt_client_id, opt_clientOrderId  ){
-  return this.sendOrder_(symbol, qty, price, side, opt_client_id, opt_clientOrderId, '2');
+bitex.api.BitEx.prototype.sendLimitedOrder = function( symbol, qty, price, side, broker_id, opt_client_id, opt_clientOrderId){
+  return this.sendOrder_(symbol, qty, price, side,broker_id, opt_client_id, opt_clientOrderId, '2');
 };
 
 
