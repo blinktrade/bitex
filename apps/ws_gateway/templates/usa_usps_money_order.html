@@ -12,6 +12,7 @@
 
   <meta charset="utf-8">
 
+
   <link href="/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="/css/font-awesome.min.css" rel="stylesheet">
 
@@ -46,49 +47,42 @@
   <div class="content-fluid">
     <table id="depositForm" class="table table-condensed">
 
-      <tr><td colspan="3"><h4>Instruções para depósito</h4></td></tr>
+      <tr><td colspan="3"><h4>Deposit Instructions</h4></td></tr>
       <tr>
-        <td>Número de controle:</td>
+        <td> Order ID:</td>
         <td>{{control_number}}</td>
       </tr>
       <tr>
-        <td>Data de criação:</td>
+        <td>Created:</td>
         <td>{{current_date}}</td>
       </tr>
       <tr>
-        <td>Forma de depósito:</td>
-        <td>Transferência bancária</td>
+        <td>Deposit Method:</td>
+        <td>Money Order</td>
       </tr>
       <tr>
-        <td>Instruções:</td>
+        <td>Instructions:</td>
         <td>
-          1a. <b>Depósito no caixa: </b>Se dirija até uma agiencia bancária do banco {{bank_name}} e realize o depósito<br/>
-          1b. <b>Depósito online: </b> Se conecte no seu banco pela internet e realize a transferência <br/>
-          2. Seguem os dados para a transferência:<br/>
-          
-
-          Código do banco: {{bank_number}}<br/>
-          Nome do banco: {{bank_name}}<br/>
-          Agência: {{account_branch}}<br/>
-          Número da conta: {{account_number}}<br/>
-          Titular: {{account_name}}<br/>
-          CPF/CNPJ: {{account_id}}<br/>
-          4. <b>Importantissimo: Anote o seu número de controle ({{control_number}})! no comprovante do seu depósito</b><br/>
-          5. Tire uma foto do comprovante ou print screen do recibo do depósito.<br/>
-          6. Faça o upload do comprovante na seção de depósito.<br/>
+          1. Head to your local United States Postal Service and purchase a money order slip for the correct amount. Learn more about USPS money orders <a href="https://www.usps.com/shop/money-orders.htm">here</a><br/>
+          2. Fill out the money order form. <b>Important: Make sure to write your confirmation code directly on it!</b><br/>
+          3. Take a picture of the filled out money order<br/>
+          4. Upload the photo of the money order in the system<br/>
+          5. Send the money order to :
+          {{account_name}} <br/>
+          {{address_line_1}}<br/>
+          {{address_line_2}}<br/>
         </td>
       </tr>
       <tr>
-        <td>Valor a depositar:</td>
+        <td>Total Deposit:</td>
         <td>{{currency}} {{value}}</td>
       </tr>
       <tr>
-        <td>Notas:</td>
+        <td>Notes:</td>
         <td>{% raw disclaimer %}</td>
       </tr>
     </table>
   </div>
 </div>
 </body>
-</html>    
-
+</html>

@@ -106,7 +106,7 @@
         <strong>{$msg_broker['BusinessName']}</strong><br/>
         {$msg_broker['Address']}<br/>
         {$msg_broker['City']}, {$msg_broker['State']} {$msg_broker['ZipCode']} - {$msg_broker['Country']}<br/>
-        <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, $msg_broker['PhoneNumber2']{/if}<br/>
+        <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, {$msg_broker['PhoneNumber2']}{/if}<br/>
         Skype: {$msg_broker['Skype']}<br/>
         <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
       </address>

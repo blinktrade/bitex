@@ -1588,6 +1588,26 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
+
+  if not User.get_user(session, 'thiagostruck'):
+    e = User(id=9000003, username='thiagostruck', email='tiagostruck@dors.com.br',  broker_id=0, broker_username='thiagostruck', password='abc12345',
+             country_code='BR', state='SC',
+             transaction_fee_buy=60,
+             transaction_fee_sell=60,
+             verified=1, is_staff=False, is_system=False, is_broker=True)
+    session.add(e)
+    session.commit()
+
+
+  if not User.get_user(session, 'rafaelffdias'):
+    e = User(id=9000004, username='rafaelffdias', email='rafaelffdias@gmail.com',  broker_id=0, broker_username='rafaelffdias', password='abc12345',
+             country_code='BR', state='SC',
+             transaction_fee_buy=60,
+             transaction_fee_sell=60,
+             verified=1, is_staff=False, is_system=False, is_broker=True)
+    session.add(e)
+    session.commit()
+
   if not Broker.get_broker(session, -1):
     e = Broker(id=-1,
                short_name=u'BitEx Waiting for a broker',
@@ -1670,7 +1690,7 @@ def db_bootstrap(session):
                transaction_fee_buy=0,
                transaction_fee_sell=0,
                status=u'1',
-               ranking=0)
+               ranking=1)
     session.add(e)
     session.commit()
 
@@ -1693,8 +1713,8 @@ def db_bootstrap(session):
                  'BTC': [
                      {
                      'method':'bitcoin',
-                     'description':'Saque em Bitcoins',
-                     'disclaimer': 'Processamento instantâneo para valores menores do que 0.1 BTC. Acima deste valor, processamento manual ao final do dia',
+                     'description':'Bitcoin withdrawal',
+                     'disclaimer': '',
                      'percent_fee':0,
                      'fixed_fee':0,
                      'fields': [
@@ -1704,23 +1724,7 @@ def db_bootstrap(session):
                      ]
                    }
                  ],
-                 'USD': [
-                     {
-                     'method':'ted_doc',
-                     'description':'Saque via TED ou DOC',
-                     'disclaimer':'Processamento no final dia somente. Taxa de 1% + R$ 8,00 ( exceto Itaú )',
-                     'percent_fee': 50, # 0.5 percent
-                     'fixed_fee': int(8.9 * 1e8), # 8.90 USD
-                     'fields': [
-                         {'side':'client', 'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
-                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
-                         {'side':'client', 'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
-                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
-                         {'side':'client', 'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
-                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
-                     ]
-                   }, {
+                 'USD': [ {
                      'method':'paypal',
                      'description':'Saque direto via paypal',
                      'disclaimer':'Realizado na hora. O Paypal poderá cobrar taxas adicionais',
@@ -1760,16 +1764,16 @@ def db_bootstrap(session):
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
                fee_structure=json.dumps([
-                 { "Operation" : "Deposito via TED",             "Fee":"0,3%"             , "Terms":"20 minutos após confirmação" },
-                 { "Operation" : "Deposito via DOC",             "Fee":"0,3%"             , "Terms":"1 dia útil" },
-                 { "Operation" : "Depósito via Deposit bancário", "Fee":"R$ 4,00"         , "Terms":"1 dia útil se pago no mesmo banco emissor caso contrário 3 dias úteis" },
-                 { "Operation" : "Saque via TED",                "Fee":"0,3% + R$8,00"    , "Terms":"Realizados ao final do dia" },
-                 { "Operation" : "Saque via  Transf. Banco Itaú","Fee":"0,3%"             , "Terms":"Realizados ao final do dia" },
+                 { "Operation" : "USPS Money Order deposit",       "Fee":"$5"               , "Terms":"30 minutes." },
+                 { "Operation" : "Check deposit",                  "Fee":"1%"               , "Terms":"3 business days" },
+                 { "Operation" : "Wire transfer deposit",          "Fee":"0.3%"             , "Terms":"Next business day" },
+                 { "Operation" : "Wire transfer withdraw",         "Fee":"0.3%"             , "Terms":"Next business day" },
+                 { "Operation" : "PayPal withdrawal",              "Fee":"0%"               , "Terms":"Instant" },
                ]),
                transaction_fee_buy=20, # 0.2%
                transaction_fee_sell=20, # 0.2%
                status='1',
-               ranking=1)
+               ranking=5)
     session.add(e)
     session.commit()
 
@@ -1828,8 +1832,8 @@ def db_bootstrap(session):
                    "CurrencyDescription":"Bitcoin",
                    "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                    "Wallets": [
-                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
-                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":True,"signatures":[], "managed_by":"Bitcointoyou, BitEx" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Bitcointoyou" },
                    ]
                  }
                ]),
@@ -1851,9 +1855,193 @@ def db_bootstrap(session):
                transaction_fee_buy=60, # 0.6%
                transaction_fee_sell=60, # 0.6%
                status='1',
-               ranking=1)
+               ranking=4)
     session.add(e)
     session.commit()
+
+
+  if not Broker.get_broker(session, 9000003):
+    e = Broker(id=9000003,
+               short_name=u'tiagostruck',
+               business_name=u'Tiago Struck.',
+               address=u'Rua Barão do Rio Branco, XX Centro',
+               signup_label=u'Tiago Struck - CPF 099.255.999-99',
+               city=u'Jaraguá do Sul',
+               state='SC',
+               zip_code='89251-400',
+               country_code='BR',
+               country='Brazil',
+               phone_number_1='+55 (47) 9914-0725', phone_number_2='+55 (47) 3055-9232', skype='tiagostruck', email='tiagostruck@dors.com.br',
+               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
+               currencies='BRL',
+               withdraw_structure=json.dumps( {
+                 'BTC': [
+                     {
+                     'method':'bitcoin',
+                     'description':'Saque em Bitcoins',
+                     'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
+                     'percent_fee':0,
+                     'fixed_fee':0,
+                     'fields': [
+                         {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                         {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                     ]
+                   }
+                 ],
+                 'BRL': [
+                     {
+                     'method':'ted_doc',
+                     'description':'Saque para conta bancária no Brasil',
+                     'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                     'percent_fee': 135, # 1.35 percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                         {'side':'client', 'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                         {'side':'client', 'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   },{
+                     'method':'swift',
+                     'description':'Saque para conta bancária no Exterior',
+                     'disclaimer':'84 horas, Taxa de 1,35% + R$ 80,00  Apenas para usuários verificados',
+                     'percent_fee': 135, # 1.35 percent
+                     'fixed_fee': int(80 * 1e8), # R$ 80,00
+                     'fields': [
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                         {'side':'client', 'name': 'BankSwift'    ,  'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
+                         {'side':'client', 'name': 'RoutingNumber',  'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   },
+                 ]
+               }),
+               crypto_currencies=json.dumps([
+                   {
+                   "CurrencyCode": "BTC",
+                   "CurrencyDescription":"Bitcoin",
+                   "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                   "Wallets": [
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":True,"signatures":[], "managed_by":"Thiago Struck, BitEX" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Thiago Struck" },
+                   ]
+                 }
+               ]),
+               accept_customers_from=json.dumps([
+                 ["*"],  # The whole world
+                 [ ""]
+               ]) ,
+               is_broker_hub=False,
+               support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
+               fee_structure=json.dumps([
+                   { "Operation" : u"Depósito em Reais no Brasil", "Fee":"1,35%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+                   { "Operation" : u"Depósito em Reais via Swift", "Fee":"1,35%"            , "Terms":u"Até 84 horas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+                   { "Operation" : u"Depósito em Bitcoin",         "Fee":"0%"               , "Terms":u"10 minutos após a confirmação de número 6 da rede Bitcoin" },
+                   { "Operation" : u"Saque em Bitcoin",            "Fee":"0%"               , "Terms":u"Automático e imediato ao utilizar autenticação em 2 passos para contas verificadas e feito manual com prazo de até 24 horas para contas não verificadas." },
+                   { "Operation" : u"Saque em Reais no Brasil",    "Fee":"1,35%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+                   { "Operation" : u"Saque em Reais via Swift",    "Fee":"1,35% + R$ 80,00" , "Terms":u"Até 84 horas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+               ]),
+               transaction_fee_buy=20, # 0.2%
+               transaction_fee_sell=20, # 0.2%
+               status='1',
+               ranking=3)
+    session.add(e)
+    session.commit()
+
+
+
+  if not Broker.get_broker(session, 9000004):
+    e = Broker(id=9000004,
+               short_name=u'rafaelffdias',
+               business_name=u'Rafael Ferreira Felício Dias.',
+               address=u'Rua dos Tamoios, Centro',
+               signup_label='Rafael Dias - CPF 063.245.443-99',
+               city='Belo Horizonte',
+               state='MG',
+               zip_code='30120-050',
+               country_code='BR',
+               country='Brazil',
+               phone_number_1='+55 (31) 8742-1062', phone_number_2='+55 (31) 9243-2071', skype='rrafilsk', email='rafaelffdias@gmail.com',
+               verification_jotform='https://secure.jotform.us/form/31441083828150?user_id=%s&username=%s',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id=%s&username=%s&deposit_method=%s&control_number=%s',
+               currencies='BRL',
+               withdraw_structure=json.dumps( {
+                 'BTC': [
+                     {
+                     'method':'bitcoin',
+                     'description':'Saque em Bitcoins',
+                     'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
+                     'percent_fee':0,
+                     'fixed_fee':0,
+                     'fields': [
+                         {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                         {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                     ]
+                   }
+                 ],
+                 'BRL': [
+                     {
+                     'method':'ted_doc',
+                     'description':'Saque para conta bancária no Brasil',
+                     'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                     'percent_fee': 50, # 0.5% percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'BankNumber'   ,  'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                         {'side':'client', 'name': 'AccountBranch',  'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                         {'side':'client', 'name': 'CPF_CNPJ'     ,  'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   }
+                 ]
+               }),
+               crypto_currencies=json.dumps([
+                   {
+                   "CurrencyCode": "BTC",
+                   "CurrencyDescription":"Bitcoin",
+                   "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                   "Wallets": [
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":True,"signatures":[], "managed_by":"Thiago Struck, BitEX" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Thiago Struck" },
+                   ]
+                 }
+               ]),
+               accept_customers_from=json.dumps([
+                 ["BR"],  # Only Brazil
+                 [ "*"]
+               ]),
+               is_broker_hub=False,
+               support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
+               fee_structure=json.dumps([
+                   { "Operation" : u"Depósito em Reais no Brasil", "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+                   { "Operation" : u"Depósito em Bitcoin",         "Fee":"0%"              , "Terms":u"10 minutos após a confirmação de número 6 da rede Bitcoin" },
+                   { "Operation" : u"Saque em Bitcoin",            "Fee":"0%"              , "Terms":u"Automático e imediato ao utilizar autenticação em 2 passos para contas verificadas e feito manual com prazo de até 24 horas para contas não verificadas." },
+                   { "Operation" : u"Saque em Reais no Brasil",    "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." }
+               ]),
+               transaction_fee_buy=20, # 0.2%
+               transaction_fee_sell=20, # 0.2%
+               status='1',
+               ranking=2)
+    session.add(e)
+    session.commit()
+
 
   currencies = [
     #[ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
@@ -1891,109 +2079,160 @@ def db_bootstrap(session):
 
 
   # create 1000 test users for the NYC Bitcoin Center - Satoshi square
-  for x in xrange(2, 2000):
-    if not User.get_user(session, str(x)):
-      e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, broker_username='nybitcoincenter', password='password' + str(x),
-               country_code='US', state='NY',
-               verified=1, is_staff=False, is_system=False, is_broker=False)
-      session.add(e)
+  #for x in xrange(2, 2000):
+  #  if not User.get_user(session, str(x)):
+  #    e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, broker_username='nybitcoincenter', password='password' + str(x),
+  #             country_code='US', state='NY',
+  #             verified=1, is_staff=False, is_system=False, is_broker=False)
+  #    session.add(e)
+  #
+  #    # credit each user with 100 BTC, 100k USD and 200k BRL
+  #    Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
+  #    Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'USD', 100000e8, 'BONUS' )
+  #    session.commit()
 
-      # credit each user with 100 BTC, 100k USD and 200k BRL
-      Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
-      Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'USD', 100000e8, 'BONUS' )
-      session.commit()
 
-
-  if not DepositMethods.get_deposit_method(session, 1 ):
-    bo = DepositMethods(id=1,
-                       name="boleto_itau",
+  if not DepositMethods.get_deposit_method(session, 90000010 ):
+    bo = DepositMethods(id=90000010,
                        broker_id=9000001,
-                       description=u'Boleto Bancário - Banco Itau',
-                       disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
-                       type='BBS',
-                       broker_deposit_ctrl_num=50034,
-                       percent_fee=50,  # 0.5
-                       fixed_fee=int(2.9 * 1e8),  # 2.90
-                       currency='USD',
-                       parameters= json.dumps( {
-                         'download_filename': 'deposit_itau_{{id}}.pdf',
-                         'codigo_banco': '341',
-                         'carteira':'127',
-                         'aceite': 'N',
-                         'valor_documento': '{{value}}',
-                         'valor': '{{value}}',
-                         'data_vencimento': '{{current_date}}',
-                         'data_documento': '{{current_date}}',
-                         'data_processamento': '{{current_date}}',
-                         'numero_documento': '{{broker_deposit_ctrl_num}}',
-                         'nosso_numero': '{{broker_deposit_ctrl_num}}',
-
-                         'agencia_cedente' : '4000',
-                         'conta_cedente' : '4444',
-                         'cedente': 'Bitex',
-                         'cedente_documento': '1000',
-                         'cedente_cidade': u'São Paulo',
-                         'cedente_uf': 'SP',
-                         'cedente_endereco': u'endereço',
-                         'cedente_bairro': 'bairro',
-                         'cedente_cep': '00000-000',
-
-                         'sacado_nome': '{{user.username}}',
-                         'sacado_documento': '{{user.id}}',
-                         'sacado_cidade': '',
-                         'sacado_uf':'',
-                         'sacado_endereco':'',
-                         'sacado_bairro':'',
-                         'sacado_cep':'',
-                         'sacado': ['username: {{user.username}}', 'user_id: {{user.id}}' ],
-
-                         'quantidade':'',
-                         'especie_documento':'',
-                         'especie': 'R$',
-                         'moeda': '9',
-                         'demonstrativo':'',
-
-                         'local_pagamento': u"Pagável em qualquer banco, lotérica ou agência dos correios até a data de vencimento",
-                         'instrucoes': u'Não receber após 30 dias.'
-                       } ) )
-    session.add(bo)
-    session.commit()
-
-  if not DepositMethods.get_deposit_method(session, 2 ):
-    bo = DepositMethods(id=2,
-                       broker_id=9000001,
-                       name="deposito_itau",
-                       description=u'Depósito Bancário - Banco Itaú',
-                       disclaimer=u'Entre 10 minutos até 4 horas após a confirmação de recebimento.',
+                       name="wire_transfer_usa",
+                       description=u'Wire transfer',
+                       disclaimer=u'1 business day.',
                        type='BTI',
-                       percent_fee=120,  # 1.2
+                       percent_fee=30,  # 0.3
                        fixed_fee=0,
                        broker_deposit_ctrl_num=90001,
                        currency='USD',
                        parameters= json.dumps( {
-                         'download_filename': 'instrucao_deposito_itau_{{id}}.html',
-                         'html_template':'brazilian_bank_transfer.html',
-                         'bank_number': '341',
-                         'bank_name': u'Banco Itaú',
-                         'currency':'R$',
+                         'download_filename': 'usa_wire_transfer_{{id}}.html',
+                         'html_template':'usa_wire_transfer.html',
+                         'currency':'$',
                          'value': '{{value}}',
                          'current_date': '{{current_date}}',
                          'control_number': '{{broker_deposit_ctrl_num}}',
-                         'account_branch' : '4000',
-                         'account_number' : '4444',
-                         'account_name': 'Bitex',
-                         'account_id': '444.555.888/0001-99',
-                         'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
-                         'instructions': u'Após realizar o deposito, por favor enviar comprovante por email para: comprovante@bitex.com.br<br/> '
-                                         u'IMPORTANTE: O título do email deve ser: COMPROVANTE DE DEPOSITO {{broker_deposit_ctrl_num}}, '
-                                         u'e no corpo do email anexe uma foto do comprovante ou print screen do seu internet banking contendo o comprovante da operação. '
+                         'routing_number' : '2100000021',
+                         'account_number' : '655323442',
+                         'account_name': 'New York Bitcoin Center LLC',
+                         'address_line_1': '40 Broad St',
+                         'address_line_2': 'New York - NY - 10001',
+                         'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
                        } ) )
     session.add(bo)
     session.commit()
 
+  if not DepositMethods.get_deposit_method(session, 90000011 ):
+    bo = DepositMethods(id=90000011,
+                        broker_id=9000001,
+                        name="usps_money_order",
+                        description=u'USPS Money Order',
+                        disclaimer=u'1 business day.',
+                        type='BTI',
+                        percent_fee=0,
+                        fixed_fee=int(5 * 1e8),
+                        broker_deposit_ctrl_num=90001,
+                        currency='USD',
+                        parameters= json.dumps( {
+                          'download_filename': 'usa_usps_money_order_{{id}}.html',
+                          'html_template':'usa_usps_money_order.html',
+                          'currency':'$',
+                          'value': '{{value}}',
+                          'current_date': '{{current_date}}',
+                          'control_number': '{{broker_deposit_ctrl_num}}',
+                          'account_name': 'New York Bitcoin Center LLC',
+                          'address_line_1': '40 Broad St',
+                          'address_line_2': 'New York - NY - 10001',
+                          'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
+                          } ) )
+    session.add(bo)
+    session.commit()
 
-  if not DepositMethods.get_deposit_method(session, 3 ):
-    bo = DepositMethods(id=3,
+
+  if not DepositMethods.get_deposit_method(session, 90000012 ):
+    bo = DepositMethods(id=90000012,
+                        broker_id=9000001,
+                        name="usa_check",
+                        description=u'Check',
+                        disclaimer=u'3 business days.',
+                        type='BTI',
+                        percent_fee=100, #1%
+                        fixed_fee=0,
+                        broker_deposit_ctrl_num=90001,
+                        currency='USD',
+                        parameters= json.dumps( {
+                          'download_filename': 'usa_check{{id}}.html',
+                          'html_template':'usa_check.html',
+                          'currency':'$',
+                          'value': '{{value}}',
+                          'current_date': '{{current_date}}',
+                          'control_number': '{{broker_deposit_ctrl_num}}',
+                          'account_name': 'New York Bitcoin Center LLC',
+                          'address_line_1': '40 Broad St',
+                          'address_line_2': 'New York - NY - 10001',
+                          'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
+                          } ) )
+    session.add(bo)
+    session.commit()
+
+
+  if not DepositMethods.get_deposit_method(session, 90000020 ):
+    bo = DepositMethods(id=90000020,
+                        name="boleto_itau",
+                        broker_id=9000002,
+                        description=u'Boleto Bancário - Banco Itau',
+                        disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
+                        type='BBS',
+                        broker_deposit_ctrl_num=50034,
+                        percent_fee=165,  # 1.65
+                        fixed_fee=int(2.9 * 1e8),  # 2.90
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'deposit_itau_{{id}}.pdf',
+                          'codigo_banco': '341',
+                          'carteira':'127',
+                          'aceite': 'N',
+                          'valor_documento': '{{value}}',
+                          'valor': '{{value}}',
+                          'data_vencimento': '{{current_date}}',
+                          'data_documento': '{{current_date}}',
+                          'data_processamento': '{{current_date}}',
+                          'numero_documento': '{{broker_deposit_ctrl_num}}',
+                          'nosso_numero': '{{broker_deposit_ctrl_num}}',
+
+                          'agencia_cedente' : '4000',
+                          'conta_cedente' : '4444',
+                          'cedente': 'Bitcointoyou',
+                          'cedente_documento': '1000',
+                          'cedente_cidade': u'São Paulo',
+                          'cedente_uf': 'SP',
+                          'cedente_endereco': u'endereço',
+                          'cedente_bairro': 'bairro',
+                          'cedente_cep': '00000-000',
+
+                          'sacado_nome': '{{user.username}}',
+                          'sacado_documento': '{{user.id}}',
+                          'sacado_cidade': '',
+                          'sacado_uf':'',
+                          'sacado_endereco':'',
+                          'sacado_bairro':'',
+                          'sacado_cep':'',
+                          'sacado': ['username: {{user.username}}', 'user_id: {{user.id}}' ],
+
+                          'quantidade':'',
+                          'especie_documento':'',
+                          'especie': 'R$',
+                          'moeda': '9',
+                          'demonstrativo':'',
+
+                          'local_pagamento': u"Pagável em qualquer banco, lotérica ou agência dos correios até a data de vencimento",
+                          'instrucoes': u'Não receber após 30 dias.'
+                        } ) )
+    session.add(bo)
+    session.commit()
+
+
+
+    if not DepositMethods.get_deposit_method(session, 90000021 ):
+      bo = DepositMethods(id=90000021,
                         broker_id=9000002,
                         name="deposito_itau",
                         description=u'Depósito Bancário - Banco Itaú',
@@ -2017,15 +2256,12 @@ def db_bootstrap(session):
                           'account_name': 'VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
                           'account_id': '12.454.181/0001-05',
                           'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
-                          'instructions': u'Após realizar o deposito, por favor enviar comprovante por email para: comprovante@bitex.com.br<br/> '
-                                          u'IMPORTANTE: O título do email deve ser: COMPROVANTE DE DEPOSITO {{broker_deposit_ctrl_num}}, '
-                                          u'e no corpo do email anexe uma foto do comprovante ou print screen do seu internet banking contendo o comprovante da operação. '
                         } ) )
     session.add(bo)
     session.commit()
 
-  if not DepositMethods.get_deposit_method(session, 4 ):
-    bo = DepositMethods(id=4,
+  if not DepositMethods.get_deposit_method(session, 90000022 ):
+    bo = DepositMethods(id=90000022,
                         broker_id=9000002,
                         name="deposito_bradesco",
                         description=u'Depósito Bancário - Banco Bradesco',
@@ -2049,9 +2285,180 @@ def db_bootstrap(session):
                           'account_name': 'VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
                           'account_id': '12.454.181/0001-05',
                           'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
-                          'instructions': u'Após realizar o deposito, por favor enviar comprovante por email para: comprovante@bitex.com.br<br/> '
-                                          u'IMPORTANTE: O título do email deve ser: COMPROVANTE DE DEPOSITO {{broker_deposit_ctrl_num}}, '
-                                          u'e no corpo do email anexe uma foto do comprovante ou print screen do seu internet banking contendo o comprovante da operação. '
                         } ) )
+    session.add(bo)
+    session.commit()
+
+
+
+  if not DepositMethods.get_deposit_method(session, 90000030 ):
+    bo = DepositMethods(id=90000030,
+                        name="boleto_itau",
+                        broker_id=9000003,
+                        description=u'Boleto Bancário - Banco Itau',
+                        disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
+                        type='BBS',
+                        broker_deposit_ctrl_num=50034,
+                        percent_fee=135,  # 1.35
+                        fixed_fee=int(2.9 * 1e8),  # 2.90
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'deposit_itau_{{id}}.pdf',
+                          'codigo_banco': '341',
+                          'carteira':'127',
+                          'aceite': 'N',
+                          'valor_documento': '{{value}}',
+                          'valor': '{{value}}',
+                          'data_vencimento': '{{current_date}}',
+                          'data_documento': '{{current_date}}',
+                          'data_processamento': '{{current_date}}',
+                          'numero_documento': '{{broker_deposit_ctrl_num}}',
+                          'nosso_numero': '{{broker_deposit_ctrl_num}}',
+
+                          'agencia_cedente' : '4000',
+                          'conta_cedente' : '4444',
+                          'cedente': 'Bitcointoyou',
+                          'cedente_documento': '1000',
+                          'cedente_cidade': u'São Paulo',
+                          'cedente_uf': 'SP',
+                          'cedente_endereco': u'endereço',
+                          'cedente_bairro': 'bairro',
+                          'cedente_cep': '00000-000',
+
+                          'sacado_nome': '{{user.username}}',
+                          'sacado_documento': '{{user.id}}',
+                          'sacado_cidade': '',
+                          'sacado_uf':'',
+                          'sacado_endereco':'',
+                          'sacado_bairro':'',
+                          'sacado_cep':'',
+                          'sacado': ['username: {{user.username}}', 'user_id: {{user.id}}' ],
+
+                          'quantidade':'',
+                          'especie_documento':'',
+                          'especie': 'R$',
+                          'moeda': '9',
+                          'demonstrativo':'',
+
+                          'local_pagamento': u"Pagável em qualquer banco, lotérica ou agência dos correios até a data de vencimento",
+                          'instrucoes': u'Não receber após 30 dias.'
+                        } ) )
+    session.add(bo)
+    session.commit()
+
+  if not DepositMethods.get_deposit_method(session, 90000031 ):
+    bo = DepositMethods(id=90000031,
+                        broker_id=9000003,
+                        name="deposito_bradesco",
+                        description=u'Depósito Bancário - Banco Bradesco',
+                        disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                        type='BTI',
+                        percent_fee=135,  # 1.35
+                        fixed_fee=0,
+                        broker_deposit_ctrl_num=90001,
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'instrucao_deposito_itau_{{id}}.html',
+                          'html_template':'brazilian_bank_transfer.html',
+                          'bank_number': '237',
+                          'bank_name': u'Banco Bradesco',
+                          'currency':'R$',
+                          'value': '{{value}}',
+                          'current_date': '{{current_date}}',
+                          'control_number': '{{broker_deposit_ctrl_num}}',
+                          'account_branch' : '1463',
+                          'account_number' : '402101-0',
+                          'account_name': 'VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
+                          'account_id': '12.454.181/0001-05',
+                          'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
+                          } ) )
+    session.add(bo)
+    session.commit()
+
+
+
+
+
+  if not DepositMethods.get_deposit_method(session, 90000040 ):
+    bo = DepositMethods(id=90000040,
+                        name="boleto_itau",
+                        broker_id=9000004,
+                        description=u'Boleto Bancário - Banco Itau',
+                        disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
+                        type='BBS',
+                        broker_deposit_ctrl_num=50034,
+                        percent_fee=135,  # 1.35
+                        fixed_fee=int(2.9 * 1e8),  # 2.90
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'deposit_itau_{{id}}.pdf',
+                          'codigo_banco': '341',
+                          'carteira':'127',
+                          'aceite': 'N',
+                          'valor_documento': '{{value}}',
+                          'valor': '{{value}}',
+                          'data_vencimento': '{{current_date}}',
+                          'data_documento': '{{current_date}}',
+                          'data_processamento': '{{current_date}}',
+                          'numero_documento': '{{broker_deposit_ctrl_num}}',
+                          'nosso_numero': '{{broker_deposit_ctrl_num}}',
+
+                          'agencia_cedente' : '4000',
+                          'conta_cedente' : '4444',
+                          'cedente': 'Bitcointoyou',
+                          'cedente_documento': '1000',
+                          'cedente_cidade': u'São Paulo',
+                          'cedente_uf': 'SP',
+                          'cedente_endereco': u'endereço',
+                          'cedente_bairro': 'bairro',
+                          'cedente_cep': '00000-000',
+
+                          'sacado_nome': '{{user.username}}',
+                          'sacado_documento': '{{user.id}}',
+                          'sacado_cidade': '',
+                          'sacado_uf':'',
+                          'sacado_endereco':'',
+                          'sacado_bairro':'',
+                          'sacado_cep':'',
+                          'sacado': ['username: {{user.username}}', 'user_id: {{user.id}}' ],
+
+                          'quantidade':'',
+                          'especie_documento':'',
+                          'especie': 'R$',
+                          'moeda': '9',
+                          'demonstrativo':'',
+
+                          'local_pagamento': u"Pagável em qualquer banco, lotérica ou agência dos correios até a data de vencimento",
+                          'instrucoes': u'Não receber após 30 dias.'
+                        } ) )
+    session.add(bo)
+    session.commit()
+
+  if not DepositMethods.get_deposit_method(session, 90000041 ):
+    bo = DepositMethods(id=90000041,
+                        broker_id=9000004,
+                        name="deposito_bradesco",
+                        description=u'Depósito Bancário - Banco Bradesco',
+                        disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
+                        type='BTI',
+                        percent_fee=135,  # 1.35
+                        fixed_fee=0,
+                        broker_deposit_ctrl_num=90001,
+                        currency='BRL',
+                        parameters= json.dumps( {
+                          'download_filename': 'instrucao_deposito_itau_{{id}}.html',
+                          'html_template':'brazilian_bank_transfer.html',
+                          'bank_number': '237',
+                          'bank_name': u'Banco Bradesco',
+                          'currency':'R$',
+                          'value': '{{value}}',
+                          'current_date': '{{current_date}}',
+                          'control_number': '{{broker_deposit_ctrl_num}}',
+                          'account_branch' : '1463',
+                          'account_number' : '402101-0',
+                          'account_name': 'VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
+                          'account_id': '12.454.181/0001-05',
+                          'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
+                          } ) )
     session.add(bo)
     session.commit()
