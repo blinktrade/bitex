@@ -854,7 +854,7 @@ bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
       // formatted_balance_9000001:2_USD
       var balance_key = 'balance_' + broker + ':' + clientID + '_'  + currency;
       this.getModel().set( balance_key , balance );
-      this.getModel().set('formatted_' + balance_key, this.formatCurrency(balance, currency));
+      this.getModel().set('formatted_' + balance_key, this.formatCurrency(balance, currency, true));
     }, this);
   },this);
 };
@@ -1397,11 +1397,11 @@ bitex.app.SatoshiSquare.prototype.doCalculateFees_ = function(amount_element_id,
   }
 
   if (goog.isDefAndNotNull(opt_fee_value_element_id)) {
-    var formatted_total_fee = this.formatCurrency(total_fees/1e8, currency);
+    var formatted_total_fee = this.formatCurrency(total_fees/1e8, currency, true);
     goog.dom.setTextContent( goog.dom.getElement(opt_fee_value_element_id) , formatted_total_fee);
   }
   if (goog.isDefAndNotNull(opt_net_amount_element_id)) {
-    var formatted_net_amount = this.formatCurrency(net_amount/1e8, currency);
+    var formatted_net_amount = this.formatCurrency(net_amount/1e8, currency, true);
     goog.dom.setTextContent(goog.dom.getElement(opt_net_amount_element_id), formatted_net_amount);
   }
 
@@ -1908,6 +1908,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.getModel().set('Username',         msg['Username']);
   this.getModel().set('TwoFactorEnabled', msg['TwoFactorEnabled']);
   this.getModel().set('IsBroker',         msg['IsBroker'] );
+  this.getModel().set('IsVerified',       msg['Profile']['Verified'] !== 0  );
 
   var broker_currencies = new goog.structs.Set();
   var allowed_markets = {};
@@ -1955,8 +1956,12 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   // Request Deposit Options
   this.conn_.requestDepositMethods();
 
+  if (this.getModel().get('IsVerified')) {
+    this.router_.setView('offerbook');
+  } else {
+    this.router_.setView('verification');
+  }
 
-  this.router_.setView('offerbook');
 };
 
 /**
@@ -2112,13 +2117,19 @@ bitex.app.SatoshiSquare.prototype.getBrokersByCountry = function(country, opt_st
 /**
  * @param {number} amount
  * @param {string} currency_code
+ * @param {boolean=} opt_human
  */
-bitex.app.SatoshiSquare.prototype.formatCurrency  =   function(amount, currency_code) {
+bitex.app.SatoshiSquare.prototype.formatCurrency  =   function(amount, currency_code, opt_human) {
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
    */
   var currency_def = this.currency_info_[currency_code];
-  var formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
+  var formatter;
+  if (goog.isDefAndNotNull(opt_human) && opt_human === true) {
+    formatter = new goog.i18n.NumberFormat( currency_def.human_format, currency_def.code );
+  } else {
+    formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
+  }
   return formatter.format(amount);
 };
 
@@ -2170,6 +2181,7 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
     this.currency_info_[ currency['Code'] ] = {
       code: currency['Code'],
       format: currency['FormatJS'],
+      human_format: currency['HumanFormatJS'],
       description : currency['Description'],
       sign : currency['Sign'],
       pip : currency['Pip'],
@@ -2185,13 +2197,13 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
     var offer_key = 'best_offer_' +  currency_key;
     var last_price = 'last_price_' +  currency_key;
 
-    this.model_.set('formatted_' + volume_key, this.formatCurrency(0, currency['Code']));
-    this.model_.set('formatted_' + min_key, this.formatCurrency(0, currency['Code']));
-    this.model_.set('formatted_' + max_key, this.formatCurrency(0, currency['Code']));
-    this.model_.set('formatted_' + avg_key, this.formatCurrency(0, currency['Code']));
-    this.model_.set('formatted_' + bid_key, this.formatCurrency(0, currency['Code']));
-    this.model_.set('formatted_' + offer_key, this.formatCurrency(0, currency['Code']));
-    this.model_.set('formatted_' + last_price, this.formatCurrency(0, currency['Code']));
+    this.model_.set('formatted_' + volume_key, this.formatCurrency(0, currency['Code']), true );
+    this.model_.set('formatted_' + min_key, this.formatCurrency(0, currency['Code']) , true);
+    this.model_.set('formatted_' + max_key, this.formatCurrency(0, currency['Code']), true);
+    this.model_.set('formatted_' + avg_key, this.formatCurrency(0, currency['Code']), true);
+    this.model_.set('formatted_' + bid_key, this.formatCurrency(0, currency['Code']), true);
+    this.model_.set('formatted_' + offer_key, this.formatCurrency(0, currency['Code']), true);
+    this.model_.set('formatted_' + last_price, this.formatCurrency(0, currency['Code']), true);
   }, this);
 
   var symbols = [];

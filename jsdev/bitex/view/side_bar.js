@@ -74,7 +74,7 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
       accounts[0]['currencies'].push({
         'currency':currency,
         'balance':0,
-        'formattedBalance': this.getApplication().formatCurrency(0,currency),
+        'formattedBalance': this.getApplication().formatCurrency(0,currency, true),
         'showDeposit': true,
         'showWithdraw': true
       });
@@ -96,7 +96,7 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
         accounts[1]['currencies'].push({
           'currency':currency,
           'balance':0,
-          'formattedBalance': this.getApplication().formatCurrency(0,currency),
+          'formattedBalance': this.getApplication().formatCurrency(0,currency, true),
           'showDeposit': false,
           'showWithdraw': false
         });

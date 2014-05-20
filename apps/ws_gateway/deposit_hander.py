@@ -65,17 +65,20 @@ class DepositHandler(tornado.web.RequestHandler):
     deposit_id = self.get_argument("deposit_id", default=None, strip=False)
     download = int(self.get_argument("download", default="0", strip=False))
     if not deposit_id:
-      raise tornado.httpclient.HTTPError( 404 )
+      self.send_error(404)
+      return
 
     deposit_response_msg = self.application.application_trade_client.sendString(
       json.dumps({ 'MsgType': 'U18', 'DepositReqID': 1, 'DepositID': deposit_id }))
 
-    if not deposit_response_msg.isDepositResponse():
-      raise tornado.httpclient.HTTPError( 404 )
+    if not deposit_response_msg or not deposit_response_msg.isDepositResponse():
+      self.send_error(404)
+      return
+
 
     deposit = deposit_response_msg.get('Data')
     if not deposit:
-      self.write('Error')
+      self.send_error()
       return
 
     deposit['remote_ip'] = self.remote_ip

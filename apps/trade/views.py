@@ -8,7 +8,8 @@ from bitex.json_encoder import  JsonEncoder
 import json
 
 from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
-  NeedSecondFactorException, Withdraw, Broker, Instrument, Currency, Balance, Ledger
+  NeedSecondFactorException, UserAlreadyExistsException, BrokerDoesNotExistsException, \
+  Withdraw, Broker, Instrument, Currency, Balance, Ledger
 
 from execution import OrderMatcher
 
@@ -177,24 +178,22 @@ def processNewOrderSingle(session, msg):
     fee = broker_user.transaction_fee_sell
 
   # process the new order.
-  order = Order( user_id          = session.user.id,
-                 account_id       = msg.get('ClientID', account_id ),
-                 user             = session.user,
-                 username         = session.user.username,
-                 account_user     = account_user,
-                 account_username = account_user.username,
-                 broker_user      = broker_user,
-                 broker_username  = broker_user.username,
-                 client_order_id  = msg.get('ClOrdID'),
-                 symbol           = msg.get('Symbol'),
-                 side             = msg.get('Side'),
-                 type             = msg.get('OrdType'),
-                 price            = msg.get('Price'),
-                 order_qty        = msg.get('OrderQty'),
-                 fee              = fee)
-
-
-  application.db_session.add( order)
+  order = Order.create(application.db_session,
+                       user_id          = session.user.id,
+                       account_id       = msg.get('ClientID', account_id ),
+                       user             = session.user,
+                       username         = session.user.username,
+                       account_user     = account_user,
+                       account_username = account_user.username,
+                       broker_user      = broker_user,
+                       broker_username  = broker_user.username,
+                       client_order_id  = msg.get('ClOrdID'),
+                       symbol           = msg.get('Symbol'),
+                       side             = msg.get('Side'),
+                       type             = msg.get('OrdType'),
+                       price            = msg.get('Price'),
+                       order_qty        = msg.get('OrderQty'),
+                       fee              = fee)
   application.db_session.flush() # just to assign an ID for the order.
 
   OrderMatcher.get(msg.get('Symbol')).match(application.db_session, order)
@@ -262,24 +261,23 @@ def processSecurityListRequest(session, msg):
       'IsCrypto': currency.is_crypto,
       'Pip': currency.pip,
       'FormatPython': currency.format_python,
-      'FormatJS': currency.format_js
+      'FormatJS': currency.format_js,
+      'HumanFormatPython': currency.human_format_python,
+      'HumanFormatJS': currency.human_format_js
     })
 
   return json.dumps(response, cls=JsonEncoder)
 
 def processSignup(session, msg):
-  if User.get_user( application.db_session, username= msg.get('Username'), email= msg.get('Email')):
-    login_response = {
-      'MsgType': 'BF',
-      'Username': '',
-      'UserStatus': 3,
-      'UserStatusText': u'Nome de usuário ou Email já estão registrados!'
-    }
-    application.db_session.rollback()
-    return json.dumps(login_response, cls=JsonEncoder)
-
-  broker = Broker.get_broker( application.db_session, msg.get('BrokerID')  )
-  if not broker:
+  try:
+    u, broker = User.signup(application.db_session,
+                            msg.get('Username'),
+                            msg.get('Email'),
+                            msg.get('Password'),
+                            msg.get('State'),
+                            msg.get('CountryCode'),
+                            msg.get('BrokerID'))
+  except BrokerDoesNotExistsException:
     login_response = {
       'MsgType': 'BF',
       'Username': '',
@@ -288,20 +286,55 @@ def processSignup(session, msg):
     }
     application.db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
+  except UserAlreadyExistsException:
+    login_response = {
+      'MsgType': 'BF',
+      'Username': '',
+      'UserStatus': 3,
+      'UserStatusText': u'Username already taken!'
+    }
+    application.db_session.rollback()
+    return json.dumps(login_response, cls=JsonEncoder)
+  except Exception, e:
+    login_response = {
+      'MsgType': 'BF',
+      'Username': '',
+      'UserStatus': 3,
+      'UserStatusText': str(e)
+    }
+    application.db_session.rollback()
+    return json.dumps(login_response, cls=JsonEncoder)
 
-  # signup the user
-  # create the user on Database
-  u = User( username            = msg.get('Username'),
-            email               = msg.get('Email'),
-            password            = msg.get('Password'),
-            state               = msg.get('State'),
-            country_code        = msg.get('CountryCode'),
-            broker_id           = msg.get('BrokerID'),
-            broker_username     = broker.user.username)
+  if application.options.test_mode:
+    Ledger.transfer(application.db_session,
+                    u.broker_id,            # from_account_id
+                    u.broker_username,      # from_account_name
+                    u.broker_id,            # from_broker_id
+                    u.broker_username,      # from_broker_name
+                    u.id,                   # to_account_id
+                    u.username,             # to_account_name
+                    u.broker_id,            # to_broker_id
+                    u.broker_username,      # to_broker_name
+                    'BTC',                  # currency
+                    20e8,                   # amount
+                    str(u.id),              # reference
+                    'B'                     # descriptions
+    )
 
-  application.db_session.add(u)
-  application.db_session.commit()
-
+    Ledger.transfer(application.db_session,
+                    u.broker_id,            # from_account_id
+                    u.broker_username,      # from_account_name
+                    u.broker_id,            # from_broker_id
+                    u.broker_username,      # from_broker_name
+                    u.id,                   # to_account_id
+                    u.username,             # to_account_name
+                    u.broker_id,            # to_broker_id
+                    u.broker_username,      # to_broker_name
+                    'USD',                  # currency
+                    10000e8,                # amount
+                    str(u.id),              # reference
+                    'B'                     # descriptions
+    )
   return processLogin(session, msg)
 
 @login_required

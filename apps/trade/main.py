@@ -14,6 +14,9 @@ define("trade_log", default=os.path.join(ROOT_PATH, "logs/", "trade.log"), help=
 define("session_timeout_limit", default=0, help="Session timeout")
 define("db_echo", default=False, help="Prints every database command on the stdout" )
 define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex.sqlite"), help="SQLAlchemy database engine string")
+define("test_mode", default=False, help="Test mode")
+define("satoshi_mode", default=False, help="Satoshi mode")
+
 
 tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "trade.conf"))
 tornado.options.parse_command_line()

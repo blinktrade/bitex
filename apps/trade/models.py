@@ -81,6 +81,11 @@ def get_hexdigest(algorithm, salt, raw_password):
 class NeedSecondFactorException(Exception):
   pass
 
+class UserAlreadyExistsException(Exception):
+  pass
+
+class BrokerDoesNotExistsException(Exception):
+  pass
 
 class Currency(Base):
   __tablename__   = 'currencies'
@@ -91,6 +96,8 @@ class Currency(Base):
   pip             = Column(Integer, default=10000000)
   format_python   = Column(String(25))
   format_js       = Column(String(25))
+  human_format_python   = Column(String(25))
+  human_format_js       = Column(String(25))
 
   @staticmethod
   def get_currencies(session):
@@ -107,8 +114,8 @@ class Currency(Base):
     return currency.format_python.format( number )
 
   def __repr__(self):
-    return u"<Currency(code=%r, sign=%r, description=%r, is_crypto=%r, pip=%r, format_python=%r, format_js=%r)>" % (
-      self.code, self.sign, self.description, self.is_crypto, self.pip, self.format_python, self.format_js
+    return u"<Currency(code=%r, sign=%r, description=%r, is_crypto=%r, pip=%r, format_python=%r, format_js=%r, human_format_python=%r, human_format_js=%r)>" % (
+      self.code, self.sign, self.description, self.is_crypto, self.pip, self.format_python, self.format_js, self.human_format_python, self.human_format_js
     )
 
 class Instrument(Base):
@@ -231,6 +238,31 @@ class User(Base):
       else:
         query = query.order(sort_column).desc()
     return query
+
+
+  @staticmethod
+  def signup(session, username, email, password, state, country_code, broker_id):
+    if User.get_user( session, username=username , email=email):
+      raise UserAlreadyExistsException()
+
+    broker = Broker.get_broker( session, broker_id)
+    if not broker:
+      raise BrokerDoesNotExistsException()
+
+    # signup the user
+    # create the user on Database
+    u = User( username            = username,
+              email               = email,
+              password            = password,
+              state               = state,
+              country_code        = country_code,
+              broker_id           = broker_id,
+              broker_username     = broker.user.username)
+
+    session.add(u)
+    session.commit()
+
+    return u, broker
 
 
   @staticmethod
@@ -646,9 +678,19 @@ class Broker(Base):
   accept_customers_from = Column(Text,   nullable=False)
   is_broker_hub         = Column(Boolean, nullable=False, default=False)
 
+  mem_cache   = {}
+
+  @staticmethod
+  def cache_broker(broker_id, broker):
+    Broker.mem_cache[broker_id] = broker
+
   @staticmethod
   def get_broker(session, broker_id):
-    return session.query(Broker).filter_by(id = broker_id ).first()
+    if broker_id in Broker.mem_cache:
+      return Broker.mem_cache[broker_id]
+    broker = session.query(Broker).filter_by(id = broker_id ).first()
+    Broker.cache_broker(broker_id, broker)
+    return broker
 
   @staticmethod
   def get_list(session, status_list, country = None, page_size = None, offset = None):
@@ -697,8 +739,6 @@ class UserPasswordReset(Base):
       return  None
 
     #TODO: Check if the token is at least 1 minute old
-
-
     return  req
 
   @staticmethod
@@ -1103,6 +1143,29 @@ class Order(Base):
     elif self.is_sell and other.is_buy and self.price <= other.price:
         return True
     return  False
+
+  @staticmethod
+  def create(session,user_id,account_id,user,username,account_user,account_username,broker_user,
+             broker_username,client_order_id,symbol,side,type,price,order_qty,fee):
+    order = Order( user_id          = user_id,
+                   account_id       = account_id,
+                   user             = user,
+                   username         = username,
+                   account_user     = account_user,
+                   account_username = account_username,
+                   broker_user      = broker_user,
+                   broker_username  = broker_username ,
+                   client_order_id  = client_order_id,
+                   symbol           = symbol,
+                   side             = side,
+                   type             = type,
+                   price            = price,
+                   order_qty        = order_qty,
+                   fee              = fee)
+    session.add(order)
+    return order
+
+
 
   @staticmethod
   def get_order_by_client_order_id(session, status_list, user_id, client_order_id):
@@ -2045,23 +2108,31 @@ def db_bootstrap(session):
 
   currencies = [
     #[ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
-    [ 'USD' , '$'       , 'Dollar'   ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
-    [ 'BRL' , 'R$'      , 'Real'     ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
-    [ 'EUR' , u'\u20ac' , 'Euro'     ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
-    [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)'  ],
-    [ 'GBP' , u'\u00a3' , 'Pound'    ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)'  ],
-    [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1000000    , '{:,.6f}', u'\u00a4 #,##0.000000;(\u00a4 #,##0.000000)'  ],
-    [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100000000  , '{:,.8f}', u'\u00a5 #,##0.00000000;(\u00a5 #,##0.00000000)'  ],
-    [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)'],
-    #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)']
+    [ 'USD' , '$'       , 'Dollar'   ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
+    [ 'BRL' , 'R$'      , 'Real'     ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
+    [ 'EUR' , u'\u20ac' , 'Euro'     ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
+    [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
+    [ 'GBP' , u'\u00a3' , 'Pound'    ,  False, 100000000  , '{:,.8f}', u'\u00a4 #,##0.00000000;(\u00a4 #,##0.00000000)', '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
+    [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1000000    , '{:,.6f}', u'\u00a4 #,##0.000000;(\u00a4 #,##0.000000)'  , '{:,.0f}', u'\u00a4 #,##0;(\u00a4 #,##0)'],
+    [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100000000  , '{:,.8f}', u'\u00a5 #,##0.00000000;(\u00a5 #,##0.00000000)', '{:,.2f}', u'\u00a5 #,##0.00;(\u00a5 #,##0.00)' ],
+    [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)', '{:,.5f}', u'\u0e3f #,##0.00000;(\u0e3f #,##0.00000)' ],
+    #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)', '{:,.5f}', u'\u0141 #,##0.00000;(\u0141 #,##0.00000)']
     # Ny Bitcoin Center settings
-    #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
-    #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
+    #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)', '{:,.3f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
+    #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)', '{:,.3f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
   ]
   for c in currencies:
     if Currency.get_currency(session,c[0]) :
       continue
-    e = Currency(code= c[0], sign=c[1], description=c[2], is_crypto=c[3], pip=c[4], format_python=c[5], format_js=c[6])
+    e = Currency(code= c[0],
+                 sign=c[1],
+                 description=c[2],
+                 is_crypto=c[3],
+                 pip=c[4],
+                 format_python=c[5],
+                 format_js=c[6],
+                 human_format_python=c[7],
+                 human_format_js=c[8] )
     session.add(e)
     session.commit()
 

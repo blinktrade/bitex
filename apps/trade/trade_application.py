@@ -38,7 +38,6 @@ class TradeApplication(object):
     self.publisher_socket = self.context.socket(zmq.PUB)
     self.publisher_socket.bind(self.options.trade_pub)
 
-
     input_log_file_handler = logging.handlers.TimedRotatingFileHandler( self.options.trade_log, when='MIDNIGHT')
     formatter = logging.Formatter('%(asctime)s - %(message)s')
     input_log_file_handler.setFormatter(formatter)
@@ -49,6 +48,8 @@ class TradeApplication(object):
     self.replay_logger.info('START')
 
     self.log_start_data()
+
+
 
   def log(self, command, key, value=None):
     log_msg = command + ',' + key
@@ -74,9 +75,12 @@ class TradeApplication(object):
     self.log('PARAM','session_timeout_limit' ,self.options.session_timeout_limit)
     self.log('PARAM','db_echo'               ,self.options.db_echo)
     self.log('PARAM','db_engine'             ,self.options.db_engine)
+    self.log('PARAM','test_mode'             ,self.options.test_mode)
+    self.log('PARAM','satoshi_mode'          ,self.options.satoshi_mode)
     self.log('PARAM','END')
 
-    from models import User, Deposit, DepositMethods, Order, Withdraw, Broker, Currency, Instrument
+
+    from models import User, Deposit, DepositMethods, Order, Withdraw, Broker, Currency, Instrument, Ledger
 
 
     currencies = self.db_session.query(Currency)
@@ -94,6 +98,7 @@ class TradeApplication(object):
     # log all users on the replay log
     brokers = self.db_session.query(Broker)
     for broker in brokers:
+      Broker.cache_broker(broker.id, broker)
       self.log('DB_ENTITY', 'BROKER', broker)
 
     deposit_options = self.db_session.query(DepositMethods)
@@ -104,13 +109,17 @@ class TradeApplication(object):
     for deposit in deposits:
       self.log('DB_ENTITY', 'DEPOSIT',  repr(deposit))
 
-    orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
-    for order in orders:
-      self.log('DB_ENTITY','ORDER',order)
-
     withdraws = self.db_session.query(Withdraw)
     for withdraw in withdraws:
       self.log('DB_ENTITY', 'WITHDRAW', withdraw )
+
+    ledgers = self.db_session.query(Ledger)
+    for ledger in ledgers:
+      self.log('DB_ENTITY', 'LEDGER', ledger )
+
+    orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
+    for order in orders:
+      self.log('DB_ENTITY','ORDER',order)
 
   def publish(self, key, data):
     self.publish_queue.append([ key, data ])

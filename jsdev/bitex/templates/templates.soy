@@ -144,21 +144,21 @@
             </thead>
             <tbody>
               {if not $msg_broker['IsBrokerHub'] }
-                {if $msg_broker['TransactionFeeBuy'] == $msg_broker['TransactionFeeSell']}
+                {if $msg_broker['FormattedTransactionFeeBuy'] == $msg_broker['FormattedTransactionFeeSell']}
                   <tr>
                     <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
-                    <td>{$msg_broker['TransactionFeeBuy']}</td>
+                    <td>{$msg_broker['FormattedTransactionFeeBuy']}</td>
                     <td></td>
                   </tr>
                 {else}
                   <tr>
                     <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
-                    <td>{$msg_broker['TransactionFeeBuy']}</td>
+                    <td>{$msg_broker['FormattedTransactionFeeBuy']}</td>
                     <td></td>
                   </tr>
                   <tr>
                     <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
-                    <td>{$msg_broker['TransactionFeeSell']} %</td>
+                    <td>{$msg_broker['FormattedTransactionFeeSell']} %</td>
                     <td></td>
                   </tr>
                 {/if}
@@ -891,7 +891,7 @@
         </div>
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
-            <input class="input-block-level order-entry-amount" type="number" value="" required/>
+            <input class="input-block-level order-entry-amount" type="text" value="" required/>
           </div>
         </div>
       </div>
@@ -900,7 +900,7 @@
         </div>
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
-            <input class="input-block-level order-entry-price" type="number" required/>
+            <input class="input-block-level order-entry-price" type="text" required/>
           </div>
         </div>
       </div>
@@ -909,7 +909,7 @@
         </div>
         <div class="span6">
           <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
-            <input class="input-block-level order-entry-total" type="number" required/>
+            <input class="input-block-level order-entry-total" type="text" required/>
           </div>
         </div>
       </div>
