@@ -45,29 +45,15 @@ class MarketDataSubscriber(object):
         self.db_session = scoped_session(sessionmaker(bind=ENGINE))
         db_bootstrap(self.db_session)
 
-    def subscribe(
-            self,
-            zmq_context,
-            trade_pub_connection_string,
-            trade_client):
+    def subscribe(self,zmq_context,trade_pub_connection_string,trade_client):
+
         """" subscribe. """
         self.md_pub_socket = zmq_context.socket(zmq.SUB)
         self.md_pub_socket.connect(trade_pub_connection_string)
-        self.md_pub_socket.setsockopt(
-            zmq.SUBSCRIBE,
-            "MD_FULL_REFRESH_" +
-            self.symbol)
+        self.md_pub_socket.setsockopt(zmq.SUBSCRIBE,"MD_FULL_REFRESH_" +self.symbol)
         self.md_pub_socket.setsockopt(zmq.SUBSCRIBE, "MD_TRADE_" + self.symbol)
-        self.md_pub_socket.setsockopt(
-            zmq.SUBSCRIBE,
-            "MD_INCREMENTAL_" +
-            self.symbol +
-            ".0")
-        self.md_pub_socket.setsockopt(
-            zmq.SUBSCRIBE,
-            "MD_INCREMENTAL_" +
-            self.symbol +
-            ".1")
+        self.md_pub_socket.setsockopt(zmq.SUBSCRIBE,"MD_INCREMENTAL_" +self.symbol +".0")
+        self.md_pub_socket.setsockopt(zmq.SUBSCRIBE,"MD_INCREMENTAL_" +self.symbol +".1")
 
         self.md_pub_socket_stream = ZMQStream(self.md_pub_socket)
         self.md_pub_socket_stream.on_recv(self.on_md_publish)
