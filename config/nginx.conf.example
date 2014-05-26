@@ -61,6 +61,14 @@ http {
               rewrite /(.*)  /satoshi_square.html break;
             }
 
+            location /_webhook/ {
+                proxy_pass http://ws_gateway;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_redirect off;
+            }
+
             location /get_deposit/ {
                 proxy_pass http://ws_gateway;
                 proxy_set_header X-Real-IP $remote_addr;
@@ -77,8 +85,6 @@ http {
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header Host $host;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-                rewrite /get_deposit(.*)  /get_deposit$1 break;
                 proxy_redirect off;
                 
             }
