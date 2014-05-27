@@ -1,4 +1,4 @@
-__author__ = 'rodrigo'
+import random
 
 if __name__ == '__main__':
   import os
@@ -19,6 +19,11 @@ class BitExThreadedClient(WebSocketClient):
   signal_logged                   = Signal()
   signal_error_login              = Signal()
   signal_execution_report         = Signal()
+  signal_balance                  = Signal()  # U3
+  signal_security_list            = Signal()  # y
+  signal_news                     = Signal()  # B
+  signal_error                    = Signal()  #ERROR
+
 
 
   signal_book_bid_clear           = Signal()
@@ -51,6 +56,19 @@ class BitExThreadedClient(WebSocketClient):
 
   def testRequest(self):
     self.send(json.dumps({'MsgType': '1', 'TestReqID':'1'}))
+
+  def requestBalances(self, request_id = None, client_id = None):
+    if not request_id:
+      request_id = random.randint(1,10000000)
+    msg = {
+      'MsgType': 'U2',
+      'BalanceReqID': request_id
+    }
+    if client_id:
+      msg['ClientID'] = client_id
+    self.send(json.dumps(msg))
+
+
 
   def requestMarketData(self,  request_id,  symbols, entry_types, subscription_type='1', market_depth=0 ,update_type = '1'):
     subscribe_msg = {
@@ -106,6 +124,18 @@ class BitExThreadedClient(WebSocketClient):
         self.signal_error_login(self, msg)
     elif msg['MsgType'] == '8':
       self.signal_execution_report(self, msg)
+
+    elif msg['MsgType'] == 'U3':
+      self.signal_balance(self, msg)
+
+    elif msg['MsgType'] == 'y':
+      self.signal_security_list(self, msg)
+
+    elif msg['MsgType'] == 'B':
+      self.signal_news(self, msg)
+
+    elif msg['MsgType'] == 'ERROR':
+      self.signal_error(self, msg)
 
 
     elif msg['MsgType'] == 'X':  # Market Data Incremental Refresh

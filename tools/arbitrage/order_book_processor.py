@@ -1,13 +1,10 @@
-import os
 import sys
-sys.path.insert(0, '../..//libs')
+sys.path.insert(0, '../../libs')
 
-from bitex.client import BitExThreadedClient
 from bitex.signals import  Signal
-import pusherclient
 import datetime
 import time
-import json
+
 
 class OrderBookProcessor():
   order_id_generator = 0
@@ -118,69 +115,3 @@ class OrderBookProcessor():
       else:
         self._send_new_order(order_price, order_volume)
     self._cancel_all_orders_prior_timestamp(bid_timestamp)
-
-
-global pusher
-global order_book_bid_processor
-global order_book_ask_processor
-
-
-pusher = pusherclient.Pusher('de504dc5763aeef9ff52')
-order_book_bid_processor = OrderBookProcessor('1', 'BTCUSD')
-order_book_ask_processor = OrderBookProcessor('2', 'BTCUSD')
-
-
-
-def connect_handler(data):
-  channel = pusher.subscribe('order_book')
-  channel.bind('data', order_book_handler )
-
-def order_book_handler( data ) :
-  data = json.loads(data)
-  order_book_bid_processor.process_order_list([  [  int(float( usd)*1e8) , int(float(btc) * 1e8) ]  for usd,btc in data['bids'] ])
-  order_book_ask_processor.process_order_list([  [  int(float( usd)*1e8) , int(float(btc) * 1e8) ]  for usd,btc in data['asks'] ])
-
-
-def main():
-  ws = BitExThreadedClient('wss://pinhopro.no-ip.org/trade/')
-  try:
-    #ws = BitExThreadedClient('wss://localhost/trade/')
-    #ws = BitExThreadedClient('wss://bitex.com.br/trade/')
-
-    def on_login(sender, msg):
-      ws.testRequest()
-
-    def on_message(sender, msg):
-      print 'received ' , msg
-
-    def on_send_buy_new_order(sender, msg):
-      ws.sendMsg(msg)
-
-    def on_send_sell_new_order(sender, msg):
-      ws.sendMsg(msg)
-
-    def on_send_cancel_order(sender, msg):
-      ws.sendMsg(msg)
-
-    ws.signal_logged.connect(on_login)
-    ws.signal_recv.connect(on_message)
-
-    ws.connect()
-    ws.login('rodrigo','abc12345')
-
-    order_book_bid_processor.send_new_order_signal.connect(on_send_buy_new_order)
-    order_book_ask_processor.send_new_order_signal.connect(on_send_sell_new_order)
-    order_book_bid_processor.cancel_order_signal.connect(on_send_cancel_order)
-    order_book_ask_processor.cancel_order_signal.connect(on_send_cancel_order)
-
-
-    pusher.connection.bind('pusher:connection_established', connect_handler)
-    pusher.connect()
-
-    ws.run_forever()
-  except KeyboardInterrupt:
-    ws.close()
-
-
-main()
-

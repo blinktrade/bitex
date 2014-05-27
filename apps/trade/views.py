@@ -316,22 +316,7 @@ def processSignup(session, msg):
                     u.broker_id,            # to_broker_id
                     u.broker_username,      # to_broker_name
                     'BTC',                  # currency
-                    20e8,                   # amount
-                    str(u.id),              # reference
-                    'B'                     # descriptions
-    )
-
-    Ledger.transfer(application.db_session,
-                    u.broker_id,            # from_account_id
-                    u.broker_username,      # from_account_name
-                    u.broker_id,            # from_broker_id
-                    u.broker_username,      # from_broker_name
-                    u.id,                   # to_account_id
-                    u.username,             # to_account_name
-                    u.broker_id,            # to_broker_id
-                    u.broker_username,      # to_broker_name
-                    'USD',                  # currency
-                    10000e8,                # amount
+                    1e8,                    # amount
                     str(u.id),              # reference
                     'B'                     # descriptions
     )
