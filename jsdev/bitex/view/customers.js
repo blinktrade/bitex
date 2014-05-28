@@ -147,7 +147,7 @@ bitex.view.CustomersView.prototype.onCustomerListTableRequestData_ = function(e)
   var filter = e.options['Filter'];
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestCustomerList(this.request_id_, undefined, undefined, filter, page, limit, [0,1]);
+  conn.requestCustomerList(this.request_id_, undefined, undefined, filter, page, limit, [0,1,2]);
 };
 
 /**

@@ -31,6 +31,11 @@ var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED = goog.getMsg('Verified');
 var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES = goog.getMsg('Yes');
 
 /**
+ * @desc Column Verified PENDING of the Customer Table
+ */
+var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PENDING = goog.getMsg('Pending');
+
+/**
  * @desc Column Verified NO of the Customer Table
  */
 var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_NO = goog.getMsg('No');
@@ -93,8 +98,10 @@ bitex.ui.Customers = function( opt_domHelper) {
       'label': MSG_CUSTOMER_TABLE_COLUMN_VERIFIED,
       'sortable': false,
       'formatter': function(s){
-        if (s) {
+        if (s == 2) {
           return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES;
+        } else if (s == 1) {
+          return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PENDING;
         } else {
           return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_NO;
         }

@@ -981,7 +981,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerSetUserAsVerified_ = function(e){
   var client_id = e.target.getClientID();
   var verification_data = e.target.getVerificationData();
 
-  this.conn_.verifyCustomer(request_id, client_id, true, verification_data );
+  this.conn_.verifyCustomer(request_id, client_id, 2, verification_data );
 };
 
 /**
@@ -1326,13 +1326,15 @@ bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
   }
 
   var upload_form_url =  broker['UploadForm'];
-  var form_src = goog.string.subs(upload_form_url,
-                                  model.get('UserID'),
-                                  model.get('Username'),
-                                  deposit_data['DepositMethodName'],
-                                  deposit_data['ControlNumber'] );
+  upload_form_url = upload_form_url.replace('{{UserID}}', model.get('UserID'));
+  upload_form_url = upload_form_url.replace('{{Username}}', model.get('Username'));
+  upload_form_url = upload_form_url.replace('{{BrokerID}}', model.get('Broker')['BrokerID']);
+  upload_form_url = upload_form_url.replace('{{BrokerUsername}}', model.get('Broker')['ShortName']);
+  upload_form_url = upload_form_url.replace('{{Email}}', model.get('Email'));
+  upload_form_url = upload_form_url.replace('{{DepositMethod}}', model.get('DepositMethodName'));
+  upload_form_url = upload_form_url.replace('{{ControlNumber}}', model.get('ControlNumber'));
 
-
+  var form_src = upload_form_url;
   window.open(form_src,
               'blank',
               'scrollbars=yes,toolbar=no,width=700,height=500');
@@ -1908,7 +1910,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   this.getModel().set('Username',         msg['Username']);
   this.getModel().set('TwoFactorEnabled', msg['TwoFactorEnabled']);
   this.getModel().set('IsBroker',         msg['IsBroker'] );
-  this.getModel().set('IsVerified',       msg['Profile']['Verified'] !== 0  );
+  this.getModel().set('IsVerified',       msg['Profile']['Verified'] > 1);
 
   var broker_currencies = new goog.structs.Set();
   var allowed_markets = {};
@@ -1959,9 +1961,12 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
   if (this.getModel().get('IsVerified')) {
     this.router_.setView('offerbook');
   } else {
-    this.router_.setView('verification');
+    if (this.getModel().get('Profile')['Verified']==0) {
+      this.router_.setView('verification');
+    } else {
+      this.router_.setView('offerbook');
+    }
   }
-
 };
 
 /**

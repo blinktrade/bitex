@@ -167,9 +167,9 @@ class JsonMessage(BaseMessage):
       'B5':  'CustomerResponse',
       'B6':  'ProcessWithdraw',
       'B7':  'ProcessWithdrawResponse',
-
       'B8':  'VerifyCustomerRequest',
       'B9':  'VerifyCustomerResponse',
+
 
       # Administrative messages
       'A0':  'DbQueryRequest',
@@ -478,7 +478,7 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_not_greater_than_zero('VerifyCustomerReqID')
 
       self.raise_exception_if_not_a_integer('Verify')
-      self.raise_exception_if_not_in('Verify', [0,1])
+      self.raise_exception_if_not_in('Verify', [0,1,2])
 
       self.raise_exception_if_not_a_integer('ClientID')
       self.raise_exception_if_not_greater_than_zero('ClientID')

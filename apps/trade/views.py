@@ -799,13 +799,17 @@ def processRequestDatabaseQuery(session, msg):
 def processCustomerListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
-  status_list = msg.get('StatusList', [0, 1] )
+  status_list = msg.get('StatusList', [0, 1, 2] )
   country     = msg.get('Country', None)
   state       = msg.get('State', None)
   client_id   = msg.get('ClientID', None)
   sort_column = msg.get('Sort', None)
   sort_order  = msg.get('SortOrder', 'ASC')
   offset      = page * page_size
+
+  if client_id:
+    if len(client_id) == 1:
+      client_id = client_id[0]
 
   user_list = User.get_list(application.db_session, session.user.id ,status_list, country, state, client_id, page_size, offset, sort_column, sort_order)
 
@@ -866,15 +870,20 @@ def processCustomerDetailRequest(session, msg):
   return json.dumps(response_msg, cls=JsonEncoder)
 
 
-
-@login_required
-@broker_user_required
 def processVerifyCustomer(session, msg):
+  broker_id = msg.get('BrokerID')
+  if msg.get('Verify') > 1:
+    if session.user is None :
+      raise NotAuthorizedError()
+    if session.user is None or session.user.is_broker == False:
+      raise NotAuthorizedError()
+    broker_id = session.user.id
+
   client = User.get_user( application.db_session, user_id= msg.get('ClientID') )
   if not client:
     raise NotAuthorizedError()
 
-  if client.broker_id != session.user.id:
+  if client.broker_id != broker_id:
     raise NotAuthorizedError()
 
   verified = client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
@@ -884,6 +893,7 @@ def processVerifyCustomer(session, msg):
     'MsgType'             : 'B9',
     'VerifyCustomerReqID' : msg.get('VerifyCustomerReqID'),
     'ClientID'            : msg.get('ClientID'),
+    'BrokerID'            : msg.get('BrokerID'),
     'Username'            : client.username,
     'Verified'            : verified,
     'VerificationData'    : msg.get('VerificationData')

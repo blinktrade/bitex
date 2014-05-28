@@ -33,7 +33,12 @@ bitex.view.VerificationView.prototype.enterView = function() {
   }
 
   var verification_form_url =  broker['VerificationForm'];
-  var form_src = goog.string.subs(verification_form_url, model.get('UserID'), model.get('Username'), model.get('Email'));
+  verification_form_url = verification_form_url.replace('{{UserID}}', model.get('UserID'));
+  verification_form_url = verification_form_url.replace('{{Username}}', model.get('Username'));
+  verification_form_url = verification_form_url.replace('{{BrokerID}}', model.get('Broker')['BrokerID']);
+  verification_form_url = verification_form_url.replace('{{BrokerUsername}}', model.get('Broker')['ShortName']);
+  verification_form_url = verification_form_url.replace('{{Email}}', model.get('Email'));
+  var form_src = verification_form_url;
 
   var verificationIFrameForm = goog.dom.getElement("JotFormIFrame");
 

@@ -827,7 +827,7 @@ bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_filt
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
-  var status = opt_status || [0,1];
+  var status = opt_status || [0,1,2];
 
   var msg = {
     'MsgType': 'B2',
@@ -876,7 +876,7 @@ bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clien
 /**
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {number} clientId
- * @param {boolean} verify
+ * @param {number} verify
  * @param {string} verificationData
  */
 bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, verify, verificationData){
@@ -886,7 +886,7 @@ bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, ver
     'MsgType': 'B8',
     'VerifyCustomerReqID': requestId,
     'ClientID': clientId,
-    'Verify':  verify ? 1:0,
+    'Verify':  verify,
     'VerificationData': verificationData
   };
   this.sendMessage(msg);
