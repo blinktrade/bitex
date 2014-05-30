@@ -96,6 +96,7 @@ from market_data_helper import MarketDataPublisher, MarketDataSubscriber, genera
 from deposit_hander import DepositHandler
 from process_deposit_handler import ProcessDepositHandler
 from verification_webhook_handler import VerificationWebHookHandler
+from deposit_receipt_webhook_handler import  DepositReceiptWebHookHandler
 import datetime
 
 
@@ -345,6 +346,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
             (r'/', WebSocketHandler),
             (r'/get_deposit(.*)', DepositHandler),
             (r'/_webhook/verification_form', VerificationWebHookHandler),
+            (r'/_webhook/deposit_receipt', DepositReceiptWebHookHandler),
             (r'/process_deposit(.*)', ProcessDepositHandler)
         ]
         settings = dict(

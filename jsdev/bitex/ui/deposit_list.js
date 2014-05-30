@@ -344,6 +344,11 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
           'data-row': data_row
         },MSG_DEPOSIT_TABLE_COLUMN_ACTION_COMPLETE,' ', goog.dom.createDom( 'i', ['icon-white', 'icon-ok']));
 
+        var btn_show_receipt_broker = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-success btn-deposit-show-receipt',
+          'data-action':'SHOW_RECEIPT',
+          'data-row': data_row
+        }, goog.dom.createDom( 'i', ['icon-white', 'icon-file']));
 
         switch (rowSet['Type'] ) {
           case 'CRY':
@@ -363,10 +368,11 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
           default:
             switch( rowSet['Status'] ) {
               case '0':
-              case '1':
                 return goog.dom.createDom('div', 'btn-group',[btn_cancel, btn_progress]);
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_show_receipt_broker,btn_cancel, btn_progress]);
               case '2':
-                return goog.dom.createDom('div', 'btn-group',[btn_cancel, btn_complete]);
+                return goog.dom.createDom('div', 'btn-group',[btn_show_receipt_broker,btn_cancel, btn_complete]);
               case '4':
                 return goog.dom.createDom('div', 'btn-group',[btn_cancel]);
               case '8':
@@ -397,6 +403,13 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
           'data-row': data_row
         },MSG_DEPOSIT_TABLE_DETAILS_COLUMN_BTN_UPLOAD, ' ' ,goog.dom.createDom( 'i', ['icon-white', 'icon-file']));
 
+        var btn_show_receipt = goog.dom.createDom( 'a', {
+          'class':'btn btn-mini btn-success btn-deposit-show-receipt',
+          'data-action':'SHOW_RECEIPT',
+          'data-row': data_row
+        }, goog.dom.createDom( 'i', ['icon-white', 'icon-file']));
+
+
         switch (rowSet['Type'] ) {
           case 'CRY':
             switch( rowSet['Status'] ) {
@@ -412,8 +425,9 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
           default:
             switch( rowSet['Status'] ) {
               case '0':
-              case '1':
                 return goog.dom.createDom('div', 'btn-group',[btn_upload]);
+              case '1':
+                return goog.dom.createDom('div', 'btn-group',[btn_show_receipt]);
               case '2':
               case '4':
               case '8':
@@ -473,12 +487,13 @@ bitex.ui.DepositList.prototype.getDepositData = function() {
 };
 
 /**
- * @return {number}
+ * @return {string}
  */
 bitex.ui.DepositList.prototype.getDepositID = function() {
   if (goog.isDefAndNotNull(this.selected_deposit_)){
     return this.selected_deposit_['DepositID'];
   }
+  return "";
 };
 
 /**

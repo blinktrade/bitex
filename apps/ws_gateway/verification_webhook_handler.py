@@ -7,7 +7,6 @@ import json
 class VerificationWebHookHandler(tornado.web.RequestHandler):
   def __init__(self, application, request, **kwargs):
     super(VerificationWebHookHandler, self).__init__(application, request, **kwargs)
-    self.remote_ip = request.headers.get('X-Forwarded-For', request.headers.get('X-Real-Ip', request.remote_ip))
 
   def post(self, *args, **kwargs):
     formID        = self.get_argument('formID')

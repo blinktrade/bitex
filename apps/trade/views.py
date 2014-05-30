@@ -952,14 +952,16 @@ def processProcessDeposit(session, msg):
   secret       = msg.get('Secret')
 
   if not secret:
-    if session.user is None or session.user.is_broker == False:
-      raise NotAuthorizedError()
-
     deposit_id   = msg.get('DepositID')
     deposit = Deposit.get_deposit(application.db_session, deposit_id=deposit_id)
 
-    if deposit.broker_id != session.user.id:
-      raise NotAuthorizedError()
+    if session.user is None or session.user.is_broker == False:
+      if msg.get('Action') != 'CONFIRM':
+        raise NotAuthorizedError()
+
+    else:
+      if deposit.broker_id != session.user.id:
+        raise NotAuthorizedError()
   else:
     deposit = Deposit.get_deposit( application.db_session, secret=secret)
 
@@ -968,12 +970,16 @@ def processProcessDeposit(session, msg):
                           'ProcessDepositReqID':msg.get('ProcessDepositReqID') ,
                           'ReasonID':'-1'} , cls=JsonEncoder)
 
+
+
+  if msg.get('Action') == 'CONFIRM':
+    data        = msg.get('Data')
+    deposit.user_confirm(application.db_session, data )
   if msg.get('Action') == 'CANCEL':
     deposit.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
     data        = msg.get('Data')
     deposit.set_in_progress(application.db_session, data)
-
   elif msg.get('Action') == 'COMPLETE':
     amount      = int(msg.get('Amount'))
     data        = msg.get('Data')

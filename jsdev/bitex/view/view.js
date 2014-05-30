@@ -47,6 +47,7 @@ bitex.view.View.EventType = {
 
   SHOW_QR: 'show_qr',
   UPLOAD_RECEIPT: 'upload_receipt',
+  SHOW_RECEIPT: 'show_receipt' ,
 
   SET_VERIFIED: 'set_verified'
 };

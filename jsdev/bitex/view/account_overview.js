@@ -63,6 +63,12 @@ bitex.view.AccountOverview.prototype.deposit_data_;
 /**
  * @type {Object}
  */
+bitex.view.AccountOverview.prototype.receipt_data_;
+
+
+/**
+ * @type {Object}
+ */
 bitex.view.AccountOverview.prototype.qr_data_;
 
 /**
@@ -359,6 +365,14 @@ bitex.view.AccountOverview.prototype.getQrDataVerb = function() {
 
 
 /**
+ * @return {Object}
+ */
+bitex.view.AccountOverview.prototype.getReceiptData = function() {
+  return this.receipt_data_;
+};
+
+
+/**
  * @return {String}
  */
 bitex.view.AccountOverview.prototype.getClientID = function() {
@@ -547,6 +561,13 @@ bitex.view.AccountOverview.prototype.onDepositListTableClick_ = function(e) {
     this.deposit_data_ = goog.json.parse(element.getAttribute('data-row'));
 
     switch( data_action ) {
+      case 'SHOW_RECEIPT':
+        this.receipt_data_ = {
+          'SubmissionID': this.data_['Data']['SubmissionID'],
+          'DepositReceipt': this.data_['Data']['DepositReceipt']
+        };
+        this.dispatchEvent(bitex.view.View.EventType.SHOW_RECEIPT);
+        break;
       case 'SHOW_QR':
         this.qr_data_ = {
           'Wallet': this.deposit_data_['Data']['InputAddress'],

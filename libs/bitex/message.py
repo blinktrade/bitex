@@ -428,7 +428,7 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_empty('ProcessDepositReqID')
 
       self.raise_exception_if_required_tag_is_missing('Action')
-      self.raise_exception_if_not_in('Action', ['CANCEL', 'PROGRESS', 'COMPLETE'])
+      self.raise_exception_if_not_in('Action', ['CONFIRM', 'CANCEL', 'PROGRESS', 'COMPLETE'])
 
 
     elif self.type == 'B2': # Customer List Request

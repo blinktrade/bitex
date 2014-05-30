@@ -1341,7 +1341,7 @@ class Deposit(Base):
 
   def __repr__(self):
     return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
-           u"secret=%r,  type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, fixed_fee=%r, percent_fee=%r, data=%r)>" % (
+           u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, fixed_fee=%r, percent_fee=%r, data=%r)>" % (
       self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id, self.deposit_option_name, self.broker_deposit_ctrl_num,
       self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.fixed_fee, self.percent_fee, self.data )
 
@@ -1439,6 +1439,22 @@ class Deposit(Base):
     self.status = '8'
     self.reason_id = reason_id
     self.reason = reason
+    session.add(self)
+    session.flush()
+
+  def user_confirm(self, session, data=None):
+    if self.status != '0':
+      return
+
+    new_data = {}
+    new_data.update(json.loads(self.data))
+    if data:
+      new_data.update( data )
+      if self.data != json.dumps(new_data):
+        self.data = json.dumps(new_data)
+
+    self.status = '1'
+
     session.add(self)
     session.flush()
 
@@ -1684,7 +1700,7 @@ def db_bootstrap(session):
                country_code='BR',
                phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='',
                withdraw_structure=json.dumps({}),
                crypto_currencies=json.dumps([]),
@@ -1715,7 +1731,7 @@ def db_bootstrap(session):
                country_code='BR',
                phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
                verification_jotform='https://secure.jotform.us/form/41205503470139?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='',
                withdraw_structure=json.dumps({
                'BTC': [
@@ -1770,7 +1786,7 @@ def db_bootstrap(session):
                country='United States',
                phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='XXXXX', email='NYCBitcoinCenter@gmail.com',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='USD',
                withdraw_structure=json.dumps( {
                  'BTC': [
@@ -1853,7 +1869,7 @@ def db_bootstrap(session):
                country='Brazil',
                phone_number_1='+55 (31) 2571-5791', phone_number_2=None, skype='andreluizhorta', email='atendimento@vivarti.com.br',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='BRL',
                withdraw_structure=json.dumps( {
                  'BTC': [
@@ -1936,7 +1952,7 @@ def db_bootstrap(session):
                country='Brazil',
                phone_number_1='+55 (47) 9914-0725', phone_number_2='+55 (47) 3055-9232', skype='tiagostruck', email='tiagostruck@dors.com.br',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='BRL',
                withdraw_structure=json.dumps( {
                  'BTC': [
@@ -2036,7 +2052,7 @@ def db_bootstrap(session):
                country='Brazil',
                phone_number_1='+55 (31) 8742-1062', phone_number_2='+55 (31) 9243-2071', skype='rrafilsk', email='rafaelffdias@gmail.com',
                verification_jotform='https://secure.jotform.us/form/31441083828150?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}',
+               upload_jotform='https://secure.jotform.us/form/40783223144146?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='BRL',
                withdraw_structure=json.dumps( {
                  'BTC': [

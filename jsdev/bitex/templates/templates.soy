@@ -24,6 +24,16 @@
 {/template}
 
 /**
+  * @param depositReceiptList
+  */
+{template .DepositReceiptDialogContent}
+  {foreach $receipt_url in $depositReceiptList}
+    <img width="100%" src="{{$receipt_url}}"/>
+    <a href="{{$receipt_url}}" target="_blank">{msg desc="Download picture link on deposit receipt dialog content"}Download{/msg}</a>
+  {/foreach}
+{/template}
+
+/**
   * @param id_value
   * @param percentFeeID
   * @param fixedFeeID

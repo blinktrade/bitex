@@ -94,6 +94,12 @@ bitex.view.DepositView.prototype.qr_data_verb_;
 
 
 /**
+ * @type {Object}
+ */
+bitex.view.DepositView.prototype.receipt_data_;
+
+
+/**
  * @return {number}
  */
 bitex.view.DepositView.prototype.getAmount = function() {
@@ -147,6 +153,13 @@ bitex.view.DepositView.prototype.getQrData = function() {
  */
 bitex.view.DepositView.prototype.getQrDataVerb = function() {
   return this.qr_data_verb_;
+};
+
+/**
+ * @return {Object}
+ */
+bitex.view.DepositView.prototype.getReceiptData = function() {
+  return this.receipt_data_;
 };
 
 
@@ -278,6 +291,13 @@ bitex.view.DepositView.prototype.onDepositListTableClick_ = function(e) {
         this.qr_data_verb_ = 'DEPOSIT';
 
         this.dispatchEvent(bitex.view.View.EventType.SHOW_QR);
+        break;
+      case 'SHOW_RECEIPT':
+        this.receipt_data_ = {
+          'SubmissionID': this.data_['Data']['SubmissionID'],
+          'DepositReceipt': this.data_['Data']['DepositReceipt']
+        };
+        this.dispatchEvent(bitex.view.View.EventType.SHOW_RECEIPT);
         break;
       case 'UPLOAD':
         this.dispatchEvent(bitex.view.View.EventType.UPLOAD_RECEIPT);

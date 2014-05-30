@@ -27,12 +27,14 @@ class TradeClient(object):
     self.is_logged        = False
     self.user_id          = None
     self.reopen           = reopen
+    self.trade_pub        = trade_pub
 
     self.trade_pub_socket = None
     self.trade_pub_socket_stream = None
-    if trade_pub:
+
+    if self.trade_pub:
       self.trade_pub_socket = self.zmq_context.socket(zmq.SUB)
-      self.trade_pub_socket.connect(trade_pub)
+      self.trade_pub_socket.connect(self.trade_pub)
       self.trade_pub_socket_stream = ZMQStream(self.trade_pub_socket)
       self.trade_pub_socket_stream.on_recv(self._on_trade_publish)
 
@@ -43,6 +45,12 @@ class TradeClient(object):
     pass
 
   def connect(self):
+    if not self.trade_pub_socket and self.trade_pub:
+      self.trade_pub_socket = self.zmq_context.socket(zmq.SUB)
+      self.trade_pub_socket.connect(self.trade_pub)
+      self.trade_pub_socket_stream = ZMQStream(self.trade_pub_socket)
+      self.trade_pub_socket_stream.on_recv(self._on_trade_publish)
+
     self.trade_in_socket.send( "OPN," + base64.b32encode(os.urandom(10)))
     response_message = self.trade_in_socket.recv()
     opt_code    = response_message[:3]
@@ -60,6 +68,9 @@ class TradeClient(object):
   def close(self):
     if self.trade_pub_socket_stream:
       self.trade_pub_socket_stream.close()
+      self.trade_pub_socket_stream = None
+      self.trade_pub_socket.close()
+      self.trade_pub_socket = None
 
     if self.connection_id:
       self.trade_in_socket.send( "CLS," + self.connection_id  )

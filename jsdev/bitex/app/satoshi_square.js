@@ -560,6 +560,8 @@ bitex.app.SatoshiSquare.prototype.run = function(url) {
   handler.listen(this.views_, bitex.view.View.EventType.CONNECT_BITEX, this.onUserConnectBitEx_);
 
   handler.listen(this.views_, bitex.view.View.EventType.SHOW_QR, this.onUserShowQr_);
+
+  handler.listen(this.views_, bitex.view.View.EventType.SHOW_RECEIPT, this.onShowReceipt_);
   handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
   handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_ );
@@ -1287,6 +1289,26 @@ bitex.app.SatoshiSquare.prototype.onUserCancelOrder_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
+bitex.app.SatoshiSquare.prototype.onShowReceipt_ = function(e){
+  var receiptData = e.target.getReceiptData();
+
+  /**
+   * @desc Crypto Currency Withdraw deposit title
+   */
+  var MSG_SHOW_DEPOSIT_RECEIPT_DIALOG_TITLE =
+      goog.getMsg('Submission {$submissionID}', {submissionID : receiptData['SubmissionID'] });
+
+
+  var dlg =  this.showDialog(bitex.templates.DepositReceiptDialogContent({depositReceiptList:receiptData['DepositReceipt']}),
+                             MSG_SHOW_DEPOSIT_RECEIPT_DIALOG_TITLE,
+                             bootstrap.Dialog.ButtonSet.createOk());
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onUserShowQr_ = function(e){
   var qrData = e.target.getQrData();
 
@@ -1331,8 +1353,10 @@ bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
   upload_form_url = upload_form_url.replace('{{BrokerID}}', model.get('Broker')['BrokerID']);
   upload_form_url = upload_form_url.replace('{{BrokerUsername}}', model.get('Broker')['ShortName']);
   upload_form_url = upload_form_url.replace('{{Email}}', model.get('Email'));
-  upload_form_url = upload_form_url.replace('{{DepositMethod}}', model.get('DepositMethodName'));
-  upload_form_url = upload_form_url.replace('{{ControlNumber}}', model.get('ControlNumber'));
+  upload_form_url = upload_form_url.replace('{{DepositMethod}}', deposit_data['DepositMethodName']);
+  upload_form_url = upload_form_url.replace('{{ControlNumber}}', deposit_data['ControlNumber']);
+  upload_form_url = upload_form_url.replace('{{DepositID}}', deposit_data['DepositID']);
+
 
   var form_src = upload_form_url;
   window.open(form_src,
