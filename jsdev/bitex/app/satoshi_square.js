@@ -389,9 +389,15 @@ bitex.app.SatoshiSquare.prototype.getHandler = function() {
 };
 
 /**
- * @param {string} url
+ * @param {string} opt_url
  */
-bitex.app.SatoshiSquare.prototype.run = function(url) {
+bitex.app.SatoshiSquare.prototype.run = function(opt_url) {
+  var url =  'wss://' + window.location.hostname + '/trade/';
+  if (goog.isDefAndNotNull(opt_url)) {
+    url = opt_url;
+  }
+
+
   this.createHtmlTemplates_();
 
   this.url_ = url;

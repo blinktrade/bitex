@@ -5,25 +5,31 @@ sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
 
 
-from tornado.options import define
+from tornado.options import define, options
 import tornado
 
-define("trade_in", default="tcp://127.0.0.1:5755", help="zmq input queue")
-define("trade_pub", default="tcp://127.0.0.1:5756", help="zmq publisher queue")
-define("trade_log", default=os.path.join(ROOT_PATH, "logs/", "trade.log"), help="logging" )
-define("session_timeout_limit", default=0, help="Session timeout")
-define("db_echo", default=False, help="Prints every database command on the stdout" )
-define("db_engine", default="sqlite:///" + os.path.join(ROOT_PATH, "db/", "bitex.sqlite"), help="SQLAlchemy database engine string")
+define("trade_in", help="zmq input queue")
+define("trade_pub",help="zmq publisher queue")
+define("trade_log", help="logging" )
+define("session_timeout_limit", type=int, help="Session timeout")
+define("db_echo", default=False,help="Prints every database command on the stdout" )
+define("db_engine",  help="SQLAlchemy database engine string")
 define("test_mode", default=False, help="Test mode")
 define("satoshi_mode", default=False, help="Satoshi mode")
-
-
-tornado.options.parse_config_file(os.path.join(ROOT_PATH, "config/", "trade.conf"))
-tornado.options.parse_command_line()
+define("dev_mode", default=False, help="Dev mode")
+define("config", default=os.path.join(ROOT_PATH, "config/", "trade.conf"), help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 from trade_application import application
 
 def main():
+  tornado.options.parse_command_line()
+  if not options.trade_in or \
+     not options.trade_pub or \
+     not options.trade_log or \
+     not options.db_engine:
+    tornado.options.print_help()
+    return
+
   application.initialize()
   application.run()
 

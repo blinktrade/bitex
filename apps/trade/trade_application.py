@@ -76,6 +76,7 @@ class TradeApplication(object):
     self.log('PARAM','db_echo'               ,self.options.db_echo)
     self.log('PARAM','db_engine'             ,self.options.db_engine)
     self.log('PARAM','test_mode'             ,self.options.test_mode)
+    self.log('PARAM','dev_mode'              ,self.options.dev_mode)
     self.log('PARAM','satoshi_mode'          ,self.options.satoshi_mode)
     self.log('PARAM','END')
 
