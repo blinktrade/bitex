@@ -231,7 +231,7 @@ class OrderMatcher(object):
           formatted_total_price = Currency.format_number( session, price_currency, order.order_qty/1.e8 * order.price / 1.e8 )
 
           email_subject =  u"Sua oferta número #%s de %s à %s foi executada!" % (order.id, formatted_qty, formatted_price)
-          email_template = "order_execution_ptBR.txt"
+          email_template = "order_execution"
           email_params = {
             'name': order.user.username,
             'order_id': order.id,
@@ -248,6 +248,7 @@ class OrderMatcher(object):
                           user_id = order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
+                          language= 'ptBR',
                           params  = email_data[2])
 
         email_data = generate_email_subject_and_body(session, counter_order, trade)
@@ -255,6 +256,7 @@ class OrderMatcher(object):
                           user_id = counter_order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
+                          language= 'ptBR',
                           params  = email_data[2])
 
 

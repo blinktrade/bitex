@@ -23,32 +23,35 @@ import tornado
 
 from bitex.message import JsonMessage
 
-define("trade_pub", default="tcp://127.0.0.1:5756", help="zmq publisher queue")
-define(
-    "template_dir",
-    default=DEFAULT_TEMPLATE_PATH,
-    help="email template path")
-define(
-    "mailer_log",
-    default=os.path.join(
-        ROOT_PATH,
-        "logs/",
-        "mailer.log"),
-    help="logging")
-
-
-tornado.options.parse_config_file(
-    os.path.join(
-        ROOT_PATH,
-        "config/",
-        "mailer.conf"))
-tornado.options.parse_command_line()
+define("trade_pub", help="zmq publisher queue")
+define("mailchimp_apikey", help="mailchimp api key")
+define("mailchimp_newsletter_list_id", help="mailchimp newsletter list id")
+define("template_dir",default=DEFAULT_TEMPLATE_PATH,help="email template path")
+define("mailer_log",default=os.path.join(ROOT_PATH,"logs/","mailer.log"),help="logging")
+define("config", default=os.path.join(ROOT_PATH, "config/", "mailer.conf"), help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 import json
 import zmq
-
+import mailchimp
 
 def main():
+    tornado.options.parse_command_line()
+    if not options.trade_pub or\
+       not options.template_dir or\
+       not options.mailchimp_apikey or\
+       not options.mailchimp_newsletter_list_id or\
+       not options.mailer_log :
+      tornado.options.print_help()
+      return
+
+    mailchimp_api =  mailchimp.Mailchimp(options.mailchimp_apikey)
+    try:
+        mailchimp_api.helper.ping()
+    except mailchimp.Error:
+        print "Invalid MailChimp API key"
+        return
+
+
     input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
         options.mailer_log,
         when='MIDNIGHT')
@@ -92,24 +95,36 @@ def main():
                 continue
 
             try:
-                sender = u'BitEx Suporte <suporte@bitex.com.br>'
+                sender = u'BitEx Support <suporte@bitex.com.br>'
                 body = ""
                 msg_to = msg.get('To')
                 subject = msg.get('Subject')
+                language = msg.get('Language')
                 content_type = 'plain'
 
                 if msg.has('Template') and msg.get('Template'):
-                    template_name = msg.get('Template')
-
-                    if template_name[-4:] == 'html':
-                        content_type = 'html'
-
-                    t_loader = template_loader.load(template_name)
-
                     params = {}
                     if msg.has('Params') and msg.get('Params'):
                         params = json.loads(msg.get('Params'))
 
+                    template_name = msg.get('Template')
+
+
+                    if template_name  == 'welcome':
+                      # user signup .... let's register him on mailchimp newsletter
+                      try:
+                        mailchimp_api.lists.subscribe(
+                            id = options.mailchimp_newsletter_list_id ,
+                            email = {'email': params['email'] },
+                            merge_vars = {'EMAIL' : params['email'], 'FNAME': params['username'] } )
+
+                      except mailchimp.ListAlreadySubscribedError:
+                        log('ERROR', 'EXCEPTION', params['email'] + ' mailchimp.ListAlreadySubscribedError' )
+                      except mailchimp.Error, e:
+                        log('ERROR', 'EXCEPTION', str(e))
+
+                    template_name += '_' + language + '.txt'
+                    t_loader = template_loader.load(template_name)
                     body = t_loader.generate(**params).decode('utf-8')
 
                 elif msg.has('RawData') and msg.get('RawData'):
@@ -127,7 +142,6 @@ def main():
                 log('IN', 'SENT', "")
 
                 log('INFO', 'SUCCESS', msg.get('EmailThreadID'))
-
             except Exception as ex:
                 traceback.print_exc()
                 log('ERROR', 'EXCEPTION', str(ex))

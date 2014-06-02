@@ -262,6 +262,21 @@ class User(Base):
     session.add(u)
     session.commit()
 
+    UserEmail.create( session = session,
+                      user_id = u.id,
+                      subject = u"Welcome to BitEX",
+                      template= "welcome",
+                      language= 'ptBR',
+                      params=  json.dumps( {
+                        'username': u.username,
+                        'email': u.email,
+                        'state': u.state,
+                        'country_code': u.country_code,
+                        'id': u.id,
+                        'broker_id': u.broker_id,
+                        'broker_username': u.broker_username}))
+
+
     return u, broker
 
 
@@ -311,6 +326,48 @@ class User(Base):
       session.add(self)
       session.flush()
 
+      verify_customer_refresh_msg = dict()
+      verify_customer_refresh_msg['MsgType'] = 'B11'
+      verify_customer_refresh_msg['ClientID'] = self.id
+      verify_customer_refresh_msg['BrokerID'] = self.broker_id
+      verify_customer_refresh_msg['Username'] = self.username
+      verify_customer_refresh_msg['Verified'] = self.verified
+      verify_customer_refresh_msg['VerificationData'] = verification_data
+
+      application.publish( self.id,  verify_customer_refresh_msg  )
+
+      if self.verified == 1:
+        UserEmail.create( session = session,
+                          user_id = self.broker_id,
+                          subject = u"Customer has submitted his data",
+                          template= "customer_verification_submit",
+                          language= 'ptBR',
+                          params=  json.dumps({
+                            'username': self.username,
+                            'email': self.email,
+                            'state': self.state,
+                            'country_code': self.country_code,
+                            'id': self.id,
+                            'broker_id': self.broker_id,
+                            'verified': self.verified,
+                            'verification_data': verification_data,
+                            'broker_username': self.broker_username}))
+      elif self.verified > 1:
+        UserEmail.create( session = session,
+                          user_id = self.id,
+                          subject = u"Your account has been verified",
+                          template= "your_account_has_been_verified",
+                          language= 'ptBR',
+                          params=  json.dumps({
+                            'username': self.username,
+                            'email': self.email,
+                            'state': self.state,
+                            'country_code': self.country_code,
+                            'id': self.id,
+                            'broker_id': self.broker_id,
+                            'verified': self.verified,
+                            'verification_data': verification_data,
+                            'broker_username': self.broker_username}))
       return True
     return False
 
@@ -770,8 +827,9 @@ class UserPasswordReset(Base):
 
     UserEmail.create( session = session,
                       user_id = user_id,
-                      subject = u"Redefina a sua senha.",
-                      template= "password_reset_ptBR.txt",
+                      subject = u"Reset your password.",
+                      template= "password_reset",
+                      language= 'ptBR',
                       params= '{"token":"' + token + '"}')
 
 
@@ -783,28 +841,38 @@ class UserEmail(Base):
   subject         = Column(String,        nullable=False)
   body            = Column(String,        nullable=True)
   template        = Column(String,        nullable=True)
+  language        = Column(String,        nullable=True)
   params          = Column(String,        nullable=True)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
   @staticmethod
-  def create( session, user_id, subject, template=None, params=None, body = None ):
+  def create( session, user_id, subject, template=None, language=None, params=None, body = None ):
     user_email = UserEmail( user_id = user_id,
-                            subject = subject,
-                            body    = body)
+                            subject = subject)
+    if template:
+      user_email.template = template
+    if language:
+      user_email.language = language
+    if params:
+      user_email.params = params
+    if body:
+      user_email.body = body
+
     session.add(user_email)
     session.flush()
 
     msg = {
-      'MsgType' : 'C',
-      'EmailThreadID': user_email.id,
-      'OrigTime': user_email.created,
-      'To': user_email.user.email,
-      'Subject' : subject,
-      'EmailType': '0',
-      'RawDataLength': 0,
-      'RawData': '',
-      'Template':'',
-      'Params':'{}'
+      'MsgType'       : 'C',
+      'EmailThreadID' : user_email.id,
+      'OrigTime'      : user_email.created,
+      'To'            : user_email.user.email,
+      'Subject'       : subject,
+      'Language'      : language,
+      'EmailType'     : '0',
+      'RawDataLength' : 0,
+      'RawData'       : '',
+      'Template'      : '',
+      'Params'        : '{}'
     }
     application.publish( user_id, msg )
 
@@ -814,6 +882,9 @@ class UserEmail(Base):
 
     if template:
       msg['Template'] = template
+
+    if language:
+      msg['Language'] = language
 
     if params:
       msg['Params'] = params
@@ -970,14 +1041,15 @@ class Withdraw(Base):
 
     formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
 
-    template_name       = "withdraw_cancelled_%s_ptBR.txt" % self.method.lower()
+    template_name       = "withdraw_cancelled_%s" % self.method.lower()
     template_parameters = self.as_dict()
     template_parameters['amount'] = formatted_amount
 
     UserEmail.create( session = session,
                       user_id = self.user_id ,
-                      subject = u"[BitEx] Withdraw cancelled.",
+                      subject = u"Withdraw cancelled.",
                       template=template_name,
+                      language='pt_BR',
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
     return self
 
@@ -1054,6 +1126,7 @@ class Withdraw(Base):
                       user_id = user.id,
                       subject =  broker.withdraw_confirmation_email_subject.replace('{currency}', currency),
                       template=template_name,
+                      language='pt_BR',
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
 
     return withdraw_record
@@ -1723,7 +1796,7 @@ def db_bootstrap(session):
                accept_customers_from=json.dumps([['*'],[]]),
                is_broker_hub=True,
                support_url='https://www.facebook.com/groups/bitex.support/',
-               withdraw_confirmation_email = 'withdraw_confirmation_{method}_enUS.txt',
+               withdraw_confirmation_email = 'withdraw_confirmation_{method}',
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url=u'/tos.html',
                fee_structure="[]",

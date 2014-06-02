@@ -169,6 +169,7 @@ class JsonMessage(BaseMessage):
       'B7':  'ProcessWithdrawResponse',
       'B8':  'VerifyCustomerRequest',
       'B9':  'VerifyCustomerResponse',
+      'B11': 'VerifyCustomerRefresh',
 
 
       # Administrative messages

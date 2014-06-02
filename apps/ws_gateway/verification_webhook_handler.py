@@ -13,13 +13,24 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
     submissionID  = self.get_argument('submissionID')
 
     raw_request = json.loads(self.get_argument('rawRequest'))
-    broker_id     = None
-    user_id       = None
+    broker_id      = None
+    user_id        = None
+    first_name     = None
+    middle_name    = None
+    last_name      = None
+
     for key, value in raw_request.iteritems():
       if 'broker_id' in key:
         broker_id = int(value)
       if 'user_id' in key:
         user_id = int(value)
+      if 'name' in key and isinstance(value, dict ) and 'first' in value:
+        first_name = value['first']
+      if 'name' in key and isinstance(value, dict ) and 'middle' in value:
+        middle_name = value['middle']
+      if 'name' in key and isinstance(value, dict ) and 'last' in value:
+        last_name = value['last']
+
 
 
     import random
@@ -32,7 +43,10 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       'BrokerID': broker_id,
       'VerificationData':  {
         'formID': formID,
-        'submissionID': submissionID
+        'submissionID': submissionID,
+        'FirstName': first_name,
+        'MiddleName': middle_name,
+        'LastName': last_name,
       },
       'Verify': 1
     }
