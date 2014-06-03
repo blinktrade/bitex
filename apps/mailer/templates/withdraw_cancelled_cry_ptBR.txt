@@ -1,9 +1,0 @@
-Olá {{username}}
-
-Sua solicitação de saque efetuada em {{created}} no valor de {{amount}} {{currency}} foi cancelada pelo seguinte motivo:
-
-ID: {{reason_id}} - {{reason}}
-
-Grato,
-BitEx
-Segurança e Transparência
