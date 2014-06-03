@@ -267,7 +267,7 @@ class User(Base):
                       subject = u"Welcome to BitEX",
                       template= "welcome",
                       language= 'ptBR',
-                      params=  json.dumps( {
+                      params=  json.dumps({
                         'username': u.username,
                         'email': u.email,
                         'state': u.state,
@@ -340,7 +340,7 @@ class User(Base):
         UserEmail.create( session = session,
                           user_id = self.broker_id,
                           subject = u"Customer has submitted his data",
-                          template= "customer_verification_submit",
+                          template= "customer-verification-submit",
                           language= 'ptBR',
                           params=  json.dumps({
                             'username': self.username,
@@ -356,7 +356,7 @@ class User(Base):
         UserEmail.create( session = session,
                           user_id = self.id,
                           subject = u"Your account has been verified",
-                          template= "your_account_has_been_verified",
+                          template= "your-account-has-been-verified",
                           language= 'ptBR',
                           params=  json.dumps({
                             'username': self.username,
@@ -828,9 +828,9 @@ class UserPasswordReset(Base):
     UserEmail.create( session = session,
                       user_id = user_id,
                       subject = u"Reset your password.",
-                      template= "password_reset",
+                      template= "password-reset",
                       language= 'ptBR',
-                      params= '{"token":"' + token + '"}')
+                      params=  json.dumps({'token':token, 'username':req.user.username } ))
 
 
 class UserEmail(Base):
@@ -1041,7 +1041,7 @@ class Withdraw(Base):
 
     formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
 
-    template_name       = "withdraw_cancelled_%s" % self.method.lower()
+    template_name       = "withdraw-cancelled"
     template_parameters = self.as_dict()
     template_parameters['amount'] = formatted_amount
 
@@ -1049,7 +1049,7 @@ class Withdraw(Base):
                       user_id = self.user_id ,
                       subject = u"Withdraw cancelled.",
                       template=template_name,
-                      language='pt_BR',
+                      language='ptBR',
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
     return self
 
@@ -1126,7 +1126,7 @@ class Withdraw(Base):
                       user_id = user.id,
                       subject =  broker.withdraw_confirmation_email_subject.replace('{currency}', currency),
                       template=template_name,
-                      language='pt_BR',
+                      language='ptBR',
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
 
     return withdraw_record
@@ -1796,7 +1796,7 @@ def db_bootstrap(session):
                accept_customers_from=json.dumps([['*'],[]]),
                is_broker_hub=True,
                support_url='https://www.facebook.com/groups/bitex.support/',
-               withdraw_confirmation_email = 'withdraw_confirmation_{method}',
+               withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url=u'/tos.html',
                fee_structure="[]",
@@ -1851,7 +1851,7 @@ def db_bootstrap(session):
                accept_customers_from=json.dumps([['*'],[]]),
                is_broker_hub=True,
                support_url='https://www.facebook.com/groups/bitex.support/',
-               withdraw_confirmation_email = 'withdraw_confirmation_{method}_enUS.txt',
+               withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                tos_url=u'/tos.html',
                fee_structure="[]",
@@ -1929,7 +1929,7 @@ def db_bootstrap(session):
                  ]) ,
                  is_broker_hub=False,
                  support_url='https://www.facebook.com/groups/bitex.support/',
-                 withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                  withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                  tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
                  fee_structure=json.dumps([
@@ -1978,7 +1978,7 @@ def db_bootstrap(session):
                    ],
                    'BRL': [
                        {
-                       'method':'ted_doc',
+                       'method':'ted-doc',
                        'description':'Saque para conta bancária no Brasil',
                        'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                        'percent_fee': 165, # 1.65 percent
@@ -2012,7 +2012,7 @@ def db_bootstrap(session):
                  ]) ,
                  is_broker_hub=False,
                  support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
-                 withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                  withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                  tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
                  fee_structure=json.dumps([
@@ -2061,7 +2061,7 @@ def db_bootstrap(session):
                    ],
                    'BRL': [
                        {
-                       'method':'ted_doc',
+                       'method':'ted-doc',
                        'description':'Saque para conta bancária no Brasil',
                        'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                        'percent_fee': 135, # 1.35 percent
@@ -2109,7 +2109,7 @@ def db_bootstrap(session):
                  ]) ,
                  is_broker_hub=False,
                  support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
-                 withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                  withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                  tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
                  fee_structure=json.dumps([
@@ -2161,7 +2161,7 @@ def db_bootstrap(session):
                    ],
                    'BRL': [
                        {
-                       'method':'ted_doc',
+                       'method':'ted-doc',
                        'description':'Saque para conta bancária no Brasil',
                        'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                        'percent_fee': 50, # 0.5% percent
@@ -2195,7 +2195,7 @@ def db_bootstrap(session):
                  ]),
                  is_broker_hub=False,
                  support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
-                 withdraw_confirmation_email = 'withdraw_confirmation_{method}_ptBR.txt',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                  withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                  tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
                  fee_structure=json.dumps([

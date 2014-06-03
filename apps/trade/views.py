@@ -163,7 +163,48 @@ def processNewOrderSingle(session, msg):
         client = User.get_user(application.db_session, email= msg.get('ClientID'))
 
       if not client:
-        raise InvalidClientIDError()
+        if application.options.satoshi_mode:
+          client, broker = User.signup(application.db_session,
+                                      msg.get('ClientID'),
+                                      msg.get('ClientID') + '@' + session.user.username + '.com',
+                                      'abc12345',
+                                      '',
+                                      session.user.country_code,
+                                      session.user.id)
+
+          Ledger.transfer(application.db_session,
+                          client.broker_id,            # from_account_id
+                          client.broker_username,      # from_account_name
+                          client.broker_id,            # from_broker_id
+                          client.broker_username,      # from_broker_name
+                          client.id,                   # to_account_id
+                          client.username,             # to_account_name
+                          client.broker_id,            # to_broker_id
+                          client.broker_username,      # to_broker_name
+                          'BTC',                       # currency
+                          100e8,                       # amount
+                          str(client.id),              # reference
+                          'B'                          # descriptions
+          )
+
+          Ledger.transfer(application.db_session,
+                          client.broker_id,            # from_account_id
+                          client.broker_username,      # from_account_name
+                          client.broker_id,            # from_broker_id
+                          client.broker_username,      # from_broker_name
+                          client.id,                   # to_account_id
+                          client.username,             # to_account_name
+                          client.broker_id,            # to_broker_id
+                          client.broker_username,      # to_broker_name
+                          'USD',                       # currency
+                          60000e8,                     # amount
+                          str(client.id),              # reference
+                          'B'                          # descriptions
+          )
+        else:
+          raise InvalidClientIDError()
+
+
       account_user = client
       account_id   = client.account_id
       broker_user  = account_user.broker

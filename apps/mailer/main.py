@@ -17,7 +17,6 @@ DEFAULT_TEMPLATE_PATH = os.path.abspath(
 import time
 from util import send_email
 
-from tornado import template
 from tornado.options import define, options
 import tornado
 
@@ -26,20 +25,21 @@ from bitex.message import JsonMessage
 define("trade_pub", help="zmq publisher queue")
 define("mailchimp_apikey", help="mailchimp api key")
 define("mailchimp_newsletter_list_id", help="mailchimp newsletter list id")
-define("template_dir",default=DEFAULT_TEMPLATE_PATH,help="email template path")
+define("mandrill_apikey", help="mandrill api key")
 define("mailer_log",default=os.path.join(ROOT_PATH,"logs/","mailer.log"),help="logging")
 define("config", default=os.path.join(ROOT_PATH, "config/", "mailer.conf"), help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 import json
 import zmq
 import mailchimp
+import mandrill
 
 def main():
     tornado.options.parse_command_line()
     if not options.trade_pub or\
-       not options.template_dir or\
        not options.mailchimp_apikey or\
        not options.mailchimp_newsletter_list_id or\
+       not options.mandrill_apikey or\
        not options.mailer_log :
       tornado.options.print_help()
       return
@@ -50,6 +50,15 @@ def main():
     except mailchimp.Error:
         print "Invalid MailChimp API key"
         return
+
+    mandrill_api = mandrill.Mandrill(options.mandrill_apikey)
+    try:
+        mandrill_api.users.ping()
+    except mandrill.Error:
+        print "Invalid Mandrill API key"
+        return
+
+    print mandrill_api.users.senders()
 
 
     input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
@@ -70,11 +79,8 @@ def main():
 
     log('PARAM', 'BEGIN')
     log('PARAM', 'trade_pub', options.trade_pub)
-    log('PARAM', 'template_dir', options.template_dir)
     log('PARAM', 'mailer_log', options.mailer_log)
     log('PARAM', 'END')
-
-    template_loader = template.Loader(options.template_dir)
 
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
@@ -123,9 +129,24 @@ def main():
                       except mailchimp.Error, e:
                         log('ERROR', 'EXCEPTION', str(e))
 
-                    template_name += '_' + language + '.txt'
-                    t_loader = template_loader.load(template_name)
-                    body = t_loader.generate(**params).decode('utf-8')
+
+                    template_content = []
+                    for k,v in params.iteritems():
+                      template_content.append( { 'name': k, 'content': v  } )
+
+                    message = {
+                      'to': [ {'email': msg_to, 'name': params['username'],'type': 'to' }  ],
+                      'metadata': {'website': 'www.bitex.com.br'},
+                      'global_merge_vars': template_content
+                    }
+
+                    result = mandrill_api.messages.send_template(
+                      template_name= (template_name + '-' + language).lower(),
+                      template_content=template_content,
+                      message=message)
+
+                    log('INFO', 'SUCCESS', str(result))
+                    continue
 
                 elif msg.has('RawData') and msg.get('RawData'):
                     body = msg.get('RawData')
