@@ -180,8 +180,11 @@ bitex.ui.Customers.prototype.selected_customer_;
  */
 bitex.ui.Customers.prototype.getRowClass = function(row_set) {
   var class_status;
-  if  (row_set['Verified'])  {
+  if  (row_set['Verified'] == 2)  {
     class_status = goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'verified');
+  } else if (row_set['Verified'] == 1) {
+
+    class_status = goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'verification-pending');
   } else {
     class_status = goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'non-verified');
   }

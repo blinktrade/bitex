@@ -133,6 +133,7 @@ bitex.api.BitEx.EventType = {
   CUSTOMER_LIST_RESPONSE: 'customer_list',
   CUSTOMER_DETAIL_RESPONSE: 'customer_detail',
   VERIFY_CUSTOMER_RESPONSE: 'verify_customer_response',
+  VERIFY_CUSTOMER_UPDATE: 'verify_customer_update',
 
   /* Market Data */
   MARKET_DATA_FULL_REFRESH : 'md_full_refresh',
@@ -410,6 +411,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE + '.' + msg['VerifyCustomerReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE, msg ) );
       break;
+
+    case 'B11': // Verification Customer Update
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.VERIFY_CUSTOMER_UPDATE, msg ) );
+      break;
+
 
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth

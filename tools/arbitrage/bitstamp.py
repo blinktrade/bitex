@@ -123,9 +123,14 @@ class BitstampArbitrator(object):
 
 
 def main():
-  arbitrator = BitstampArbitrator('rodrigo',
-                                  'abc12345',
-                                  'wss://pinhopro.no-ip.org/trade/',
+  import getpass
+  print "Enter BitEX credentials"
+  username = raw_input('Username:')
+  password = getpass.getpass()
+
+  arbitrator = BitstampArbitrator(username,
+                                  password,
+                                  'wss://test.bitex.com.br/trade/',
                                   0.01,  # 1% fee on bid
                                   0.01)  # 1% fee on ask
   arbitrator.run()

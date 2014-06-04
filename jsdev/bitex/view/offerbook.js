@@ -181,12 +181,10 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
   var model = this.getApplication().getModel();
 
   handler.listen( model,  bitex.model.Model.EventType.SET + 'SelectedSymbol', function(e) {
-    console.log("received event");
     var selected_symbol = model.get('SelectedSymbol');
     var selected_broker_id = model.get('SelectedBrokerID');
     var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
     var symbol = selected_symbol.symbol;
-    console.log("crashed or what");
 
     var buy_order_entry = this.getChildAt(0);
     var sell_order_entry = this.getChildAt(1);

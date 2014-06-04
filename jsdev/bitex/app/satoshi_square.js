@@ -533,6 +533,8 @@ bitex.app.SatoshiSquare.prototype.run = function(opt_url) {
   handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
   handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
 
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.VERIFY_CUSTOMER_UPDATE, this.onBitexVerifyCustomerUpdate_ );
+
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
 
@@ -572,13 +574,15 @@ bitex.app.SatoshiSquare.prototype.run = function(opt_url) {
 
   handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_ );
 
+
+
   this.connectBitEx();
 };
 
 /**
  * logger
  * @param {string} action
- * @param {goog.events.Event} e
+ * @param {bitex.api.BitExEvent} e
  * @private
  */
 bitex.app.SatoshiSquare.prototype.onBitexRawMessageLogger_ = function(action, e) {
@@ -686,6 +690,10 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
 
 
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
 
@@ -713,6 +721,10 @@ bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
   this.getModel().set('DepositMethods', deposit_methods);
 };
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
   /**
    * @desc Password Chanced with success dialog title
@@ -730,6 +742,10 @@ bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
   this.router_.setView('signin');
 };
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedError_ = function(e) {
   /**
    * @desc Password Chanced with success dialog title
@@ -746,7 +762,10 @@ bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedError_ = function(e) {
 
 };
 
-
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexWithdrawIncrementalUpdate_ = function(e) {
   var msg = e.data;
 
@@ -802,8 +821,45 @@ bitex.app.SatoshiSquare.prototype.onBitexWithdrawIncrementalUpdate_ = function(e
   }
 };
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
+bitex.app.SatoshiSquare.prototype.onBitexVerifyCustomerUpdate_ = function(e) {
+  var msg = e.data;
+
+  var profile = this.getModel().get('Profile');
+  var old_verified = profile['Verified'];
+
+  profile['Verified']         = msg['Verified'];
+  profile['VerificationData'] = msg['VerificationData'];
+  this.getModel().set('Profile', profile);
+
+  this.getModel().set('IsVerified',       profile['Verified'] > 1);
+
+  /** @desc verification notification title msg */
+  var MSG_NOTIFICATION_VERIFY_TITLE = goog.getMsg('Verification:');
+
+  /** @desc pending verification notification content msg */
+  var MSG_PENDING_VERIFICATION_CONTENT = goog.getMsg('Sent to the broker.');
+
+  /** @desc level 2 verification notification content msg */
+  var MSG_ACCOUNT_VERIFIED_CONTENT = goog.getMsg('You account has been verified. level - {$level}', {level : profile['Verified'] });
 
 
+  if (old_verified == 0 && profile['Verified'] == 1  ) {
+    this.router_.setView('offerbook');
+    this.showNotification('success', MSG_NOTIFICATION_VERIFY_TITLE, MSG_PENDING_VERIFICATION_CONTENT);
+  } else if (profile['Verified'] >= 2  ) {
+    this.showNotification('success', MSG_NOTIFICATION_VERIFY_TITLE, MSG_ACCOUNT_VERIFIED_CONTENT);
+  }
+};
+
+
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
   var msg = e.data;
 
@@ -842,12 +898,20 @@ bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
 };
 
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexTwoFactorSecretResponse_ = function(e){
   var msg = e.data;
   this.getModel().set('TwoFactorSecret', msg['TwoFactorSecret']);
   this.getModel().set('TwoFactorEnabled', msg['TwoFactorEnabled'] );
 };
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
 bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
   var msg = e.data;
   delete msg['MsgType'];
@@ -1974,14 +2038,16 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
     goog.dom.classes.add( document.body, 'bitex-non-broker');
   }
   this.getModel().set('Profile',  profile);
-  this.getModel().set('AllowedMarkets', allowed_markets);
-  this.getModel().set('BrokerCurrencies', broker_currencies.getValues() );
-
   if (msg['IsBroker'] ) {
     this.getModel().set('SelectedBrokerID', this.getModel().get('Profile')['BrokerID']);
   } else if (goog.isDefAndNotNull(msg['Broker'])) {
     this.getModel().set('SelectedBrokerID', this.getModel().get('Broker')['BrokerID']);
   }
+
+
+  this.getModel().set('AllowedMarkets', allowed_markets);
+  this.getModel().set('BrokerCurrencies', broker_currencies.getValues() );
+
 
   this.conn_.requestBalances();
 
