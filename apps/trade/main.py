@@ -17,7 +17,8 @@ define("db_engine",  help="SQLAlchemy database engine string")
 define("test_mode", default=False, help="Test mode")
 define("satoshi_mode", default=False, help="Satoshi mode")
 define("dev_mode", default=False, help="Dev mode")
-define("config", default=os.path.join(ROOT_PATH, "config/", "trade.conf"), help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
+define("config", default=os.path.join(ROOT_PATH, "config/", "trade.conf"), help="config file",
+       callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 from trade_application import application
 

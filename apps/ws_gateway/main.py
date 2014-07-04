@@ -83,11 +83,10 @@ define(
         "ws_01_bitex.sqlite"),
     help="SQLAlchemy database engine string")
 
-tornado.options.parse_config_file(
-    os.path.join(
-        ROOT_PATH,
-        "config/",
-        "ws_gateway.conf"))
+define("config", default=os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"), help="config file",
+       callback=lambda path: tornado.options.parse_config_file(path, final=False))
+
+
 tornado.options.parse_command_line()
 
 from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history
