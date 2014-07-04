@@ -357,6 +357,28 @@ ul.parsley-error-list li {
 }
 
 
+.order-entry-simple-heading {
+  padding: 45px 70px 15px;
+}
+
+.order-entry-simple h1 {
+  margin: 10px 0 0;
+}
+
+.order-entry-simple-body {
+  padding: 0 75px;
+}
+
+.order-entry-simple-data {
+  margin-bottom: 5px;
+}
+.order-entry-simple-data input {
+  text-align:right;
+  width: 89%;
+}
+
+
+
 .notifications {
   position: fixed;
 }

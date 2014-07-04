@@ -1726,14 +1726,14 @@ def db_bootstrap(session):
   if not User.get_user(session, 'bitex'):
     e = User(id=-1, username='bitex', email='bitex@bitex.com.br',  broker_id=None, broker_username=None, password=base64.b32encode(os.urandom(10)),
              country_code='BR', state='SP',
-             verified=1, is_staff=False, is_system=False, is_broker=True)
+             verified=2, is_staff=False, is_system=False, is_broker=True)
     session.add(e)
     session.commit()
 
   if not User.get_user(session, 'bitex_broker'):
     e = User(id=0, username='bitex_broker', email='bitex.broker@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
              country_code='BR', state='SP',
-             verified=1, is_staff=True, is_system=False, is_broker=True)
+             verified=2, is_staff=True, is_system=False, is_broker=True)
     session.add(e)
     session.commit()
 
@@ -1743,7 +1743,7 @@ def db_bootstrap(session):
                country_code='US', state='NY',
                transaction_fee_buy=0,
                transaction_fee_sell=0,
-               verified=1, is_staff=False, is_system=False, is_broker=True)
+               verified=2, is_staff=False, is_system=False, is_broker=True)
       session.add(e)
       session.commit()
 
@@ -1752,7 +1752,7 @@ def db_bootstrap(session):
                country_code='BR', state='MG',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
-               verified=1, is_staff=False, is_system=False, is_broker=True)
+               verified=2, is_staff=False, is_system=False, is_broker=True)
       session.add(e)
       session.commit()
 
@@ -1762,7 +1762,7 @@ def db_bootstrap(session):
                country_code='BR', state='SC',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
-               verified=1, is_staff=False, is_system=False, is_broker=True)
+               verified=2, is_staff=False, is_system=False, is_broker=True)
       session.add(e)
       session.commit()
 
@@ -1772,9 +1772,19 @@ def db_bootstrap(session):
                country_code='BR', state='SC',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
-               verified=1, is_staff=False, is_system=False, is_broker=True)
+               verified=2, is_staff=False, is_system=False, is_broker=True)
       session.add(e)
       session.commit()
+
+    if not User.get_user(session, 'ubuntubitx'):
+      e = User(id=9000045, username='ubuntubitx', email='wilfriedsare@gmail.com',  broker_id=0, broker_username='ubuntubitx', password='abc12345',
+               country_code='BJ', state='',
+               transaction_fee_buy=100,
+               transaction_fee_sell=100,
+               verified=2, is_staff=False, is_system=False, is_broker=True)
+      session.add(e)
+      session.commit()
+
 
   if not Broker.get_broker(session, -1):
     e = Broker(id=-1,
@@ -2211,6 +2221,121 @@ def db_bootstrap(session):
       session.add(e)
       session.commit()
 
+  #
+    if not Broker.get_broker(session, 9000045):
+      e = Broker(id=9000045,
+                 short_name=u'ubuntubitx',
+                 business_name=u'U฿untu BitX',
+                 address=u'1 Rue Du Succes Cotonou 01',
+                 signup_label=u'U฿untu BitX. - LIC 2824197',
+                 city='Cotono',
+                 state='',
+                 zip_code='01',
+                 country_code='BJ',
+                 country='Benin',
+                 phone_number_1='+229 (66) 36 11 24', phone_number_2='+225 (60) 03 94 98', skype='ubuntubitx', email='wilfriedsare@gmail.com',
+                 verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+                 upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+                 currencies='XOF',
+                 withdraw_structure=json.dumps( {
+                   'BTC': [
+                       {
+                       'method':'bitcoin',
+                       'description':'Saque em Bitcoins',
+                       'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
+                       'percent_fee':0,
+                       'fixed_fee':0,
+                       'fields': [
+                           {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                           {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                       ]
+                     }
+                   ],
+                   'XOF': [
+                       {
+                       'method':'swift',
+                       'description':'International Transfer',
+                       'disclaimer':'84 hours, 1.5%  fee + Fr 35000,00',
+                       'percent_fee': 150, # 1.50 percent
+                       'fixed_fee': int(35000 * 1e8), # Fr 35000,00
+                       'fields': [
+                           {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                           {'side':'client', 'name': 'BankSwift'    ,  'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
+                           {'side':'client', 'name': 'RoutingNumber',  'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                           {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                           {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                       ]
+                     },{
+                       'method':'scgen_xof_transfer',
+                       'description':u'Société Générale CFA Transfer',
+                       'disclaimer':'24 hours, 1.5%  fee + Fr 1000,00',
+                       'percent_fee': 150, # 1.50 percent
+                       'fixed_fee': int(1000 * 1e8), # Fr 1000,00
+                       'fields': [
+                           {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                           {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                       ]
+                     },{
+                       'method':'paypal',
+                       'description':'Paypal',
+                       'disclaimer':'Paypal might charge you additional fees',
+                       'percent_fee': 150, # 1.5 percent
+                       'fixed_fee': 0,
+                       'fields': [
+                           {'side':'client',  'name': 'Email'          ,  'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
+                           {'side':'broker',  'name': 'TransactionID'  ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker',  'name': 'Link'           ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                       ]
+                     }, {
+                       'method':'mtn',
+                       'description':'MTN Mobile Money Online',
+                       'disclaimer':'',
+                       'percent_fee': 150,  # 1.5 percent
+                       'fixed_fee': int(3500 * 1e8), # Fr 3500,00
+                       'fields': [
+                           {'side':'client',  'name': 'Email'          ,  'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
+                           {'side':'broker',  'name': 'TransactionID'  ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker',  'name': 'Link'           ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                       ]
+                     },
+                   ]
+                 }),
+                 crypto_currencies=json.dumps([
+                     {
+                     "CurrencyCode": "BTC",
+                     "CurrencyDescription":"Bitcoin",
+                     "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                     "Wallets": [
+                         { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":True,"signatures":[], "managed_by":"Thiago Struck, BitEX" },
+                         { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Thiago Struck" },
+                     ]
+                   }
+                 ]),
+                 accept_customers_from=json.dumps([
+                   ["*"],  # All countries
+                   [ "CU", "SO", "SD",  "NG", "IR", "KP" ], # Cuba, Somalia, Sudam, Nigeria, Iran, North Korea
+                 ]),
+                 is_broker_hub=False,
+                 support_url='https://ubuntubitx.zendesk.com',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
+                 withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+                 tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
+                 fee_structure=json.dumps([
+                     { "Operation" : u"Depósito em Reais no Brasil", "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
+                     { "Operation" : u"Depósito em Bitcoin",         "Fee":"0%"              , "Terms":u"10 minutos após a confirmação de número 6 da rede Bitcoin" },
+                     { "Operation" : u"Saque em Bitcoin",            "Fee":"0%"              , "Terms":u"Automático e imediato ao utilizar autenticação em 2 passos para contas verificadas e feito manual com prazo de até 24 horas para contas não verificadas." },
+                     { "Operation" : u"Saque em Reais no Brasil",    "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." }
+                 ]),
+                 transaction_fee_buy=50, # 0.5%
+                 transaction_fee_sell=50, # 0.5%
+                 status='1',
+                 ranking=2)
+      session.add(e)
+      session.commit()
+
 
   currencies = [
     #[ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'  ],
@@ -2230,6 +2355,7 @@ def db_bootstrap(session):
     [ 'ILS' , u'\u20aa' , 'New shekel',  False, 100000000  , '{:,.8f}', u'\u20aa #,##0.00000000;(\u20aa #,##0.00000000)' , '{:,.2f}', u'\u20aa #,##0.00;(\u20aa #,##0.00)'  ],
     [ 'MXN' , '$'       , 'Mexican Peso',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
     [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)', '{:,.5f}', u'\u0e3f #,##0.00000;(\u0e3f #,##0.00000)' ],
+    [ 'XOF' , 'Fr'      , 'CFA Frank',  False, 100000000  , '{:,.8f}', u'Fr #,##0.00000000;(Fr #,##0.00000000)' , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)', '{:,.5f}', u'\u0141 #,##0.00000;(\u0141 #,##0.00000)']
     # Ny Bitcoin Center settings
     #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)', '{:,.3f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
@@ -2266,6 +2392,7 @@ def db_bootstrap(session):
     ['BTCIDR', 'IDR', "BTC / IDR" ],
     ['BTCILS', 'ILS', "BTC / ILS" ],
     ['BTCMXN', 'MXN', "BTC / MXN" ],
+    ['BTCXOF', 'XOF', "BTC / CFA Frank" ],
   ]
   for inst in instruments:
     if Instrument.get_instrument(session, inst[0]):
@@ -2659,3 +2786,6 @@ def db_bootstrap(session):
                             } ) )
       session.add(bo)
       session.commit()
+
+
+  # 9000045

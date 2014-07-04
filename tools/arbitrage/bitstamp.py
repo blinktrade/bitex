@@ -117,7 +117,7 @@ class BitstampArbitrator(object):
     try:
       self.ws.run_forever()
     except Exception, e:
-      self.ws.send(json.dumps({ 'MsgType':'F'}))  # Cancel all open orders for this user
+      self.ws.send(json.dumps({'MsgType':'F'}))  # Cancel all open orders for this user
       self.ws.close()
 
 

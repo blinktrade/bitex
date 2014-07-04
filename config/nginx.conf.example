@@ -51,14 +51,14 @@ http {
 
         location / { 
             root  /Users/rodrigo/bitex/static/; 
-            index  satoshi_square.html;
+            index  blinktrade.html;
 
             location ~ /(broker_application|my_broker|set_new_password|signin|signup|forgot_password|tos|start|trading|offerbook|deposit|withdraw|account_activity|customers|account_overview|verification|enable_two_factor|ledger|withdraw_requests|deposit_requests)$ {
-              rewrite /(.*)  /satoshi_square.html break;
+              rewrite /(.*)  /blinktrade.html break;
             }
 
             location  /account_overview/ {
-              rewrite /(.*)  /satoshi_square.html break;
+              rewrite /(.*)  /blinktrade.html break;
             }
 
             location /_webhook/ {

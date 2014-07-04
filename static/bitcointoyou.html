@@ -34,8 +34,8 @@
   <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
 
   <!-- bitex application -->
-  <!-- <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v5" type="text/javascript"></script> <!--  -->
-  <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v5" type="text/javascript"></script>  <!--  -->
+  <!-- <script src="./js/bitex_app_blink_trade.compiled.en_US.js?v5" type="text/javascript"></script> <!--  -->
+  <script src="./js/bitex_app_blink_trade.compiled.pt_BR.js?v5" type="text/javascript"></script>  <!--  -->
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
@@ -563,9 +563,7 @@
 </footer>
 
 <script>
-  var app = new App('BR', 9000002);
-  //app.run('wss://localhost/trade/');
-  //app.run('wss://pinhopro.no-ip.org/trade/');
+  var app = new BlinkTradeApp('BR', 9000002);
   app.run();
 </script>
 

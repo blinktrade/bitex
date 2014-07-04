@@ -1,5 +1,5 @@
-goog.provide('bitex.app.SatoshiSquare');
-goog.provide('bitex.app.satoshi_square');
+goog.provide('bitex.app.BlinkTrade');
+goog.provide('bitex.app.blink_trade');
 
 goog.require('goog.structs.Map');
 goog.require('goog.structs.Set');
@@ -69,6 +69,7 @@ goog.require('bitex.view.WithdrawView');
 goog.require('bitex.view.CustomersView');
 goog.require('bitex.view.AccountOverview');
 goog.require('bitex.view.BrokerView');
+goog.require('bitex.view.TradingView');
 goog.require('bitex.view.ToolBarView');
 goog.require('bitex.view.MarketView');
 goog.require('bitex.view.LedgerView');
@@ -80,7 +81,7 @@ goog.require('bitex.view.LedgerView');
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-bitex.app.SatoshiSquare = function(opt_default_country, opt_default_broker_id) {
+bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id) {
   goog.events.EventTarget.call(this);
 
   bootstrap.Dropdown.install();
@@ -110,45 +111,45 @@ bitex.app.SatoshiSquare = function(opt_default_country, opt_default_broker_id) {
   this.currency_info_       = {};
   this.all_markets_         = {};
 };
-goog.inherits(bitex.app.SatoshiSquare, goog.events.EventTarget);
-goog.addSingletonGetter(bitex.app.SatoshiSquare);
+goog.inherits(bitex.app.BlinkTrade, goog.events.EventTarget);
+goog.addSingletonGetter(bitex.app.BlinkTrade);
 
 
 /**
  * @type {bitex.app.UrlRouter}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.router_;
+bitex.app.BlinkTrade.prototype.router_;
 
 /**
  * @type {bitex.model.Model}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.model_;
+bitex.app.BlinkTrade.prototype.model_;
 
 /**
  * @type {string}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.url_;
+bitex.app.BlinkTrade.prototype.url_;
 
 /**
  * @type {bitex.api.BitEx}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.conn_;
+bitex.app.BlinkTrade.prototype.conn_;
 
 /**
  * @type {Object}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.currency_info_;
+bitex.app.BlinkTrade.prototype.currency_info_;
 
 /**
  * @type {Array}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.all_markets_;
+bitex.app.BlinkTrade.prototype.all_markets_;
 
 
 /**
@@ -159,32 +160,32 @@ bitex.app.SatoshiSquare.prototype.all_markets_;
  * @type {goog.events.EventHandler}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.handler_;
+bitex.app.BlinkTrade.prototype.handler_;
 
 /**
  * @type {goog.ui.Dialog}
  */
-bitex.app.SatoshiSquare.prototype.dialog_;
+bitex.app.BlinkTrade.prototype.dialog_;
 
 /**
  * @type {bitex.view.LoginView}
  */
-bitex.app.SatoshiSquare.prototype.loginView_;
+bitex.app.BlinkTrade.prototype.loginView_;
 
 /**
  * @type {goog.ui.Component}
  */
-bitex.app.SatoshiSquare.prototype.views_;
+bitex.app.BlinkTrade.prototype.views_;
 
 /**
  * @type {number}
  */
-bitex.app.SatoshiSquare.prototype.error_message_alert_timeout_;
+bitex.app.BlinkTrade.prototype.error_message_alert_timeout_;
 
 /**
  * @protected
  */
-bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
+bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
   // Create all datagrids
   goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_withdraw_request_list'));
@@ -198,6 +199,8 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
   goog.dom.removeChildren( goog.dom.getElement('account_overview_withdraw_requests_id'));
   goog.dom.removeChildren( goog.dom.getElement('account_overview_trades_id'));
   goog.dom.removeChildren( goog.dom.getElement('account_overview_deposits_id'));
+  goog.dom.removeChildren( goog.dom.getElement('id_trading_well'));
+
 
   /**
    * @desc placeholder for the search input text in the customers table
@@ -257,6 +260,16 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
     title: MSG_LAST_TRADES_TABLE_TITLE,
     show_search: false
   });
+
+
+  /** @desc Order manager table tittle */
+  var MSG_ORDER_MANAGER_TABLE_TITLE = goog.getMsg('My orders');
+  goog.soy.renderElement(goog.dom.getElement('id_trading_well'), bitex.templates.DataGrid, {
+    id: 'id_order_manager_table',
+    title: MSG_ORDER_MANAGER_TABLE_TITLE,
+    show_search: false
+  });
+
 
   /**
    * @desc Title  for the customers table
@@ -382,7 +395,7 @@ bitex.app.SatoshiSquare.prototype.createHtmlTemplates_ = function() {
 /**
  * @return {goog.events.EventHandler}
  */
-bitex.app.SatoshiSquare.prototype.getHandler = function() {
+bitex.app.BlinkTrade.prototype.getHandler = function() {
   return this.handler_ ||
       (this.handler_ = new goog.events.EventHandler(this));
 
@@ -391,7 +404,7 @@ bitex.app.SatoshiSquare.prototype.getHandler = function() {
 /**
  * @param {string} opt_url
  */
-bitex.app.SatoshiSquare.prototype.run = function(opt_url) {
+bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   var url =  'wss://' + window.location.hostname + '/trade/';
   if (goog.isDefAndNotNull(opt_url)) {
     url = opt_url;
@@ -422,7 +435,7 @@ bitex.app.SatoshiSquare.prototype.run = function(opt_url) {
   var accountOverviewView = new bitex.view.AccountOverview(this);
   var brokerView          = new bitex.view.BrokerView(this);
   var marketView          = new bitex.view.MarketView(this);
-  var tradingView         = new bitex.view.NullView(this);
+  var tradingView         = new bitex.view.TradingView(this);
   var toolBarView         = new bitex.view.ToolBarView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
   var ledgerView          = new bitex.view.LedgerView(this);
@@ -585,7 +598,7 @@ bitex.app.SatoshiSquare.prototype.run = function(opt_url) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexRawMessageLogger_ = function(action, e) {
+bitex.app.BlinkTrade.prototype.onBitexRawMessageLogger_ = function(action, e) {
   var raw_msg = e.data;
   try {
     console.log(action + ':' + raw_msg);
@@ -595,7 +608,7 @@ bitex.app.SatoshiSquare.prototype.onBitexRawMessageLogger_ = function(action, e)
 /**
  * Connect to the bitex Server
  */
-bitex.app.SatoshiSquare.prototype.connectBitEx = function(){
+bitex.app.BlinkTrade.prototype.connectBitEx = function(){
   try{
     this.conn_.open(this.url_);
   } catch( e ) {
@@ -613,27 +626,27 @@ bitex.app.SatoshiSquare.prototype.connectBitEx = function(){
   }
 };
 
-bitex.app.SatoshiSquare.prototype.getBitexConnection = function(){
+bitex.app.BlinkTrade.prototype.getBitexConnection = function(){
   return this.conn_;
 };
 
 /**
  * @param {string} view_id
  */
-bitex.app.SatoshiSquare.prototype.setView = function(view_id){
+bitex.app.BlinkTrade.prototype.setView = function(view_id){
 
   this.router_.setView(view_id);
 };
 
 
-bitex.app.SatoshiSquare.prototype.onUserMarketDataSubscribe_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserMarketDataSubscribe_ = function(e) {
   this.conn_.subscribeMarketData(e.target.getMDMarketDepth(),
                                  e.target.getMDInstruments(),
                                  e.target.getMDEntries(),
                                  e.target.getMDSubscriptionId());
 };
 
-bitex.app.SatoshiSquare.prototype.onUserMarketDataUnsubscribe_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserMarketDataUnsubscribe_ = function(e) {
   this.conn_.unSubscribeMarketData(e.target.getMDSubscriptionId());
 };
 
@@ -641,21 +654,21 @@ bitex.app.SatoshiSquare.prototype.onUserMarketDataUnsubscribe_ = function(e) {
  * @param {string} symbol
  * @return {string}
  */
-bitex.app.SatoshiSquare.prototype.getPriceCurrencyFromSymbol = function(symbol) {
+bitex.app.BlinkTrade.prototype.getPriceCurrencyFromSymbol = function(symbol) {
   return symbol.substr(3);
 };
 /**
  * @param {string} symbol
  * @return {string}
  */
-bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol = function(symbol) {
+bitex.app.BlinkTrade.prototype.getQtyCurrencyFromSymbol = function(symbol) {
   return symbol.substr(0,3);
 };
 
 /**
  * @param {goog.events.Event} e
  */
-bitex.app.SatoshiSquare.prototype.onUserChangeBroker_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserChangeBroker_ = function(e) {
   var brokerID = e.target.getBrokerID();
   this.getModel().set('SelectedBrokerID', brokerID);
 };
@@ -664,7 +677,7 @@ bitex.app.SatoshiSquare.prototype.onUserChangeBroker_ = function(e) {
 /**
  * @param {goog.events.Event} e
  */
-bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserChangeMarket_ = function(e) {
 
   var symbol = e.target.getSymbol();
   var qtyCurrency = this.getQtyCurrencyFromSymbol(symbol);
@@ -694,7 +707,7 @@ bitex.app.SatoshiSquare.prototype.onUserChangeMarket_ = function(e) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
 
   var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
@@ -725,7 +738,7 @@ bitex.app.SatoshiSquare.prototype.onBitexDepositMethodsResponse_ = function(e) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexPasswordChangedOk_ = function(e) {
   /**
    * @desc Password Chanced with success dialog title
    */
@@ -746,7 +759,7 @@ bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedOk_ = function(e) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedError_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexPasswordChangedError_ = function(e) {
   /**
    * @desc Password Chanced with success dialog title
    */
@@ -766,7 +779,7 @@ bitex.app.SatoshiSquare.prototype.onBitexPasswordChangedError_ = function(e) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexWithdrawIncrementalUpdate_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexWithdrawIncrementalUpdate_ = function(e) {
   var msg = e.data;
 
   /**
@@ -825,7 +838,7 @@ bitex.app.SatoshiSquare.prototype.onBitexWithdrawIncrementalUpdate_ = function(e
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexVerifyCustomerUpdate_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexVerifyCustomerUpdate_ = function(e) {
   var msg = e.data;
 
   var profile = this.getModel().get('Profile');
@@ -860,7 +873,7 @@ bitex.app.SatoshiSquare.prototype.onBitexVerifyCustomerUpdate_ = function(e) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexExecutionReport_ = function(e) {
   var msg = e.data;
 
   /**
@@ -902,7 +915,7 @@ bitex.app.SatoshiSquare.prototype.onBitexExecutionReport_ = function(e) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexTwoFactorSecretResponse_ = function(e){
+bitex.app.BlinkTrade.prototype.onBitexTwoFactorSecretResponse_ = function(e){
   var msg = e.data;
   this.getModel().set('TwoFactorSecret', msg['TwoFactorSecret']);
   this.getModel().set('TwoFactorEnabled', msg['TwoFactorEnabled'] );
@@ -912,7 +925,7 @@ bitex.app.SatoshiSquare.prototype.onBitexTwoFactorSecretResponse_ = function(e){
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
+bitex.app.BlinkTrade.prototype.onBitexBalanceResponse_ = function(e) {
   var msg = e.data;
   delete msg['MsgType'];
   delete msg['BalanceReqID'];
@@ -936,7 +949,7 @@ bitex.app.SatoshiSquare.prototype.onBitexBalanceResponse_ = function(e) {
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserWithdrawRequest_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
   var currency = e.target.getCurrency();
 
   var withdraw_methods = this.getModel().get('Broker')['WithdrawStructure'][currency];
@@ -1039,7 +1052,7 @@ bitex.app.SatoshiSquare.prototype.onUserWithdrawRequest_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserConfirmWithdraw_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserConfirmWithdraw_ = function(e){
   this.conn_.confirmWithdraw(e.target.getConfirmationToken());
 };
 
@@ -1048,7 +1061,7 @@ bitex.app.SatoshiSquare.prototype.onUserConfirmWithdraw_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBrokerSetUserAsVerified_ = function(e){
+bitex.app.BlinkTrade.prototype.onBrokerSetUserAsVerified_ = function(e){
   var request_id = e.target.getRequestId();
   var client_id = e.target.getClientID();
   var verification_data = e.target.getVerificationData();
@@ -1060,7 +1073,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerSetUserAsVerified_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
+bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
   var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_data = e.target.getWithdrawData();
   var request_id = e.target.getRequestId();
@@ -1294,7 +1307,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerProcessWithdraw_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserOrderEntry_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserOrderEntry_ = function(e){
   /**
    * @desc notification for send order request
    */
@@ -1341,7 +1354,7 @@ bitex.app.SatoshiSquare.prototype.onUserOrderEntry_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserCancelOrder_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserCancelOrder_ = function(e){
   /**
    * @desc notification for order cancel request
    */
@@ -1359,7 +1372,7 @@ bitex.app.SatoshiSquare.prototype.onUserCancelOrder_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onShowReceipt_ = function(e){
+bitex.app.BlinkTrade.prototype.onShowReceipt_ = function(e){
   var receiptData = e.target.getReceiptData();
 
   /**
@@ -1379,7 +1392,7 @@ bitex.app.SatoshiSquare.prototype.onShowReceipt_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserShowQr_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserShowQr_ = function(e){
   var qrData = e.target.getQrData();
 
   /**
@@ -1408,7 +1421,7 @@ bitex.app.SatoshiSquare.prototype.onUserShowQr_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserUploadReceipt_ = function(e){
   var model = this.getModel();
   var deposit_data = e.target.getDepositData();
 
@@ -1444,7 +1457,7 @@ bitex.app.SatoshiSquare.prototype.onUserUploadReceipt_ = function(e){
  * @param {boolean} opt_add_fees.  Default for true
  * @private
  */
-bitex.app.SatoshiSquare.prototype.doCalculateFees_ = function(amount_element_id,
+bitex.app.BlinkTrade.prototype.doCalculateFees_ = function(amount_element_id,
                                                               fixed_fee_element_id,
                                                               percent_fee_element_id,
                                                               currency,
@@ -1508,7 +1521,7 @@ bitex.app.SatoshiSquare.prototype.doCalculateFees_ = function(amount_element_id,
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
+bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
   var model = this.getModel();
   var deposit_data = e.target.getDepositData();
   var request_id = e.target.getRequestId();
@@ -1711,7 +1724,7 @@ bitex.app.SatoshiSquare.prototype.onProcessDeposit_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
   var currency = e.target.getCurrency();
   var handler = this.getHandler();
 
@@ -1889,7 +1902,7 @@ bitex.app.SatoshiSquare.prototype.onUserDepositRequest_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserForgotPassword_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserForgotPassword_ = function(e){
   this.conn_.forgotPassword(e.target.getEmail());
   this.router_.setView('set_new_password');
 };
@@ -1898,7 +1911,7 @@ bitex.app.SatoshiSquare.prototype.onUserForgotPassword_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserSetNewPassword_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserSetNewPassword_ = function(e){
   this.conn_.resetPassword(e.target.getToken() ,  e.target.getPassword() );
 };
 
@@ -1908,7 +1921,7 @@ bitex.app.SatoshiSquare.prototype.onUserSetNewPassword_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserEnableTwoFactor_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserEnableTwoFactor_ = function(e){
   var code = e.target.getCode();
   var has_code = !goog.string.isEmpty(code);
   var secret = "";
@@ -1922,7 +1935,7 @@ bitex.app.SatoshiSquare.prototype.onUserEnableTwoFactor_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserDisableTwoFactor_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserDisableTwoFactor_ = function(e){
   this.conn_.enableTwoFactor( false );
 };
 
@@ -1931,7 +1944,7 @@ bitex.app.SatoshiSquare.prototype.onUserDisableTwoFactor_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBodyClick_ =function(e){
+bitex.app.BlinkTrade.prototype.onBodyClick_ =function(e){
   var element = e.target;
 
   var view_name = element.getAttribute('data-switch-view');
@@ -1960,7 +1973,7 @@ bitex.app.SatoshiSquare.prototype.onBodyClick_ =function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBodyChange_ =function(e){
+bitex.app.BlinkTrade.prototype.onBodyChange_ =function(e){
   if (goog.dom.classes.has( e.target, 'withdraw-method-selector' )) {
     var selected_method = goog.dom.forms.getValue( e.target );
 
@@ -1982,7 +1995,7 @@ bitex.app.SatoshiSquare.prototype.onBodyChange_ =function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserLoginButtonClick_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserLoginButtonClick_ = function(e){
   var username = e.target.getUsername();
   var password = e.target.getPassword();
   this.model_.set('Password',         e.target.getPassword() );
@@ -1994,7 +2007,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginButtonClick_ = function(e){
 /**
  * @param {bitex.api.BitExEvent} e
  */
-bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserLoginOk_ = function(e) {
   var msg = e.data;
 
   goog.dom.classes.add( document.body, 'bitex-logged'  );
@@ -2068,7 +2081,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginOk_ = function(e) {
 /**
  * @param {bitex.api.BitExEvent} e
  */
-bitex.app.SatoshiSquare.prototype.onUserLoginError_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
   goog.dom.classes.add( document.body, 'bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
@@ -2108,7 +2121,7 @@ bitex.app.SatoshiSquare.prototype.onUserLoginError_ = function(e) {
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onUserSignupButton_ = function(e) {
+bitex.app.BlinkTrade.prototype.onUserSignupButton_ = function(e) {
 
   this.model_.set('Password',         e.target.getPassword() );
 
@@ -2123,11 +2136,11 @@ bitex.app.SatoshiSquare.prototype.onUserSignupButton_ = function(e) {
 /**
  * return {bitex.model.Model}
  */
-bitex.app.SatoshiSquare.prototype.getModel = function() {
+bitex.app.BlinkTrade.prototype.getModel = function() {
   return this.model_;
 };
 
-bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
+bitex.app.BlinkTrade.prototype.onBeforeSetView_ = function(e){
   var view_id = e.view_id;
   if (! this.conn_.isLogged()) {
     switch(view_id) {
@@ -2177,7 +2190,7 @@ bitex.app.SatoshiSquare.prototype.onBeforeSetView_ = function(e){
  * @param {string=} opt_state
  * @return {Array.<Object>}
  */
-bitex.app.SatoshiSquare.prototype.getBrokersByCountry = function(country, opt_state) {
+bitex.app.BlinkTrade.prototype.getBrokersByCountry = function(country, opt_state) {
   var response = [];
 
   var query = country;
@@ -2220,7 +2233,7 @@ bitex.app.SatoshiSquare.prototype.getBrokersByCountry = function(country, opt_st
  * @param {string} currency_code
  * @param {boolean=} opt_human
  */
-bitex.app.SatoshiSquare.prototype.formatCurrency  =   function(amount, currency_code, opt_human) {
+bitex.app.BlinkTrade.prototype.formatCurrency  =   function(amount, currency_code, opt_human) {
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
    */
@@ -2238,7 +2251,7 @@ bitex.app.SatoshiSquare.prototype.formatCurrency  =   function(amount, currency_
  * @param {string} currency_code
  * @return {boolean}
  */
-bitex.app.SatoshiSquare.prototype.isCryptoCurrency  =   function(currency_code) {
+bitex.app.BlinkTrade.prototype.isCryptoCurrency  =   function(currency_code) {
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
    */
@@ -2250,7 +2263,7 @@ bitex.app.SatoshiSquare.prototype.isCryptoCurrency  =   function(currency_code) 
  * @param {string} currency_code
  * @return {string}
  */
-bitex.app.SatoshiSquare.prototype.getCurrencySign  =   function(currency_code) {
+bitex.app.BlinkTrade.prototype.getCurrencySign  =   function(currency_code) {
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
    */
@@ -2262,7 +2275,7 @@ bitex.app.SatoshiSquare.prototype.getCurrencySign  =   function(currency_code) {
  * @param {string} currency_code
  * @return {string}
  */
-bitex.app.SatoshiSquare.prototype.getCurrencyDescription  =   function(currency_code) {
+bitex.app.BlinkTrade.prototype.getCurrencyDescription  =   function(currency_code) {
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
    */
@@ -2275,7 +2288,7 @@ bitex.app.SatoshiSquare.prototype.getCurrencyDescription  =   function(currency_
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
+bitex.app.BlinkTrade.prototype.onSecurityList_ =   function(e) {
   var msg = e.data;
 
   goog.array.forEach(msg['Currencies'], function( currency) {
@@ -2327,7 +2340,7 @@ bitex.app.SatoshiSquare.prototype.onSecurityList_ =   function(e) {
  * @return {Object}
  * @private
  */
-bitex.app.SatoshiSquare.prototype.adjustBrokerData_ = function(broker_info) {
+bitex.app.BlinkTrade.prototype.adjustBrokerData_ = function(broker_info) {
   var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_structure = broker_info['WithdrawStructure'];
   goog.object.forEach(withdraw_structure,  function(withdraw_methods) {
@@ -2376,7 +2389,7 @@ bitex.app.SatoshiSquare.prototype.adjustBrokerData_ = function(broker_info) {
  * @param {bitex.api.BitExEvent} e
  * @private
  */
-bitex.app.SatoshiSquare.prototype.onBrokerListResponse_ =  function(e){
+bitex.app.BlinkTrade.prototype.onBrokerListResponse_ =  function(e){
   var msg = e.data;
 
   var broker_list = [];
@@ -2418,7 +2431,7 @@ bitex.app.SatoshiSquare.prototype.onBrokerListResponse_ =  function(e){
  * @param {goog.events.Event} e
  * @protected
  */
-bitex.app.SatoshiSquare.prototype.onUserConnectBitEx_ = function(e){
+bitex.app.BlinkTrade.prototype.onUserConnectBitEx_ = function(e){
   this.connectBitEx();
 };
 
@@ -2426,7 +2439,7 @@ bitex.app.SatoshiSquare.prototype.onUserConnectBitEx_ = function(e){
  * @param {goog.events.Event} e
  * @protected
  */
-bitex.app.SatoshiSquare.prototype.onConnectionOpen_ = function(e){
+bitex.app.BlinkTrade.prototype.onConnectionOpen_ = function(e){
   goog.dom.classes.remove( document.body, 'ws-not-connected' );
   goog.dom.classes.add( document.body, 'ws-connected' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
@@ -2456,7 +2469,7 @@ bitex.app.SatoshiSquare.prototype.onConnectionOpen_ = function(e){
  * @param {goog.events.Event} e
  * @protected
  */
-bitex.app.SatoshiSquare.prototype.onConnectionClose_ = function(e){
+bitex.app.BlinkTrade.prototype.onConnectionClose_ = function(e){
   goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
@@ -2469,7 +2482,7 @@ bitex.app.SatoshiSquare.prototype.onConnectionClose_ = function(e){
  * @param {goog.events.Event} e
  * @protected
  */
-bitex.app.SatoshiSquare.prototype.onConnectionError_ = function(e){
+bitex.app.BlinkTrade.prototype.onConnectionError_ = function(e){
   goog.dom.classes.add( document.body, 'ws-not-connected','bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'ws-connected' , 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
@@ -2497,7 +2510,7 @@ bitex.app.SatoshiSquare.prototype.onConnectionError_ = function(e){
  * @param {bitex.api.BitExEvent} e
  * @protected
  */
-bitex.app.SatoshiSquare.prototype.onConnectionErrorMessage_ = function(e){
+bitex.app.BlinkTrade.prototype.onConnectionErrorMessage_ = function(e){
   var msg = e.data;
 
   /**
@@ -2519,7 +2532,7 @@ bitex.app.SatoshiSquare.prototype.onConnectionErrorMessage_ = function(e){
  * @param {goog.ui.Dialog.ButtonSet?} opt_button_set The button set to use.
  * @return {bootstrap.Dialog}
  */
-bitex.app.SatoshiSquare.prototype.showDialog = function(content, opt_title, opt_button_set) {
+bitex.app.BlinkTrade.prototype.showDialog = function(content, opt_title, opt_button_set) {
   /**
    * @desc Connection error dialog title
    */
@@ -2548,7 +2561,7 @@ bitex.app.SatoshiSquare.prototype.showDialog = function(content, opt_title, opt_
  * @param {string} content
  * @param {number} opt_display_time.  Defaults to 3000 milliseconds
  */
-bitex.app.SatoshiSquare.prototype.showNotification = function(type , title, content,  opt_display_time) {
+bitex.app.BlinkTrade.prototype.showNotification = function(type , title, content,  opt_display_time) {
   var display_time = 3000;
   if ( goog.isNumber(opt_display_time) ) {
     display_time = opt_display_time;
@@ -2578,26 +2591,26 @@ bitex.app.SatoshiSquare.prototype.showNotification = function(type , title, cont
 /**
  * @param {string} url
  */
-bitex.app.satoshi_square = function( url ) {
-  var app = new bitex.app.SatoshiSquare();
+bitex.app.blink_trade = function( url ) {
+  var app = new bitex.app.BlinkTrade();
   app.run(url );
 };
 
 
-goog.exportSymbol('App', bitex.app.SatoshiSquare);
-goog.exportProperty(App.prototype, 'showNotification', bitex.app.SatoshiSquare.prototype.showNotification);
-goog.exportProperty(App.prototype, 'showDialog', bitex.app.SatoshiSquare.prototype.showDialog);
-goog.exportProperty(App.prototype, 'getHandler', bitex.app.SatoshiSquare.prototype.getHandler);
-goog.exportProperty(App.prototype, 'getCurrencyDescription', bitex.app.SatoshiSquare.prototype.getCurrencyDescription);
-goog.exportProperty(App.prototype, 'getCurrencySign', bitex.app.SatoshiSquare.prototype.getCurrencySign);
-goog.exportProperty(App.prototype, 'isCryptoCurrency', bitex.app.SatoshiSquare.prototype.isCryptoCurrency);
-goog.exportProperty(App.prototype, 'formatCurrency', bitex.app.SatoshiSquare.prototype.formatCurrency);
-goog.exportProperty(App.prototype, 'getBrokersByCountry', bitex.app.SatoshiSquare.prototype.getBrokersByCountry);
-goog.exportProperty(App.prototype, 'getModel', bitex.app.SatoshiSquare.prototype.getModel);
-goog.exportProperty(App.prototype, 'getQtyCurrencyFromSymbol', bitex.app.SatoshiSquare.prototype.getQtyCurrencyFromSymbol);
-goog.exportProperty(App.prototype, 'getPriceCurrencyFromSymbol', bitex.app.SatoshiSquare.prototype.getPriceCurrencyFromSymbol);
-goog.exportProperty(App.prototype, 'setView', bitex.app.SatoshiSquare.prototype.setView);
-goog.exportProperty(App.prototype, 'getBitexConnection', bitex.app.SatoshiSquare.prototype.getBitexConnection);
-goog.exportProperty(App.prototype, 'connectBitEx', bitex.app.SatoshiSquare.prototype.connectBitEx);
-goog.exportProperty(App.prototype, 'run', bitex.app.SatoshiSquare.prototype.run);
+goog.exportSymbol('BlinkTradeApp', bitex.app.BlinkTrade);
+goog.exportProperty(BlinkTradeApp.prototype, 'showNotification', bitex.app.BlinkTrade.prototype.showNotification);
+goog.exportProperty(BlinkTradeApp.prototype, 'showDialog', bitex.app.BlinkTrade.prototype.showDialog);
+goog.exportProperty(BlinkTradeApp.prototype, 'getHandler', bitex.app.BlinkTrade.prototype.getHandler);
+goog.exportProperty(BlinkTradeApp.prototype, 'getCurrencyDescription', bitex.app.BlinkTrade.prototype.getCurrencyDescription);
+goog.exportProperty(BlinkTradeApp.prototype, 'getCurrencySign', bitex.app.BlinkTrade.prototype.getCurrencySign);
+goog.exportProperty(BlinkTradeApp.prototype, 'isCryptoCurrency', bitex.app.BlinkTrade.prototype.isCryptoCurrency);
+goog.exportProperty(BlinkTradeApp.prototype, 'formatCurrency', bitex.app.BlinkTrade.prototype.formatCurrency);
+goog.exportProperty(BlinkTradeApp.prototype, 'getBrokersByCountry', bitex.app.BlinkTrade.prototype.getBrokersByCountry);
+goog.exportProperty(BlinkTradeApp.prototype, 'getModel', bitex.app.BlinkTrade.prototype.getModel);
+goog.exportProperty(BlinkTradeApp.prototype, 'getQtyCurrencyFromSymbol', bitex.app.BlinkTrade.prototype.getQtyCurrencyFromSymbol);
+goog.exportProperty(BlinkTradeApp.prototype, 'getPriceCurrencyFromSymbol', bitex.app.BlinkTrade.prototype.getPriceCurrencyFromSymbol);
+goog.exportProperty(BlinkTradeApp.prototype, 'setView', bitex.app.BlinkTrade.prototype.setView);
+goog.exportProperty(BlinkTradeApp.prototype, 'getBitexConnection', bitex.app.BlinkTrade.prototype.getBitexConnection);
+goog.exportProperty(BlinkTradeApp.prototype, 'connectBitEx', bitex.app.BlinkTrade.prototype.connectBitEx);
+goog.exportProperty(BlinkTradeApp.prototype, 'run', bitex.app.BlinkTrade.prototype.run);
 

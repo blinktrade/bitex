@@ -96,7 +96,7 @@ bitex.view.AccountActivityView.prototype.recreateComponents_ = function() {
  */
 bitex.view.AccountActivityView.prototype.priceFormatter_ = function(value, rowSet) {
   var priceCurrency = this.getApplication().getPriceCurrencyFromSymbol(rowSet['Symbol']);
-  return this.getApplication().formatCurrency(value/1e8, priceCurrency);
+  return this.getApplication().formatCurrency(value/1e8, priceCurrency, true);
 };
 
 /**
@@ -105,7 +105,7 @@ bitex.view.AccountActivityView.prototype.priceFormatter_ = function(value, rowSe
  */
 bitex.view.AccountActivityView.prototype.qtyFormatter_ = function(value, rowSet) {
   var priceCurrency = this.getApplication().getQtyCurrencyFromSymbol(rowSet['Symbol']);
-  return this.getApplication().formatCurrency(value/1e8, priceCurrency);
+  return this.getApplication().formatCurrency(value/1e8, priceCurrency, true);
 };
 
 /**
@@ -127,7 +127,7 @@ bitex.view.AccountActivityView.prototype.onAccountActivityTableRequestData_ = fu
  */
 bitex.view.AccountActivityView.prototype.onOrderListResponse_ = function(e) {
   if (!goog.isDefAndNotNull(this.account_activity_table_) ) {
-    return
+    return;
   }
 
   var msg = e.data;

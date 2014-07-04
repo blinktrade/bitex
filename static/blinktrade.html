@@ -1,14 +1,23 @@
 ﻿<!DOCTYPE html>
-<html lang="pt_BR">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
   <meta charset="utf-8">
-  <title>BitEX - Descentralized bitcoin exchange</title>
+  <title>BlinkTrade - Descentralized open source bitcoin exchange</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Buy and sell Crypto currencies.">
 
   <meta name="keywords" content="bitcoin, bitcoin exchange, bitcoin decentralized exchange">
 
-  <meta name="author" content="BitEx">
+  <meta name="author" content="BlinkTrade">
+
+  <title>BlinkTrade - Decentralized bitcoin exchange</title>
+  <meta property="og:title" content="BlinkTrade - Decentralized bitcoin exchange">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://blinktrade.com/">
+  <meta property="og:image" content="https://blinktrade.com/images/blinktrade.png">
+  <meta property="og:description" content="Open a bitcoin brokerage in your country with us and help Bitcoin disrupt the micro-remittances market. Trade safely using the BlinkTrade brokers network, BlinkTrade will enforce transparency and security among all brokers.">
 
   <link rel="shortcut icon" href="./images/favicon.ico">
 
@@ -34,18 +43,18 @@
   <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
 
   <!-- bitex application -->
-  <script src="./js/bitex_app_satoshi_square.compiled.en_US.js?v5" type="text/javascript"></script> <!--  -->
-  <!-- <script src="./js/bitex_app_satoshi_square.compiled.pt_BR.js?v5" type="text/javascript"></script>  <!--  -->
+  <script src="./js/bitex_app_blink_trade.compiled.en_US.js" type="text/javascript"></script> <!--  -->
+  <!-- <script src="./js/bitex_app_blink_trade.compiled.pt_BR.js" type="text/javascript"></script>  <!--  -->
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
 <div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
-      <a class="brand" href="/start"><img src="/images/bitex.png" style="
+      <a class="brand" href="/start"><img src="/images/blinktrade.png" style="
             height: 55px;
             margin-top: -10px;
-            margin-bottom: -30px;
+            margin-bottom: -41px;
         "></a>
 
       <ul class="nav navbar-nav pull-right">
@@ -62,13 +71,16 @@
 
 <div class="container">
   <div id="id_notifications" class="notifications top-right" style="z-index: 9000;"></div>
-<div id="start" class="page  row-fluid">
 
+
+
+<!-- landing page-->
+<div id="start" class="page  row-fluid">
   <header class="jumbotron">
-    <img src="/images/bitex2.png" style="">
+    <img src="/images/blinktrade.png" style="">
     <p class="lead">The first decentralized bitcoin exchange</p>
 
-    <p class="lead">Own your own bitcoin brokerage firm. Be a BitEx broker.
+    <p class="lead">Own your own bitcoin brokerage firm. Be a BlinkTrade broker.
       <a href="#" data-switch-view="broker_application" >Apply here</a>.</p>
   </header>
 
@@ -86,6 +98,7 @@
 </div>
 
 
+<!-- signup page-->
 <div id="signup" class="page  row-fluid">
   <div class="page-header">
     <h1>Register</h1>
@@ -171,6 +184,7 @@
     </div>
 </div>
 
+<!-- signin page-->
 <div id="signin" class="page  row-fluid">
   <div class="page-header">
     <h1>Login</h1>
@@ -220,7 +234,7 @@
           allowtransparency="true"
           src="https://secure.jotform.us/form/41205503470139"
           frameborder="0"
-          style="width:100%; height:5392px; border:none;"
+          style="width:100%; height:1253px; border:none;"
           scrolling="no"></iframe>
   <script type="text/javascript">
     window.handleIFrameMessage = function(e) {
@@ -233,7 +247,9 @@
           iframe.scrollIntoView();
           break;
         case "setHeight":
-          iframe.style.height = args[1] + "px";
+          if (args[1] > 0 ) {
+            iframe.style.height = args[1] + "px";
+          }
           break;
       }
     };
@@ -288,12 +304,12 @@
 
 <div id="trading">
   <div class="section-title">
-    <h3>Trading</h3>
+    <h3>Buy or Sell</h3>
   </div>
 
   <div id="trading_order_entry_content" class="row-fluid"></div>
 
-  <div id="id_tradingg_well"></div>
+  <div id="id_trading_well"></div>
 </div>
 
 <div id="offerbook">
@@ -467,7 +483,13 @@
     <h3>Verify your account</h3>
   </div>
 
-  <iframe id="JotFormIFrame" onload="window.parent.scrollTo(0,0)" allowtransparency="true" src="" frameborder="0" style="width:100%; height:1550px; border:none;" scrolling="no"></iframe>
+  <iframe id="JotFormIFrame"
+          onload="window.parent.scrollTo(0,0)"
+          allowtransparency="true"
+          src=""
+          frameborder="0"
+          style="width:100%; height:1550px; border:none;"
+          scrolling="no"></iframe>
   <script type="text/javascript">
     window.handleIFrameMessage = function(e) {
       var args = e.data.split(":");
@@ -479,7 +501,9 @@
           iframe.scrollIntoView();
           break;
         case "setHeight":
-          iframe.style.height = (args[1] + 200 ) + "px";
+          if (args[1] > 0 ) {
+            iframe.style.height = ( parseInt(args[1], 10) + 200 ) + "px";
+          }
           break;
       }
     };
@@ -510,8 +534,11 @@
   <ul class="nav nav-list">
     <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i> My Broker info</a></li>
 
+    <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-random"></i> Buy or Sell</a></li>
 
     <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
+
+
     <li style=""><a href="" data-switch-view="ledger"><i data-switch-view="ledger" class="icon-list"></i> Ledger</a></li>
 
     <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> My customers</a></li>
@@ -564,7 +591,7 @@
 <footer class="footer">
   <div class="container">
     <p>
-      © 2014 BitEx | Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
+      © 2014 BlinkTrade LLC | Developed by <a href="http://youtube.com/user/pinhopro" target="_blank">
       Rodrigo Souza</a> and <a href="http://about.me/cderivan" target="_blank">Clebson Derivan</a>
     | <a href="https://github.com/pinhopro/bitex/tree/zeromq/" target="_blank">Proudly 100% open source</a>
     | <a href="http://nytm.org/made-in-nyc/" target="_blank">Made  with <span style="/* background-color: red */color: #d11f0d;font-size: 19px;">♥</span> in NYC</a>
@@ -573,7 +600,7 @@
 </footer>
 
 <script>
-  var app = new App();
+  var app = new BlinkTradeApp();
   app.run();
   //app.run('wss://www.bitex.com.br/trade/');
   //app.run('wss://pinhopro.no-ip.org/trade/');
@@ -585,8 +612,3 @@
 </body>
 
 </html>
-
-
-
-
-

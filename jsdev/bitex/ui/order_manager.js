@@ -145,7 +145,7 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
         }
 
         var i =goog.dom.createDom( 'i', attributes );
-        return goog.dom.createDom( 'a', { 'class':"text-error", "href":"#" }, i);
+        return goog.dom.createDom( 'a', { 'class':"btn btn-mini btn-danger"}, i);
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
     }
@@ -153,7 +153,7 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
 
   this.blink_delay_ = opt_blinkDelay || 700;
 
-  bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+  bitex.ui.DataGrid.call(this,  { 'rowIDFn': this.getRowID , 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
 };
 goog.inherits(bitex.ui.OrderManager, bitex.ui.DataGrid);
 
@@ -221,12 +221,19 @@ bitex.ui.OrderManager.prototype.getCssClass = function() {
 
 /**
  * @param {Object} row_set
- * @return {Array.<string>|string|Object}
+ * @return {string}
+ */
+bitex.ui.OrderManager.prototype.getRowID = function(row_set){
+  return this.getId() + '_' + row_set['ClOrdID'];
+};
+
+/**
+ * @param {Object} row_set
+ * @return {string}
  */
 bitex.ui.OrderManager.prototype.getRowClass = function(row_set) {
   var status =  row_set['OrdStatus'];
 
-  var class_id = 'client-order-id-' + row_set['ClOrdID'];
   var class_status;
   switch(status) {
     case '-':
@@ -246,135 +253,25 @@ bitex.ui.OrderManager.prototype.getRowClass = function(row_set) {
       break;
   }
 
-  return [class_id, class_status];
+  return class_status;
 };
 
 /**
  * @param  {Object} execution_report_msg
  */
 bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_report_msg){
-  var class_id = 'client-order-id-' + execution_report_msg['ClOrdID'];
-
-  var tr_element = goog.dom.getElementByClass(class_id, this.getElement());
+  var rowId = this.getRowID(execution_report_msg);
 
   if (execution_report_msg['LeavesQty'] === 0 ) {
-    // Remove order
-    if (goog.isDefAndNotNull(tr_element)) {
-      goog.dom.removeNode(tr_element);
+    var el = goog.dom.getElement(rowId);
+    if (goog.isDefAndNotNull(el)) {
+      goog.dom.removeNode(el);
     }
     return;
   }
 
-  if (goog.isDefAndNotNull(tr_element)) {
-    goog.object.forEach(execution_report_msg, function(value,column, obj) {
-      var td_element = this.setColumnValue( tr_element, column, value  );
-      if (goog.isDefAndNotNull( td_element)) {
-
-        var blink_class = 'warning'; //goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
-        goog.dom.classes.add( td_element,  blink_class );
-        goog.Timer.callOnce( function(){
-          goog.dom.classes.remove( td_element,  blink_class );
-        }, this.blink_delay_ , this);
-
-      }
-    }, this);
-
-    var current_classes = goog.dom.classes.get(tr_element);
-    var new_classes = this.getRowClass( execution_report_msg );
-
-    goog.dom.classes.addRemove( tr_element, current_classes, new_classes );
-    return;
-  }
-
-
-  var columns = goog.object.getKeys(execution_report_msg);
-  var values = goog.object.getValues(execution_report_msg);
-
-  var tr_elements = this.resultSetToElements( [ values ] , columns );
-  goog.dom.insertChildAt(this.table_data_body_el_, tr_elements[0], 0);
-
-  // TODO: call adjustSizes_ if this is the first row inserted
-  //this.adjustSizes_(tr_elements[0]);
+  this.insertOrUpdateRecord(execution_report_msg, 0);
 };
-
-
-/**
- *
- * @param {string} clientOrderId
- * @param {string} status
- * @param {string} side
- * @param {number} orderQty
- * @param {number} price
- * @param {number} leavesQty
- * @param {number} opt_cumQty
- * @param {number} opt_avgPrice
- * @param {string=} opt_orderId
- */
-bitex.ui.OrderManager.prototype.insertOrder = function(clientOrderId,
-                                                       status,
-                                                       side,
-                                                       orderQty,
-                                                       price,
-                                                       leavesQty,
-                                                       opt_cumQty,
-                                                       opt_avgPrice,
-                                                       opt_orderId) {
-
-
-  var tr_element_id = 'client_order_id_' + clientOrderId;
-
-  var status_class;
-  switch( status) {
-    case '-':
-      status_class = goog.getCssName(this.getCssClass(), 'pending' );
-      break;
-    case '0':
-      status_class = goog.getCssName(this.getCssClass(), 'new' );
-      break;
-    case '1':
-      status_class = goog.getCssName(this.getCssClass(), 'partial' );
-      break;
-    case '2':
-      status_class = goog.getCssName(this.getCssClass(), 'fill' );
-      break;
-    case '4':
-      status_class = goog.getCssName(this.getCssClass(), 'cancel' );
-      break;
-  }
-
-  var tr_attributes = {
-    'id': tr_element_id,
-    'class': status_class
-  };
-
-
-  // Let's update the order
-  orderQty   = (orderQty/1e8).toFixed(8);
-  price      = (price/1e8).toFixed(5);
-  leavesQty  = (leavesQty/1e8).toFixed(8);
-  var cumQty = (opt_cumQty|0/1e8).toFixed(8);
-  var avgPx  = (opt_avgPrice|0/1e8).toFixed(5);
-  var orderId = opt_orderId|'';
-
-  var status_desc = bitex.ui.OrderManager.Status[status];
-
-  var dom = this.getDomHelper();
-  var tr = dom.createDom( 'tr', tr_attributes ,
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'id' ),      ''+  orderId  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'status' ),  ''+  status_desc  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'side' ),    ''+  side  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'order-qty' ),''+ orderQty  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'price' ),    ''+price  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'leaves-qty' ),''+ leavesQty  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'cum-qty' ), ''+ cumQty  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'avg-px' ),  ''+avgPx  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'actions' ),
-      dom.createDom( 'a', { 'class':"text-error", "href":"" }, dom.createDom( 'i', { 'class':"icon-remove" })) )
-  );
-
-  dom.appendChild(this.tbody_, tr );
-};
-
 
 
 
