@@ -369,7 +369,6 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
                     break
         elif entry_type == '2':
             trade_list = []
-            print "sending trading list"
             for trade in mdsubscriber.get_last_trades():
                 trade_list.append({
                     "MDEntryType": "2",  # Trade

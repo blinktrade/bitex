@@ -147,7 +147,7 @@ bitex.view.MarketView.prototype.onBitexTrade_ = function(e) {
   record["Side"] = msg['Side'];
   record["Buyer"] = msg['MDEntryBuyer'];
   record["Seller"] = msg['MDEntrySeller'];
-  record["Created"] = '-';
+  record["Created"] = msg['MDEntryDate'] + " " + msg['MDEntryTime'];
 
   this.last_trades_table_.insertOrUpdateRecord(record, 0);
 };
