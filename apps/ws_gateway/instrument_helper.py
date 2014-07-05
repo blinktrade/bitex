@@ -1,5 +1,7 @@
 from datetime import datetime
+from bitex.signals import Signal
 
+signal_publish_security_status = Signal()
 
 class InstrumentStatusHelper(object):
     """" InstrumentStatusHelper. """
@@ -57,3 +59,5 @@ class InstrumentStatusHelper(object):
         self.last_trades.insert(0,trade)
         self._add_trade(trade)
         self.last_price = trade['price']
+
+        signal_publish_security_status('SECURITY_STATUS', self)

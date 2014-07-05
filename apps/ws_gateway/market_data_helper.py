@@ -3,7 +3,7 @@ import base64
 import json
 import time
 
-from instrument_helper import InstrumentStatusHelper
+from instrument_helper import InstrumentStatusHelper, signal_publish_security_status
 from bitex.signals import Signal
 
 import zmq
@@ -289,6 +289,29 @@ class MarketDataSubscriber(object):
 
         self.inst_status.push_trade(trade)
 
+class SecurityStatusPublisher(object):
+    def __init__(self, req_id, instrument, handler):
+        self.handler = handler
+        self.req_id = req_id
+        self.symbol = instrument
+
+        signal_publish_security_status.connect(self.signal_security_status, 'SECURITY_STATUS')
+
+    def signal_security_status(self, sender, helper):
+        if helper.symbol == self.symbol:
+            ss = {
+                "MsgType": "f",
+                "SecurityStatusReqID": self.req_id,
+                "Symbol": self.symbol,
+                "HighPx": helper.max_price,
+                "LowPx": helper.min_price,
+                "LastPx": helper.last_price,
+                "BuyVolume": helper.volume_price,
+                "SellVolume": helper.volume_size
+            }
+
+            self.handler(sender, ss)
+
 
 class MarketDataPublisher(object):
 
@@ -351,7 +374,9 @@ def generate_security_status(symbol, req_id):
         "Symbol": symbol,
         "HighPx": mdsubscriber.inst_status.max_price,
         "LowPx": mdsubscriber.inst_status.min_price,
-        "LastPx": mdsubscriber.inst_status.last_price
+        "LastPx": mdsubscriber.inst_status.last_price,
+        "BuyVolume": mdsubscriber.inst_status.volume_price,
+        "SellVolume": mdsubscriber.inst_status.volume_size
     }
 
     return ss

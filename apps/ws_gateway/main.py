@@ -89,7 +89,7 @@ define("config", default=os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"), 
 
 tornado.options.parse_command_line()
 
-from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history, generate_security_status
+from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history, SecurityStatusPublisher, generate_security_status
 
 #from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
 from deposit_hander import DepositHandler
@@ -322,6 +322,14 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 instrument,
                 req_id)
             self.write_message(str(json.dumps(ss, cls=JsonEncoder)))
+
+            # Snapshot + Updates
+            if int(msg.get('SubscriptionRequestType')) == 1:
+                self.sec_status_subscriptions[req_id].append(
+                    SecurityStatusPublisher(
+                        req_id,
+                        instrument,
+                        self.on_send_json_msg_to_user))
 
 
     def on_market_data_request(self, msg):
