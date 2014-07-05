@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import or_
@@ -48,9 +48,9 @@ class Trade(BASE):
     @staticmethod
     def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
 
-        today = datetime.utcnow().date()
-        timestamp = datetime(today.year, today.month, today.day, 0, 0)
-        
+        today = datetime.now()
+        timestamp = today - timedelta(days=1)
+
         trades = session.query(Trade).filter(
             Trade.created >= timestamp).order_by(
             Trade.created.desc())
