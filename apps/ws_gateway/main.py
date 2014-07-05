@@ -89,7 +89,7 @@ define("config", default=os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"), 
 
 tornado.options.parse_command_line()
 
-from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history
+from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history, generate_security_status
 
 #from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
 from deposit_hander import DepositHandler
@@ -115,6 +115,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.application.trade_in_socket,
             options.trade_pub)
         self.md_subscriptions = {}
+        self.sec_status_subscriptions = {}
 
         self.user_response = None
 
@@ -170,6 +171,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 self.application.unregister_connection(self)
                 self.trade_client.close()
                 self.close()
+            return
+
+        if req_msg.isSecurityStatusRequest():
+            self.on_security_status_request(req_msg)
             return
 
         if req_msg.isDepositRequest():
@@ -295,6 +300,29 @@ class WebSocketHandler(websocket.WebSocketHandler):
         }
 
         self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
+
+    def on_security_status_request(self, msg):
+        # Generate a FullRefresh
+        req_id = msg.get('SecurityStatusReqID')
+
+        # Disable previous Snapshot + Update Request
+        if int(msg.get('SubscriptionRequestType')) == 2:
+            if req_id in self.sec_status_subscriptions:
+                del self.sec_status_subscriptions[req_id]
+            return
+
+        instruments = msg.get('Instruments')
+
+        if int(msg.get('SubscriptionRequestType')) == 1:  # Snapshot + Updates
+            if req_id not in self.sec_status_subscriptions:
+                self.sec_status_subscriptions[req_id] = []
+
+        for instrument in instruments:
+            ss = generate_security_status(
+                instrument,
+                req_id)
+            self.write_message(str(json.dumps(ss, cls=JsonEncoder)))
+
 
     def on_market_data_request(self, msg):
         # Generate a FullRefresh

@@ -1055,6 +1055,39 @@ bitex.api.BitEx.prototype.unSubscribeMarketData = function(market_data_id){
   this.sendMessage(msg);
 };
 
+/**
+ * @param {number} market_depth
+ * @param {Array.<string>} symbols
+ * @param {Array.<string>} entries
+ * @param {string} opt_requestId. Defaults to random generated number
+ * @return {number}
+ */
+bitex.api.BitEx.prototype.subscribeSecurityStatus = function(symbols, opt_requestId ){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'e',
+    'SecurityStatusReqID': requestId,
+    'SubscriptionRequestType': '1',
+    'Instruments': symbols
+  };
+  this.sendMessage(msg);
+
+  return requestId;
+};
+
+/**
+ * @param {number} market_data_id
+ */
+bitex.api.BitEx.prototype.unSubscribeSecurityStatus = function(market_data_id){
+  var msg = {
+    'MsgType': 'e',
+    'SecurityStatusReqID': market_data_id,
+    'SubscriptionRequestType': '2'
+  };
+  this.sendMessage(msg);
+};
+
 
 /**
  * @param {string} opt_requestId. Defaults to random generated number
