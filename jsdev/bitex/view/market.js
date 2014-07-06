@@ -2,6 +2,7 @@ goog.provide('bitex.view.MarketView');
 goog.require('bitex.view.View');
 goog.require('bitex.ui.TradeHistory');
 goog.require('bitex.ui.MarketViewTable');
+goog.require('bitex.ui.MarketViewTable.EventType');
 
 goog.require('bitex.templates');
 
@@ -72,6 +73,10 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
   this.market_view_table_.render(goog.dom.getElement('id_market_view_table'));
   app.getModel().updateDom();
 
+
+
+  handler.listen(this.market_view_table_, bitex.ui.MarketViewTable.EventType.SELECT_SYMBOL, this.onSelectedSymbol_);
+
   var el = goog.dom.getElement('id_trade_list_table');
 
   this.last_trades_table_ = new bitex.ui.TradeHistory();
@@ -87,17 +92,21 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
   handler.listen( conn , bitex.api.BitEx.EventType.TRADING_SESSION_STATUS + '.' + this.market_data_subscription_id_, this.onBitexTradingSessionStatus_ );
   handler.listen( conn , bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER + '.' + this.market_data_subscription_id_, this.onBitexOrderBookNewOrder_ );
   handler.listen( conn , bitex.api.BitEx.EventType.TRADE + '.' + this.market_data_subscription_id_, this.onBitexTrade_ );
+  handler.listen( conn , bitex.api.BitEx.EventType.SECURITY_STATUS + '.' + this.market_data_subscription_id_, this.onBitexSecurityStatus_ );
 
   this.last_trades_table_.decorate(el);
 
   this.dispatchEvent(bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE);
   this.dispatchEvent(bitex.view.View.EventType.SECURITY_STATUS_SUBSCRIBE);
+
+  this.market_view_table_.selectFirst();
 };
 
 bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
   var handler = this.getHandler();
 
   if (goog.isDefAndNotNull(this.market_view_table_) ) {
+    handler.unlisten(this.market_view_table_, bitex.ui.MarketViewTable.EventType.SELECT_SYMBOL, this.onSelectedSymbol_);
     this.market_view_table_.dispose();
   }
 
@@ -138,6 +147,20 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
 
 /**
  * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.MarketView.prototype.onSelectedSymbol_ = function(e){
+  var symbol = e.target.getSelectedSymbol();
+
+  var verificationIFrameForm = goog.dom.getElement("HighChartIFrame");
+  verificationIFrameForm.src = '/chart.html?s=' + symbol;
+
+  //console.log(symbol);
+
+};
+
+/**
+ * @param {goog.events.Event} e
  */
 bitex.view.MarketView.prototype.onTradeHistoryTableRequestData_ = function(e) {
   var page = e.options['Page'];
@@ -148,6 +171,22 @@ bitex.view.MarketView.prototype.onTradeHistoryTableRequestData_ = function(e) {
   conn.requestTradeHistory(this.market_data_subscription_id_, page, limit, undefined, filter );
 };
 
+bitex.view.MarketView.prototype.onBitexSecurityStatus_ = function(e) {
+  if (!goog.isDefAndNotNull(this.market_view_table_) ) {
+    return;
+  }
+    var msg = e.data;
+
+    var model = this.getApplication().getModel();
+    var currency = msg["Symbol"].substr(3);
+    var crypto_currency = msg["Symbol"].substr(0,3);
+
+    model.set('formatted_volume_buy_' + msg["Symbol"], this.getApplication().formatCurrency(msg["BuyVolume"]/1.e8,  currency, true ), true );
+    model.set('formatted_volume_sell_' + msg["Symbol"], this.getApplication().formatCurrency(msg["SellVolume"]/1.e8,  crypto_currency, true ), true );
+    model.set('formatted_min_' + msg["Symbol"], this.getApplication().formatCurrency(msg["LowPx"]/1.e8,  currency, true ), true );
+    model.set('formatted_max_' + msg["Symbol"], this.getApplication().formatCurrency(msg["HighPx"]/1.e8,  currency, true ), true );
+    model.set('formatted_last_price_' + msg["Symbol"], this.getApplication().formatCurrency(msg["LastPx"]/1.e8,  currency, true ), true );
+};
 
 /**
  * @param {goog.events.Event} e

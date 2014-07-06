@@ -566,7 +566,9 @@ keyframes notification {
   background-color: gainsboro;
 }
 
-
+.market-view-table-selected {
+  background-color: burlywood;
+}
 
 .withdraw-method-editor-field-side{
     width: 75px;

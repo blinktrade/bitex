@@ -121,6 +121,7 @@ bitex.api.BitEx.EventType = {
 
   /* Securities */
   SECURITY_LIST: 'security_list',
+  SECURITY_STATUS: 'security_status',
 
   /* Trade History */
   TRADE_HISTORY: 'trade_history',
@@ -313,6 +314,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
     case 'y': // Security List
       this.onSecurityList_(msg);
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_LIST, msg));
+      break;
+
+    case 'f': // Security status
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_STATUS + '.' + msg['SecurityStatusReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_STATUS, msg));
       break;
 
     case 'U13': // Password change response

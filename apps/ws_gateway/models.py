@@ -47,10 +47,10 @@ class Trade(BASE):
         return None
 
     @staticmethod
-    def get_trades(session, since):
+    def get_trades(session, symbol, since):
 
         trades = session.query(Trade).filter(
-            Trade.id > since).order_by(Trade.created.desc())
+            Trade.id > since).filter(Trade.symbol == symbol).order_by(Trade.created.desc())
 
         return trades
 

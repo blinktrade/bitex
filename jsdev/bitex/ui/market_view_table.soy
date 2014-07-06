@@ -9,7 +9,7 @@
 
   <div class="row-fluid">
     <div class="span12">
-      <table id="{$id}_table" class="table table-bordered table-hover">
+      <table id="{$id}_table" class="table table-bordered table-condensed">
           <thead>
             <tr>
                 <th> {msg desc="Method field header"}Pair{/msg}</th>
@@ -22,15 +22,14 @@
           </thead>
           <tbody>
             {foreach $inst in $instruments}
-
-<tr data-symbol="{$inst['Symbol']}" >
-<td>{$inst['Description']} </td>
-<td><span class="bitex-model" data-model-key="formatted_last_price_{$inst['Symbol']}"></span></td>
-<td> </td>
-<td> </td>
-<td> </td>
-<td> </td>
-</tr>
+                <tr data-symbol="{$inst['Symbol']}" >
+                <td>{$inst['Description']} </td>
+                <td><span class="bitex-model" data-model-key="formatted_last_price_{$inst['Symbol']}"></span></td>
+                <td><span class="bitex-model" data-model-key="formatted_volume_sell_{$inst['Symbol']}"></span></td>
+                <td><span class="bitex-model" data-model-key="formatted_volume_buy_{$inst['Symbol']}"></span></td>
+                <td><span class="bitex-model" data-model-key="formatted_max_{$inst['Symbol']}"></span></td>
+                <td><span class="bitex-model" data-model-key="formatted_min_{$inst['Symbol']}"></span></td>
+                </tr>
             {/foreach}
           </tbody>
       </table>
