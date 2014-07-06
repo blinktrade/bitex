@@ -55,6 +55,11 @@ goog.userAgent.ASSUME_MOBILE_WEBKIT = false;
  */
 goog.userAgent.ASSUME_OPERA = false;
 
+/**
+ * @define {boolean} Whether we know at compile-time that the user agent is
+ * Rhino
+ */
+goog.userAgent.ASSUME_RHINO = false;
 
 /**
  * @define {boolean} Whether the {@code goog.userAgent.isVersion} function will
@@ -73,8 +78,8 @@ goog.userAgent.BROWSER_KNOWN_ =
     goog.userAgent.ASSUME_GECKO ||
     goog.userAgent.ASSUME_MOBILE_WEBKIT ||
     goog.userAgent.ASSUME_WEBKIT ||
-    goog.userAgent.ASSUME_OPERA;
-
+    goog.userAgent.ASSUME_OPERA ||
+    goog.userAgent.ASSUME_RHINO;
 
 /**
  * Returns the userAgent string for the current browser.
@@ -107,6 +112,13 @@ goog.userAgent.getNavigator = function() {
  * @private
  */
 goog.userAgent.init_ = function() {
+  /**
+   * Whether the user agent string denotes a Rhino client
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedRhino_ = false;
+
   /**
    * Whether the user agent string denotes Opera.
    * @type {boolean}
@@ -150,6 +162,7 @@ goog.userAgent.init_ = function() {
   if (!goog.userAgent.BROWSER_KNOWN_ &&
       (ua = goog.userAgent.getUserAgentString())) {
     var navigator = goog.userAgent.getNavigator();
+    goog.userAgent.detectedRhino_ = ua.indexOf('Rhino') != -1;
     goog.userAgent.detectedOpera_ = ua.indexOf('Opera') == 0;
     goog.userAgent.detectedIe_ = !goog.userAgent.detectedOpera_ &&
         ua.indexOf('MSIE') != -1;
@@ -157,7 +170,7 @@ goog.userAgent.init_ = function() {
         ua.indexOf('WebKit') != -1;
     // WebKit also gives navigator.product string equal to 'Gecko'.
     goog.userAgent.detectedMobile_ = goog.userAgent.detectedWebkit_ &&
-        ua.indexOf('Mobile') != -1;
+        (ua.indexOf('Mobile') != -1 || ua.indexOf('webOs') != -1);
     goog.userAgent.detectedGecko_ = !goog.userAgent.detectedOpera_ &&
         !goog.userAgent.detectedWebkit_ && navigator.product == 'Gecko';
   }
@@ -168,6 +181,13 @@ if (!goog.userAgent.BROWSER_KNOWN_) {
   goog.userAgent.init_();
 }
 
+
+/**
+ * Whether the user agent is Rhino
+ * @type {boolean}
+ */
+goog.userAgent.RHINO = goog.userAgent.BROWSER_KNOWN_ ?
+    goog.userAgent.ASSUME_RHINO : goog.userAgent.detectedRhino_;
 
 /**
  * Whether the user agent is Opera.
