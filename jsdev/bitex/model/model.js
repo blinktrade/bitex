@@ -87,9 +87,13 @@ bitex.model.Model.prototype.updateDom = function() {
     var model_key = el.getAttribute('data-model-key');
     if (goog.isDefAndNotNull(model_key)) {
       var current_value = goog.dom.getTextContent(el);
-      goog.dom.setTextContent( el, current_value );
+
+      var value = this.get(model_key);
+      if (current_value !== value) {
+        goog.dom.setTextContent( el, value );
+      }
     }
-  });
+  }, this);
 };
 
 /**
