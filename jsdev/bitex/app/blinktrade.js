@@ -2334,7 +2334,8 @@ bitex.app.BlinkTrade.prototype.onSecurityList_ =   function(e) {
     symbols.push( symbol );
 
     var currency_key = instrument['Symbol'];
-    var volume_key = 'volume_' +  currency_key;
+    var volume_buy_key = 'volume_buy_' +  currency_key;
+    var volume_sell_key = 'volume_sell_' +  currency_key;
     var min_key = 'min_' +  currency_key;
     var max_key = 'max_' +  currency_key;
     var avg_key = 'avg_' +  currency_key;
@@ -2342,13 +2343,14 @@ bitex.app.BlinkTrade.prototype.onSecurityList_ =   function(e) {
     var offer_key = 'best_offer_' +  currency_key;
     var last_price = 'last_price_' +  currency_key;
 
-    this.model_.set('formatted_' + volume_key, this.formatCurrency(0,  instrument['Currency'] ), true );
-    this.model_.set('formatted_' + min_key, this.formatCurrency(0, instrument['Currency']) , true);
-    this.model_.set('formatted_' + max_key, this.formatCurrency(0, instrument['Currency']), true);
-    this.model_.set('formatted_' + avg_key, this.formatCurrency(0, instrument['Currency']), true);
-    this.model_.set('formatted_' + bid_key, this.formatCurrency(0, instrument['Currency']), true);
-    this.model_.set('formatted_' + offer_key, this.formatCurrency(0, instrument['Currency']), true);
-    this.model_.set('formatted_' + last_price, this.formatCurrency(0, instrument['Currency']), true);
+    this.model_.set('formatted_' + volume_buy_key, this.formatCurrency(0,  instrument['Currency'], true ), true );
+    this.model_.set('formatted_' + volume_sell_key, this.formatCurrency(0,  instrument['Currency'], true ), true );
+    this.model_.set('formatted_' + min_key, this.formatCurrency(0, instrument['Currency'], true) , true);
+    this.model_.set('formatted_' + max_key, this.formatCurrency(0, instrument['Currency'], true), true);
+    this.model_.set('formatted_' + avg_key, this.formatCurrency(0, instrument['Currency'], true), true);
+    this.model_.set('formatted_' + bid_key, this.formatCurrency(0, instrument['Currency'], true), true);
+    this.model_.set('formatted_' + offer_key, this.formatCurrency(0, instrument['Currency'], true), true);
+    this.model_.set('formatted_' + last_price, this.formatCurrency(0, instrument['Currency'], true), true);
   }, this );
 
   this.model_.set('SecurityList', msg);
