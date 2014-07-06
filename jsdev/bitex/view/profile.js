@@ -1,6 +1,7 @@
 goog.provide('bitex.view.ProfileView');
 goog.require('bitex.view.View');
 
+goog.require('bitex.ui.WithdrawMethods');
 goog.require('bitex.ui.WithdrawMethodEditor');
 
 /**
@@ -17,19 +18,18 @@ goog.inherits(bitex.view.ProfileView, bitex.view.View);
 
 bitex.view.ProfileView.prototype.enterView = function() {
   var model = this.getApplication().getModel();
-
   if (model.get('IsBroker') ) {
-    var editor = new bitex.ui.WithdrawMethodEditor();
-    editor.setModel(model.get('Profile')['WithdrawStructure']['BTC'][0]);
 
-    this.addChild(editor, true);
 
+    var withdraw_methods = new bitex.ui.WithdrawMethods();
+    withdraw_methods.setModel(model.get('Profile')['WithdrawStructure']['USD']);
+
+    this.addChild(withdraw_methods, true);
   }
-
-
 };
 
 bitex.view.ProfileView.prototype.exitView = function() {
-
+  this.removeChildren(true);
 };
+
 
