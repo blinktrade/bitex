@@ -96,7 +96,8 @@ goog.ds.XmlDataSource.prototype.createChildNodes_ = function() {
   var childNodeList = new goog.ds.BasicNodeList();
   if (this.node_ != null) {
     var childNodes = this.node_.childNodes;
-    for (var i = 0, childNode; childNode = childNodes[i]; i++) {
+    for (var i = 0, childNode;
+    (childNode = goog.userAgent.RHINO ? childNodes.item(i) : childNodes[i]); i++) {
       if (childNode.nodeType != goog.dom.NodeType.TEXT ||
           !goog.ds.XmlDataSource.isEmptyTextNodeValue_(childNode.nodeValue)) {
         var newNode = new goog.ds.XmlDataSource(childNode,
