@@ -1921,7 +1921,7 @@ def db_bootstrap(session):
                    {
                      "CurrencyCode": "BTC",
                      "CurrencyDescription":"Bitcoin",
-                     "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                     "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                      "Wallets": [
                          { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
                          { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
@@ -2347,6 +2347,7 @@ def db_bootstrap(session):
     [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1000000    , '{:,.6f}', u'\u00a4 #,##0.000000;(\u00a4 #,##0.000000)'  , '{:,.0f}', u'\u00a4 #,##0;(\u00a4 #,##0)'],
     [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100000000  , '{:,.8f}', u'\u00a5 #,##0.00000000;(\u00a5 #,##0.00000000)', '{:,.2f}', u'\u00a5 #,##0.00;(\u00a5 #,##0.00)' ],
     [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
+    [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100000000  , '{:,.8f}', u'BsF #,##0.00000000;(BsF #,##0.00000000)' , '{:,.2f}', u'BsF. #,##0.00;(BsF. #,##0.00)'   ],
     [ 'AOA' , 'Kz'      , 'kwanza'   ,  False, 100000000  , '{:,.8f}', u'Kz #,##0.00000000;(Kz #,##0.00000000)' , '{:,.2f}', u'Kz #,##0.00;(Kz #,##0.00)' ],
     [ 'AUD' , '$'       , 'Australian Dollar',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
     [ 'BSD' , '$'       , 'Bahamian dollar',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
@@ -2378,7 +2379,7 @@ def db_bootstrap(session):
 
   instruments = [
     ['BTCUSD', 'USD', "BTC / USD" ],
-    ['BTCEUR', 'EUR', "BTC / ERU" ],
+    ['BTCEUR', 'EUR', "BTC / EUR" ],
     ['BTCCNY', 'CNY', "BTC / CNY" ],
     ['BTCARS', 'ARS', "BTC / ARS" ],
     ['BTCGBP', 'GBP', "BTC / GBP" ],
@@ -2392,6 +2393,7 @@ def db_bootstrap(session):
     ['BTCIDR', 'IDR', "BTC / IDR" ],
     ['BTCILS', 'ILS', "BTC / ILS" ],
     ['BTCMXN', 'MXN', "BTC / MXN" ],
+    ['BTCVEF', 'VEF', "BTC / VEF" ],
     ['BTCXOF', 'XOF', "BTC / CFA Frank" ],
   ]
   for inst in instruments:

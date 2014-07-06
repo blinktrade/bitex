@@ -204,6 +204,7 @@ ul.parsley-error-list li {
 
 
 /* Active view */
+#profile,
 #broker_application,
 #my_broker,
 #customers,
@@ -234,6 +235,7 @@ ul.parsley-error-list li {
   display: none;
 }
 
+.active-view-profile #profile,
 .active-view-broker_application #broker_application,
 .active-view-my_broker #my_broker,
 .active-view-customers #customers,
@@ -562,4 +564,22 @@ keyframes notification {
 
 .account-summary-broker-selected {
   background-color: gainsboro;
+}
+
+
+
+.withdraw-method-editor-field-side{
+    width: 75px;
+}
+.withdraw-method-editor-field-type {
+    width: 60px;
+}
+
+.withdraw-method-editor-field-name,
+.withdraw-method-editor-field-label {
+    width: 120px;
+}
+
+.withdraw-method-editor-field-value {
+    width: 60px;
 }

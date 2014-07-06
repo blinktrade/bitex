@@ -77,39 +77,40 @@
 
 
 <!-- landing page-->
-<div id="start" class="page  row-fluid">
+<div id="start" class="page  row-fluid bitex-view">
   <header class="jumbotron">
     <img src="/images/blinktrade.png" style="">
-    <p class="lead">The first decentralized bitcoin exchange</p>
+    <p class="lead bitex-view-title bitex-view-title">The first decentralized bitcoin exchange</p>
 
     <p class="lead">Own your own bitcoin brokerage firm. Be a BlinkTrade broker.
       <a href="#" data-switch-view="broker_application" >Apply here</a>.</p>
   </header>
 
 
-
-  <div class="row bitex-hide-if-logged" style="text-align: center;">
-    <form action="" class="form-inline">
-      <label for="id_landing_username">Username:</label>
-      <input class="focus" id="id_landing_username" placeholder="" size="30" type="text">
-      <label for="id_landing_password">Password:</label>
-      <input id="id_landing_password" placeholder="" size="30" type="password">
-      <button id="id_landing_signin" class="btn btn-success">Login</button>
-    </form>
+  <div class="bitex-view-content">
+    <div class="row bitex-hide-if-logged bitex-view-content" style="text-align: center;">
+      <form action="" class="form-inline">
+        <label for="id_landing_username">Username:</label>
+        <input class="focus" id="id_landing_username" placeholder="" size="30" type="text">
+        <label for="id_landing_password">Password:</label>
+        <input id="id_landing_password" placeholder="" size="30" type="password">
+        <button id="id_landing_signin" class="btn btn-success">Login</button>
+      </form>
+    </div>
   </div>
 </div>
 
 
 <!-- signup page-->
-<div id="signup" class="page  row-fluid">
+<div id="signup" class="page  row-fluid bitex-view">
   <div class="page-header">
-    <h1>Register</h1>
+    <h1 class="bitex-view-title">Signup</h1>
   </div>
   <p>Already registered? <a href="#" data-switch-view="signin" >Login</a>.</p>
 
   <p>Are you looking to be a broker in your state/country ?<a href="#" data-switch-view="broker_application" >Broker application</a>.</p>
 
-
+  <div class="bitex-view-content">
     <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
       <div class="control-group">
         <label class="control-label">Username</label>
@@ -184,61 +185,64 @@
         <button id="id_btn_signup" class="btn btn-primary">Register</button>
       </div>
     </div>
+  </div>
 </div>
 
 <!-- signin page-->
-<div id="signin" class="page  row-fluid">
+<div id="signin" class="page  row-fluid bitex-view">
   <div class="page-header">
-    <h1>Login</h1>
+    <h1 class="bitex-view-title">Login</h1>
   </div>
   <p>Don't have an account? <a href="#" data-switch-view="signup">Register</a></p>
-
-  <form accept-charset="UTF-8" action="" method="post">
-    <div class="clearfix">
-      <label for="id_username">Username</label>
-      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
-    </div>
-    <div class="clearfix">
-      <label for="id_password">Password</label>
-      <div class="input"><input id="id_password"  placeholder="" name="password" type="password"></div>
-    </div>
-    <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
-    <div class="actions">
-      <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Login">
-    </div>
-  </form>
+  <div class="bitex-view-content">
+      <form accept-charset="UTF-8" action="" method="post">
+        <div class="clearfix">
+          <label for="id_username">Username</label>
+          <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
+        </div>
+        <div class="clearfix">
+          <label for="id_password">Password</label>
+          <div class="input"><input id="id_password"  placeholder="" name="password" type="password"></div>
+        </div>
+        <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
+        <div class="actions">
+          <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Login">
+        </div>
+      </form>
+  </div>
 </div>
 
 
-<div id="forgot_password" class="page row">
+<div id="forgot_password" class="page row bitex-view">
   <div class="page-header">
-    <h1>Password recovery</h1>
+    <h1 class="bitex-view-title">Password recovery</h1>
   </div>
-
-  <form accept-charset="UTF-8" action="" method="post">
-    <div class="clearfix">
-      <label for="id_forgot_password_email">e-mail</label>
-      <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
-    </div>
-    <div class="actions">
-      <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recover password">
-    </div>
-  </form>
+   <div class="bitex-view-content">
+      <form accept-charset="UTF-8" action="" method="post">
+        <div class="clearfix">
+          <label for="id_forgot_password_email">e-mail</label>
+          <div class="input"><input autocapitalize="off" autocorrect="off" id="id_forgot_password_email" name="email" type="text" placeholder=""></div>
+        </div>
+        <div class="actions">
+          <input id="id_btn_forgot_password"  class="btn btn-primary" name="commit" type="submit" value="Recover password">
+        </div>
+      </form>
+   </div>
 </div>
 
-<div id="broker_application" class="page row">
+<div id="broker_application" class="page row bitex-view">
   <div class="page-header">
-    <h1>Broker Application Form</h1>
+    <h1 class="bitex-view-title">Broker Application Form</h1>
   </div>
-
-  <iframe id="JotFormIFrame2"
+  <div class="bitex-view-content">
+    <iframe id="JotFormIFrame2"
           onload="window.parent.scrollTo(0,0)"
           allowtransparency="true"
           src="https://secure.jotform.us/form/41205503470139"
           frameborder="0"
           style="width:100%; height:1253px; border:none;"
           scrolling="no"></iframe>
-  <script type="text/javascript">
+    <script type="text/javascript">
     window.handleIFrameMessage = function(e) {
       var args = e.data.split(":");
       var iframe = document.getElementById("JotFormIFrame2");
@@ -261,13 +265,15 @@
     } else if (window.attachEvent) {
       window.attachEvent("onmessage", handleIFrameMessage);
     }</script>
+  </div>
 </div>
   
-<div id="set_new_password" class="page  row">
+<div id="set_new_password" class="page  row bitex-view">
   <div class="page-header">
-    <h1>Set new password</h1>
+    <h1 class="bitex-view-title">Set new password</h1>
   </div>
-  <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
+  <div class="bitex-view-content">
+    <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
 
     <div class="control-group">
       <label class="control-label">Security code</label>
@@ -297,60 +303,72 @@
     <div class="actions">
       <input id="id_btn_set_new_password"  class="btn btn-primary" name="commit" type="submit" value="Reset password">
     </div>
-  </form>
+    </form>
+  </div>
 </div>
 
 <div class="page row-fluid bitex-display-if-logged">
 
 <div  class="span9">
 
-<div id="trading">
-  <div class="section-title">
-    <h3>Buy or Sell</h3>
+<div id="profile" class="bitex-view">
+  <div class="section-title" >
+    <h3 class="bitex-view-title">Profile</h3>
   </div>
+  <div id="profile_content" class="bitex-view-content">
 
-  <div id="trading_order_entry_content" class="row-fluid"></div>
-
-  <div id="id_trading_well"></div>
+  </div>
 </div>
 
-<div id="offerbook">
+<div id="trading" class="bitex-view">
   <div class="section-title">
-    <h3>Order Book</h3>
+    <h3 class="bitex-view-title">Buy or Sell</h3>
   </div>
 
-  <div id="offer_book_order_entry_content" class="row-fluid"></div>
+  <div class="bitex-view-content">
+    <div id="trading_order_entry_content" class="row-fluid"></div>
+    <div id="id_trading_well"></div>
+  </div>
+</div>
 
-  <div class="well">
-    <div class="row-fluid">
-      <div id="id_order_book_bid_content" class="span6"></div>
-      <div id="id_order_book_ask_content" class="span6"></div>
+<div id="offerbook" class="bitex-view">
+  <div class="section-title">
+    <h3 class="bitex-view-title">Order Book</h3>
+  </div>
+  <div class="bitex-view-content">
+    <div id="offer_book_order_entry_content" class="row-fluid"></div>
+    <div class="well">
+      <div class="row-fluid">
+        <div id="id_order_book_bid_content" class="span6"></div>
+        <div id="id_order_book_ask_content" class="span6"></div>
+      </div>
     </div>
-  </div>
+   </div>
 </div>
 
-<div id="customers">
+<div id="customers" class="bitex-view">
   <div class="section-title">
-    <h3>Customers</h3>
+    <h3 class="bitex-view-title">Customers</h3>
   </div>
 
   <div id="id_customers_well"></div>
 </div>
 
-<div id="account_activity">
+<div id="account_activity" class="bitex-view">
   <div class="section-title">
-    <h3>History</h3>
+    <h3 class="bitex-view-title">History</h3>
   </div>
-
-  <div id="id_trade_history_well"></div>
+  <div class="bitex-view-content">
+    <div id="id_trade_history_well"></div>
+  </div>
 </div>
 
-<div id="enable_two_factor">
+<div id="enable_two_factor" class="bitex-view">
   <div class="section-title">
-    <h3>Enable or Disable Two steps authentication</h3>
+    <h3 class="bitex-view-title">Enable or Disable Two steps authentication</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
 
     <div class="well span6">
       <form id="id_enable_two_factor_div" class="form-horizontal ">
@@ -386,14 +404,17 @@
 
 </div>
 
-<div id="my_broker"></div>
+<div id="my_broker" class="bitex-view">
+   <div  class="bitex-view-title"></div>
+   <div class="bitex-view-content"></div>
+</div>
 
-<div id="account_overview">
+<div id="account_overview" class="bitex-view">
   <div class="section-title">
-    <h3>Account overview</h3>
+    <h3 class="bitex-view-title">Account overview</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
 
     <div class="row-fluid">
       <div class="span6">
@@ -417,10 +438,10 @@
 
 <div id="withdraw">
   <div class="section-title">
-    <h3>Withdrawals</h3>
+    <h3 class="bitex-view-title">Withdrawals</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
     <div id="id_user_balances_well"></div>
 
     <div id="id_withdraw_list"></div>
@@ -429,20 +450,20 @@
 
 <div id="withdraw_requests">
   <div class="section-title">
-    <h3>Withdrawals requests</h3>
+    <h3 class="bitex-view-title">Withdrawals requests</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
     <div id="id_withdraw_request_list"></div>
   </div>
 </div>
 
 <div id="deposit">
   <div class="section-title">
-    <h3>Deposits</h3>
+    <h3 class="bitex-view-title">Deposits</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
     <div id="id_deposit_balances_container"></div>
 
     <div id="id_deposit_list"></div>
@@ -451,10 +472,10 @@
 
 <div id="deposit_requests">
   <div class="section-title">
-    <h3>Deposit requests</h3>
+    <h3 class="bitex-view-title">Deposit requests</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
     <div id="id_deposit_request_list"></div>
   </div>
 </div>
@@ -462,10 +483,10 @@
 
 <div id="ledger">
   <div class="section-title">
-    <h3>Ledger</h3>
+    <h3 class="bitex-view-title">Ledger</h3>
   </div>
 
-  <div class="content">
+  <div class="content bitex-view-content">
     <div id="id_ledger_balances_container"></div>
 
     <div id="id_ledger_list"></div>
@@ -474,25 +495,27 @@
 
 
 
-<div id="settings">
+<div id="settings" class="bitex-view">
   <div class="section-title">
-    <h3>Configurações</h3>
+    <h3 class="bitex-view-title">Settings</h3>
   </div>
+  <div class="bitex-view-content"></div>
 </div>
 
-<div id="verification">
+<div id="verification" class="bitex-view">
   <div class="section-title">
-    <h3>Verify your account</h3>
+    <h3 class="bitex-view-title">Verify your account</h3>
   </div>
 
-  <iframe id="JotFormIFrame"
+  <div class="bitex-view-content">
+    <iframe id="JotFormIFrame"
           onload="window.parent.scrollTo(0,0)"
           allowtransparency="true"
           src=""
           frameborder="0"
           style="width:100%; height:1550px; border:none;"
           scrolling="no"></iframe>
-  <script type="text/javascript">
+    <script type="text/javascript">
     window.handleIFrameMessage = function(e) {
       var args = e.data.split(":");
       var iframe = document.getElementById("JotFormIFrame");
@@ -514,77 +537,79 @@
     } else if (window.attachEvent) {
       window.attachEvent("onmessage", handleIFrameMessage);
     }
-  </script>
-</div>
-
-</div>
-
-<div id="id_sidebar" class="span3 sidebar">
-  <h3><span class="bitex-model" data-model-key="Username"></span></h3>
-  <div id="account_balance" style="">
-
-    <form class="form-inline">
-      <label class="control-label" for="id_instrument_1">Market: </label>
-      <select id="id_instrument_1">
-        <option></option>
-      </select>
-    </form>
-
-    <div id="id_account_summary_content" class=""></div>
+    </script>
   </div>
-  <h6>Menu</h6>
-  <ul class="nav nav-list">
-    <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i> My Broker info</a></li>
-
-    <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-random"></i> Buy or Sell</a></li>
-
-    <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
-
-
-    <li style=""><a href="" data-switch-view="ledger"><i data-switch-view="ledger" class="icon-list"></i> Ledger</a></li>
-
-    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> My customers</a></li>
-    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="deposit_requests"><i data-switch-view="deposit_requests" class="icon-plus"></i> Deposit requests</a></li>
-    <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="withdraw_requests"><i data-switch-view="withdraw_requests" class="icon-minus"></i> Withdraw requests</a></li>
-
-    <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> My Deposit</a></li>
-    <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> My Withdrawals</a></li>
-
-
-    <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
-    <li style="" class=""><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
-    <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
-
-    <li style="">
-        <a href="" class="bitex-support-link" target="_blank" >
-            <i class="icon-envelope"></i> Suggestions & Support</a>
-    </li>
-    <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
-  </ul>
-</div>
 </div>
 
-<div id="market" class="page row">
+</div>
+
+<div id="id_sidebar" class="span3 sidebar bitex-view">
+  <h3><span class="bitex-model bitex-view-title" data-model-key="Username"></span></h3>
+  <div class="bitex-view-content">
+      <div id="account_balance" style="">
+
+        <form class="form-inline">
+          <label class="control-label" for="id_instrument_1">Market: </label>
+          <select id="id_instrument_1">
+            <option></option>
+          </select>
+        </form>
+
+        <div id="id_account_summary_content" class=""></div>
+      </div>
+
+      <h6>Menu</h6>
+      <ul class="nav nav-list">
+        <li style=""><a href="" data-switch-view="profile"><i data-switch-view="profile" class="icon-user"></i> My Profile</a></li>
+        <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i> My Broker info</a></li>
+
+        <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-random"></i> Buy or Sell</a></li>
+
+        <li><a href="" data-switch-view="offerbook"><i data-switch-view="offerbook" class="icon-book"></i> Order book</a></li>
+
+
+        <li style=""><a href="" data-switch-view="ledger"><i data-switch-view="ledger" class="icon-list"></i> Ledger</a></li>
+
+        <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="customers"><i data-switch-view="customers" class="icon-user"></i> My customers</a></li>
+        <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="deposit_requests"><i data-switch-view="deposit_requests" class="icon-plus"></i> Deposit requests</a></li>
+        <li style="" class="bitex-display-if-broker"><a href="" data-switch-view="withdraw_requests"><i data-switch-view="withdraw_requests" class="icon-minus"></i> Withdraw requests</a></li>
+
+        <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> My Deposit</a></li>
+        <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> My Withdrawals</a></li>
+
+
+        <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
+        <li style="" class=""><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
+        <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
+
+        <li style="">
+            <a href="" class="bitex-support-link" target="_blank" >
+                <i class="icon-envelope"></i> Suggestions & Support</a>
+        </li>
+        <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
+      </ul>
+  </div>
+
+</div>
+
+<div id="market" class="page row bitex-view">
     <div class="row-fluid">
         <div class="page-header">
-            <h2>Market</h2>
+            <h2 class="bitex-view-title">Market</h2>
         </div>
     </div>
-
-    <div class="row-fluid">
+    <div class="bitex-view-content">
+      <div class="row-fluid">
         <div id="id_trade_list"></div>
+      </div>
     </div>
-
 </div>
 
-<div id="tos" class="page row">
+<div id="tos" class="page row bitex-view">
   <div class="page-header">
-    <h1>Terms of service</h1>
+    <h1 class="bitex-view-title">Terms of service</h1>
   </div>
-  <!-- Main content -->
-  <div class="well">
-    [TODO.]
-  </div>
+  <div class="bitex-view-content well"></div>
 </div>
 
 </div>

@@ -35,6 +35,7 @@ from tornado.options import define, options
 
 from tornado import websocket
 
+import logging
 import urllib
 import urllib2
 import json
@@ -48,46 +49,33 @@ from bitex.zmq_client import TradeClient, TradeClientException
 
 from zmq.eventloop.zmqstream import ZMQStream
 
-define("callback_url", default="https://www.bitex.com.br/process_deposit?s=")
-define("port", default=8443, help="port")
-define(
-    "certfile",
-    default=os.path.join(
-        ROOT_PATH,
-        "ssl/",
-        "order_matcher_certificate.pem"),
-    help="Certificate file")
-define(
-    "keyfile",
-    default=os.path.join(
-        ROOT_PATH,
-        "ssl/",
-        "order_matcher_privatekey.pem"),
-    help="Private key file")
-define("trade_in", default="tcp://127.0.0.1:5755", help="trade zmq queue")
-define(
-    "trade_pub",
-    default="tcp://127.0.0.1:5756",
-    help="trade zmq publish queue")
+define("callback_url")
+define("port", type=int  ,help="port")
+define("gateway_log", help="logging" )
+define("certfile",help="Certificate file")
+define("keyfile",help="Private key file")
+define("trade_in", help="trade zmq queue")
+define("trade_pub",help="trade zmq publish queue")
 define("session_timeout_limit", default=0, help="Session timeout")
-define(
-    "db_echo",
-    default=False,
-    help="Prints every database command on the stdout")
-define(
-    "db_engine",
-    default="sqlite:///" +
-    os.path.join(
-        ROOT_PATH,
-        "db/",
-        "ws_01_bitex.sqlite"),
-    help="SQLAlchemy database engine string")
+define("db_echo",default=False, help="Prints every database command on the stdout")
 
-define("config", default=os.path.join(ROOT_PATH, "config/", "ws_gateway.conf"), help="config file",
-       callback=lambda path: tornado.options.parse_config_file(path, final=False))
-
+define("db_engine",help="SQLAlchemy database engine string")
+define("config", help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 tornado.options.parse_command_line()
+if not options.trade_in or \
+   not options.trade_pub or \
+   not options.gateway_log or \
+   not options.callback_url or \
+   not options.port or \
+   not options.db_engine:
+  tornado.options.print_help()
+  exit(0)
+
+input_log_file_handler = logging.handlers.TimedRotatingFileHandler( options.gateway_log, when='MIDNIGHT')
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+input_log_file_handler.setFormatter(formatter)
+
 
 from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history
 
@@ -410,6 +398,8 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 
 def main():
+
+
     print 'callback_url', options.callback_url
     print 'port', options.port
     print 'certfile', options.certfile
@@ -417,6 +407,7 @@ def main():
     print 'trade_in', options.trade_in
     print 'trade_pub', options.trade_pub
     print 'session_timeout_limit', options.session_timeout_limit
+
 
     from zmq.eventloop import ioloop
     ioloop.install()

@@ -94,6 +94,12 @@ bitex.view.View.prototype.enterView = function() {};
 
 bitex.view.View.prototype.exitView = function() {};
 
+bitex.view.View.prototype.getContentElement = function() {
+  var element = goog.dom.getElementByClass('bitex-view-content', this.getElement());
+  return element || this.getElement();
+};
+
+
 
 /**
  * A logger to help debugging
