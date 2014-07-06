@@ -3,7 +3,7 @@
 
 /**
   * @param id
-  * @param model
+  * @param methods
   */
 {template .WithdrawMethods}
 
@@ -13,23 +13,21 @@
           <thead>
             <tr>
                 <th> {msg desc="Methods column header"}Method{/msg}</th>
-                <th> {msg desc="Methods column header"}Name{/msg} </th>
-                <th> {msg desc="Methods column header"}Label{/msg} </th>
-                <th> {msg desc="Methods column header"}Placeholder{/msg} </th>
-                <th> {msg desc="Methods column header"}Type{/msg} </th>
-                <th> {msg desc="Methods column header"}Value{/msg} </th>
+                <th> {msg desc="Methods column header"}Description{/msg} </th>
+                <th> {msg desc="Methods column header"}Percent Fee{/msg} </th>
+                <th> {msg desc="Methods column header"}Fixed Fee{/msg} </th>
                 <th> {msg desc="Methods column header"}Actions{/msg} </th>
             </tr>
           </thead>
           <tbody>
-            {foreach $field in $model['fields']}
+            {foreach $method in methods}
 
 
             {/foreach}
           </tbody>
       </table>
 
-      <button id="{$id}_add" class="btn btn-primary"><i class="icon-white icon-plus"></i> {msg desc="Add field button label"}Add field{/msg}</button>
+      <button id="{$id}_add" class="btn btn-primary"><i class="icon-white icon-plus"></i> {msg desc="Add field withdraw method"}Add withdraw method{/msg}</button>
 
     </div>
   </div>
