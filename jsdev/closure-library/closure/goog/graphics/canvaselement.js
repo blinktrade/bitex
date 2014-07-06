@@ -595,7 +595,7 @@ goog.graphics.CanvasTextElement.prototype.updateStyle_ = function() {
     style.width = Math.round(w) + 'px';
     style.height = Math.abs(y1 - y2) * scaleY + 'px';
 
-    style.fontSize = font.size * 0.6 * scaleY + 'pt';
+    style.fontSize = font.size * 0.6 * scaleY + 'px';
   } else {
     style.lineHeight = '100%';
     this.innerElement_.style.verticalAlign = 'top';
@@ -606,7 +606,7 @@ goog.graphics.CanvasTextElement.prototype.updateStyle_ = function() {
     style.width = Math.round(Math.abs(x2 - x1) * scaleX) + 'px';
     style.height = 'auto';
 
-    style.fontSize = font.size * scaleY + 'pt';
+    style.fontSize = font.size * scaleY + 'px';
   }
 
   style.fontWeight = font.bold ? 'bold' : 'normal';
