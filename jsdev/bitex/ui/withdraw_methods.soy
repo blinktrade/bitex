@@ -1,0 +1,38 @@
+{namespace bitex.ui.withdraw_methods.templates}
+
+
+/**
+  * @param id
+  * @param model
+  */
+{template .WithdrawMethods}
+
+  <div class="row-fluid">
+    <div class="span12">
+      <table id="{$id}_table" class="table table-bordered table-hover">
+          <thead>
+            <tr>
+                <th> {msg desc="Methods column header"}Method{/msg}</th>
+                <th> {msg desc="Methods column header"}Name{/msg} </th>
+                <th> {msg desc="Methods column header"}Label{/msg} </th>
+                <th> {msg desc="Methods column header"}Placeholder{/msg} </th>
+                <th> {msg desc="Methods column header"}Type{/msg} </th>
+                <th> {msg desc="Methods column header"}Value{/msg} </th>
+                <th> {msg desc="Methods column header"}Actions{/msg} </th>
+            </tr>
+          </thead>
+          <tbody>
+            {foreach $field in $model['fields']}
+
+
+            {/foreach}
+          </tbody>
+      </table>
+
+      <button id="{$id}_add" class="btn btn-primary"><i class="icon-white icon-plus"></i> {msg desc="Add field button label"}Add field{/msg}</button>
+
+    </div>
+  </div>
+
+{/template}
+
