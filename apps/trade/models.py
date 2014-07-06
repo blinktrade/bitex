@@ -1332,7 +1332,8 @@ class Order(Base):
 
 class Trade(Base):
   __tablename__     = 'trade'
-  id                = Column(String,        primary_key=True)
+  #id                = Column(String,        primary_key=True)
+  id                = Column(Integer,        primary_key=True)
   order_id          = Column(Integer,       ForeignKey('orders.id'))
   counter_order_id  = Column(Integer,       ForeignKey('orders.id'))
   buyer_username    = Column(String(15),    nullable=False)
@@ -1359,7 +1360,7 @@ class Trade(Base):
       buyer_username = seller_username
       seller_username = tmp_username
 
-    trade =  Trade( id                = str(order.id) + '.' + str(counter_order.id),
+    trade =  Trade( #id                = str(order.id) + '.' + str(counter_order.id),
                     order_id          = order.id,
                     counter_order_id  = counter_order.id,
                     buyer_username    = buyer_username,
@@ -1372,7 +1373,7 @@ class Trade(Base):
     session.add(trade)
 
 
-    Ledger.execute_order(session, order, counter_order, symbol, size, price, trade.id)
+    Ledger.execute_order(session, order, counter_order, symbol, size, price, str(order.id) + '.' + str(counter_order.id))
 
 
     return trade
