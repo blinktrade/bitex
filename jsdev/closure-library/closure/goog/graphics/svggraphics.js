@@ -416,7 +416,7 @@ goog.graphics.SvgGraphics.prototype.setSize = function(pixelWidth,
 
 /** @override */
 goog.graphics.SvgGraphics.prototype.getPixelSize = function() {
-  if (!goog.userAgent.GECKO) {
+  if (!goog.userAgent.GECKO && !goog.userAgent.IE) {
     return this.isInDocument() ?
         goog.style.getSize(this.getElement()) :
         goog.base(this, 'getPixelSize');
