@@ -833,7 +833,7 @@ goog.net.XhrIo.prototype.isSuccess = function() {
   var status = this.getStatus();
   // A zero status code is considered successful for local files.
   return goog.net.HttpStatus.isSuccess(status) ||
-      status === 0 && !this.isLastUriEffectiveSchemeHttp_();
+      status === 0; // && !this.isLastUriEffectiveSchemeHttp_();
 };
 
 

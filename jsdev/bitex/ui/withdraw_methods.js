@@ -37,7 +37,7 @@ bitex.ui.WithdrawMethods.prototype.createDom = function() {
 
   var topEl = goog.soy.renderAsElement(bitex.ui.withdraw_methods.templates.WithdrawMethods, {
     id: this.makeId('form'),
-    model: this.getModel()
+    methods: this.getModel()
   });
 
   this.setElementInternal(topEl);

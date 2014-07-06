@@ -1,35 +1,19 @@
-// Copyright 2007 The Closure Library Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-
 /**
- * @fileoverview Objects representing shapes drawn on a canvas.
- * @author robbyw@google.com (Robby Walker)
- * @author wcrosby@google.com (Wayne Crosby)
+ * @fileoverview Objects representing shapes drawn using a server
+ * @author shall@scottlogic.co.uk (Steven Hall)
+ *
  */
 
-goog.provide('goog.graphics.CanvasEllipseElement');
-goog.provide('goog.graphics.CanvasGroupElement');
-goog.provide('goog.graphics.CanvasImageElement');
-goog.provide('goog.graphics.CanvasPathElement');
-goog.provide('goog.graphics.CanvasRectElement');
-goog.provide('goog.graphics.CanvasTextElement');
+goog.provide('goog.graphics.ServerEllipseElement');
+goog.provide('goog.graphics.ServerGroupElement');
+goog.provide('goog.graphics.ServerImageElement');
+goog.provide('goog.graphics.ServerPathElement');
+goog.provide('goog.graphics.ServerRectElement');
+goog.provide('goog.graphics.ServerTextElement');
 
 
 goog.require('goog.array');
 goog.require('goog.dom');
-goog.require('goog.dom.TagName');
 goog.require('goog.graphics.EllipseElement');
 goog.require('goog.graphics.GroupElement');
 goog.require('goog.graphics.ImageElement');
@@ -40,16 +24,16 @@ goog.require('goog.graphics.TextElement');
 
 
 /**
- * Object representing a group of objects in a canvas.
+ * Object representing a group of objects on a server
  * This is an implementation of the goog.graphics.GroupElement interface.
  * You should not construct objects from this constructor. The graphics
  * will return the object for you.
- * @param {goog.graphics.CanvasGraphics} graphics The graphics creating
+ * @param {goog.graphics.ServerGraphics} graphics The graphics creating
  *     this element.
  * @constructor
  * @extends {goog.graphics.GroupElement}
  */
-goog.graphics.CanvasGroupElement = function(graphics) {
+goog.graphics.ServerGroupElement = function(graphics) {
   goog.graphics.GroupElement.call(this, null, graphics);
 
 
@@ -60,14 +44,13 @@ goog.graphics.CanvasGroupElement = function(graphics) {
    */
   this.children_ = [];
 };
-goog.inherits(goog.graphics.CanvasGroupElement, goog.graphics.GroupElement);
+goog.inherits(goog.graphics.ServerGroupElement, goog.graphics.GroupElement);
 
 
 /**
  * Remove all drawing elements from the group.
- * @override
  */
-goog.graphics.CanvasGroupElement.prototype.clear = function() {
+goog.graphics.ServerGroupElement.prototype.clear = function() {
   if (this.children_.length) {
     this.children_.length = 0;
     this.getGraphics().redraw();
@@ -79,9 +62,8 @@ goog.graphics.CanvasGroupElement.prototype.clear = function() {
  * Set the size of the group element.
  * @param {number|string} width The width of the group element.
  * @param {number|string} height The height of the group element.
- * @override
  */
-goog.graphics.CanvasGroupElement.prototype.setSize = function(width, height) {
+goog.graphics.ServerGroupElement.prototype.setSize = function(width, height) {
   // Do nothing.
 };
 
@@ -90,21 +72,20 @@ goog.graphics.CanvasGroupElement.prototype.setSize = function(width, height) {
  * Append a child to the group.  Does not draw it
  * @param {goog.graphics.Element} element The child to append.
  */
-goog.graphics.CanvasGroupElement.prototype.appendChild = function(element) {
+goog.graphics.ServerGroupElement.prototype.appendChild = function(element) {
   this.children_.push(element);
 };
 
 
 /**
  * Draw the group.
- * @param {CanvasRenderingContext2D} ctx The context to draw the element in.
+ * @param {ServerRenderingContext2D} ctx The context to draw the element in.
  */
-goog.graphics.CanvasGroupElement.prototype.draw = function(ctx) {
+goog.graphics.ServerGroupElement.prototype.draw = function(ctx) {
   for (var i = 0, len = this.children_.length; i < len; i++) {
     this.getGraphics().drawElement(this.children_[i]);
   }
 };
-
 
 
 /**
@@ -113,7 +94,7 @@ goog.graphics.CanvasGroupElement.prototype.draw = function(ctx) {
  * You should not construct objects from this constructor. The graphics
  * will return the object for you.
  * @param {Element} element The DOM element to wrap.
- * @param {goog.graphics.CanvasGraphics} graphics  The graphics creating
+ * @param {goog.graphics.ServerGraphics} graphics  The graphics creating
  *     this element.
  * @param {number} cx Center X coordinate.
  * @param {number} cy Center Y coordinate.
@@ -124,7 +105,7 @@ goog.graphics.CanvasGroupElement.prototype.draw = function(ctx) {
  * @constructor
  * @extends {goog.graphics.EllipseElement}
  */
-goog.graphics.CanvasEllipseElement = function(element, graphics,
+goog.graphics.ServerEllipseElement = function(element, graphics,
     cx, cy, rx, ry, stroke, fill) {
   goog.graphics.EllipseElement.call(this, element, graphics, stroke, fill);
 
@@ -170,24 +151,22 @@ goog.graphics.CanvasEllipseElement = function(element, graphics,
 
   /**
    * Internal path element that actually does the drawing.
-   * @type {goog.graphics.CanvasPathElement}
+   * @type {goog.graphics.ServerPathElement}
    * @private
    */
-  this.pathElement_ = new goog.graphics.CanvasPathElement(null, graphics,
+  this.pathElement_ = new goog.graphics.ServerPathElement(null, graphics,
       this.path_, stroke, fill);
 };
-goog.inherits(goog.graphics.CanvasEllipseElement, goog.graphics.EllipseElement);
+goog.inherits(goog.graphics.ServerEllipseElement, goog.graphics.EllipseElement);
 
 
 /**
  * Sets up the path.
  * @private
  */
-goog.graphics.CanvasEllipseElement.prototype.setUpPath_ = function() {
+goog.graphics.ServerEllipseElement.prototype.setUpPath_ = function() {
   this.path_.clear();
-  this.path_.moveTo(this.cx_ + goog.math.angleDx(0, this.rx_),
-                    this.cy_ + goog.math.angleDy(0, this.ry_));
-  this.path_.arcTo(this.rx_, this.ry_, 0, 360);
+  this.path_.arc(this.cx_, this.cy_, this.rx_, this.ry_, 0, 360, false);
   this.path_.close();
 };
 
@@ -196,9 +175,8 @@ goog.graphics.CanvasEllipseElement.prototype.setUpPath_ = function() {
  * Update the center point of the ellipse.
  * @param {number} cx Center X coordinate.
  * @param {number} cy Center Y coordinate.
- * @override
  */
-goog.graphics.CanvasEllipseElement.prototype.setCenter = function(cx, cy) {
+goog.graphics.ServerEllipseElement.prototype.setCenter = function(cx, cy) {
   this.cx_ = cx;
   this.cy_ = cy;
   this.setUpPath_();
@@ -210,9 +188,8 @@ goog.graphics.CanvasEllipseElement.prototype.setCenter = function(cx, cy) {
  * Update the radius of the ellipse.
  * @param {number} rx Center X coordinate.
  * @param {number} ry Center Y coordinate.
- * @override
  */
-goog.graphics.CanvasEllipseElement.prototype.setRadius = function(rx, ry) {
+goog.graphics.ServerEllipseElement.prototype.setRadius = function(rx, ry) {
   this.rx_ = rx;
   this.ry_ = ry;
   this.setUpPath_();
@@ -222,12 +199,11 @@ goog.graphics.CanvasEllipseElement.prototype.setRadius = function(rx, ry) {
 
 /**
  * Draw the ellipse.  Should be treated as package scope.
- * @param {CanvasRenderingContext2D} ctx The context to draw the element in.
+ * @param {ServerRenderingContext2D} ctx The context to draw the element in.
  */
-goog.graphics.CanvasEllipseElement.prototype.draw = function(ctx) {
+goog.graphics.ServerEllipseElement.prototype.draw = function(ctx) {
   this.pathElement_.draw(ctx);
 };
-
 
 
 /**
@@ -236,7 +212,7 @@ goog.graphics.CanvasEllipseElement.prototype.draw = function(ctx) {
  * You should not construct objects from this constructor. The graphics
  * will return the object for you.
  * @param {Element} element The DOM element to wrap.
- * @param {goog.graphics.CanvasGraphics} graphics The graphics creating
+ * @param {goog.graphics.ServerGraphics} graphics The graphics creating
  *     this element.
  * @param {number} x X coordinate (left).
  * @param {number} y Y coordinate (top).
@@ -247,7 +223,7 @@ goog.graphics.CanvasEllipseElement.prototype.draw = function(ctx) {
  * @constructor
  * @extends {goog.graphics.RectElement}
  */
-goog.graphics.CanvasRectElement = function(element, graphics, x, y, w, h,
+goog.graphics.ServerRectElement = function(element, graphics, x, y, w, h,
     stroke, fill) {
   goog.graphics.RectElement.call(this, element, graphics, stroke, fill);
 
@@ -282,16 +258,15 @@ goog.graphics.CanvasRectElement = function(element, graphics, x, y, w, h,
    */
   this.h_ = h;
 };
-goog.inherits(goog.graphics.CanvasRectElement, goog.graphics.RectElement);
+goog.inherits(goog.graphics.ServerRectElement, goog.graphics.RectElement);
 
 
 /**
  * Update the position of the rectangle.
  * @param {number} x X coordinate (left).
  * @param {number} y Y coordinate (top).
- * @override
  */
-goog.graphics.CanvasRectElement.prototype.setPosition = function(x, y) {
+goog.graphics.ServerRectElement.prototype.setPosition = function(x, y) {
   this.x_ = x;
   this.y_ = y;
   if (this.drawn_) {
@@ -305,16 +280,15 @@ goog.graphics.CanvasRectElement.prototype.setPosition = function(x, y) {
  * @type {boolean}
  * @private
  */
-goog.graphics.CanvasRectElement.prototype.drawn_ = false;
+goog.graphics.ServerRectElement.prototype.drawn_ = false;
 
 
 /**
  * Update the size of the rectangle.
  * @param {number} width Width of rectangle.
  * @param {number} height Height of rectangle.
- * @override
  */
-goog.graphics.CanvasRectElement.prototype.setSize = function(width, height) {
+goog.graphics.ServerRectElement.prototype.setSize = function(width, height) {
   this.w_ = width;
   this.h_ = height;
   if (this.drawn_) {
@@ -325,9 +299,9 @@ goog.graphics.CanvasRectElement.prototype.setSize = function(width, height) {
 
 /**
  * Draw the rectangle.  Should be treated as package scope.
- * @param {CanvasRenderingContext2D} ctx The context to draw the element in.
+ * @param {ServerRenderingContext2D} ctx The context to draw the element in.
  */
-goog.graphics.CanvasRectElement.prototype.draw = function(ctx) {
+goog.graphics.ServerRectElement.prototype.draw = function(ctx) {
   this.drawn_ = true;
   ctx.beginPath();
   ctx.moveTo(this.x_, this.y_);
@@ -338,14 +312,13 @@ goog.graphics.CanvasRectElement.prototype.draw = function(ctx) {
 };
 
 
-
 /**
  * Thin wrapper for canvas path elements.
  * This is an implementation of the goog.graphics.PathElement interface.
  * You should not construct objects from this constructor. The graphics
  * will return the object for you.
  * @param {Element} element The DOM element to wrap.
- * @param {goog.graphics.CanvasGraphics} graphics The graphics creating
+ * @param {goog.graphics.ServerGraphics} graphics The graphics creating
  *     this element.
  * @param {!goog.graphics.Path} path The path object to draw.
  * @param {goog.graphics.Stroke} stroke The stroke to use for this element.
@@ -353,13 +326,13 @@ goog.graphics.CanvasRectElement.prototype.draw = function(ctx) {
  * @constructor
  * @extends {goog.graphics.PathElement}
  */
-goog.graphics.CanvasPathElement = function(element, graphics, path, stroke,
+goog.graphics.ServerPathElement = function(element, graphics, path, stroke,
     fill) {
   goog.graphics.PathElement.call(this, element, graphics, stroke, fill);
 
   this.setPath(path);
 };
-goog.inherits(goog.graphics.CanvasPathElement, goog.graphics.PathElement);
+goog.inherits(goog.graphics.ServerPathElement, goog.graphics.PathElement);
 
 
 /**
@@ -367,7 +340,7 @@ goog.inherits(goog.graphics.CanvasPathElement, goog.graphics.PathElement);
  * @type {boolean}
  * @private
  */
-goog.graphics.CanvasPathElement.prototype.drawn_ = false;
+goog.graphics.ServerPathElement.prototype.drawn_ = false;
 
 
 /**
@@ -375,15 +348,14 @@ goog.graphics.CanvasPathElement.prototype.drawn_ = false;
  * @type {goog.graphics.Path}
  * @private
  */
-goog.graphics.CanvasPathElement.prototype.path_;
+goog.graphics.ServerPathElement.prototype.path_;
 
 
 /**
  * Update the underlying path.
  * @param {!goog.graphics.Path} path The path object to draw.
- * @override
  */
-goog.graphics.CanvasPathElement.prototype.setPath = function(path) {
+goog.graphics.ServerPathElement.prototype.setPath = function(path) {
   this.path_ = path.isSimple() ? path :
       goog.graphics.Path.createSimplifiedPath(path);
   if (this.drawn_) {
@@ -394,10 +366,11 @@ goog.graphics.CanvasPathElement.prototype.setPath = function(path) {
 
 /**
  * Draw the path.  Should be treated as package scope.
- * @param {CanvasRenderingContext2D} ctx The context to draw the element in.
+ * @param {ServerRenderingContext2D} ctx The context to draw the element in.
  */
-goog.graphics.CanvasPathElement.prototype.draw = function(ctx) {
+goog.graphics.ServerPathElement.prototype.draw = function(ctx) {
   this.drawn_ = true;
+
 
   ctx.beginPath();
   this.path_.forEachSegment(function(segment, args) {
@@ -417,7 +390,7 @@ goog.graphics.CanvasPathElement.prototype.draw = function(ctx) {
         }
         break;
       case goog.graphics.Path.Segment.ARCTO:
-        throw Error('Canvas paths cannot contain arcs');
+        throw Error('Server paths cannot contain arcs');
       case goog.graphics.Path.Segment.CLOSE:
         ctx.closePath();
         break;
@@ -426,13 +399,12 @@ goog.graphics.CanvasPathElement.prototype.draw = function(ctx) {
 };
 
 
-
 /**
  * Thin wrapper for canvas text elements.
  * This is an implementation of the goog.graphics.TextElement interface.
  * You should not construct objects from this constructor. The graphics
  * will return the object for you.
- * @param {!goog.graphics.CanvasGraphics} graphics The graphics creating
+ * @param {!goog.graphics.ServerGraphics} graphics The graphics creating
  *     this element.
  * @param {string} text The text to draw.
  * @param {number} x1 X coordinate of start of line.
@@ -446,12 +418,9 @@ goog.graphics.CanvasPathElement.prototype.draw = function(ctx) {
  * @constructor
  * @extends {goog.graphics.TextElement}
  */
-goog.graphics.CanvasTextElement = function(graphics, text, x1, y1, x2, y2,
+goog.graphics.ServerTextElement = function(graphics, text, x1, y1, x2, y2,
     align, font, stroke, fill) {
-  var element = goog.dom.createDom(goog.dom.TagName.DIV, {
-    'style': 'display:table;position:absolute;padding:0;margin:0;border:0'
-  });
-  goog.graphics.TextElement.call(this, element, graphics, stroke, fill);
+  goog.graphics.TextElement.call(this, null, graphics, stroke, fill);
 
   /**
    * The text to draw.
@@ -501,139 +470,26 @@ goog.graphics.CanvasTextElement = function(graphics, text, x1, y1, x2, y2,
    * @private
    */
   this.font_ = font;
-
-  /**
-   * The inner element that contains the text.
-   * @type {Element}
-   * @private
-   */
-  this.innerElement_ = goog.dom.createDom('DIV', {
-    'style': 'display:table-cell;padding: 0;margin: 0;border: 0'
-  });
-
-  this.updateStyle_();
-  this.updateText_();
-
-  // Append to the DOM.
-  graphics.getElement().appendChild(element);
-  element.appendChild(this.innerElement_);
 };
-goog.inherits(goog.graphics.CanvasTextElement, goog.graphics.TextElement);
+goog.inherits(goog.graphics.ServerTextElement, goog.graphics.TextElement);
 
 
 /**
  * Update the displayed text of the element.
  * @param {string} text The text to draw.
- * @override
  */
-goog.graphics.CanvasTextElement.prototype.setText = function(text) {
+goog.graphics.ServerTextElement.prototype.setText = function(text) {
   this.text_ = text;
-  this.updateText_();
 };
-
-
-/**
- * Sets the fill for this element.
- * @param {goog.graphics.Fill} fill The fill object.
- * @override
- */
-goog.graphics.CanvasTextElement.prototype.setFill = function(fill) {
-  this.fill = fill;
-  var element = this.getElement();
-  if (element) {
-    element.style.color = fill.getColor() || fill.getColor1();
-  }
-};
-
-
-/**
- * Sets the stroke for this element.
- * @param {goog.graphics.Stroke} stroke The stroke object.
- * @override
- */
-goog.graphics.CanvasTextElement.prototype.setStroke = function(stroke) {
-  // Ignore stroke
-};
-
 
 /**
  * Draw the text.  Should be treated as package scope.
  * @param {CanvasRenderingContext2D} ctx The context to draw the element in.
  */
-goog.graphics.CanvasTextElement.prototype.draw = function(ctx) {
-  // Do nothing - the text is already drawn.
+goog.graphics.ServerTextElement.prototype.draw = function(ctx) {
+  ctx.drawText(this.text_, this.x1_, this.y1_, this.x2_, this.y2_,
+      this.align_, this.font_.family, this.font_.size, this.stroke_.getColor());
 };
-
-
-/**
- * Update the styles of the DIVs.
- * @private
- */
-goog.graphics.CanvasTextElement.prototype.updateStyle_ = function() {
-  var x1 = this.x1_;
-  var x2 = this.x2_;
-  var y1 = this.y1_;
-  var y2 = this.y2_;
-  var align = this.align_;
-  var font = this.font_;
-  var style = this.getElement().style;
-  var scaleX = this.getGraphics().getPixelScaleX();
-  var scaleY = this.getGraphics().getPixelScaleY();
-
-  if (x1 == x2) {
-    // Special case vertical text
-    style.lineHeight = '90%';
-
-    this.innerElement_.style.verticalAlign = align == 'center' ? 'middle' :
-        align == 'left' ? (y1 < y2 ? 'top' : 'bottom') :
-        y1 < y2 ? 'bottom' : 'top';
-    style.textAlign = 'center';
-
-    var w = font.size * scaleX;
-    style.top = Math.round(Math.min(y1, y2) * scaleY) + 'px';
-    style.left = Math.round((x1 - w / 2) * scaleX) + 'px';
-    style.width = Math.round(w) + 'px';
-    style.height = Math.abs(y1 - y2) * scaleY + 'px';
-
-    style.fontSize = font.size * 0.6 * scaleY + 'px';
-  } else {
-    style.lineHeight = '100%';
-    this.innerElement_.style.verticalAlign = 'top';
-    style.textAlign = align;
-
-    style.top = Math.round(((y1 + y2) / 2 - font.size * 2 / 3) * scaleY) + 'px';
-    style.left = Math.round(x1 * scaleX) + 'px';
-    style.width = Math.round(Math.abs(x2 - x1) * scaleX) + 'px';
-    style.height = 'auto';
-
-    style.fontSize = font.size * scaleY + 'px';
-  }
-
-  style.fontWeight = font.bold ? 'bold' : 'normal';
-  style.fontStyle = font.italic ? 'italic' : 'normal';
-  style.fontFamily = font.family;
-
-  var fill = this.getFill();
-  style.color = fill.getColor() || fill.getColor1();
-};
-
-
-/**
- * Update the text content.
- * @private
- */
-goog.graphics.CanvasTextElement.prototype.updateText_ = function() {
-  if (this.x1_ == this.x2_) {
-    // Special case vertical text
-    this.innerElement_.innerHTML =
-        goog.array.map(this.text_.split(''),
-            function(entry) { return goog.string.htmlEscape(entry); }).
-            join('<br>');
-  } else {
-    this.innerElement_.innerHTML = goog.string.htmlEscape(this.text_);
-  }
-};
-
 
 
 /**
@@ -642,7 +498,7 @@ goog.graphics.CanvasTextElement.prototype.updateText_ = function() {
  * You should not construct objects from this constructor. The graphics
  * will return the object for you.
  * @param {Element} element The DOM element to wrap.
- * @param {goog.graphics.CanvasGraphics} graphics The graphics creating
+ * @param {goog.graphics.ServerGraphics} graphics The graphics creating
  *     this element.
  * @param {number} x X coordinate (left).
  * @param {number} y Y coordinate (top).
@@ -652,7 +508,7 @@ goog.graphics.CanvasTextElement.prototype.updateText_ = function() {
  * @constructor
  * @extends {goog.graphics.ImageElement}
  */
-goog.graphics.CanvasImageElement = function(element, graphics, x, y, w, h,
+goog.graphics.ServerImageElement = function(element, graphics, x, y, w, h,
     src) {
   goog.graphics.ImageElement.call(this, element, graphics);
 
@@ -695,7 +551,7 @@ goog.graphics.CanvasImageElement = function(element, graphics, x, y, w, h,
    */
   this.src_ = src;
 };
-goog.inherits(goog.graphics.CanvasImageElement, goog.graphics.ImageElement);
+goog.inherits(goog.graphics.ServerImageElement, goog.graphics.ImageElement);
 
 
 /**
@@ -703,16 +559,15 @@ goog.inherits(goog.graphics.CanvasImageElement, goog.graphics.ImageElement);
  * @type {boolean}
  * @private
  */
-goog.graphics.CanvasImageElement.prototype.drawn_ = false;
+goog.graphics.ServerImageElement.prototype.drawn_ = false;
 
 
 /**
  * Update the position of the image.
  * @param {number} x X coordinate (left).
  * @param {number} y Y coordinate (top).
- * @override
  */
-goog.graphics.CanvasImageElement.prototype.setPosition = function(x, y) {
+goog.graphics.ServerImageElement.prototype.setPosition = function(x, y) {
   this.x_ = x;
   this.y_ = y;
   if (this.drawn_) {
@@ -725,9 +580,8 @@ goog.graphics.CanvasImageElement.prototype.setPosition = function(x, y) {
  * Update the size of the image.
  * @param {number} width Width of rectangle.
  * @param {number} height Height of rectangle.
- * @override
  */
-goog.graphics.CanvasImageElement.prototype.setSize = function(width, height) {
+goog.graphics.ServerImageElement.prototype.setSize = function(width, height) {
   this.w_ = width;
   this.h_ = height;
   if (this.drawn_) {
@@ -739,9 +593,8 @@ goog.graphics.CanvasImageElement.prototype.setSize = function(width, height) {
 /**
  * Update the source of the image.
  * @param {string} src Source of the image.
- * @override
  */
-goog.graphics.CanvasImageElement.prototype.setSource = function(src) {
+goog.graphics.ServerImageElement.prototype.setSource = function(src) {
   this.src_ = src;
   if (this.drawn_) {
     // TODO(robbyw): Probably need to reload the image here.
@@ -752,9 +605,9 @@ goog.graphics.CanvasImageElement.prototype.setSource = function(src) {
 
 /**
  * Draw the image.  Should be treated as package scope.
- * @param {CanvasRenderingContext2D} ctx The context to draw the element in.
+ * @param {ServerRenderingContext2D} ctx The context to draw the element in.
  */
-goog.graphics.CanvasImageElement.prototype.draw = function(ctx) {
+goog.graphics.ServerImageElement.prototype.draw = function(ctx) {
   if (this.img_) {
     if (this.w_ && this.h_) {
       // If the image is already loaded, draw it.
@@ -777,7 +630,7 @@ goog.graphics.CanvasImageElement.prototype.draw = function(ctx) {
  * @param {Element} img The image element that finished loading.
  * @private
  */
-goog.graphics.CanvasImageElement.prototype.handleImageLoad_ = function(img) {
+goog.graphics.ServerImageElement.prototype.handleImageLoad_ = function(img) {
   this.img_ = img;
 
   // TODO(robbyw): Add a small delay to catch batched images

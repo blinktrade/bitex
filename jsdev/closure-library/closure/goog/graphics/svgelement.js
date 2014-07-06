@@ -188,8 +188,11 @@ goog.inherits(goog.graphics.SvgPathElement, goog.graphics.PathElement);
  * @override
  */
 goog.graphics.SvgPathElement.prototype.setPath = function(path) {
-  this.getGraphics().setElementAttributes(this.getElement(),
-      {'d': goog.graphics.SvgGraphics.getSvgPath(path)});
+   // Check if the Path is empty before setting attribute.
+   var attributes = path.isEmpty() ? {} :
+    {'d': goog.graphics.SvgGraphics.getSvgPath(path)};
+
+  this.getGraphics().setElementAttributes(this.getElement(), attributes);
 };
 
 

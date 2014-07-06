@@ -416,7 +416,7 @@ goog.graphics.SvgGraphics.prototype.setSize = function(pixelWidth,
 
 /** @override */
 goog.graphics.SvgGraphics.prototype.getPixelSize = function() {
-  if (!goog.userAgent.GECKO) {
+  if (!goog.userAgent.GECKO && !goog.userAgent.IE) {
     return this.isInDocument() ?
         goog.style.getSize(this.getElement()) :
         goog.base(this, 'getPixelSize');
@@ -637,8 +637,12 @@ goog.graphics.SvgGraphics.prototype.drawTextOnLine = function(
 goog.graphics.SvgGraphics.prototype.drawPath = function(
     path, stroke, fill, opt_group) {
 
-  var element = this.createSvgElement_('path',
-      {'d': goog.graphics.SvgGraphics.getSvgPath(path)});
+  // Check if the Path is empty. Do not add 'd' attribute if so.
+  var attributes = path.isEmpty() ? {} :
+    {'d': goog.graphics.SvgGraphics.getSvgPath(path)}
+
+  var element = this.createSvgElement_('path', attributes);
+
   var wrapper = new goog.graphics.SvgPathElement(element, this, stroke, fill);
   this.append_(wrapper, opt_group);
   return wrapper;
@@ -713,7 +717,37 @@ goog.graphics.SvgGraphics.prototype.createGroup = function(opt_group) {
  * @override
  */
 goog.graphics.SvgGraphics.prototype.getTextWidth = function(text, font) {
-  // TODO(user) Implement
+  /** @type {goog.dom.DomHelper} */
+  var domHelper = goog.dom.getDomHelper();
+
+  /**
+   * The ruler is used to measure the pixel width of Strings The style given
+   * allows the ruler to be off the page (out of sight), with the correct font
+   * and style properties.
+   *
+   * @type {Element}
+   */
+  var ruler_ = domHelper.createDom(
+      'div',
+      {
+        style: 'position:absolute; visibility:hidden; font-family:' +
+            font.family + '; font-size:' +
+            font.size + 'px;'
+      });
+
+  // Add the ruler to the dom
+  document.body.appendChild(ruler_);
+
+  // Set the inner html of the ruler to be the text
+  ruler_.innerHTML = text;
+
+  /** @type {number} */
+  var result = ruler_.offsetWidth;
+
+  // Remove the ruler
+  domHelper.removeNode(ruler_);
+
+  return result;
 };
 
 

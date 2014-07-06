@@ -242,15 +242,49 @@ goog.graphics.VmlGraphics.prototype.getVmlElement = function(id) {
  * @private
  */
 goog.graphics.VmlGraphics.prototype.updateGraphics_ = function() {
-  if (goog.graphics.VmlGraphics.IE8_MODE_ && this.isInDocument()) {
-    this.getElement().innerHTML = this.getElement().innerHTML;
+  if (goog.graphics.VmlGraphics.IE8_MODE_) {
+    // Has there been a suspend call
+    if (this.preventRedraw_) {
+      // Suspended and requires a redraw
+      this.needsRedraw_ = true;
+    } else if (this.isInDocument()) {
+      this.getElement().innerHTML = this.getElement().innerHTML;
+    }
+  }
+};
+
+/**
+ * Prevent redraws. Follow with a call to resume to update the changes
+ * that have been made. Will set the preventRedraw_ flag to true, meaning that
+ * a call to updateGraphics_ will not redraw, rather flag that a redraw is
+ * required. This allows multiple redraws to be applied without updating each
+ * time.
+ * @override
+ */
+goog.graphics.VmlGraphics.prototype.suspend = function() {
+  this.preventRedraw_ = true;
+};
+
+
+/**
+ * Resume redrawing. If any changes were made since suspend was called, carry
+ * out a redraw.
+ * @override
+ */
+goog.graphics.VmlGraphics.prototype.resume = function() {
+  this.preventRedraw_ = false;
+
+  // Update if necessary
+  if (this.needsRedraw_) {
+    this.needsRedraw_ = false;
+    this.updateGraphics_();
   }
 };
 
 
 /**
- * Appends an element.
- *
+  * Appends an element.
+  *
  * @param {goog.graphics.Element} element The element wrapper.
  * @param {goog.graphics.GroupElement=} opt_group The group wrapper element
  *     to append to. If not specified, appends to the main canvas.
@@ -864,8 +898,37 @@ goog.graphics.VmlGraphics.prototype.createGroup = function(opt_group) {
  * @override
  */
 goog.graphics.VmlGraphics.prototype.getTextWidth = function(text, font) {
-  // TODO(arv): Implement
-  return 0;
+  /** @type {goog.dom.DomHelper} */
+  var domHelper = goog.dom.getDomHelper();
+
+  /**
+   * The ruler is used to measure the pixel width of Strings The style given
+   * allows the ruler to be off the page (out of sight), with the correct font
+   * and style properties.
+   *
+   * @type {Element}
+   */
+  var ruler_ = domHelper.createDom(
+      'div',
+      {
+        style: 'position:absolute; visibility:hidden; font-family:' +
+            font.family + '; font-size:' +
+            font.size + 'px;'
+      });
+
+  // Add the ruler to the dom
+  document.body.appendChild(ruler_);
+
+  // Set the inner html of the ruler to be the text
+  ruler_.innerHTML = text;
+
+  /** @type {number} */
+  var result = ruler_.offsetWidth;
+
+  // Remove the ruler
+  domHelper.removeNode(ruler_);
+
+  return result;
 };
 
 
