@@ -73,6 +73,7 @@ goog.require('bitex.view.TradingView');
 goog.require('bitex.view.ToolBarView');
 goog.require('bitex.view.MarketView');
 goog.require('bitex.view.LedgerView');
+goog.require('bitex.view.ProfileView')
 
 
 /**
@@ -439,7 +440,9 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   var toolBarView         = new bitex.view.ToolBarView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
   var ledgerView          = new bitex.view.LedgerView(this);
+  var profileView         = new bitex.view.ProfileView(this);
   var brokerApplicationView= new bitex.view.NullView(this);
+
 
 
   this.views_.addChild( toolBarView         );
@@ -464,7 +467,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.views_.addChild( brokerView          );
   this.views_.addChild( marketView          );
   this.views_.addChild( ledgerView          );
-  this.views_.addChild( brokerApplicationView    );
+  this.views_.addChild( profileView         );
+  this.views_.addChild( brokerApplicationView);
 
   startView.decorate(goog.dom.getElement('start'));
   setNewPasswordView.decorate(goog.dom.getElement('set_new_password'));
@@ -488,6 +492,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   brokerView.decorate(goog.dom.getElement('my_broker'));
   marketView.decorate(goog.dom.getElement('market'));
   ledgerView.decorate(goog.dom.getElement('ledger'));
+  profileView.decorate(goog.dom.getElement('profile'));
   brokerApplicationView.decorate(goog.dom.getElement('broker_application'));
 
   this.views_.decorate(document.body);
@@ -513,6 +518,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.router_.addView( '(my_broker)'                   , brokerView          );
   this.router_.addView( '(market)'                      , marketView          );
   this.router_.addView( '(ledger)'                      , ledgerView          );
+  this.router_.addView( '(profile)'                     , profileView          );
   this.router_.addView( '(broker_application)'          , brokerApplicationView);
 
   this.router_.setView('start');

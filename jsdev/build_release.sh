@@ -9,6 +9,13 @@ java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogM
   ./bitex/templates/templates.soy
 
 
+java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
+  --shouldProvideRequireSoyNamespaces --codeStyle concat --cssHandlingScheme GOOG  \
+  --outputPathFormat  './bitex/ui/{INPUT_FILE_NAME_NO_EXT}.soy.js' \
+  ./bitex/ui/withdraw_method_editor.soy
+
+
+
 # compile all applications
 
 # enable those flags to debug the compiled code.
