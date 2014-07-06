@@ -52,8 +52,6 @@ from zmq.eventloop.zmqstream import ZMQStream
 define("callback_url")
 define("port", type=int  ,help="port")
 define("gateway_log", help="logging" )
-define("certfile",help="Certificate file")
-define("keyfile",help="Private key file")
 define("trade_in", help="trade zmq queue")
 define("trade_pub",help="trade zmq publish queue")
 define("session_timeout_limit", default=0, help="Session timeout")
@@ -440,8 +438,6 @@ def main():
 
     print 'callback_url', options.callback_url
     print 'port', options.port
-    print 'certfile', options.certfile
-    print 'keyfile', options.keyfile
     print 'trade_in', options.trade_in
     print 'trade_pub', options.trade_pub
     print 'session_timeout_limit', options.session_timeout_limit
