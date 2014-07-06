@@ -3,6 +3,7 @@ import base64
 import json
 import time
 
+from instrument_helper import InstrumentStatusHelper, signal_publish_security_status
 from bitex.signals import Signal
 
 import zmq
@@ -39,6 +40,7 @@ class MarketDataSubscriber(object):
         self.bid = 0
         self.ask = 0
         self.volume_dict = {}
+        self.inst_status = InstrumentStatusHelper(symbol)
         self.md_pub_socket = None
         self.md_pub_socket_stream = None
         from models import ENGINE, db_bootstrap
@@ -248,7 +250,7 @@ class MarketDataSubscriber(object):
 
     def on_trade(self, msg):
         """" on_trade. """
-        print 'on_trade', msg
+        #print 'on_trade', msg
         trade = {
             "price": msg.get('MDEntryPx'),
             "symbol": msg.get('Symbol'),
@@ -265,7 +267,7 @@ class MarketDataSubscriber(object):
 
         Trade.create(self.db_session, trade)
 
-            # BTC BRL
+        # BTC BRL
         price_currency = self.symbol[3:]
         size_currency = self.symbol[:3]
         if price_currency not in self.volume_dict:
@@ -277,12 +279,38 @@ class MarketDataSubscriber(object):
             msg.get('MDEntryPx') *
             msg.get('MDEntrySize') /
             1.e8)
+
         volume_size = msg.get('MDEntrySize')
         self.volume_dict[price_currency] += volume_price
         self.volume_dict[size_currency] += volume_size
 
         self.volume_dict['MDEntryType'] = '4'
         signal_publish_md_status('MD_STATUS', self.volume_dict)
+
+        self.inst_status.push_trade(trade)
+
+class SecurityStatusPublisher(object):
+    def __init__(self, req_id, instrument, handler):
+        self.handler = handler
+        self.req_id = req_id
+        self.symbol = instrument
+
+        signal_publish_security_status.connect(self.signal_security_status, 'SECURITY_STATUS')
+
+    def signal_security_status(self, sender, helper):
+        if helper.symbol == self.symbol:
+            ss = {
+                "MsgType": "f",
+                "SecurityStatusReqID": self.req_id,
+                "Symbol": self.symbol,
+                "HighPx": helper.max_price,
+                "LowPx": helper.min_price,
+                "LastPx": helper.last_price,
+                "BuyVolume": helper.volume_price,
+                "SellVolume": helper.volume_size
+            }
+
+            self.handler(sender, ss)
 
 
 class MarketDataPublisher(object):
@@ -337,6 +365,22 @@ def generate_trade_history(page_size = None, offset = None, sort_column = None, 
     return trade_list
 
 
+def generate_security_status(symbol, req_id):
+    mdsubscriber = MarketDataSubscriber.get(symbol)
+
+    ss = {
+        "MsgType": "f",
+        "SecurityStatusReqID": req_id,
+        "Symbol": symbol,
+        "HighPx": mdsubscriber.inst_status.max_price,
+        "LowPx": mdsubscriber.inst_status.min_price,
+        "LastPx": mdsubscriber.inst_status.last_price,
+        "BuyVolume": mdsubscriber.inst_status.volume_price,
+        "SellVolume": mdsubscriber.inst_status.volume_size
+    }
+
+    return ss
+
 def generate_md_full_refresh(symbol, market_depth, entries, req_id):
     entry_list = []
     mdsubscriber = MarketDataSubscriber.get(symbol)
@@ -369,7 +413,6 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
                     break
         elif entry_type == '2':
             trade_list = []
-            print "sending trading list"
             for trade in mdsubscriber.get_last_trades():
                 trade_list.append({
                     "MDEntryType": "2",  # Trade

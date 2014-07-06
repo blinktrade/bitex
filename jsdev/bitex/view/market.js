@@ -80,6 +80,7 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
   this.last_trades_table_.decorate(el);
 
   this.dispatchEvent(bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE);
+  this.dispatchEvent(bitex.view.View.EventType.SECURITY_STATUS_SUBSCRIBE);
 };
 
 bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
@@ -109,6 +110,8 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
     handler.unlisten( conn , bitex.api.BitEx.EventType.TRADE + '.' + this.market_data_subscription_id_, this.onBitexTrade_ );
 
     this.dispatchEvent(bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE);
+    this.dispatchEvent(bitex.view.View.EventType.SECURITY_STATUS_UNSUBSCRIBE);
+
   }
 
 
@@ -147,7 +150,7 @@ bitex.view.MarketView.prototype.onBitexTrade_ = function(e) {
   record["Side"] = msg['Side'];
   record["Buyer"] = msg['MDEntryBuyer'];
   record["Seller"] = msg['MDEntrySeller'];
-  record["Created"] = '-';
+  record["Created"] = msg['MDEntryDate'] + " " + msg['MDEntryTime'];
 
   this.last_trades_table_.insertOrUpdateRecord(record, 0);
 };
@@ -258,6 +261,22 @@ bitex.view.MarketView.prototype.getMDMarketDepth = function(){
 bitex.view.MarketView.prototype.getMDEntries = function(){
   return ['2'];
 };
+
+/**
+ * @return {Array.<string>}
+ */
+bitex.view.MarketView.prototype.getSecurities = function(){
+  return this.market_data_subscription_symbol_;
+};
+
+/**
+ * @return {number}
+ */
+bitex.view.MarketView.prototype.getSecSubscriptionId = function(){
+  return this.market_data_subscription_id_;
+};
+
+
 /**
  * @override
  * @protected

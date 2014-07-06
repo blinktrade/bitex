@@ -34,9 +34,12 @@ bitex.view.View.EventType = {
 
   CHANGE_BROKER: 'change_broker',
 
-  MARKET_DATA_REQUEST: 'md_request',
   MARKET_DATA_SUBSCRIBE: 'md_subscribe',
   MARKET_DATA_UNSUBSCRIBE: 'md_unsubscribe',
+
+  SECURITY_STATUS_SUBSCRIBE: 'sec_subscribe',
+  SECURITY_STATUS_UNSUBSCRIBE: 'sec_unsubscribe',
+
   CANCEL_ORDER: 'cancel_order',
   REQUEST_WITHDRAW: 'request_withdraw',
   CONFIRM_WITHDRAW: 'confirm_withdraw',

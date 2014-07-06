@@ -576,6 +576,9 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE, this.onUserMarketDataSubscribe_);
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE, this.onUserMarketDataUnsubscribe_);
 
+  handler.listen(this.views_, bitex.view.View.EventType.SECURITY_STATUS_SUBSCRIBE, this.onUserSecurityStatusSubscribe_);
+  handler.listen(this.views_, bitex.view.View.EventType.SECURITY_STATUS_UNSUBSCRIBE, this.onUserSecurityStatusUnsubscribe_);
+
   handler.listen(this.views_, bitex.view.View.EventType.REQUEST_WITHDRAW, this.onUserWithdrawRequest_ );
   handler.listen(this.views_, bitex.view.View.EventType.CONFIRM_WITHDRAW, this.onUserConfirmWithdraw_ );
   handler.listen(this.views_, bitex.view.View.EventType.PROCESS_WITHDRAW, this.onBrokerProcessWithdraw_ );
@@ -654,6 +657,15 @@ bitex.app.BlinkTrade.prototype.onUserMarketDataSubscribe_ = function(e) {
 
 bitex.app.BlinkTrade.prototype.onUserMarketDataUnsubscribe_ = function(e) {
   this.conn_.unSubscribeMarketData(e.target.getMDSubscriptionId());
+};
+
+bitex.app.BlinkTrade.prototype.onUserSecurityStatusSubscribe_ = function(e) {
+  this.conn_.subscribeSecurityStatus(e.target.getSecurities(),
+                                 e.target.getSecSubscriptionId());
+};
+
+bitex.app.BlinkTrade.prototype.onUserSecurityStatusUnsubscribe_ = function(e) {
+  this.conn_.unSubscribeSecurityStatus(e.target.getSecSubscriptionId());
 };
 
 /**
