@@ -637,8 +637,12 @@ goog.graphics.SvgGraphics.prototype.drawTextOnLine = function(
 goog.graphics.SvgGraphics.prototype.drawPath = function(
     path, stroke, fill, opt_group) {
 
-  var element = this.createSvgElement_('path',
-      {'d': goog.graphics.SvgGraphics.getSvgPath(path)});
+  // Check if the Path is empty. Do not add 'd' attribute if so.
+  var attributes = path.isEmpty() ? {} :
+    {'d': goog.graphics.SvgGraphics.getSvgPath(path)}
+
+  var element = this.createSvgElement_('path', attributes);
+
   var wrapper = new goog.graphics.SvgPathElement(element, this, stroke, fill);
   this.append_(wrapper, opt_group);
   return wrapper;
