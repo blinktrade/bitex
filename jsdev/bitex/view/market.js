@@ -1,6 +1,7 @@
 goog.provide('bitex.view.MarketView');
 goog.require('bitex.view.View');
 goog.require('bitex.ui.TradeHistory');
+goog.require('bitex.ui.MarketViewTable');
 
 goog.require('bitex.templates');
 
@@ -34,6 +35,12 @@ bitex.view.MarketView.prototype.market_data_subscription_symbol_;
  */
 bitex.view.MarketView.prototype.last_trades_table_;
 
+/**
+ * @type {bitex.ui.MarketViewTable}
+ */
+bitex.view.MarketView.prototype.market_view_table_;
+
+
 bitex.view.MarketView.prototype.enterView = function() {
   this.recreateComponents_();
 };
@@ -60,6 +67,10 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
     this.market_data_subscription_symbol_.push(instrument_info['Symbol'] );
   }, this);
 
+  this.market_view_table_ = new bitex.ui.MarketViewTable();
+  this.market_view_table_.setModel({id:'market_view', instruments: app.getModel().get('SecurityList')['Instruments']});
+  this.market_view_table_.render(goog.dom.getElement('id_market_view_table'));
+  app.getModel().updateDom();
 
   var el = goog.dom.getElement('id_trade_list_table');
 
@@ -85,6 +96,10 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
 
 bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
   var handler = this.getHandler();
+
+  if (goog.isDefAndNotNull(this.market_view_table_) ) {
+    this.market_view_table_.dispose();
+  }
 
   if (goog.isDefAndNotNull(this.last_trades_table_) ) {
     handler.unlisten(this.last_trades_table_,
@@ -115,6 +130,7 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
   }
 
 
+  this.market_view_table_ = null;
   this.last_trades_table_ = null;
   this.market_data_subscription_id_ = null;
   this.market_data_subscription_symbol_ = null;

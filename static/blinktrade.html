@@ -47,6 +47,10 @@
   <!-- bitex application -->
   <script src="./js/bitex_app_blink_trade.compiled.en_US.js" type="text/javascript"></script> <!--  -->
   <!-- <script src="./js/bitex_app_blink_trade.compiled.pt_BR.js" type="text/javascript"></script>  <!--  -->
+
+  <script src="./stock/highstock.js"></script>
+  <script src="./modules/exporting.js"></script>
+
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
@@ -600,9 +604,19 @@
     </div>
   </div>
   <div class="bitex-view-content">
+
+    <div class="row-fluid">
+      <div id="id_market_view_table" ></div>
+    </div>
+
+    <div class="row-fluid">
+      <div id="id_chart_container" ></div>
+    </div>
+
     <div class="row-fluid">
       <div id="id_trade_list"></div>
     </div>
+
   </div>
 </div>
 
