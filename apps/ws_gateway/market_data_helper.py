@@ -85,6 +85,10 @@ class MarketDataSubscriber(object):
         """" get_last_trades. """
         return Trade.get_last_trades(self.db_session)
 
+    def get_trades(self, since):
+        """" get_trades. """
+        return Trade.get_trades(self.db_session, since)
+
     def on_md_publish(self, publish_msg):
         """" on_md_publish. """
         topic = publish_msg[0]

@@ -16,7 +16,8 @@ BASE = declarative_base()
 
 class Trade(BASE):
     __tablename__ = 'trade'
-    id = Column(String, primary_key=True)
+    #id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
     order_id = Column(Integer, nullable=False)
     counter_order_id = Column(Integer, nullable=False)
     buyer_username = Column(String(15), nullable=False)
@@ -44,6 +45,14 @@ class Trade(BASE):
         if trade:
             return trade
         return None
+
+    @staticmethod
+    def get_trades(session, since):
+
+        trades = session.query(Trade).filter(
+            Trade.id > since).order_by(Trade.created.desc())
+
+        return trades
 
     @staticmethod
     def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
