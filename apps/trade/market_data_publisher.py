@@ -138,7 +138,6 @@ class MarketDataPublisher(object):
           if entry_position >= market_depth > 0:
             break
       elif entry_type == '2':
-        print "getting last trades"
         trades = Trade.get_last_trades(session, symbol, timestamp)
         trade_list = []
         for trade in  trades:
