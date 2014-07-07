@@ -4,40 +4,61 @@
 /**
   * @param id
   * @param methods
+  * @param currencies
   */
 {template .WithdrawMethods}
 
   <div class="row-fluid">
     <div class="span12">
-      <table id="{$id}_table" class="table table-bordered table-hover">
+      <table id="{$id}_table" class="table table-condensed table-hover">
           <thead>
             <tr>
                 <th> {msg desc="Methods column header"}Currency{/msg}</th>
-                <th> {msg desc="Methods column header"}Method{/msg}</th>
-                <th> {msg desc="Methods column header"}Description{/msg} </th>
-                <th> {msg desc="Methods column header"}Percent Fee{/msg} </th>
-                <th> {msg desc="Methods column header"}Fixed Fee{/msg} </th>
+                <th> {msg desc="Methods column header"}Name{/msg}</th>
+                <th> {msg desc="Methods column header"}Disclaimer{/msg} </th>
+                <th> {msg desc="Methods column header"}Fees{/msg}</th>
                 <th> {msg desc="Methods column header"}Actions{/msg} </th>
             </tr>
           </thead>
           <tbody>
             {foreach $method in $methods}
               <tr data-withdraw-currency="{$method['currency']}"  data-withdraw-method="{$method['method']}">
-                <td>{$method['currency']}</td>
-                <td>{$method['method']}</td>
+                <td>{$method['currency_description']}</td>
                 <td>{$method['description']}</td>
-                <td>{$method['percent_fee']}</td>
-                <td>{$method['fixed_fee']}</td>
+                <td>{$method['disclaimer']}</td>
+
+                {if $method['has_fixed_fee']}
+                  <td>{$method['percent_fee']}% + {$method['formatted_fixed_fee']}</td>
+                {else}
+                  <td>{$method['percent_fee']}%</td>
+                {/if}
+
+
                 <td>
-                    <button class="btn btn-mini btn-success withdraw-method-action-edit withdraw-method-action">{msg desc="Method edit action"}edit{/msg}</button>
-                    <button class="btn btn-mini btn-danger withdraw-method-action-delete withdraw-method-action">{msg desc="Method delete action"}delete{/msg}</button>
+                    <div class="btn-group">
+                        <button class="btn btn-mini btn-success withdraw-methods-action-edit withdraw-method-action">{msg desc="Method edit action"}edit{/msg}</button>
+                        <button class="btn btn-mini btn-danger withdraw-methods-action-delete withdraw-method-action">{msg desc="Method delete action"}delete{/msg}</button>
+                    </div>
                 </td>
               </tr>
             {/foreach}
           </tbody>
       </table>
 
-      <button id="{$id}_add" class="btn btn-primary"><i class="icon-white icon-plus"></i> {msg desc="Add withdraw method"}Add withdraw method{/msg}</button>
+<div class="btn-group pull-right ">
+  <a class="btn btn-primary btn-small dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-white icon-plus"></i>
+    {msg desc="Add withdraw method"}Add withdraw method{/msg}
+    <span class="caret"></span>
+  </a>
+    <ul class="dropdown-menu">
+      {foreach $curr in $currencies}
+        <li><a href="" data-withdraw-currency="{$curr['code']}" class="withdraw-methods-action-add withdraw-method-action" >{$curr['description']}</a></li>
+      {/foreach}
+    </ul>
+</div>
+
+
+      <div class="clearfix"></div>
 
     </div>
   </div>

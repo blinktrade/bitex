@@ -1231,7 +1231,7 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
 
 
         var percent_fee = form_data['PercentFee'];
-        pos = [0];
+        var pos = [0];
         var percent_fee_value = valueFormatter.parse(percent_fee, pos);
         if (isNaN(percent_fee_value)) {
           percent_fee_value = 0;
