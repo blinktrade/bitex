@@ -1,0 +1,92 @@
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <script type='text/javascript' src='//code.jquery.com/jquery-1.9.1.js'></script>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+
+
+    <script type='text/javascript'>//<![CDATA[
+
+    $(function() {
+
+        var symbol = window.location.search.substring(1);
+        symbol=symbol.replace("s=",""); // removes s=
+
+        var crypto_currency = symbol.substr(0, 3);
+        var currency = symbol.substr(3);
+
+        $.getJSON('/api/v1/'+ currency +'/trades?crypto_currency=' + crypto_currency, function(data) {
+
+            var prices = [],
+                volume = [];
+
+            $.each(data, function( index, value ) {
+                var date = value.date*1000;
+                prices.unshift([date, value.price]);
+                volume.unshift([date, value.amount]);
+            });
+
+            $('#container').highcharts('StockChart', {
+
+                rangeSelector : {
+                    selected : 1,
+                    inputEnabled: true
+                },
+
+                yAxis: [{
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: 'Price'
+                    },
+                    height: '60%',
+                    lineWidth: 2
+                }, {
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: 'Volume'
+                    },
+                    top: '65%',
+                    height: '35%',
+                    offset: 0,
+                    lineWidth: 2
+                }],
+
+                series : [{
+                    name : 'BTCUSD',
+                    data : prices,
+                    tooltip: {
+                        valueDecimals: 2
+                    }
+                },
+                {
+                    name : 'Volume',
+		            type: 'column',
+                    data : volume,
+		            yAxis: 1
+                }
+                ]
+            });
+
+        });
+
+    });
+
+    //]]>
+
+    </script>
+
+  </head>
+
+  <body>
+  <div id="container" style="height: 400px; min-width: 310px"></div>
+  </body>
+
+</html>
