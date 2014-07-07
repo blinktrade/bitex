@@ -36,7 +36,7 @@ class RestApiHandler(tornado.web.RequestHandler):
 
         trades = []
 
-        for trade in md_subscriber.get_trades(since):
+        for trade in md_subscriber.get_trades(symbol, since):
             trades.append({
                 'tid': trade.id,
                 'price': trade.price/1e8,

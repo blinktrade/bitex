@@ -90,7 +90,6 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
 python ./closure-library/closure/bin/build/closurebuilder.py  \
   --root=./closure-library/ \
   --root=./closure-bootstrap/javascript/ \
-  --root=./scottlogic/ \
   --root=./bitex \
   --namespace=bitex.app.BlinkTrade \
   --output_mode=compiled \

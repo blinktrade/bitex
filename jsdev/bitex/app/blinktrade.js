@@ -2343,8 +2343,8 @@ bitex.app.BlinkTrade.prototype.onSecurityList_ =   function(e) {
     var offer_key = 'best_offer_' +  currency_key;
     var last_price = 'last_price_' +  currency_key;
 
+    this.model_.set('formatted_' + volume_sell_key, this.formatCurrency(0,  symbol.substr(0,3), true ), true );
     this.model_.set('formatted_' + volume_buy_key, this.formatCurrency(0,  instrument['Currency'], true ), true );
-    this.model_.set('formatted_' + volume_sell_key, this.formatCurrency(0,  instrument['Currency'], true ), true );
     this.model_.set('formatted_' + min_key, this.formatCurrency(0, instrument['Currency'], true) , true);
     this.model_.set('formatted_' + max_key, this.formatCurrency(0, instrument['Currency'], true), true);
     this.model_.set('formatted_' + avg_key, this.formatCurrency(0, instrument['Currency'], true), true);
