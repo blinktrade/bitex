@@ -12,6 +12,7 @@
       <table id="{$id}_table" class="table table-bordered table-hover">
           <thead>
             <tr>
+                <th> {msg desc="Methods column header"}Currency{/msg}</th>
                 <th> {msg desc="Methods column header"}Method{/msg}</th>
                 <th> {msg desc="Methods column header"}Description{/msg} </th>
                 <th> {msg desc="Methods column header"}Percent Fee{/msg} </th>
@@ -21,7 +22,8 @@
           </thead>
           <tbody>
             {foreach $method in $methods}
-              <tr data-withdraw-method="{$method['method']}">
+              <tr data-withdraw-currency="{$method['currency']}"  data-withdraw-method="{$method['method']}">
+                <td>{$method['currency']}</td>
                 <td>{$method['method']}</td>
                 <td>{$method['description']}</td>
                 <td>{$method['percent_fee']}</td>

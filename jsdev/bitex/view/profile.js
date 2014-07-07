@@ -22,7 +22,21 @@ bitex.view.ProfileView.prototype.enterView = function() {
 
 
     var withdraw_methods = new bitex.ui.WithdrawMethods();
-    withdraw_methods.setModel(model.get('Profile')['WithdrawStructure']['USD']);
+
+    var withdraw_methods_model = [];
+    goog.object.forEach(model.get('Profile')['WithdrawStructure'], function( withdraw_methods, currency) {
+      var obj = { 'currency': currency };
+
+      goog.array.forEach(withdraw_methods, function(withdraw_method) {
+        goog.object.extend( obj, withdraw_method );
+      });
+
+      withdraw_methods_model.push(obj);
+    });
+
+    console.log( goog.debug.deepExpose(withdraw_methods_model) );
+
+    withdraw_methods.setModel(withdraw_methods_model);
 
     this.addChild(withdraw_methods, true);
   }
