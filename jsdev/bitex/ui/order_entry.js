@@ -1,7 +1,7 @@
 goog.provide('bitex.ui.OrderEntry');
 goog.provide('bitex.ui.OrderEntry.EventType');
-goog.provide('bitex.ui.OrderEntryEvent');
 
+goog.require('bitex.ui.order_entry.templates');
 goog.require('goog.ui.Component');
 
 goog.require('goog.string');
@@ -40,9 +40,7 @@ bitex.ui.OrderEntry.BASE_CSS_CLASS_ = goog.getCssName('order-entry');
  * @enum {string}
  */
 bitex.ui.OrderEntry.EventType = {
-  BUY_LIMITED: 'buy_limited',
-
-  SELL_LIMITED: 'sell_limited'
+  SUBMIT: 'order_entry_submitted'
 };
 
 /**
@@ -61,92 +59,80 @@ bitex.ui.OrderEntry.prototype.decorateInternal = function(element) {
 };
 
 /** @override */
+bitex.ui.OrderEntry.prototype.createDom = function() {
+
+  var el = goog.soy.renderAsElement(bitex.ui.order_entry.templates.OrderEntry, {
+    id: this.makeId('order_entry'),
+    symbol:this.getModel().symbol,
+    crypto_currency_symbol:this.getModel().crypto_currency_symbol,
+    crypto_currency_description:this.getModel().crypto_currency_description,
+    currency_symbol:this.getModel().currency_symbol,
+    currency_description:this.getModel().currency_description,
+    side:this.getModel().side,
+    type:this.getModel().type,
+    broker_id:this.getModel().broker_id
+  });
+  this.setElementInternal( el )
+};
+
+/** @override */
 bitex.ui.OrderEntry.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var dom  = this.getDomHelper();
-
-  var buyBtn = dom.getElementByClass(goog.getCssName(this.getBaseCssClass(), 'buy'), this.getElement());
-  var sellBtn = dom.getElementByClass(goog.getCssName(this.getBaseCssClass(), 'sell'), this.getElement());
-
-  handler.listen(buyBtn,
-                 goog.events.EventType.CLICK,
-                 goog.partial(this.onAction_,bitex.ui.OrderEntry.EventType.BUY_LIMITED ) );
-
-  handler.listen(sellBtn,
-                 goog.events.EventType.CLICK,
-                 goog.partial(this.onAction_, bitex.ui.OrderEntry.EventType.SELL_LIMITED) );
 };
 
+/**
+ * @param {.Array<.Array>} order_depth
+ */
+bitex.ui.OrderEntry.prototype.setOrderDepth = function(order_depth) {
+  // order_depth = [ [ price, size ], [price, size ] ]
+};
+
+/**
+ * @return {string}
+ */
+bitex.ui.OrderEntry.prototype.getSymbol = function(){
+  return goog.dom.forms.getValue(goog.dom.getElement( this.makeId('order_entry_symbol') ));
+};
+
+/**
+ * @return {string}
+ */
+bitex.ui.OrderEntry.prototype.getSide = function(){
+  return goog.dom.forms.getValue(goog.dom.getElement( this.makeId('order_entry_side') ));
+};
 
 
 /**
- * @param {bitex.ui.OrderEntry.EventType} eventType
- * @param {goog.events.Event} e
+ * @return {string}
  */
-bitex.ui.OrderEntry.prototype.onAction_ = function(eventType, e) {
-
-  var symbol_el = goog.dom.getElementByClass(goog.getCssName(this.getBaseCssClass(),'symbol'));
-  var qty_el    = goog.dom.getElementByClass(goog.getCssName(this.getBaseCssClass(),'qty'));
-  var price_el  = goog.dom.getElementByClass(goog.getCssName(this.getBaseCssClass(),'price'));
-
-  var symbol = goog.dom.forms.getValue(symbol_el );
-  var qty    = goog.dom.forms.getValue(qty_el );
-  var price  = goog.dom.forms.getValue(price_el );
-
-  // validate
-  if (goog.string.isEmpty(symbol)) {
-    alert ('Instrumento não selecionado');
-    return;
-  }
-
-  if (goog.string.isEmpty(qty) ||  parseFloat(qty) <= 0 ) {
-    alert ('Quantidade inválida');
-    return;
-  }
-
-  if (goog.string.isEmpty(price) ||  parseFloat(price) <= 0 ) {
-    alert ('Preço inválido');
-    return;
-  }
-
-  this.dispatchEvent(
-      new bitex.ui.OrderEntryEvent(eventType,
-                                   symbol,
-                                   parseFloat(qty),
-                                   parseFloat(price)  ) );
-
+bitex.ui.OrderEntry.prototype.getType = function(){
+  return goog.dom.forms.getValue(goog.dom.getElement( this.makeId('order_entry_type') ));
 };
 
+/**
+ * @return {string}
+ */
+bitex.ui.OrderEntry.prototype.getBrokerID = function(){
+  return goog.dom.forms.getValue(goog.dom.getElement( this.makeId('order_entry_broker_id') ));
+};
 
 
 /**
- *
- * @param {string} type
- * @param {string} symbol
- * @param {number} qty
- * @param {number} price
- * @extends {goog.events.Event}
- * @constructor
+ * @return {number}
  */
-bitex.ui.OrderEntryEvent = function(type, symbol, qty, price) {
-  goog.events.Event.call(this, type);
-
-  /**
-   * @type {string}
-   */
-  this.symbol = symbol;
-
-  /**
-   * @type {number}
-   */
-  this.qty = qty;
-
-  /**
-   * @type {number}
-   */
-  this.price = price;
-
-
+bitex.ui.OrderEntry.prototype.getAmount = function(){
+  return goog.dom.forms.getValue(goog.dom.getElement( this.makeId('order_entry_amount')));
 };
-goog.inherits(bitex.ui.OrderEntryEvent, goog.events.Event);
+
+/**
+ * @return {number}
+ */
+bitex.ui.OrderEntry.prototype.getPrice = function(){
+  // TODO: max price on the book
+  return 0;
+};
+
+
+
 

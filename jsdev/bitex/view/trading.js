@@ -1,7 +1,7 @@
 goog.provide('bitex.view.TradingView');
 goog.require('bitex.view.View');
 
-
+goog.require('bitex.ui.OrderEntry');
 goog.require('bitex.ui.OrderManager');
 
 goog.require('bitex.templates');
@@ -50,6 +50,15 @@ bitex.view.TradingView.prototype.client_order_id;
  */
 bitex.view.TradingView.prototype.order_manager_table_;
 
+/**
+ * @type {bitex.ui.OrderEntry}
+ */
+bitex.view.TradingView.prototype.bid_order_entry_;
+
+/**
+ * @type {bitex.ui.OrderEntry}
+ */
+bitex.view.TradingView.prototype.ask_order_entry_;
 
 /**
  * @type {number}
@@ -92,6 +101,13 @@ bitex.view.TradingView.prototype.destroyComponents_ = function( ) {
     this.market_data_subscription_symbol_ = null;
   }
 
+  if (goog.isDefAndNotNull(this.bid_order_entry_ )) {
+    this.bid_order_entry_.dispose();
+  }
+
+  if (goog.isDefAndNotNull(this.ask_order_entry_ )) {
+    this.ask_order_entry_.dispose();
+  }
 
   if (goog.isDefAndNotNull(this.order_manager_table_)) {
 
@@ -122,7 +138,7 @@ bitex.view.TradingView.prototype.destroyComponents_ = function( ) {
  */
 bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol ) {
   var handler = this.getHandler();
-    var model = this.getApplication().getModel();
+  var model = this.getApplication().getModel();
 
   if (this.market_data_subscription_symbol_ === selected_symbol.symbol) {
     return;
@@ -131,31 +147,32 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
   this.destroyComponents_();
 
 
-  var buy_order_entry_el = goog.soy.renderAsElement(bitex.templates.OrderEntrySimple, {
-    id: 'id_order_entry_buy',
-    symbol:'',
-    crypto_currency_symbol:'฿',
-    crypto_currency_description:'Bitcoin',
-    currency_symbol:'$',
-    currency_description:'Dollar',
-    side:1,
-    type:2,
-    broker_id:''
+  this.bid_order_entry_ = new bitex.ui.OrderEntry();
+  this.bid_order_entry_.setModel( {
+    symbol: selected_symbol.symbol,
+    crypto_currency_symbol: this.getApplication().getCurrencySign( selected_symbol.symbol.substr(0,3) ) ,
+    crypto_currency_description: this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(0,3)),
+    currency_symbol:this.getApplication().getCurrencySign( selected_symbol.symbol.substr(3) ) ,
+    currency_description:this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(3)),
+    side:'1',
+    type:'2',
+    broker_id: model.get('BrokerID')
   });
-  goog.dom.appendChild(goog.dom.getElement('trading_order_entry_content'), buy_order_entry_el);
+  this.bid_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
 
-  var sell_order_entry_el = goog.soy.renderAsElement(bitex.templates.OrderEntrySimple, {
-    id: 'id_order_entry_sell',
-    symbol:'',
-    crypto_currency_symbol:'฿',
-    crypto_currency_description:'Bitcoin',
-    currency_symbol:'$',
-    currency_description:'Dollar',
-    side:2,
-    type:2,
-    broker_id:''
+
+  this.ask_order_entry_ = new bitex.ui.OrderEntry();
+  this.ask_order_entry_.setModel( {
+    symbol: selected_symbol.symbol,
+    crypto_currency_symbol: this.getApplication().getCurrencySign( selected_symbol.symbol.substr(0,3) ) ,
+    crypto_currency_description: this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(0,3)),
+    currency_symbol:this.getApplication().getCurrencySign( selected_symbol.symbol.substr(3) ) ,
+    currency_description:this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(3)),
+    side:'2',
+    type:'2',
+    broker_id: model.get('BrokerID')
   });
-  goog.dom.appendChild(goog.dom.getElement('trading_order_entry_content'), sell_order_entry_el);
+  this.ask_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
 
 
   this.request_order_id_ = parseInt( 1e7 * Math.random() , 10 );
