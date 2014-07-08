@@ -2118,8 +2118,14 @@ bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
     var MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE = goog.getMsg('2 steps authentication');
 
     var dlg_ = this.showDialog(MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE,
-                               bitex.templates.GoogleAuthenticationCodeDialogContent({id:"id_second_factor"  }),
+                               "",
                                bootstrap.Dialog.ButtonSet.createOkCancel() );
+
+
+    goog.dom.appendChild(dlg_.getContentElement(),
+                         goog.soy.renderAsElement( bitex.templates.GoogleAuthenticationCodeDialogContent,
+                                                   {id:"id_second_factor"  } ));
+
 
     var handler = this.getHandler();
     handler.listenOnce(dlg_, goog.ui.Dialog.EventType.SELECT, function(e) {
