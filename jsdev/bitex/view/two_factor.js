@@ -35,7 +35,7 @@ bitex.view.TwoFactorView.prototype.enterDocument = function() {
     var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
 
     if (has_secret) {
-      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' + secret;
+      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' + encodeURIComponent('otpauth://totp/you@blinktrade') + '&' +secret;
       goog.dom.getElement('id_secret_qr').setAttribute('src', qr_code);
     }
   });
