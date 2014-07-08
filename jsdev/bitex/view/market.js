@@ -43,10 +43,12 @@ bitex.view.MarketView.prototype.market_view_table_;
 
 
 bitex.view.MarketView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.MarketView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyComponents_();
 };
 

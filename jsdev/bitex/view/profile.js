@@ -17,6 +17,7 @@ goog.inherits(bitex.view.ProfileView, bitex.view.View);
 
 
 bitex.view.ProfileView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   var model = this.getApplication().getModel();
   if (model.get('IsBroker') ) {
 
@@ -61,6 +62,7 @@ bitex.view.ProfileView.prototype.enterView = function() {
 };
 
 bitex.view.ProfileView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.removeChildren(true);
 };
 

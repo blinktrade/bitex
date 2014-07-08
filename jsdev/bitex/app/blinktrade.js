@@ -2295,6 +2295,31 @@ bitex.app.BlinkTrade.prototype.getCurrencySign  =   function(currency_code) {
   return currency_def.sign;
 };
 
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.app.BlinkTrade.prototype.getCurrencyFormat  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.format;
+};
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.app.BlinkTrade.prototype.getCurrencyHumanFormat  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.human_format;
+};
+
 /**
  * @param {string} currency_code
  * @return {string}

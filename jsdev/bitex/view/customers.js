@@ -30,10 +30,12 @@ bitex.view.CustomersView.prototype.customers_table_;
 
 
 bitex.view.CustomersView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.CustomersView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
 };
 
 /**
