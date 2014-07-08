@@ -29,13 +29,17 @@ bitex.view.TwoFactorView.EventType = {
 bitex.view.TwoFactorView.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
   var handler = this.getHandler();
-
+  var model = this.getApplication().getModel();
   handler.listen( this.getApplication().getModel(),  bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
     var secret = e.data;
     var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
 
     if (has_secret) {
-      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' + encodeURIComponent('otpauth://totp/you@blinktrade?secret=')  +secret;
+
+      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' +
+        encodeURIComponent('otpauth://totp/'  + model.get('Username') + '?secret=')  +secret +
+        encodeURIComponent('issuer=BlinkTrade');
+
       goog.dom.getElement('id_secret_qr').setAttribute('src', qr_code);
     }
   });
