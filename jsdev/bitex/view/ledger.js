@@ -26,10 +26,12 @@ goog.inherits(bitex.view.LedgerView, bitex.view.View);
 bitex.view.LedgerView.prototype.ledger_table_;
 
 bitex.view.LedgerView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.LedgerView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyComponents_();
 };
 

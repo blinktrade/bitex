@@ -37,10 +37,12 @@ goog.inherits(bitex.view.WithdrawView, bitex.view.View);
 bitex.view.WithdrawView.prototype.withdraw_list_table_;
 
 bitex.view.WithdrawView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.WithdrawView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyComponents_();
 };
 

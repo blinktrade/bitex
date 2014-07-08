@@ -37,10 +37,12 @@ goog.inherits(bitex.view.DepositView, bitex.view.View);
 bitex.view.DepositView.prototype.deposit_list_table_;
 
 bitex.view.DepositView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.DepositView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyComponents_();
 };
 

@@ -21,6 +21,7 @@ goog.inherits(bitex.view.VerificationView, bitex.view.View);
 bitex.view.VerificationView.prototype.loaded_jot_form_;
 
 bitex.view.VerificationView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   if (this.loaded_jot_form_) {
     return;
   }

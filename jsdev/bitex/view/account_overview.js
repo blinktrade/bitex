@@ -91,6 +91,7 @@ bitex.view.AccountOverview.prototype.verification_data_;
  * @param {string} username
  */
 bitex.view.AccountOverview.prototype.enterView = function(username) {
+  goog.base(this, 'enterView');
   var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
 
   if (!goog.isDefAndNotNull(selectedCustomer) || selectedCustomer['Username'] != username ) {
@@ -102,6 +103,7 @@ bitex.view.AccountOverview.prototype.enterView = function(username) {
 };
 
 bitex.view.AccountOverview.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
   this.destroyComponents_(selectedCustomer);
 };
