@@ -1739,6 +1739,15 @@ def db_bootstrap(session):
     session.commit()
 
   if options.test_mode:
+    if not User.get_user(session, 'kevin'):
+      e = User(id=89999999, username='kevin', email='bitexvenezuela@gmail.com',  broker_id=0, broker_username='kevin', password='abc12345',
+               country_code='VE',
+               transaction_fee_buy=20,
+               transaction_fee_sell=20,
+               verified=2, is_staff=False, is_system=False, is_broker=True)
+      session.add(e)
+      session.commit()
+
     if not User.get_user(session, 'nybitcoincenter'):
       e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=0, broker_username='bitex', password='abc12345',
                country_code='US', state='NY',
@@ -1874,6 +1883,101 @@ def db_bootstrap(session):
     session.commit()
 
   if options.test_mode:
+    if not Broker.get_broker(session, 89999999):
+      e = Broker(id=89999999,
+                 short_name=u'BitcoinEX',
+                 business_name=u'BitcoinEX Venezuela',
+                 address=u'Avenida Paseo Cabriales, Torre MovilNet',
+                 signup_label='BitcoinEX Venezuela',
+                 city='Valencia',
+                 state='Carabobo',
+                 zip_code='2001',
+                 country_code='VE',
+                 country='Venezuela',
+                 phone_number_1='+1 (347) 636-5925', phone_number_2='+1 (347) 593-9527', skype='N/A', email='bitexvenezuela@gmail.com',
+                 verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+                 upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+                 currencies='VEF',
+                 withdraw_structure=json.dumps( {
+                   'BTC': [
+                       {
+                       'method':'bitcoin',
+                       'description':'Bitcoin withdrawal',
+                       'disclaimer': '',
+                       'percent_fee':0,
+                       'fixed_fee':0,
+                       'fields': [
+                           {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                           {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                       ]
+                     }
+                   ],
+                   'VEF': [ {
+                     'method':'mercantil_transfer',
+                     'description':'Transferencia banco Mercantil',
+                     'disclaimer':'',
+                     'percent_fee': 165, # 1.65 percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'AccountType'  ,  'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                         {'side':'client', 'name': 'VenezuelanID' ,  'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   }, {
+                     'method':'bank_transfer',
+                     'description':'Transferencia electronica',
+                     'disclaimer':'',
+                     'percent_fee': 295, # 2.95 percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
+                         {'side':'client', 'name': 'AccountType'  ,  'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                         {'side':'client', 'name': 'VenezuelanID' ,  'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   }
+                   ]
+                 }),
+                 crypto_currencies=json.dumps([
+                     {
+                     "CurrencyCode": "BTC",
+                     "CurrencyDescription":"Bitcoin",
+                     "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                     "Wallets": [
+                         { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                         { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                     ]
+                   }
+                 ]),
+                 accept_customers_from=json.dumps([
+                   [ "*", 'US'],  # everywhere, including US_NY
+                   [ "CU", "SO", "SD",  "NG", "IR", "KP" ], # Cuba, Somalia, Sudam, Nigeria, Iran, North Korea
+                 ]) ,
+                 is_broker_hub=False,
+                 support_url='https://bitcoinex.zendesk.com',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
+                 withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+                 tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
+                 fee_structure=json.dumps([
+                     { "Operation" : "USPS Money Order deposit",       "Fee":"$5"               , "Terms":"30 minutes." },
+                     { "Operation" : "Check deposit",                  "Fee":"1%"               , "Terms":"3 business days" },
+                     { "Operation" : "Wire transfer deposit",          "Fee":"0.3%"             , "Terms":"Next business day" },
+                     { "Operation" : "Wire transfer withdraw",         "Fee":"0.3%"             , "Terms":"Next business day" },
+                     { "Operation" : "PayPal withdrawal",              "Fee":"0%"               , "Terms":"Instant" },
+                 ]),
+                 transaction_fee_buy=20, # 0.2%
+                 transaction_fee_sell=20, # 0.2%
+                 status='1',
+                 ranking=5)
+      session.add(e)
+      session.commit()
+
+
     if not Broker.get_broker(session, 9000001):
       e = Broker(id=9000001,
                  short_name=u'NyBitcoinCenter',
@@ -2419,6 +2523,65 @@ def db_bootstrap(session):
   #    session.commit()
 
   if options.test_mode:
+
+    if not DepositMethods.get_deposit_method(session, 90000009 ):
+      bo = DepositMethods(id=90000009,
+                          broker_id=89999999,
+                          name="la_check",
+                          description=u'Check',
+                          disclaimer=u'3 dias habiles.',
+                          type='BTI',
+                          percent_fee=300, #3%
+                          fixed_fee=0,
+                          broker_deposit_ctrl_num=90001,
+                          currency='VEF',
+                          parameters= json.dumps( {
+                            'download_filename': 'instrucciones_deposito_cheque_{{id}}.html',
+                            'html_template':'latin_america_check.html',
+                            'currency':'BsF',
+                            'value': '{{value}}',
+                            'current_date': '{{current_date}}',
+                            'control_number': '{{broker_deposit_ctrl_num}}',
+                            'account_name': 'Kevin Alejandro Charles Briceno',
+                            'address_line_1': 'Valencia, Carabobo',
+                            'address_line_2': 'Avenida Paseo Cabriales , Torre Movilnet oficina international warrioirs c.a.',
+                            'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
+                            } ) )
+      session.add(bo)
+      session.commit()
+
+    if not DepositMethods.get_deposit_method(session, 90000008 ):
+      bo = DepositMethods(id=90000008,
+                          broker_id=89999999,
+                          name="wire_transfer_la",
+                          description=u'Trasferencia Bancaria',
+                          disclaimer=u'3 dias habiles',
+                          type='BTI',
+                          percent_fee=135,  # 1.35
+                          fixed_fee=0,
+                          broker_deposit_ctrl_num=290001,
+                          currency='VEF',
+                          parameters= json.dumps( {
+                            'download_filename': 'la_wire_transfer_{{id}}.html',
+                            'html_template':'la_wire_transfer.html',
+                            'currency':'BsF',
+                            'value': '{{value}}',
+                            'current_date': '{{current_date}}',
+                            'control_number': '{{broker_deposit_ctrl_num}}',
+                            'bank_name' : 'Banco Mercantil',
+                            'account_type':'Cuenta corriente',
+                            'account_number' : '0105 0056 7310 5630 3166',
+                            'account_name': 'Kevin Alejandro Charles Briceno',
+                            'additional_line_1': 'Cedula de Identidad 20.031.729',
+                            'additional_line_2': 'Email: bitexvenezuela@gmail.com',
+                            'disclaimer': u"Cuando usted reliza un pago a traves de nuestro banco asociado "
+                                          u"(Banco Mercantil) su dinero es reflejado con mayor rapidez que si usted"
+                                          u" realiza un pago a traves de un tercer banco",
+                            } ) )
+      session.add(bo)
+      session.commit()
+
+
     if not DepositMethods.get_deposit_method(session, 90000010 ):
       bo = DepositMethods(id=90000010,
                          broker_id=9000001,
