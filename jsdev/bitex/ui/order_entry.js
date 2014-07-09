@@ -79,7 +79,8 @@ bitex.ui.OrderEntry.prototype.createDom = function() {
     currency_description:this.getModel().currency_description,
     side:this.getModel().side,
     type:this.getModel().type,
-    broker_id:this.getModel().broker_id
+    broker_id:this.getModel().broker_id,
+    formatted_fee: this.getModel().formatted_fee
   });
   this.setElementInternal( el )
 };
@@ -219,8 +220,14 @@ bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
     return;
   }
 
+  var fee =  total * this.getModel().fee / 10000;
+
+  var formatted_fee = currency_formatter.format(fee/1e8);
+  goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_fee') ), formatted_fee );
+
+
   // simple math, use the best price
-  var work_total = total;
+  var work_total = total - fee;
   var amount = 0;
   for ( var order_idx in  this.order_depth_) {
     var order = this.order_depth_[order_idx];
@@ -246,15 +253,19 @@ bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
     return;
   }
 
+  var human_total = currency_formatter.format((total - fee)/1e8);
+  goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_amount') ), human_total );
+
   var human_amount = crypto_currency_formatter.format(amount/1e8);
-  goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_amount') ), human_amount );
+  goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_total_to_receive') ), human_amount );
 
   if (amount != 0) {
-    var average_price = total / amount;
+    var average_price = (total - fee) / amount;
     var human_average_price = currency_formatter.format(average_price);
     goog.dom.setTextContent(  goog.dom.getElement( this.makeId('order_entry_avg_price') ), human_average_price );
-
   }
+
+
 };
 
 /**

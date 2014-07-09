@@ -183,13 +183,15 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     currency_code: selected_symbol.symbol.substr(3),
     currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(3)),
     crypto_currency_code: selected_symbol.symbol.substr(0,3),
-    crypto_currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(0,3))
+    crypto_currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(0,3)),
+    fee: model.get('Broker')['TransactionFeeBuy'],
+    formatted_fee: model.get('Broker')['FormattedTransactionFeeBuy']
   });
   this.bid_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
 
 
   this.ask_order_entry_ = new bitex.ui.OrderEntry();
-  this.ask_order_entry_.setModel( {
+  this.ask_order_entry_.setModel({
     username: model.get('Username'),
     symbol: selected_symbol.symbol,
     crypto_currency_symbol: this.getApplication().getCurrencySign( selected_symbol.symbol.substr(0,3) ) ,
@@ -202,7 +204,9 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     currency_code: selected_symbol.symbol.substr(3),
     currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(3)),
     crypto_currency_code: selected_symbol.symbol.substr(0,3),
-    crypto_currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(0,3))
+    crypto_currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(0,3)),
+    fee: model.get('Broker')['TransactionFeeBuy'],
+    formatted_fee: model.get('Broker')['FormattedTransactionFeeSell']
   });
   this.ask_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
 
