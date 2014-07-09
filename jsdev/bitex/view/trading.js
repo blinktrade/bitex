@@ -171,6 +171,7 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
 
   this.bid_order_entry_ = new bitex.ui.OrderEntry();
   this.bid_order_entry_.setModel( {
+    username: model.get('Username'),
     symbol: selected_symbol.symbol,
     crypto_currency_symbol: this.getApplication().getCurrencySign( selected_symbol.symbol.substr(0,3) ) ,
     crypto_currency_description: this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(0,3)),
@@ -189,6 +190,7 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
 
   this.ask_order_entry_ = new bitex.ui.OrderEntry();
   this.ask_order_entry_.setModel( {
+    username: model.get('Username'),
     symbol: selected_symbol.symbol,
     crypto_currency_symbol: this.getApplication().getCurrencySign( selected_symbol.symbol.substr(0,3) ) ,
     crypto_currency_description: this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(0,3)),
