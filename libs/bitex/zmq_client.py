@@ -82,7 +82,7 @@ class TradeClient(object):
 
   def getLastTrades(self, last_trade_id, page=0):
 
-      if last_trade_id == None:
+      if last_trade_id is None:
           last_trade_id = 1
 
       rep_msg = self.sendJSON({ 'MsgType': 'U32',
