@@ -33,7 +33,7 @@ class MarketDataSubscriber(object):
           cls._instance = cls()
         return cls._instance
 
-    def __init__(self, symbol = "ALL"):
+    def __init__(self, symbol = "ALL", db_session = None):
         self.symbol = str(symbol)
         self.buy_side = []
         self.sell_side = []
@@ -46,10 +46,7 @@ class MarketDataSubscriber(object):
         self.ask = 0
         self.isready = False
         self.process_later = []
-
-        from models import ENGINE, db_bootstrap
-        self.db_session = scoped_session(sessionmaker(bind=ENGINE))
-        db_bootstrap(self.db_session)
+        self.db_session = db_session
 
     def subscribe(self,zmq_context,trade_pub_connection_string,trade_client):
 
@@ -78,18 +75,19 @@ class MarketDataSubscriber(object):
         return trade_client.sendJSON(md_subscription_msg)
 
     def ready(self):
+        self.isready = True
         for trade in self.process_later:
           self.on_trade(trade)
 
         self.process_later = []
-        self.isready = True
+
 
     @staticmethod
-    def get(symbol):
+    def get(symbol, db_session=None):
         """" get. """
         global MDSUBSCRIBEDICT
         if symbol not in MDSUBSCRIBEDICT:
-            MDSUBSCRIBEDICT[symbol] = MarketDataSubscriber(symbol)
+            MDSUBSCRIBEDICT[symbol] = MarketDataSubscriber(symbol, db_session)
         return MDSUBSCRIBEDICT[symbol]
 
     def get_last_trades(self):
@@ -264,7 +262,6 @@ class MarketDataSubscriber(object):
                 self.ask = msg.get('MDEntryPx')
 
     def on_trade(self, msg):
-
         if not self.isready:
             self.process_later.append(msg)
             return

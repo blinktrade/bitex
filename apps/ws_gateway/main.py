@@ -85,6 +85,8 @@ from deposit_receipt_webhook_handler import  DepositReceiptWebHookHandler
 from rest_api_handler import RestApiHandler
 import datetime
 
+from sqlalchemy.orm import scoped_session, sessionmaker
+
 from models import Trade
 
 class WebSocketHandler(websocket.WebSocketHandler):
@@ -378,6 +380,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
+        from models import ENGINE, db_bootstrap
+        self.db_session = scoped_session(sessionmaker(bind=ENGINE))
+        db_bootstrap(self.db_session)
+
+
         self.zmq_context = zmq.Context()
 
         self.trade_in_socket = self.zmq_context.socket(zmq.REQ)
@@ -393,7 +400,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
         for instrument in instruments:
             symbol = instrument['Symbol']
-            self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol)
+            self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol, self.db_session)
             self.md_subscriber[symbol].subscribe(
                 self.zmq_context,
                 options.trade_pub,
@@ -414,10 +421,19 @@ class WebSocketGatewayApplication(tornado.web.Application):
         #  trade.order_id,
         #  trade.counter_order_id
 
-        #def create(id, order_id, counter_order_id, buyer_username, seller_username, side, symbol, size, price):
-
         for trade in trade_list:
-            Trade.create(trade[0], trade[8], trade[9], trade[5], trade[6], trade[3], trade[2], trade[5], trade[4])
+            msg = dict()
+            msg['id']               = trade[0]
+            msg['symbol']           = trade[1]
+            msg['side']             = trade[2]
+            msg['price']            = trade[3]
+            msg['size']             = trade[4]
+            msg['buyer_username']   = trade[5]
+            msg['seller_username']  = trade[6]
+            msg['created']          = trade[7]
+            msg['order_id']         = trade[8]
+            msg['counter_order_id'] = trade[9]
+            Trade.create( self.db_session, msg)
 
         for symbol, subscriber in self.md_subscriber.iteritems():
             subscriber.ready()

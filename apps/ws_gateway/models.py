@@ -105,29 +105,6 @@ class Trade(BASE):
 
         return trade
 
-    @staticmethod
-    def create(id, order_id, counter_order_id, buyer_username, seller_username, side, symbol, size, price):
-        session = scoped_session(sessionmaker(bind=ENGINE))
-
-        trade = Trade.get_trade(session, id)
-        if not trade:
-            trade = Trade(id=id,
-                          order_id=order_id,
-                          counter_order_id=counter_order_id,
-                          buyer_username=buyer_username,
-                          seller_username=seller_username,
-                          side=side,
-                          symbol=symbol,
-                          size=size,
-                          price=price,
-                          created=datetime.now())
-
-            session.add(trade)
-            session.commit()
-
-        return trade
-
-
 BASE.metadata.create_all(ENGINE)
 
 

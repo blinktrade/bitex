@@ -13,7 +13,7 @@ class RestApiHandler(tornado.web.RequestHandler):
         self._process_request(version, symbol, resource)
 
     def _send_order_book(self, symbol):
-       md_subscriber = MarketDataSubscriber.get(symbol)
+       md_subscriber = MarketDataSubscriber.get(symbol, self.application.db_session)
 
        bids = []
        asks = []
@@ -32,7 +32,7 @@ class RestApiHandler(tornado.web.RequestHandler):
         )
 
     def _send_trades(self, symbol, since):
-        md_subscriber = MarketDataSubscriber.get(symbol)
+        md_subscriber = MarketDataSubscriber.get(symbol, self.application.db_session)
 
         trades = []
 
