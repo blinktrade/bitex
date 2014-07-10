@@ -82,6 +82,9 @@ class TradeClient(object):
 
   def getLastTrades(self, last_trade_id, page=0):
 
+      if last_trade_id == None:
+          last_trade_id = 1
+
       rep_msg = self.sendJSON({ 'MsgType': 'U32',
                                 'TradeHistoryReqID': -1,
                                 'Page': page,
@@ -97,6 +100,7 @@ class TradeClient(object):
                last_processed = trade[0]
                if last_processed != last_trade_id:
                   result_list.append(trade)
+
 
           if last_processed != last_trade_id:
              return result_list + self.getLastTrades(last_trade_id, page+1)
