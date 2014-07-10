@@ -264,8 +264,8 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
                      this.onUserSetWithdrawComplete_ );
 
 
-
-    this.withdraw_list_table_.dispose();
+    this.removeChildren(true);
+    //this.withdraw_list_table_.dispose();
   }
 
   this.withdraw_list_table_ = null;
@@ -344,7 +344,7 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
                  this.onUserSetWithdrawComplete_ );
 
 
-  this.withdraw_list_table_.decorate(el);
+  this.addChild(this.withdraw_list_table_, true);
 
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
 

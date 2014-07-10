@@ -404,7 +404,26 @@ bitex.ui.WithdrawList = function( methodDescriptionObj, opt_broker_mode,  opt_sh
 
   this.selected_withdraw_ = null;
 
-  bitex.ui.DataGrid.call(this,  { 'rowIDFn':this.getRowId, 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+
+  /**
+   * @desc deposit table title
+   */
+  var MSG_WITHDRAW_LIST_TABLE_TITLE  = goog.getMsg('Withdrawals');
+
+  /**
+   * @desc placeholder for the search input text
+   */
+  var MSG_WITHDRAW_LIST_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
+
+  var options = {
+    'rowIDFn':this.getRowId,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns,
+    'title': MSG_WITHDRAW_LIST_TABLE_TITLE,
+    'showSearch': true,
+    'searchPlaceholder':  MSG_WITHDRAW_LIST_SEARCH_PLACEHOLDER
+  };
+  bitex.ui.DataGrid.call(this,  options , opt_domHelper);
 };
 goog.inherits(bitex.ui.WithdrawList, bitex.ui.DataGrid);
 

@@ -188,73 +188,18 @@ bitex.app.BlinkTrade.prototype.error_message_alert_timeout_;
  */
 bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
   // Create all datagrids
-  goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_withdraw_request_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_deposit_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_deposit_request_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_ledger_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_trade_list'));
   goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
   goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
   goog.dom.removeChildren( goog.dom.getElement('account_overview_balances_id'));
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_withdraw_requests_id'));
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_trades_id'));
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_deposits_id'));
   goog.dom.removeChildren( goog.dom.getElement('id_trading_well'));
 
-
-  /**
-   * @desc placeholder for the search input text in the customers table
-   */
-  var MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
-
-
-  /**
-   * @desc deposit table title
-   */
-  var MSG_WITHDRAW_TABLE_TITLE  = goog.getMsg('Withdrawals');
-
-  goog.soy.renderElement(goog.dom.getElement('id_withdraw_list'), bitex.templates.DataGrid, {
-    id: 'id_withdraw_list_table',
-    title: MSG_WITHDRAW_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_withdraw_request_list'), bitex.templates.DataGrid, {
-    id: 'id_withdraw_request_list_table',
-    title: MSG_WITHDRAW_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-
-
-  /**
-   * @desc deposit table title
-   */
-  var MSG_DEPOSIT_TABLE_TITLE  = goog.getMsg('Deposits');
 
   /**
    * @desc last trades table title
    */
   var MSG_LAST_TRADES_TABLE_TITLE  = goog.getMsg('Last trades');
-
-
-  goog.soy.renderElement(goog.dom.getElement('id_deposit_list'), bitex.templates.DataGrid, {
-    id: 'id_deposit_list_table',
-    title: MSG_DEPOSIT_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_deposit_request_list'), bitex.templates.DataGrid, {
-    id: 'id_deposit_request_list_table',
-    title: MSG_DEPOSIT_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
 
   goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
     id: 'id_trade_list_table',
@@ -292,34 +237,6 @@ bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
     id: 'id_trade_history_table'
   });
 
-  /**
-   * @desc Title  for the customers table
-   */
-  var MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE = goog.getMsg('Withdraw requests...');
-  goog.soy.renderElement(goog.dom.getElement('account_overview_withdraw_requests_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_withdraw_requests_table_id',
-    title: MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  /**
-   * @desc Trades table title
-   */
-  var MSG_TRADES_TABLE_TITLE = goog.getMsg('Trades');
-
-  goog.soy.renderElement(goog.dom.getElement('account_overview_trades_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_trades_table_id',
-    title: MSG_TRADES_TABLE_TITLE
-  });
-
-
-  goog.soy.renderElement(goog.dom.getElement('account_overview_deposits_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_deposits_table_id',
-    title: MSG_DEPOSIT_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
 
   // create all order entries
   goog.dom.removeChildren( goog.dom.getElement('offer_book_order_entry_content'));

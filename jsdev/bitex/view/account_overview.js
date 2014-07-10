@@ -153,8 +153,6 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
     handler.unlisten(this.deposit_list_table_.getElement(),
                      goog.events.EventType.CLICK,
                      this.onDepositListTableClick_);
-
-    this.deposit_list_table_.dispose();
   }
 
   if (goog.isDefAndNotNull(this.withdraw_list_table_)) {
@@ -194,9 +192,10 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
     handler.unlisten(this.withdraw_list_table_.getElement(),
                      goog.events.EventType.CLICK,
                      this.onWithdrawListTableClick_);
-
-    this.withdraw_list_table_.dispose();
   }
+  this.removeChildren(true);
+  this.withdraw_list_table_ = null;
+  this.deposit_list_table_ = null;
 
 
   var account_overview_header_el = goog.dom.getElement('account_overview_header_id');
@@ -211,11 +210,13 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
 
   goog.dom.removeChildren(account_overview_header_el);
 
-  this.withdraw_list_table_ = null;
-  this.deposit_list_table_ = null;
   this.request_id_ = null;
 };
 
+bitex.view.AccountOverview.prototype.getContentElement = function() {
+  var element = goog.dom.getElementByClass('bitex-account-overview-view-content', this.getElement());
+  return element || this.getElement();
+};
 
 
 /**
@@ -233,7 +234,6 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
 
   var account_overview_header_el = goog.dom.getElement('account_overview_header_id');
   goog.soy.renderElement(account_overview_header_el,bitex.templates.AccountOverviewHeader, {msg_customer_detail: customer});
-
 
 
   var broker = model.get('Broker');
@@ -300,12 +300,11 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
                  bitex.api.BitEx.EventType.BALANCE_RESPONSE,
                  this.onBalanceResponse_);
 
-
-  this.deposit_list_table_.decorate(goog.dom.getElement('account_overview_deposits_table_id'));
+  this.addChild(this.deposit_list_table_, true);
   this.deposit_list_table_.setColumnFormatter('Value', this.valuePriceFormatter_, this);
 
 
-  this.withdraw_list_table_.decorate(goog.dom.getElement('account_overview_withdraw_requests_table_id'));
+  this.addChild(this.withdraw_list_table_, true);
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
 
 

@@ -207,10 +207,9 @@ bitex.view.DepositView.prototype.destroyComponents_ = function( ) {
     handler.unlisten(this.deposit_list_table_.getElement(),
                      goog.events.EventType.CLICK,
                      this.onDepositListTableClick_);
-
-    this.deposit_list_table_.dispose();
   }
 
+  this.removeChildren(true);
   this.deposit_list_table_ = null;
   this.request_id_ = null;
 };
@@ -226,22 +225,12 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
 
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
-
-  var el;
-  if (this.is_requests_from_customers_){
-    el = goog.dom.getElement('id_deposit_request_list_table');
-  } else {
-    el = goog.dom.getElement('id_deposit_list_table');
-  }
-
   var broker = model.get('Broker');
   if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
     this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], true, true );
   } else {
     this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], false, false );
   }
-
-
 
   handler.listen(this.deposit_list_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -256,7 +245,7 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
                  this.onDepositRefresh_);
 
 
-  this.deposit_list_table_.decorate(el);
+  this.addChild(this.deposit_list_table_, true);
 
   this.deposit_list_table_.setColumnFormatter('Value', this.valuePriceFormatter_, this);
 
@@ -264,8 +253,6 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
                  goog.events.EventType.CLICK,
                  this.onDepositListTableClick_);
 };
-
-
 
 /**
  * @param {goog.events.Event} e
