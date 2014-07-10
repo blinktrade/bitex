@@ -85,6 +85,7 @@ from deposit_receipt_webhook_handler import  DepositReceiptWebHookHandler
 from rest_api_handler import RestApiHandler
 import datetime
 
+from models import Trade
 
 class WebSocketHandler(websocket.WebSocketHandler):
 
@@ -398,6 +399,29 @@ class WebSocketGatewayApplication(tornado.web.Application):
                 options.trade_pub,
                 self.application_trade_client)
 
+        last_trade_id = Trade.get_last_trade_id()
+        trade_list = self.application_trade_client.getLastTrades(last_trade_id)
+
+        #trade_list.append([
+        #  trade.id,
+        #  trade.symbol,
+        #  trade.side,
+        #  trade.price,
+        #  trade.size,
+        #  trade.buyer_username,
+        #  trade.seller_username,
+        #  trade.created,
+        #  trade.order_id,
+        #  trade.counter_order_id
+
+        #def create(id, order_id, counter_order_id, buyer_username, seller_username, side, symbol, size, price):
+
+        for trade in trade_list:
+            Trade.create(trade[0], trade[8], trade[9], trade[5], trade[6], trade[3], trade[2], trade[5], trade[4])
+
+        for symbol, subscriber in self.md_subscriber.iteritems():
+            subscriber.ready()
+
         self.connections = {}
 
         self.heart_beat_timer = tornado.ioloop.PeriodicCallback(
@@ -435,13 +459,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 def main():
 
-
     print 'callback_url', options.callback_url
     print 'port', options.port
     print 'trade_in', options.trade_in
     print 'trade_pub', options.trade_pub
     print 'session_timeout_limit', options.session_timeout_limit
-
 
     from zmq.eventloop import ioloop
     ioloop.install()

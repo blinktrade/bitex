@@ -108,6 +108,29 @@ class MarketDataPublisher(object):
     application.publish( 'MD_TRADE_' + symbol , md )
 
   @staticmethod
+  def generate_trade_history( session, page_size = None, offset = None, sort_column = None, sort_order='ASC' ):
+    trades = Trade.get_last_trades(session, page_size, offset, sort_column, sort_order)
+    trade_list = []
+    for trade in  trades:
+        trade_list.append([
+          trade.id,
+          trade.symbol,
+          trade.side,
+          trade.price,
+          trade.size,
+          trade.buyer_username,
+          trade.seller_username,
+          trade.created,
+          trade.order_id,
+          trade.counter_order_id
+        ])
+    return trade_list
+
+    #trades = Trade.get_last_trades( session, since ).all()
+    #return trades
+    pass
+
+  @staticmethod
   def generate_md_full_refresh( session, symbol, market_depth, om, entries, req_id, timestamp  ):
     entry_list = []
 
@@ -137,6 +160,21 @@ class MarketDataPublisher(object):
 
           if entry_position >= market_depth > 0:
             break
+
+    md = {
+      "MsgType":"W",
+      "MDReqID": req_id,
+      "MarketDepth": market_depth,
+      "Symbol": symbol,
+      "MDFullGrp": entry_list
+    }
+    application.publish( 'MD_FULL_REFRESH_' + symbol , md )
+
+    return md
+
+'''
+      ### Trades now are sent on TradeHistory Message
+
       elif entry_type == '2':
         trades = Trade.get_last_trades(session, symbol, timestamp)
         trade_list = []
@@ -157,15 +195,5 @@ class MarketDataPublisher(object):
             })
         for trade in reversed(trade_list):
           entry_list.append(trade)
+'''
 
-
-    md = {
-      "MsgType":"W",
-      "MDReqID": req_id,
-      "MarketDepth": market_depth,
-      "Symbol": symbol,
-      "MDFullGrp": entry_list
-    }
-    application.publish( 'MD_FULL_REFRESH_' + symbol , md )
-
-    return md
