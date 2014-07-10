@@ -1372,17 +1372,29 @@ class Trade(Base):
                     created           = datetime.datetime.now())
     session.add(trade)
 
-
     Ledger.execute_order(session, order, counter_order, symbol, size, price, str(order.id) + '.' + str(counter_order.id))
-
 
     return trade
 
 
   @staticmethod
-  def get_last_trades(session, symbol, timestamp):
-    trades = session.query(Trade).filter_by(symbol=symbol).filter(Trade.created >= timestamp).order_by(Trade.created.desc())
+  def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+
+    trades = session.query(Trade).order_by(
+        Trade.created.desc())
+
+    if page_size:
+        trades = trades.limit(page_size)
+    if offset:
+        trades = trades.offset(offset)
+    if sort_column:
+        if sort_order == 'ASC':
+            trades = trades.order(sort_column)
+        else:
+            trades = trades.order(sort_column).desc()
+
     return trades
+
 
 
 class Deposit(Base):

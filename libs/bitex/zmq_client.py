@@ -80,6 +80,30 @@ class TradeClient(object):
   def isConnected(self):
     return self.connection_id is not None
 
+  def getLastTrades(self, last_trade_id, page=0):
+
+      rep_msg = self.sendJSON({ 'MsgType': 'U32',
+                                'TradeHistoryReqID': -1,
+                                'Page': page,
+                                'PageSize': 100 })
+
+      result_list = []
+
+      if rep_msg.isTradeHistoryResponse():
+          last_processed = 0
+          trade_list = rep_msg.get('TradeHistoryGrp')
+          for trade in trade_list:
+             if last_trade_id <= trade[0]:
+               last_processed = trade[0]
+               if last_processed != last_trade_id:
+                  result_list.append(trade)
+
+          if last_processed != last_trade_id:
+             return result_list + self.getLastTrades(last_trade_id, page+1)
+
+      return result_list
+
+
   def getSecurityList(self):
     resp =  self.sendJSON({  'MsgType' : 'x',
                             'SecurityReqID': 'getSecurityList',
