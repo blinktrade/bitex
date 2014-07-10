@@ -43,6 +43,10 @@ class MarketDataSubscriber(object):
         self.inst_status = InstrumentStatusHelper(symbol)
         self.md_pub_socket = None
         self.md_pub_socket_stream = None
+        self.ask = 0
+        self.isready = False
+        self.process_later = []
+
         from models import ENGINE, db_bootstrap
         self.db_session = scoped_session(sessionmaker(bind=ENGINE))
         db_bootstrap(self.db_session)
@@ -72,6 +76,13 @@ class MarketDataSubscriber(object):
         }
 
         return trade_client.sendJSON(md_subscription_msg)
+
+    def ready(self):
+        for trade in self.process_later:
+          self.on_trade(trade)
+
+        self.process_later = []
+        self.isready = True
 
     @staticmethod
     def get(symbol):
@@ -253,6 +264,11 @@ class MarketDataSubscriber(object):
                 self.ask = msg.get('MDEntryPx')
 
     def on_trade(self, msg):
+
+        if not self.isready:
+            self.process_later.append(msg)
+            return
+
         """" on_trade. """
         #print 'on_trade', msg
         trade = {

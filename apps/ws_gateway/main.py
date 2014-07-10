@@ -419,6 +419,9 @@ class WebSocketGatewayApplication(tornado.web.Application):
         for trade in trade_list:
             Trade.create(trade[0], trade[8], trade[9], trade[5], trade[6], trade[3], trade[2], trade[5], trade[4])
 
+        for symbol, subscriber in self.md_subscriber.iteritems():
+            subscriber.ready()
+
         self.connections = {}
 
         self.heart_beat_timer = tornado.ioloop.PeriodicCallback(
