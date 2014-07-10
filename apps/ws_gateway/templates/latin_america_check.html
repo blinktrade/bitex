@@ -47,37 +47,37 @@
   <div class="content-fluid">
     <table id="depositForm" class="table table-condensed">
 
-      <tr><td colspan="3"><h4>Deposit Instructions</h4></td></tr>
+      <tr><td colspan="3"><h4>Instrucciones de deposito</h4></td></tr>
       <tr>
-        <td> Order ID:</td>
+        <td>Numero de control:</td>
         <td>{{control_number}}</td>
       </tr>
       <tr>
-        <td>Created:</td>
+        <td>Emitido:</td>
         <td>{{current_date}}</td>
       </tr>
       <tr>
-        <td>Deposit Method:</td>
-        <td>Check</td>
+        <td>Método de deposito:</td>
+        <td>Cheque</td>
       </tr>
       <tr>
-        <td>Instructions:</td>
+        <td>Instrucciones:</td>
         <td>
-          1. Fill out check with the correct amount <b>Important: Make sure to write your order ID {{control_number}} on the memo line!</b><br/>
-          2. Take a picture of the filled out check<br/>
-          3. Upload the photo of the money order in the system<br/>
-          4. Mail the check to: :
+          1. Diligenciar el cheque con el monto correcto <b>Important: escribir el numero de control {{control_number}} en la parte posterior del cheque!</b><br/>
+          2. tome una foto del cheque debidamente diligenciado<br/>
+          3. Cargue la foto del cheque en el sistema<br/>
+          4. Envie el cheque a:
           {{account_name}} <br/>
           {{address_line_1}}<br/>
           {{address_line_2}}<br/>
         </td>
       </tr>
       <tr>
-        <td>Total Deposit:</td>
+        <td>Total:</td>
         <td>{{currency}} {{value}}</td>
       </tr>
       <tr>
-        <td>Notes:</td>
+        <td>Notas:</td>
         <td>{% raw disclaimer %}</td>
       </tr>
     </table>

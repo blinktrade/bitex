@@ -10,6 +10,7 @@
  * @param side
  * @param type
  * @param broker_id
+ * @param formatted_fee
  */
 {template .OrderEntry}
 <div id="{$id}" class="order-entry-simple span6">
@@ -57,7 +58,12 @@
       {else}
         {msg desc="Selling amount label on simple order entry"}Sell amount:{/msg}
       {/if}
-          <strong class="pull-right"><span id="{$id}_amount">.</span></strong>
+          <strong class="pull-right"><span id="{$id}_amount">-</span></strong>
+        </div>
+
+        <div class="order-entry-simple-summary-item">
+        {msg desc="Fee label on simple order entry"}Fee{/msg} ( {$formatted_fee} ) :
+          <strong class="pull-right"><span id="{$id}_fee">-</span></strong>
         </div>
 
         <div class="order-entry-simple-summary-item">
@@ -65,10 +71,6 @@
           <strong class="pull-right"><span id="{$id}_avg_price">.</span></strong>
         </div>
 
-        <div class="order-entry-simple-summary-item">
-        {msg desc="Fee label on simple order entry"}Fees:{/msg}
-          <strong class="pull-right"><span id="{$id}_fees">.</span></strong>
-        </div>
 
         <div class="order-entry-simple-summary-item">
           <strong>
@@ -77,7 +79,7 @@
         {else}
           {msg desc="Total label on simple order entry"}{$currency_description} to receive{/msg}
         {/if}
-            <span class="pull-right"  id="{$id}_total_to_receive">.</span>
+            <span class="pull-right"  id="{$id}_total_to_receive">-</span>
           </strong>
         </div>
 
