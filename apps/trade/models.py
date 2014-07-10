@@ -2479,6 +2479,17 @@ def db_bootstrap(session):
     #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)', '{:,.3f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)', '{:,.3f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
   ]
+
+  if options.satoshi_mode:
+    currencies = [
+      [ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
+      [ 'BRL' , 'R$'      , 'Real'     ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
+      [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100 , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'       , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'   ],
+      [ 'XOF' , 'Fr'      , 'CFA Franc',  False, 100 , '{:,.8f}', u'Fr #,##0.00;(Fr #,##0.00)'         , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
+      [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  10000, '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)', '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)' ],
+    ]
+
+
   for c in currencies:
     if Currency.get_currency(session,c[0]) :
       continue

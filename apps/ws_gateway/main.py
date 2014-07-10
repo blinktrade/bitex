@@ -447,8 +447,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
     def send_heartbeat_to_trade(self):
         try:
-            self.application_trade_client.sendJSON(
-                {'MsgType': '1', 'TestReqID': '0'})
+            self.application_trade_client.sendJSON({'MsgType': '1', 'TestReqID': '0'})
         except Exception as e:
             pass
 
