@@ -152,8 +152,8 @@ bitex.view.OfferBookView.prototype.recreateOrderBookComponents_ = function( sele
                                                    selected_symbol.qty_currency,
                                                    selected_symbol.price_currency);
 
-  this.order_book_bid_.decorate( goog.dom.getElement('order_book_bid') );
-  this.order_book_offer_.decorate( goog.dom.getElement('order_book_offer') );
+  this.order_book_bid_.render( goog.dom.getElement('id_order_book_bid_content') );
+  this.order_book_offer_.render( goog.dom.getElement('id_order_book_ask_content') );
 
   handler.listen(this.order_book_bid_ ,bitex.ui.OrderBook.EventType.CANCEL, this.onCancelOrder_ );
   handler.listen(this.order_book_offer_ ,bitex.ui.OrderBook.EventType.CANCEL, this.onCancelOrder_ );

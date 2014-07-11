@@ -3,6 +3,7 @@ goog.provide('bitex.ui.OrderBook.Side');
 goog.provide('bitex.ui.OrderBook.EventType');
 goog.provide('bitex.ui.OrderBookEvent');
 
+goog.require('bitex.ui.OrderBook.templates');
 goog.require('goog.i18n.NumberFormat');
 goog.require('goog.ui.Component');
 goog.require('goog.dom.classes');
@@ -104,13 +105,61 @@ bitex.ui.OrderBook.prototype.getBaseCssClass = function() {
 };
 
 /** @override */
+bitex.ui.OrderBook.prototype.createDom = function() {
+  /**
+   * @desc Title in the bid side on the order book
+   */
+  var MSG_ORDER_BOOK_BID_TITLE = goog.getMsg('BID');
+
+  /**
+   * @desc Title in the ask side on the order book
+   */
+  var MSG_ORDER_BOOK_ASK_TITLE = goog.getMsg('ASK');
+
+  /**
+   * @desc Buyer column on the order book
+   */
+  var MSG_ORDER_BOOK_BUYER_COLUMN = goog.getMsg('Buyer');
+
+  /**
+   * @desc Seller column on the order book
+   */
+  var MSG_ORDER_BOOK_SELLER_COLUMN = goog.getMsg('Seller');
+
+  /**
+   * @desc Amount column on the order book
+   */
+  var MSG_ORDER_BOOK_AMOUNT_COLUMN = goog.getMsg('Amount');
+
+  /**
+   * @desc Price column on the order book
+   */
+  var MSG_ORDER_BOOK_PRICE_COLUMN = goog.getMsg('Price');
+
+  var title = MSG_ORDER_BOOK_BID_TITLE;
+  var columns = [MSG_ORDER_BOOK_BUYER_COLUMN, MSG_ORDER_BOOK_AMOUNT_COLUMN, MSG_ORDER_BOOK_PRICE_COLUMN];
+
+  if (this.side_ == bitex.ui.OrderBook.Side.SELL ) {
+    title = MSG_ORDER_BOOK_ASK_TITLE;
+    columns = [MSG_ORDER_BOOK_PRICE_COLUMN, MSG_ORDER_BOOK_AMOUNT_COLUMN, MSG_ORDER_BOOK_SELLER_COLUMN];
+  }
+
+  var el = goog.soy.renderAsElement(bitex.ui.OrderBook.templates.OrderBook, {
+    title: title,
+    columns: columns
+  });
+
+  this.decorateInternal(el);
+};
+
+
+/** @override */
 bitex.ui.OrderBook.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
 
   var dom = this.getDomHelper();
 
   this.bodyEl_ = dom.getElementsByTagNameAndClass('tbody', undefined, element)[0];
-
 };
 
 /** @override */

@@ -210,54 +210,6 @@ bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
   });
   goog.dom.appendChild(goog.dom.getElement('offer_book_order_entry_content'), buy_order_entry_el);
   goog.dom.appendChild(goog.dom.getElement('offer_book_order_entry_content'), sell_order_entry_el);
-
-
-  // Order book
-  goog.dom.removeChildren( goog.dom.getElement('id_order_book_bid_content'));
-  goog.dom.removeChildren( goog.dom.getElement('id_order_book_ask_content'));
-
-  /**
-   * @desc Title in the bid side on the order book
-   */
-  var MSG_ORDER_BOOK_BID_TITLE = goog.getMsg('BID');
-
-  /**
-   * @desc Title in the ask side on the order book
-   */
-  var MSG_ORDER_BOOK_ASK_TITLE = goog.getMsg('ASK');
-
-  /**
-   * @desc Buyer column on the order book
-   */
-  var MSG_ORDER_BOOK_BUYER_COLUMN = goog.getMsg('Buyer');
-
-  /**
-   * @desc Seller column on the order book
-   */
-  var MSG_ORDER_BOOK_SELLER_COLUMN = goog.getMsg('Seller');
-
-  /**
-   * @desc Amount column on the order book
-   */
-  var MSG_ORDER_BOOK_AMOUNT_COLUMN = goog.getMsg('Amount');
-
-
-  /**
-   * @desc Price column on the order book
-   */
-  var MSG_ORDER_BOOK_PRICE_COLUMN = goog.getMsg('Price');
-
-  goog.soy.renderElement(goog.dom.getElement('id_order_book_bid_content'), bitex.templates.OrderBook, {
-    id: 'order_book_bid',
-    title: MSG_ORDER_BOOK_BID_TITLE,
-    columns: [MSG_ORDER_BOOK_BUYER_COLUMN, MSG_ORDER_BOOK_AMOUNT_COLUMN, MSG_ORDER_BOOK_PRICE_COLUMN]
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_order_book_ask_content'), bitex.templates.OrderBook, {
-    id: 'order_book_offer',
-    title: MSG_ORDER_BOOK_ASK_TITLE,
-    columns: [MSG_ORDER_BOOK_PRICE_COLUMN, MSG_ORDER_BOOK_AMOUNT_COLUMN, MSG_ORDER_BOOK_SELLER_COLUMN]
-  });
 };
 
 /**

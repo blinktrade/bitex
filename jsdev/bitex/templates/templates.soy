@@ -869,26 +869,6 @@
 {/template}
 
 /**
-  * @param title
-  * @param id
-  * @param columns
-  */
-{template .OrderBook}
-  <div class="text-center"><h4>{$title}</h4></div>
-  <table id="{$id}"  class="table">
-    <thead>
-    <tr>
-      {foreach $column in $columns}
-        <th>{$column}</th>
-      {/foreach}
-    </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-{/template}
-
-/**
   * @param id
   * @param symbol
   * @param side
