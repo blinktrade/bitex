@@ -37,10 +37,12 @@ goog.inherits(bitex.view.WithdrawView, bitex.view.View);
 bitex.view.WithdrawView.prototype.withdraw_list_table_;
 
 bitex.view.WithdrawView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.WithdrawView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyComponents_();
 };
 
@@ -262,8 +264,8 @@ bitex.view.WithdrawView.prototype.destroyComponents_ = function( ) {
                      this.onUserSetWithdrawComplete_ );
 
 
-
-    this.withdraw_list_table_.dispose();
+    this.removeChildren(true);
+    //this.withdraw_list_table_.dispose();
   }
 
   this.withdraw_list_table_ = null;
@@ -342,7 +344,7 @@ bitex.view.WithdrawView.prototype.recreateComponents_ = function() {
                  this.onUserSetWithdrawComplete_ );
 
 
-  this.withdraw_list_table_.decorate(el);
+  this.addChild(this.withdraw_list_table_, true);
 
   this.withdraw_list_table_.setColumnFormatter('Amount', this.priceFormatter_, this);
 

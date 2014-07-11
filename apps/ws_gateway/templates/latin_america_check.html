@@ -12,6 +12,7 @@
 
   <meta charset="utf-8">
 
+
   <link href="/css/bootstrap-combined.min.css" rel="stylesheet">
   <link href="/css/font-awesome.min.css" rel="stylesheet">
 
@@ -46,40 +47,33 @@
   <div class="content-fluid">
     <table id="depositForm" class="table table-condensed">
 
-      <tr><td colspan="3"><h4>Instruções para depósito</h4></td></tr>
+      <tr><td colspan="3"><h4>Instrucciones de deposito</h4></td></tr>
       <tr>
-        <td>Número de controle:</td>
+        <td>Numero de control:</td>
         <td>{{control_number}}</td>
       </tr>
       <tr>
-        <td>Data de criação:</td>
+        <td>Emitido:</td>
         <td>{{current_date}}</td>
       </tr>
       <tr>
-        <td>Forma de depósito:</td>
-        <td>Transferência bancária</td>
+        <td>Método de deposito:</td>
+        <td>Cheque</td>
       </tr>
       <tr>
-        <td>Instruções:</td>
+        <td>Instrucciones:</td>
         <td>
-          1a. <b>Depósito no caixa: </b>Se dirija até uma agiencia bancária do banco {{bank_name}} e realize o depósito<br/>
-          1b. <b>Depósito online: </b> Se conecte no seu banco pela internet e realize a transferência <br/>
-          2. Seguem os dados para a transferência:<br/>
-          
-
-          Código do banco: {{bank_number}}<br/>
-          Nome do banco: {{bank_name}}<br/>
-          Agência: {{account_branch}}<br/>
-          Número da conta: {{account_number}}<br/>
-          Titular: {{account_name}}<br/>
-          CPF/CNPJ: {{account_id}}<br/>
-          4. <b>Importantissimo: Anote o seu número de controle ({{control_number}})! no comprovante do seu depósito</b><br/>
-          5. Tire uma foto do comprovante ou print screen do recibo do depósito.<br/>
-          6. Faça o upload do comprovante na seção de depósito.<br/>
+          1. Diligenciar el cheque con el monto correcto <b>Important: escribir el numero de control {{control_number}} en la parte posterior del cheque!</b><br/>
+          2. tome una foto del cheque debidamente diligenciado<br/>
+          3. Cargue la foto del cheque en el sistema<br/>
+          4. Envie el cheque a:
+          {{account_name}} <br/>
+          {{address_line_1}}<br/>
+          {{address_line_2}}<br/>
         </td>
       </tr>
       <tr>
-        <td>Valor a depositar:</td>
+        <td>Total:</td>
         <td>{{currency}} {{value}}</td>
       </tr>
       <tr>
@@ -90,5 +84,4 @@
   </div>
 </div>
 </body>
-</html>    
-
+</html>

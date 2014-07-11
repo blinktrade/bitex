@@ -271,6 +271,28 @@ def processCancelOrderRequest(session, msg):
 
   return ""
 
+def processTradersRankRequest(session, msg):
+  page            = msg.get('Page', 0)
+  page_size       = msg.get('PageSize', 100)
+  filter          = msg.get('Filter',[])
+  offset          = page * page_size
+
+  columns = [ 'Rank', 'Trader',  'Broker', 'Amount' ]
+
+  traders_list = Balance.get_balances_by_rank( application.db_session )
+
+  response_msg = {
+    'MsgType'           : 'U37',
+    'DepositListReqID'  : msg.get('TradersRankReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'TradersRankGrp'    : traders_list
+  }
+
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+
 def processSecurityListRequest(session, msg):
   request_type = msg.get('SecurityListRequestType')
   instruments =  Instrument.get_instruments(application.db_session, request_type)
@@ -1050,6 +1072,7 @@ def processProcessDeposit(session, msg):
   result['MsgType'] =  'B1'
   result['ProcessDepositReqID'] = msg.get('ProcessDepositReqID')
   return json.dumps(result, cls=JsonEncoder)
+
 
 @login_required
 def processLedgerListRequest(session, msg):

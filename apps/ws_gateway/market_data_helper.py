@@ -33,7 +33,7 @@ class MarketDataSubscriber(object):
           cls._instance = cls()
         return cls._instance
 
-    def __init__(self, symbol = "ALL"):
+    def __init__(self, symbol = "ALL", db_session = None):
         self.symbol = str(symbol)
         self.buy_side = []
         self.sell_side = []
@@ -43,9 +43,10 @@ class MarketDataSubscriber(object):
         self.inst_status = InstrumentStatusHelper(symbol)
         self.md_pub_socket = None
         self.md_pub_socket_stream = None
-        from models import ENGINE, db_bootstrap
-        self.db_session = scoped_session(sessionmaker(bind=ENGINE))
-        db_bootstrap(self.db_session)
+        self.ask = 0
+        self.is_ready = False
+        self.process_later = []
+        self.db_session = db_session
 
     def subscribe(self,zmq_context,trade_pub_connection_string,trade_client):
 
@@ -73,17 +74,25 @@ class MarketDataSubscriber(object):
 
         return trade_client.sendJSON(md_subscription_msg)
 
+    def ready(self):
+        self.is_ready = True
+        for trade in self.process_later:
+          self.on_trade(trade)
+
+        self.process_later = []
+
+
     @staticmethod
-    def get(symbol):
+    def get(symbol, db_session=None):
         """" get. """
         global MDSUBSCRIBEDICT
         if symbol not in MDSUBSCRIBEDICT:
-            MDSUBSCRIBEDICT[symbol] = MarketDataSubscriber(symbol)
+            MDSUBSCRIBEDICT[symbol] = MarketDataSubscriber(symbol, db_session)
         return MDSUBSCRIBEDICT[symbol]
 
     def get_last_trades(self):
         """" get_last_trades. """
-        return Trade.get_last_trades(self.db_session)
+        return Trade.get_last_trades()
 
     def get_trades(self, symbol, since):
         """" get_trades. """
@@ -253,6 +262,10 @@ class MarketDataSubscriber(object):
                 self.ask = msg.get('MDEntryPx')
 
     def on_trade(self, msg):
+        if not self.is_ready:
+            self.process_later.append(msg)
+            return
+
         """" on_trade. """
         #print 'on_trade', msg
         trade = {
@@ -352,8 +365,7 @@ class MarketDataPublisher(object):
             self.entry_list_order_depth = []
 
 def generate_trade_history(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
-    md = MarketDataSubscriber.instance();
-    trades = Trade.get_last_trades(md.db_session, page_size, offset, sort_column, sort_order)
+    trades = Trade.get_last_trades(page_size, offset, sort_column, sort_order)
     trade_list = []
     for trade in  trades:
         trade_list.append([ 
@@ -370,31 +382,31 @@ def generate_trade_history(page_size = None, offset = None, sort_column = None, 
 
 
 def generate_security_status(symbol, req_id):
-    mdsubscriber = MarketDataSubscriber.get(symbol)
+    md_subscriber = MarketDataSubscriber.get(symbol)
 
     ss = {
         "MsgType": "f",
         "SecurityStatusReqID": req_id,
         "Symbol": symbol,
-        "HighPx": mdsubscriber.inst_status.max_price,
-        "LowPx": mdsubscriber.inst_status.min_price,
-        "LastPx": mdsubscriber.inst_status.last_price,
-        "BuyVolume": mdsubscriber.inst_status.volume_price,
-        "SellVolume": mdsubscriber.inst_status.volume_size
+        "HighPx": md_subscriber.inst_status.max_price,
+        "LowPx": md_subscriber.inst_status.min_price,
+        "LastPx": md_subscriber.inst_status.last_price,
+        "BuyVolume": md_subscriber.inst_status.volume_price,
+        "SellVolume": md_subscriber.inst_status.volume_size
     }
 
     return ss
 
 def generate_md_full_refresh(symbol, market_depth, entries, req_id):
     entry_list = []
-    mdsubscriber = MarketDataSubscriber.get(symbol)
+    md_subscriber = MarketDataSubscriber.get(symbol)
 
     for entry_type in entries:
         if entry_type == '0' or entry_type == '1':
             if entry_type == '0':  # Bid
-                orders = mdsubscriber.buy_side
+                orders = md_subscriber.buy_side
             else:  # Offer
-                orders = mdsubscriber.sell_side
+                orders = md_subscriber.sell_side
 
             entry_position = 0
             for order in orders:
@@ -417,7 +429,7 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
                     break
         elif entry_type == '2':
             trade_list = []
-            for trade in mdsubscriber.get_last_trades():
+            for trade in md_subscriber.get_last_trades():
                 trade_list.append({
                     "MDEntryType": "2",  # Trade
                     "Symbol": symbol,

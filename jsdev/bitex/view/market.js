@@ -6,6 +6,8 @@ goog.require('bitex.ui.MarketViewTable.EventType');
 
 goog.require('bitex.templates');
 
+goog.require('bitex.ui.SimpleChart');
+
 /**
  * @param {*} app
  * @param {goog.dom.DomHelper=} opt_domHelper
@@ -41,12 +43,18 @@ bitex.view.MarketView.prototype.last_trades_table_;
  */
 bitex.view.MarketView.prototype.market_view_table_;
 
+/**
+ * @type {bitex.ui.SimpleChart}
+ */
+bitex.view.MarketView.prototype.simple_chart_;
 
 bitex.view.MarketView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   this.recreateComponents_();
 };
 
 bitex.view.MarketView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyComponents_();
 };
 
@@ -69,15 +77,16 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
   }, this);
 
   this.market_view_table_ = new bitex.ui.MarketViewTable();
-  this.market_view_table_.setModel({id:'market_view', instruments: app.getModel().get('SecurityList')['Instruments']});
-  this.market_view_table_.render(goog.dom.getElement('id_market_view_table'));
+  this.market_view_table_.setModel({id:'market_view', instruments: model.get('SecurityList')['Instruments']});
+  this.addChild(this.market_view_table_, true);
+
   app.getModel().updateDom();
 
-
+  this.simple_chart_ = new bitex.ui.SimpleChart();
+  this.simple_chart_.setModel({ symbol: model.get('SecurityList')['Instruments'][0]['Symbol'] });
+  this.addChild(this.simple_chart_, true);
 
   handler.listen(this.market_view_table_, bitex.ui.MarketViewTable.EventType.SELECT_SYMBOL, this.onSelectedSymbol_);
-
-  var el = goog.dom.getElement('id_trade_list_table');
 
   this.last_trades_table_ = new bitex.ui.TradeHistory();
 
@@ -94,11 +103,10 @@ bitex.view.MarketView.prototype.recreateComponents_ = function() {
   handler.listen( conn , bitex.api.BitEx.EventType.TRADE + '.' + this.market_data_subscription_id_, this.onBitexTrade_ );
   handler.listen( conn , bitex.api.BitEx.EventType.SECURITY_STATUS + '.' + this.market_data_subscription_id_, this.onBitexSecurityStatus_ );
 
-  this.last_trades_table_.decorate(el);
+  this.addChild(this.last_trades_table_, true);
 
   this.dispatchEvent(bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE);
   this.dispatchEvent(bitex.view.View.EventType.SECURITY_STATUS_SUBSCRIBE);
-
   this.market_view_table_.selectFirst();
 };
 
@@ -107,7 +115,6 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
 
   if (goog.isDefAndNotNull(this.market_view_table_) ) {
     handler.unlisten(this.market_view_table_, bitex.ui.MarketViewTable.EventType.SELECT_SYMBOL, this.onSelectedSymbol_);
-    this.market_view_table_.dispose();
   }
 
   if (goog.isDefAndNotNull(this.last_trades_table_) ) {
@@ -122,8 +129,6 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
     handler.unlisten(this.last_trades_table_.getElement(),
                      goog.events.EventType.CLICK,
                      this.onTradeHistoryTableClick_);
-
-    this.last_trades_table_.dispose();
   }
 
   if (goog.isDefAndNotNull(this.market_data_subscription_id_)) {
@@ -138,9 +143,10 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
 
   }
 
-
+  this.removeChildren(true);
   this.market_view_table_ = null;
   this.last_trades_table_ = null;
+  this.simple_chart_ = null;
   this.market_data_subscription_id_ = null;
   this.market_data_subscription_symbol_ = null;
 };
@@ -151,12 +157,7 @@ bitex.view.MarketView.prototype.destroyComponents_ = function( ) {
  */
 bitex.view.MarketView.prototype.onSelectedSymbol_ = function(e){
   var symbol = e.target.getSelectedSymbol();
-
-  var verificationIFrameForm = goog.dom.getElement("HighChartIFrame");
-  verificationIFrameForm.src = '/chart.html?s=' + symbol;
-
-  //console.log(symbol);
-
+  this.simple_chart_.setSymbol(symbol);
 };
 
 /**

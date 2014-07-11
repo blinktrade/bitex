@@ -65,6 +65,7 @@ bitex.view.OfferBookView.EventType = {
 };
 
 bitex.view.OfferBookView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   var model = this.getApplication().getModel();
   var selected_symbol = model.get('SelectedSymbol');
   if (goog.isDefAndNotNull(selected_symbol)) {
@@ -73,6 +74,7 @@ bitex.view.OfferBookView.prototype.enterView = function() {
 };
 
 bitex.view.OfferBookView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.destroyOrderBookComponents_();
 };
 
@@ -150,8 +152,8 @@ bitex.view.OfferBookView.prototype.recreateOrderBookComponents_ = function( sele
                                                    selected_symbol.qty_currency,
                                                    selected_symbol.price_currency);
 
-  this.order_book_bid_.decorate( goog.dom.getElement('order_book_bid') );
-  this.order_book_offer_.decorate( goog.dom.getElement('order_book_offer') );
+  this.order_book_bid_.render( goog.dom.getElement('id_order_book_bid_content') );
+  this.order_book_offer_.render( goog.dom.getElement('id_order_book_ask_content') );
 
   handler.listen(this.order_book_bid_ ,bitex.ui.OrderBook.EventType.CANCEL, this.onCancelOrder_ );
   handler.listen(this.order_book_offer_ ,bitex.ui.OrderBook.EventType.CANCEL, this.onCancelOrder_ );
@@ -185,6 +187,10 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
     var selected_broker_id = model.get('SelectedBrokerID');
     var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
     var symbol = selected_symbol.symbol;
+
+    /*if (!this.isActiveView()) {
+      return;
+    }*/
 
     var buy_order_entry = this.getChildAt(0);
     var sell_order_entry = this.getChildAt(1);

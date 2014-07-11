@@ -50,11 +50,12 @@ var MSG_LEDGER_ACTIVITY_TABLE_COLUMN_PAYEE = goog.getMsg('Payee');
 
 
 /**
+ * @param {*} button_filters
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.LedgerActivity = function(opt_domHelper) {
+bitex.ui.LedgerActivity = function(button_filters, opt_domHelper) {
   var grid_columns = [
     {
       'property': 'Created',
@@ -132,7 +133,28 @@ bitex.ui.LedgerActivity = function(opt_domHelper) {
     }
   ];
 
-  bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+
+
+  /**
+   * @desc deposit table title
+   */
+  var MSG_LEDGER_ACTIVITY_TITLE  = goog.getMsg('Ledger');
+
+  /**
+   * @desc placeholder for the search input text in the customers table
+   */
+  var MSG_LEDGER_ACTIVITY_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
+
+  var options = {
+    'title': MSG_LEDGER_ACTIVITY_TITLE,
+    'showSearch': true,
+    'searchPlaceholder': MSG_LEDGER_ACTIVITY_SEARCH_PLACEHOLDER,
+    'buttonFilters': button_filters,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns
+  };
+
+  bitex.ui.DataGrid.call(this,  options , opt_domHelper);
 };
 goog.inherits(bitex.ui.LedgerActivity, bitex.ui.DataGrid);
 

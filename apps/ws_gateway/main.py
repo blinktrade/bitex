@@ -85,6 +85,9 @@ from deposit_receipt_webhook_handler import  DepositReceiptWebHookHandler
 from rest_api_handler import RestApiHandler
 import datetime
 
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+from models import Trade
 
 class WebSocketHandler(websocket.WebSocketHandler):
 
@@ -377,6 +380,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
+        from models import ENGINE, db_bootstrap
+        self.db_session = scoped_session(sessionmaker(bind=ENGINE))
+        db_bootstrap(self.db_session)
+
+
         self.zmq_context = zmq.Context()
 
         self.trade_in_socket = self.zmq_context.socket(zmq.REQ)
@@ -392,11 +400,43 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
         for instrument in instruments:
             symbol = instrument['Symbol']
-            self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol)
+            self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol, self.db_session)
             self.md_subscriber[symbol].subscribe(
                 self.zmq_context,
                 options.trade_pub,
                 self.application_trade_client)
+
+        last_trade_id = Trade.get_last_trade_id()
+        trade_list = self.application_trade_client.getLastTrades(last_trade_id)
+
+        #trade_list.append([
+        #  trade.id,
+        #  trade.symbol,
+        #  trade.side,
+        #  trade.price,
+        #  trade.size,
+        #  trade.buyer_username,
+        #  trade.seller_username,
+        #  trade.created,
+        #  trade.order_id,
+        #  trade.counter_order_id
+
+        for trade in trade_list:
+            msg = dict()
+            msg['id']               = trade[0]
+            msg['symbol']           = trade[1]
+            msg['side']             = trade[2]
+            msg['price']            = trade[3]
+            msg['size']             = trade[4]
+            msg['buyer_username']   = trade[5]
+            msg['seller_username']  = trade[6]
+            msg['created']          = trade[7]
+            msg['order_id']         = trade[8]
+            msg['counter_order_id'] = trade[9]
+            Trade.create( self.db_session, msg)
+
+        for symbol, subscriber in self.md_subscriber.iteritems():
+            subscriber.ready()
 
         self.connections = {}
 
@@ -407,8 +447,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
     def send_heartbeat_to_trade(self):
         try:
-            self.application_trade_client.sendJSON(
-                {'MsgType': '1', 'TestReqID': '0'})
+            self.application_trade_client.sendJSON({'MsgType': '1', 'TestReqID': '0'})
         except Exception as e:
             pass
 
@@ -435,13 +474,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 def main():
 
-
     print 'callback_url', options.callback_url
     print 'port', options.port
     print 'trade_in', options.trade_in
     print 'trade_pub', options.trade_pub
     print 'session_timeout_limit', options.session_timeout_limit
-
 
     from zmq.eventloop import ioloop
     ioloop.install()

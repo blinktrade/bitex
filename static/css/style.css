@@ -220,6 +220,7 @@ ul.parsley-error-list li {
 #offerbook,
 #trading,
 #tos,
+#ranking,
 #market,
 #deposit,
 #deposit_requests,
@@ -251,6 +252,7 @@ ul.parsley-error-list li {
 .active-view-offerbook #offerbook,
 .active-view-trading #trading,
 .active-view-tos #tos,
+.active-view-ranking #ranking,
 .active-view-market #market,
 .active-view-deposit_list #deposit_list,
 .active-view-deposit #deposit,
@@ -489,10 +491,10 @@ ul.parsley-error-list li {
 }
 
 keyframes notification {
-0% { -webkit-transform: rotateY(-90deg); opacity: 0; }
-70% { -webkit-transform: rotateY(20deg); opacity: .8; }
-90% { -webkit-transform: rotateY(-10deg); opacity: 1; }
-100% { -webkit-transform: rotateY(-0deg); opacity: 1; }
+    0% { -webkit-transform: rotateY(-90deg); opacity: 0; }
+    70% { -webkit-transform: rotateY(20deg); opacity: .8; }
+    90% { -webkit-transform: rotateY(-10deg); opacity: 1; }
+    100% { -webkit-transform: rotateY(-0deg); opacity: 1; }
   }
 
 /* Webkit Only */

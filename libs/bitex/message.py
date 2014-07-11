@@ -117,6 +117,9 @@ class JsonMessage(BaseMessage):
       'y':   'SecurityList',
       'e':   'SecurityStatusRequest',
       'f':   'SecurityStatus',
+      'AN':  'RequestForPositions',
+      'AO':  'RequestForPositionsAck',
+      'AP':  'PositionReport',
 
       # User  messages
       'U0':  'Signup',
@@ -157,6 +160,9 @@ class JsonMessage(BaseMessage):
 
       'U34': 'LedgerListRequest',
       'U35': 'LedgerListResponse',
+
+      'U36': 'TradersRankRequest',
+      'U37': 'TradersRankResponse',
 
       # Broker messages
       'B0':  'ProcessDeposit',

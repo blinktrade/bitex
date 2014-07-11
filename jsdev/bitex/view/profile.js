@@ -4,6 +4,11 @@ goog.require('bitex.view.View');
 goog.require('bitex.ui.WithdrawMethods');
 goog.require('bitex.ui.WithdrawMethodEditor');
 
+goog.require('goog.date.UtcDateTime');
+goog.require('goog.graphics.Stroke');
+goog.require('goog.i18n.DateTimeFormat');
+
+
 /**
  * @param {*} app
  * @param {goog.dom.DomHelper=} opt_domHelper
@@ -17,6 +22,7 @@ goog.inherits(bitex.view.ProfileView, bitex.view.View);
 
 
 bitex.view.ProfileView.prototype.enterView = function() {
+  goog.base(this, 'enterView');
   var model = this.getApplication().getModel();
   if (model.get('IsBroker') ) {
 
@@ -40,7 +46,7 @@ bitex.view.ProfileView.prototype.enterView = function() {
           'currency': currency,
           'currency_description': this.getApplication().getCurrencyDescription(currency)
         };
-        goog.object.extend( obj, withdraw_method );
+        goog.object.extend(obj, withdraw_method);
 
         var pos = [0];
         var fixed_fee = valueFormatter.parse(obj['fixed_fee'], pos);
@@ -57,10 +63,15 @@ bitex.view.ProfileView.prototype.enterView = function() {
 
     this.addChild(withdraw_methods, true);
     withdraw_methods.enterDocument();
+  } else {
+
+
+
   }
 };
 
 bitex.view.ProfileView.prototype.exitView = function() {
+  goog.base(this, 'exitView');
   this.removeChildren(true);
 };
 

@@ -1,0 +1,79 @@
+{namespace bitex.ui.DataGrid.templates}
+
+/**
+  * @param? title
+  * @param? id
+  * @param? wrapper_height Defaults to 360px
+  * @param? base_class
+  * @param? show_search
+  * @param? search_placeholder
+  * @param? button_filters
+  */
+{template .DataGrid}
+  <div {if $id}id="{$id}"{/if}  class="fuelux {if $base_class}{$base_class}{/if}" style="width:100%;">
+    <table class="table table-bordered datagrid datagrid-stretch-header">
+      <thead>
+        <tr>
+          <th colspan="4" {if not $title and not $show_search}style="display: none;"{/if}>
+            <span class="datagrid-header-title"  {if not $title}style="display: none;"{/if} ><strong>{$title}</strong></span>
+
+            <div class="datagrid-header-left" {if not $show_search}style="display: none;"{/if}>
+                <div class="input-append search datagrid-search">
+                  <input type="text" class="input-medium" placeholder="{$search_placeholder}">
+                  <button type="button" class="btn"><i class="icon-search"></i></button>
+                </div>
+            </div>
+
+            <div class="datagrid-header-right">
+              {if $button_filters}
+                <div class="select filter datagrid-filter" data-resize="auto">
+                  <button type="button" data-toggle="dropdown" class="btn dropdown-toggle">
+                    {foreach $button in $button_filters}
+                      {if isFirst($button)}
+                        <span class="dropdown-label" style="width: 111px;">{$button['label']}</span>
+                      {/if}
+                    {/foreach}
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {foreach $button in $button_filters}
+                      <li data-value="{$button['value']}"><a href="#">{$button['label']}</a></li>
+                    {/foreach}
+                  </ul>
+                </div>
+              {/if}
+            </div>
+          </th>
+        </tr>
+      </thead>
+    </table>
+    <div class="datagrid-stretch-wrapper" style="height:{if $wrapper_height}{$wrapper_height}{else}360{/if}px;">
+      <table class="table table-bordered datagrid">
+        <tbody></tbody>
+      </table>
+    </div>
+    <table class="table table-bordered datagrid datagrid-stretch-footer">
+      <tfoot>
+      <tr>
+        <th colspan="4">
+          <div class="datagrid-footer-left" style="visibility: visible;">
+            <div class="grid-controls">
+                        <span>
+                          <span class="grid-start"></span> -
+                          <span class="grid-end"></span>
+                        </span>
+            </div>
+          </div>
+          <div class="datagrid-footer-right" style="visibility: visible;">
+            <div class="grid-pager">
+              <button type="button" class="btn grid-refresh"><i class="icon-repeat"></i></button>
+              <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+              <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+            </div>
+          </div>
+        </th>
+      </tr>
+      </tfoot>
+    </table>
+  </div>
+{/template}

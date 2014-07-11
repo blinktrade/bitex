@@ -1,0 +1,21 @@
+{namespace bitex.ui.OrderBook.templates}
+
+/**
+  * @param title
+  * @param columns
+  */
+{template .OrderBook}
+  <div class="text-center"><h4>{$title}</h4></div>
+  <table class="table">
+    <thead>
+      <tr>
+        {foreach $column in $columns}
+          <th>{$column}</th>
+        {/foreach}
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+{/template}
+

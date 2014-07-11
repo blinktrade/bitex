@@ -188,6 +188,26 @@ class TradeApplication(object):
             om = OrderMatcher.get(instrument)
             response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries, req_id, timestamp )
             response_message = 'REP,' + json.dumps( response_message , cls=JsonEncoder)
+          elif msg.isTradeHistoryRequest():
+
+              page        = msg.get('Page', 0)
+              page_size   = msg.get('PageSize', 100)
+              offset      = page * page_size
+
+              columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size',
+                          'Buyer'             , 'Seller', 'Created' ]
+
+              trade_list = MarketDataPublisher.generate_trade_history(application.db_session, page_size, offset )
+
+              response_message = 'REP,' + json.dumps( {
+                  'MsgType'           : 'U33', # TradeHistoryResponse
+                  'TradeHistoryReqID' : -1,
+                  'Page'              : page,
+                  'PageSize'          : page_size,
+                  'Columns'           : columns,
+                  'TradeHistoryGrp'   : trade_list
+              }, cls=JsonEncoder )
+
           else:
             response_message = self.session_manager.process_message( msg_header, session_id, msg )
         else:

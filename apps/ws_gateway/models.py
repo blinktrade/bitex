@@ -3,10 +3,11 @@
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.sql.expression import or_
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from tornado.options import options
 
@@ -55,7 +56,16 @@ class Trade(BASE):
         return trades
 
     @staticmethod
-    def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+    def get_last_trade_id():
+
+        session = scoped_session(sessionmaker(bind=ENGINE))
+        res = session.query(func.max(Trade.id)).one()
+
+        return res[0]
+
+    @staticmethod
+    def get_last_trades(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+        session = scoped_session(sessionmaker(bind=ENGINE))
 
         today = datetime.now()
         timestamp = today - timedelta(days=1)
@@ -89,13 +99,12 @@ class Trade(BASE):
                           symbol=msg['symbol'],
                           size=msg['size'],
                           price=msg['price'],
-                          created=datetime.now())
+                          created=datetime.strptime(msg['created'], "%Y-%m-%d %H:%M:%S"))
 
             session.add(trade)
             session.commit()
 
         return trade
-
 
 BASE.metadata.create_all(ENGINE)
 

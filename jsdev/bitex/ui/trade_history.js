@@ -117,7 +117,20 @@ bitex.ui.TradeHistory = function (opt_domHelper) {
 
   this.selected_trade_ = null;
 
-  bitex.ui.DataGrid.call(this,  { 'rowIDFn':this.getRowId, 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+  /**
+   * @desc last trades table title
+   */
+  var MSG_TRADE_HISTORY_TABLE_TITLE  = goog.getMsg('Last trades');
+
+  var options = {
+    'title': MSG_TRADE_HISTORY_TABLE_TITLE,
+    'rowIDFn':this.getRowId,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns,
+    'show_search': false
+  };
+  bitex.ui.DataGrid.call(this,  options , opt_domHelper);
+
 };
 goog.inherits(bitex.ui.TradeHistory, bitex.ui.DataGrid);
 

@@ -145,7 +145,25 @@ bitex.ui.Customers = function( opt_domHelper) {
 
   this.selected_customer_ = null;
 
-  bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+
+  /**
+   * @desc Title  for the customers table
+   */
+  var MSG_CUSTOMERS_TABLE_TITLE = goog.getMsg('Customers');
+
+  /**
+   * @desc placeholder for the search input text in the customers table
+   */
+  var MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Username or email...');
+
+  var options = {
+    'title': MSG_CUSTOMERS_TABLE_TITLE,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns,
+    'showSearch': true,
+    'searchPlaceholder': MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER
+  };
+  bitex.ui.DataGrid.call(this,  options , opt_domHelper);
 };
 goog.inherits(bitex.ui.Customers, bitex.ui.DataGrid);
 

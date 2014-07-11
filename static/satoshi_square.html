@@ -41,7 +41,7 @@
   <link href="./css/fuelux.css" rel="stylesheet">
   <link href="./css/style.css?v4" rel="stylesheet">
 
-  <link rel="canonical" href="https://www.bitex.com.br" />
+  <link rel="canonical" href="https://www.blinktrade.com" />
   <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
 
   <!-- bitex application -->
@@ -439,13 +439,10 @@
       </div>
     </div>
 
-    <div id="account_overview_withdraw_requests_id"></div>
-
-    <div id="account_overview_deposits_id"></div>
-
-    <div id="account_overview_trades_id"></div>
-
-
+    <div class="bitex-account-overview-view-content">
+      <div id="account_overview_withdraw_requests_id"></div>
+      <div id="account_overview_deposits_id"></div>
+    </div>
   </div>
 
 </div>
@@ -659,7 +656,7 @@
   var app = new BlinkTradeApp();
   app.run();
   app.setView('offerbook');
-  //app.run('wss://www.bitex.com.br/trade/');
+  //app.run('wss://www.blinktrade.com/trade/');
   //app.run('wss://pinhopro.no-ip.org/trade/');
   //app.run('wss://192.168.1.46/trade/');
 </script>

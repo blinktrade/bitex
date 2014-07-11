@@ -21,6 +21,7 @@ goog.require('goog.events.Event');
 bitex.view.View = function(app, opt_domHelper) {
   goog.ui.Component.call(this, opt_domHelper);
 
+  this.is_active_ = false;
   this.app_ = app;
 };
 goog.inherits(bitex.view.View, goog.ui.Component);
@@ -62,6 +63,12 @@ bitex.view.View.EventType = {
 bitex.view.View.prototype.app_;
 
 /**
+ * @type {boolean}
+ */
+bitex.view.View.prototype.is_active_;
+
+
+/**
  * @type {string}
  */
 bitex.view.View.CSS_CLASS = goog.getCssName('bitex-view');
@@ -93,9 +100,17 @@ bitex.view.View.prototype.getApplication = function() {
 };
 
 
-bitex.view.View.prototype.enterView = function() {};
+bitex.view.View.prototype.enterView = function() {
+  this.is_active_ = true;
+};
 
-bitex.view.View.prototype.exitView = function() {};
+bitex.view.View.prototype.exitView = function() {
+  this.is_active_ = false;
+};
+
+bitex.view.View.prototype.isActiveView = function() {
+  return this.is_active_;
+};
 
 bitex.view.View.prototype.getContentElement = function() {
   var element = goog.dom.getElementByClass('bitex-view-content', this.getElement());

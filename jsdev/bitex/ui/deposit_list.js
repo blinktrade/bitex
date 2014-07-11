@@ -441,7 +441,26 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
 
   this.selected_deposit_ = null;
 
-  bitex.ui.DataGrid.call(this,  { 'rowIDFn':this.getRowId, 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+  /**
+   * @desc deposit table title
+   */
+  var MSG_DEPOSIT_LIST_TABLE_TITLE  = goog.getMsg('Deposits');
+
+  /**
+   * @desc placeholder for the search input text
+   */
+  var MSG_DEPOSIT_LIST_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
+
+  var options = {
+    'rowIDFn':this.getRowId,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns,
+    'title': MSG_DEPOSIT_LIST_TABLE_TITLE,
+    'showSearch': true,
+    'searchPlaceholder':  MSG_DEPOSIT_LIST_SEARCH_PLACEHOLDER
+  };
+
+  bitex.ui.DataGrid.call(this, options, opt_domHelper);
 };
 goog.inherits(bitex.ui.DepositList, bitex.ui.DataGrid);
 

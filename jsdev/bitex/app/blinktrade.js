@@ -73,7 +73,8 @@ goog.require('bitex.view.TradingView');
 goog.require('bitex.view.ToolBarView');
 goog.require('bitex.view.MarketView');
 goog.require('bitex.view.LedgerView');
-goog.require('bitex.view.ProfileView')
+goog.require('bitex.view.ProfileView');
+goog.require('bitex.view.RankingView');
 
 
 /**
@@ -187,140 +188,6 @@ bitex.app.BlinkTrade.prototype.error_message_alert_timeout_;
  * @protected
  */
 bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
-  // Create all datagrids
-  goog.dom.removeChildren( goog.dom.getElement('id_withdraw_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_withdraw_request_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_deposit_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_deposit_request_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_ledger_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_trade_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
-  goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_balances_id'));
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_withdraw_requests_id'));
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_trades_id'));
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_deposits_id'));
-  goog.dom.removeChildren( goog.dom.getElement('id_trading_well'));
-
-
-  /**
-   * @desc placeholder for the search input text in the customers table
-   */
-  var MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
-
-
-  /**
-   * @desc deposit table title
-   */
-  var MSG_WITHDRAW_TABLE_TITLE  = goog.getMsg('Withdrawals');
-
-  goog.soy.renderElement(goog.dom.getElement('id_withdraw_list'), bitex.templates.DataGrid, {
-    id: 'id_withdraw_list_table',
-    title: MSG_WITHDRAW_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_withdraw_request_list'), bitex.templates.DataGrid, {
-    id: 'id_withdraw_request_list_table',
-    title: MSG_WITHDRAW_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-
-
-  /**
-   * @desc deposit table title
-   */
-  var MSG_DEPOSIT_TABLE_TITLE  = goog.getMsg('Deposits');
-
-  /**
-   * @desc last trades table title
-   */
-  var MSG_LAST_TRADES_TABLE_TITLE  = goog.getMsg('Last trades');
-
-
-  goog.soy.renderElement(goog.dom.getElement('id_deposit_list'), bitex.templates.DataGrid, {
-    id: 'id_deposit_list_table',
-    title: MSG_DEPOSIT_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_deposit_request_list'), bitex.templates.DataGrid, {
-    id: 'id_deposit_request_list_table',
-    title: MSG_DEPOSIT_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-
-  goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
-    id: 'id_trade_list_table',
-    title: MSG_LAST_TRADES_TABLE_TITLE,
-    show_search: false
-  });
-
-
-  /** @desc Order manager table tittle */
-  var MSG_ORDER_MANAGER_TABLE_TITLE = goog.getMsg('My orders');
-  goog.soy.renderElement(goog.dom.getElement('id_trading_well'), bitex.templates.DataGrid, {
-    id: 'id_order_manager_table',
-    title: MSG_ORDER_MANAGER_TABLE_TITLE,
-    show_search: false
-  });
-
-
-  /**
-   * @desc Title  for the customers table
-   */
-  var MSG_CUSTOMERS_TABLE_TITLE = goog.getMsg('Customers');
-
-  /**
-   * @desc placeholder for the search input text in the customers table
-   */
-  var MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Username or email...');
-  goog.soy.renderElement(goog.dom.getElement('id_customers_well'), bitex.templates.DataGrid, {
-    id: 'id_customer_table',
-    title: MSG_CUSTOMERS_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_trade_history_well'), bitex.templates.DataGrid, {
-    id: 'id_trade_history_table'
-  });
-
-  /**
-   * @desc Title  for the customers table
-   */
-  var MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE = goog.getMsg('Withdraw requests...');
-  goog.soy.renderElement(goog.dom.getElement('account_overview_withdraw_requests_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_withdraw_requests_table_id',
-    title: MSG_BROKER_CUSTOMER_ACCOUNT_OVERVIEW_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  /**
-   * @desc Trades table title
-   */
-  var MSG_TRADES_TABLE_TITLE = goog.getMsg('Trades');
-
-  goog.soy.renderElement(goog.dom.getElement('account_overview_trades_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_trades_table_id',
-    title: MSG_TRADES_TABLE_TITLE
-  });
-
-
-  goog.soy.renderElement(goog.dom.getElement('account_overview_deposits_id'), bitex.templates.DataGrid, {
-    id: 'account_overview_deposits_table_id',
-    title: MSG_DEPOSIT_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_DEPOSITS_TABLE_SEARCH_PLACEHOLDER
-  });
-
   // create all order entries
   goog.dom.removeChildren( goog.dom.getElement('offer_book_order_entry_content'));
   var buy_order_entry_el = goog.soy.renderAsElement(bitex.templates.OrderEntry, {
@@ -343,54 +210,6 @@ bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
   });
   goog.dom.appendChild(goog.dom.getElement('offer_book_order_entry_content'), buy_order_entry_el);
   goog.dom.appendChild(goog.dom.getElement('offer_book_order_entry_content'), sell_order_entry_el);
-
-
-  // Order book
-  goog.dom.removeChildren( goog.dom.getElement('id_order_book_bid_content'));
-  goog.dom.removeChildren( goog.dom.getElement('id_order_book_ask_content'));
-
-  /**
-   * @desc Title in the bid side on the order book
-   */
-  var MSG_ORDER_BOOK_BID_TITLE = goog.getMsg('BID');
-
-  /**
-   * @desc Title in the ask side on the order book
-   */
-  var MSG_ORDER_BOOK_ASK_TITLE = goog.getMsg('ASK');
-
-  /**
-   * @desc Buyer column on the order book
-   */
-  var MSG_ORDER_BOOK_BUYER_COLUMN = goog.getMsg('Buyer');
-
-  /**
-   * @desc Seller column on the order book
-   */
-  var MSG_ORDER_BOOK_SELLER_COLUMN = goog.getMsg('Seller');
-
-  /**
-   * @desc Amount column on the order book
-   */
-  var MSG_ORDER_BOOK_AMOUNT_COLUMN = goog.getMsg('Amount');
-
-
-  /**
-   * @desc Price column on the order book
-   */
-  var MSG_ORDER_BOOK_PRICE_COLUMN = goog.getMsg('Price');
-
-  goog.soy.renderElement(goog.dom.getElement('id_order_book_bid_content'), bitex.templates.OrderBook, {
-    id: 'order_book_bid',
-    title: MSG_ORDER_BOOK_BID_TITLE,
-    columns: [MSG_ORDER_BOOK_BUYER_COLUMN, MSG_ORDER_BOOK_AMOUNT_COLUMN, MSG_ORDER_BOOK_PRICE_COLUMN]
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_order_book_ask_content'), bitex.templates.OrderBook, {
-    id: 'order_book_offer',
-    title: MSG_ORDER_BOOK_ASK_TITLE,
-    columns: [MSG_ORDER_BOOK_PRICE_COLUMN, MSG_ORDER_BOOK_AMOUNT_COLUMN, MSG_ORDER_BOOK_SELLER_COLUMN]
-  });
 };
 
 /**
@@ -436,14 +255,13 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   var accountOverviewView = new bitex.view.AccountOverview(this);
   var brokerView          = new bitex.view.BrokerView(this);
   var marketView          = new bitex.view.MarketView(this);
+  var rankingView         = new bitex.view.RankingView(this);
   var tradingView         = new bitex.view.TradingView(this);
   var toolBarView         = new bitex.view.ToolBarView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
   var ledgerView          = new bitex.view.LedgerView(this);
   var profileView         = new bitex.view.ProfileView(this);
   var brokerApplicationView= new bitex.view.NullView(this);
-
-
 
   this.views_.addChild( toolBarView         );
   this.views_.addChild( sideBarView         );
@@ -466,6 +284,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.views_.addChild( enableTwoFactorView );
   this.views_.addChild( brokerView          );
   this.views_.addChild( marketView          );
+  this.views_.addChild( rankingView         );
   this.views_.addChild( ledgerView          );
   this.views_.addChild( profileView         );
   this.views_.addChild( brokerApplicationView);
@@ -491,6 +310,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   toolBarView.decorate(goog.dom.getElement('id_toolbar') );
   brokerView.decorate(goog.dom.getElement('my_broker'));
   marketView.decorate(goog.dom.getElement('market'));
+  rankingView.decorate(goog.dom.getElement('ranking'));
   ledgerView.decorate(goog.dom.getElement('ledger'));
   profileView.decorate(goog.dom.getElement('profile'));
   brokerApplicationView.decorate(goog.dom.getElement('broker_application'));
@@ -517,8 +337,9 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.router_.addView( '(enable_two_factor)'           , enableTwoFactorView );
   this.router_.addView( '(my_broker)'                   , brokerView          );
   this.router_.addView( '(market)'                      , marketView          );
+  this.router_.addView( '(ranking)'                     , rankingView         );
   this.router_.addView( '(ledger)'                      , ledgerView          );
-  this.router_.addView( '(profile)'                     , profileView          );
+  this.router_.addView( '(profile)'                     , profileView         );
   this.router_.addView( '(broker_application)'          , brokerApplicationView);
 
   this.router_.setView('start');
@@ -594,9 +415,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.SHOW_RECEIPT, this.onShowReceipt_);
   handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
-  handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_ );
-
-
+  handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_);
 
   this.connectBitEx();
 };
@@ -2118,8 +1937,14 @@ bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
     var MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE = goog.getMsg('2 steps authentication');
 
     var dlg_ = this.showDialog(MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE,
-                               bitex.templates.GoogleAuthenticationCodeDialogContent({id:"id_second_factor"  }),
+                               "",
                                bootstrap.Dialog.ButtonSet.createOkCancel() );
+
+
+    goog.dom.appendChild(dlg_.getContentElement(),
+                         goog.soy.renderAsElement( bitex.templates.GoogleAuthenticationCodeDialogContent,
+                                                   {id:"id_second_factor"  } ));
+
 
     var handler = this.getHandler();
     handler.listenOnce(dlg_, goog.ui.Dialog.EventType.SELECT, function(e) {
@@ -2171,6 +1996,7 @@ bitex.app.BlinkTrade.prototype.onBeforeSetView_ = function(e){
       case 'broker_application':
         break;
       case 'market':
+      case 'ranking':
         if ( !this.conn_.isConnected() )
           this.router_.setView('start');
         break;
@@ -2287,6 +2113,31 @@ bitex.app.BlinkTrade.prototype.getCurrencySign  =   function(currency_code) {
    */
   var currency_def = this.currency_info_[currency_code];
   return currency_def.sign;
+};
+
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.app.BlinkTrade.prototype.getCurrencyFormat  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.format;
+};
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.app.BlinkTrade.prototype.getCurrencyHumanFormat  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.human_format;
 };
 
 /**

@@ -303,7 +303,8 @@
   * @param id
   */
 {template .GoogleAuthenticationCodeDialogContent}
-  {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg} <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
+  {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg}
+  <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
 {/template}
 
 /**
@@ -805,7 +806,6 @@
   * @param msg_customer_detail
   */
 {template .AccountOverviewHeader}
-  <h4>{msg desc="Details sub title for the account overview view"}Details{/msg}</h4>
   <table class="table table-striped account-overview-table" style="width: 350px">
     <tbody>
       <tr>
@@ -866,119 +866,6 @@
       </div>
     </div>
   </form>
-{/template}
-
-/**
-  * @param title
-  * @param id
-  * @param columns
-  */
-{template .OrderBook}
-  <div class="text-center"><h4>{$title}</h4></div>
-  <table id="{$id}"  class="table">
-    <thead>
-    <tr>
-      {foreach $column in $columns}
-        <th>{$column}</th>
-      {/foreach}
-    </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-{/template}
-
-
-/**
-  * @param id
-  * @param symbol
-  * @param currency_symbol
-  * @param currency_description
-  * @param crypto_currency_symbol
-  * @param crypto_currency_description
-  * @param side
-  * @param type
-  * @param broker_id
-  */
-{template .OrderEntrySimple}
-
-  <div id="{$id}" class="order-entry-simple span6">
-    <input type="hidden" name="symbol" class="order-entry-symbol" value="{$symbol}">
-    <input type="hidden" name="side" class="order-entry-side" value="{$side}">
-    <input type="hidden" name="type" class="order-entry-type" value="{$type}">
-    <input type="hidden" name="broker_id" class="order-entry-broker-id" value="{$broker_id}">
-
-
-    <div class="order-entry-simple-heading">
-      <div class="clearfix">
-        <h1 class="text-left pull-left">
-          {if $side == 1}
-            {msg desc="Buy button in Order Entry"}Buy {$crypto_currency_description}{/msg}
-          {else}
-            {msg desc="Sell button in Order Entry"}Sell {$crypto_currency_description}{/msg}
-          {/if}
-        </h1>
-      </div>
-    </div>
-    <div class="order-entry-simple-body">
-        <div class="clearfix">
-
-          <label for="{$id}_total">
-            {if $side == 1}
-              {msg desc="Amount label for buying on simple order entry"} I want to spend:{/msg}
-            {else}
-              {msg desc="Amount label for selling on simple order entry"} I want to sell:{/msg}
-            {/if}
-          </label>
-          <div class="input-prepend input-block-level order-entry-simple-data">
-            <span class="add-on order-entry-simple-price-sign">
-              {if $side == 1}
-                {$currency_symbol}
-              {else}
-                {$crypto_currency_symbol}
-              {/if}
-            </span>
-            <input id="{$id}_total" class="input-block-level order-entry-simple-total" type="text" required/>
-          </div>
-          <div class="order-entry-simple-summary">
-
-            <div class="order-entry-simple-summary-item">
-              {if $side == 1}
-                {msg desc="Purchase amount label on simple order entry"}Purchase amount:{/msg}
-                <strong class="pull-right"><span>.</span></strong>
-              {else}
-                {msg desc="Selling amount label on simple order entry"}Sell amount:{/msg}
-                <strong class="pull-right"><span>.</span></strong>
-              {/if}
-            </div>
-
-            <div class="order-entry-simple-summary-item">
-                {msg desc="Price per crypto currency label on simple order entry"}Price per {$crypto_currency_description}:{/msg}
-                <strong class="pull-right"><span>.</span></strong>
-            </div>
-
-            <div class="order-entry-simple-summary-item">
-                {msg desc="Fee label on simple order entry"}Fees:{/msg}
-                <strong class="pull-right"><span>.</span></strong>
-            </div>
-
-            <div class="order-entry-simple-summary-item">
-              <strong>
-                {if $side == 1}
-                  {msg desc="Total label on simple order entry"}{$crypto_currency_description} to receive{/msg}
-                {else}
-                  {msg desc="Total label on simple order entry"}{$currency_description} to receive{/msg}
-                {/if}
-                <span class="pull-right">.</span>
-              </strong>
-            </div>
-
-          </div>
-        </div>
-    </div>
-
-
-  </div>
 {/template}
 
 /**

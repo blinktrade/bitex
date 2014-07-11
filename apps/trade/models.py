@@ -135,7 +135,6 @@ class Instrument(Base):
   def __repr__(self):
     return u"<Instrument(symbol=%r, currency=%r, description=%r)>" % (self.symbol, self.currency, self.description)
 
-
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
@@ -375,7 +374,9 @@ class Balance(Base):
   __tablename__         = 'balances'
   id                    = Column(Integer,       primary_key=True)
   account_id            = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  account_name          = Column(String(15),    nullable=False)
   broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  broker_name           = Column(String(30),    nullable=False)
   currency              = Column(String(4),     ForeignKey('currencies.code') ,nullable=False )
   balance               = Column(Integer,       nullable=False, default=0)
   last_update           = Column(DateTime, default=datetime.datetime.now, nullable=False)
@@ -385,6 +386,17 @@ class Balance(Base):
   def __repr__(self):
     return u"<Balance(id=%r, account_id=%r, broker_id=%r, currency=%r, balance=%r)>" % (
       self.id, self.account_id,  self.broker_id, self.currency, self.balance )
+
+  @staticmethod
+  def get_balances_by_rank(session, currency = 'BTC'):
+    entries = session.query(Balance).filter_by(currency = currency).order_by(Balance.balance.desc())
+
+    result_rank = []
+    for i, balance in enumerate(entries):
+        if balance.balance > 0:
+            result_rank.append([i+1, balance.account_name, balance.broker_name, balance.balance])
+
+    return result_rank
 
   @staticmethod
   def get_balances_by_account(session, account_id):
@@ -403,13 +415,15 @@ class Balance(Base):
     return balance_obj.balance
 
   @staticmethod
-  def update_balance(session,operation, account_id, broker_id, currency, value ):
+  def update_balance(session,operation, account_id, account_name, broker_id, broker_name, currency, value ):
     currency  = currency.strip().upper()
     balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
     if not balance_obj:
       balance_obj = Balance(account_id  = account_id,
+                            account_name    = account_name,
                             currency    = currency,
                             broker_id   = broker_id,
+                            broker_name = broker_name,
                             balance     = 0)
 
     if operation == 'CREDIT':
@@ -426,7 +440,6 @@ class Balance(Base):
     application.publish( account_id,  balance_update_msg  )
 
     return balance_obj.balance
-
 
 class Ledger(Base):
   __tablename__         = 'ledger'
@@ -488,7 +501,7 @@ class Ledger(Base):
 
   @staticmethod
   def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None):
-    balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = from_account_id,
                      account_name     = from_account_name,
@@ -505,7 +518,7 @@ class Ledger(Base):
                      description      = description )
     session.add(ledger)
 
-    balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = to_account_id,
                      account_name     = to_account_name,
@@ -525,7 +538,7 @@ class Ledger(Base):
 
   @staticmethod
   def deposit(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
-    balance = Balance.update_balance(session, 'CREDIT', account_id, broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'CREDIT', account_id, account_name, broker_id, broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
                      account_name     = account_name,
@@ -545,7 +558,7 @@ class Ledger(Base):
 
   @staticmethod
   def withdraw(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
-    balance = Balance.update_balance(session, 'DEBIT', account_id, broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'DEBIT', account_id, account_name, broker_id, broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
                      account_name     = account_name,
@@ -571,7 +584,7 @@ class Ledger(Base):
     to_symbol = symbol[:3].upper()   #BTC
     from_symbol = symbol[3:].upper() #USD
 
-    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.broker_id, from_symbol, total_value )
+    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.account_username, order.broker_id, order.broker_username, from_symbol, total_value )
     order_record_debit = Ledger( currency         = from_symbol,
                                  account_id       = order.account_id,
                                  account_name     = order.account_username,
@@ -589,7 +602,7 @@ class Ledger(Base):
     session.add(order_record_debit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, counter_order.broker_id, from_symbol, total_value )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, counter_order.account_username, counter_order.broker_id, counter_order.broker_username, from_symbol, total_value )
     counter_order_record_credit = Ledger(currency     = from_symbol,
                                          account_id   = counter_order.account_id,
                                          account_name = counter_order.account_username,
@@ -607,7 +620,7 @@ class Ledger(Base):
     session.add(counter_order_record_credit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.broker_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.account_username, order.broker_id, order.broker_username, to_symbol, qty )
     order_record_credit = Ledger(currency     = to_symbol,
                                  account_id   = order.account_id,
                                  account_name = order.account_username,
@@ -624,7 +637,7 @@ class Ledger(Base):
                                  description  = 'T')
     session.add(order_record_credit)
 
-    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.broker_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.account_username, counter_order.broker_id, counter_order.broker_username, to_symbol, qty )
     counter_order_record_debit = Ledger(currency     = to_symbol,
                                         account_id   = counter_order.account_id,
                                         account_name = counter_order.account_username,
@@ -642,7 +655,7 @@ class Ledger(Base):
     session.add(counter_order_record_debit)
 
     def process_execution_fee(session,trade_id, order, currency, amount ):
-      balance = Balance.update_balance(session, 'DEBIT', order.account_id, order.broker_id, currency, amount )
+      balance = Balance.update_balance(session, 'DEBIT', order.account_id, order.account_username, order.broker_id, order.broker_username, currency, amount )
       order_fee_record = Ledger(currency          = currency,
                                 account_id        = order.account_id,
                                 account_name      = order.account_username,
@@ -659,7 +672,7 @@ class Ledger(Base):
                                 description       = 'TF')
       session.add(order_fee_record)
 
-      balance = Balance.update_balance(session, 'CREDIT', order.broker_id, order.broker_id, currency, amount )
+      balance = Balance.update_balance(session, 'CREDIT', order.broker_id, order.broker_username, order.broker_id, order.broker_username, currency, amount )
       broker_fee_record  = Ledger(currency          = currency,
                                   account_id        = order.broker_id,
                                   account_name      = order.broker_username,
@@ -688,9 +701,6 @@ class Ledger(Base):
     counter_order_fee_amount =  counter_order_fee_base_amount * (counter_order.fee / 10000.)
     if counter_order_fee_amount:
       process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount )
-
-
-
 
 class Broker(Base):
   __tablename__         = 'brokers'
@@ -775,7 +785,6 @@ class Broker(Base):
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from )
 
-
 class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
   id              = Column(Integer,       primary_key=True)
@@ -831,7 +840,6 @@ class UserPasswordReset(Base):
                       template= "password-reset",
                       language= 'ptBR',
                       params=  json.dumps({'token':token, 'username':req.user.username } ))
-
 
 class UserEmail(Base):
   __tablename__   = 'user_email'
@@ -893,7 +901,6 @@ class UserEmail(Base):
     application.publish( 'EMAIL' , msg )
 
     return  user_email
-
 
 class Withdraw(Base):
   __tablename__   = 'withdraws'
@@ -1139,7 +1146,6 @@ class Withdraw(Base):
       self.broker_username, self.data, self.percent_fee, self.fixed_fee,
       self.confirmation_token, self.status, self.created, self.reason_id, self.reason, self.paid_amount)
 
-
 class Order(Base):
   __tablename__   = 'orders'
 
@@ -1329,7 +1335,6 @@ class Order(Base):
   def is_sell(self):
     return  self.side == '2'
 
-
 class Trade(Base):
   __tablename__     = 'trade'
   #id                = Column(String,        primary_key=True)
@@ -1372,18 +1377,28 @@ class Trade(Base):
                     created           = datetime.datetime.now())
     session.add(trade)
 
-
     Ledger.execute_order(session, order, counter_order, symbol, size, price, str(order.id) + '.' + str(counter_order.id))
-
 
     return trade
 
 
   @staticmethod
-  def get_last_trades(session, symbol, timestamp):
-    trades = session.query(Trade).filter_by(symbol=symbol).filter(Trade.created >= timestamp).order_by(Trade.created.desc())
-    return trades
+  def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
 
+    trades = session.query(Trade).order_by(
+        Trade.created.desc())
+
+    if page_size:
+        trades = trades.limit(page_size)
+    if offset:
+        trades = trades.offset(offset)
+    if sort_column:
+        if sort_order == 'ASC':
+            trades = trades.order(sort_column)
+        else:
+            trades = trades.order(sort_column).desc()
+
+    return trades
 
 class Deposit(Base):
   __tablename__           = 'deposit'
@@ -1635,7 +1650,6 @@ class Deposit(Base):
       session.add(self)
       session.flush()
 
-
 class DepositMethods(Base):
   __tablename__             = 'deposit_options'
   id                        = Column(Integer,    primary_key=True)
@@ -1703,8 +1717,6 @@ class DepositMethods(Base):
 
     return deposit
 
-
-
 Base.metadata.create_all(engine)
 
 def db_bootstrap(session):
@@ -1739,6 +1751,15 @@ def db_bootstrap(session):
     session.commit()
 
   if options.test_mode:
+    if not User.get_user(session, 'kevin'):
+      e = User(id=89999999, username='kevin', email='bitexvenezuela@gmail.com',  broker_id=0, broker_username='kevin', password='abc12345',
+               country_code='VE',
+               transaction_fee_buy=20,
+               transaction_fee_sell=20,
+               verified=2, is_staff=False, is_system=False, is_broker=True)
+      session.add(e)
+      session.commit()
+
     if not User.get_user(session, 'nybitcoincenter'):
       e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=0, broker_username='bitex', password='abc12345',
                country_code='US', state='NY',
@@ -1874,6 +1895,101 @@ def db_bootstrap(session):
     session.commit()
 
   if options.test_mode:
+    if not Broker.get_broker(session, 89999999):
+      e = Broker(id=89999999,
+                 short_name=u'BitcoinEX',
+                 business_name=u'BitcoinEX Venezuela',
+                 address=u'Avenida Paseo Cabriales, Torre MovilNet',
+                 signup_label='BitcoinEX Venezuela',
+                 city='Valencia',
+                 state='Carabobo',
+                 zip_code='2001',
+                 country_code='VE',
+                 country='Venezuela',
+                 phone_number_1='+1 (347) 636-5925', phone_number_2='+1 (347) 593-9527', skype='N/A', email='bitexvenezuela@gmail.com',
+                 verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+                 upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+                 currencies='VEF',
+                 withdraw_structure=json.dumps( {
+                   'BTC': [
+                       {
+                       'method':'bitcoin',
+                       'description':'Bitcoin withdrawal',
+                       'disclaimer': '',
+                       'percent_fee':0,
+                       'fixed_fee':0,
+                       'fields': [
+                           {'side':'client', 'name': 'Wallet'        ,  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                           {'side':'broker', 'name': 'TransactionID' ,  'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                           {'side':'broker', 'name': 'Link'          ,  'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                       ]
+                     }
+                   ],
+                   'VEF': [ {
+                     'method':'mercantil_transfer',
+                     'description':'Transferencia banco Mercantil',
+                     'disclaimer':'',
+                     'percent_fee': 165, # 1.65 percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'AccountType'  ,  'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                         {'side':'client', 'name': 'VenezuelanID' ,  'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   }, {
+                     'method':'bank_transfer',
+                     'description':'Transferencia electronica',
+                     'disclaimer':'',
+                     'percent_fee': 295, # 2.95 percent
+                     'fixed_fee': 0,
+                     'fields': [
+                         {'side':'client', 'name': 'BankName'     ,  'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
+                         {'side':'client', 'name': 'AccountType'  ,  'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                         {'side':'client', 'name': 'AccountNumber',  'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                         {'side':'client', 'name': 'VenezuelanID' ,  'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                         {'side':'broker', 'name': 'TransactionID',  'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'         ,  'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                     ]
+                   }
+                   ]
+                 }),
+                 crypto_currencies=json.dumps([
+                     {
+                     "CurrencyCode": "BTC",
+                     "CurrencyDescription":"Bitcoin",
+                     "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                     "Wallets": [
+                         { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                         { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                     ]
+                   }
+                 ]),
+                 accept_customers_from=json.dumps([
+                   [ "*", 'US'],  # everywhere, including US_NY
+                   [ "CU", "SO", "SD",  "NG", "IR", "KP" ], # Cuba, Somalia, Sudam, Nigeria, Iran, North Korea
+                 ]) ,
+                 is_broker_hub=False,
+                 support_url='https://bitcoinex.zendesk.com',
+                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
+                 withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+                 tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
+                 fee_structure=json.dumps([
+                     { "Operation" : "USPS Money Order deposit",       "Fee":"$5"               , "Terms":"30 minutes." },
+                     { "Operation" : "Check deposit",                  "Fee":"1%"               , "Terms":"3 business days" },
+                     { "Operation" : "Wire transfer deposit",          "Fee":"0.3%"             , "Terms":"Next business day" },
+                     { "Operation" : "Wire transfer withdraw",         "Fee":"0.3%"             , "Terms":"Next business day" },
+                     { "Operation" : "PayPal withdrawal",              "Fee":"0%"               , "Terms":"Instant" },
+                 ]),
+                 transaction_fee_buy=20, # 0.2%
+                 transaction_fee_sell=20, # 0.2%
+                 status='1',
+                 ranking=5)
+      session.add(e)
+      session.commit()
+
+
     if not Broker.get_broker(session, 9000001):
       e = Broker(id=9000001,
                  short_name=u'NyBitcoinCenter',
@@ -2348,7 +2464,7 @@ def db_bootstrap(session):
     [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1000000    , '{:,.6f}', u'\u00a4 #,##0.000000;(\u00a4 #,##0.000000)'  , '{:,.0f}', u'\u00a4 #,##0;(\u00a4 #,##0)'],
     [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100000000  , '{:,.8f}', u'\u00a5 #,##0.00000000;(\u00a5 #,##0.00000000)', '{:,.2f}', u'\u00a5 #,##0.00;(\u00a5 #,##0.00)' ],
     [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
-    [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100000000  , '{:,.8f}', u'BsF #,##0.00000000;(BsF #,##0.00000000)' , '{:,.2f}', u'BsF. #,##0.00;(BsF. #,##0.00)'   ],
+    [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100000000  , '{:,.8f}', u'BsF #,##0.00000000;(BsF #,##0.00000000)' , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'   ],
     [ 'AOA' , 'Kz'      , 'kwanza'   ,  False, 100000000  , '{:,.8f}', u'Kz #,##0.00000000;(Kz #,##0.00000000)' , '{:,.2f}', u'Kz #,##0.00;(Kz #,##0.00)' ],
     [ 'AUD' , '$'       , 'Australian Dollar',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
     [ 'BSD' , '$'       , 'Bahamian dollar',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
@@ -2357,12 +2473,23 @@ def db_bootstrap(session):
     [ 'ILS' , u'\u20aa' , 'New shekel',  False, 100000000  , '{:,.8f}', u'\u20aa #,##0.00000000;(\u20aa #,##0.00000000)' , '{:,.2f}', u'\u20aa #,##0.00;(\u20aa #,##0.00)'  ],
     [ 'MXN' , '$'       , 'Mexican Peso',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
     [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000000  , '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)', '{:,.5f}', u'\u0e3f #,##0.00000;(\u0e3f #,##0.00000)' ],
-    [ 'XOF' , 'Fr'      , 'CFA Frank',  False, 100000000  , '{:,.8f}', u'Fr #,##0.00000000;(Fr #,##0.00000000)' , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
+    [ 'XOF' , 'Fr'      , 'CFA Franc',  False, 100000000  , '{:,.8f}', u'Fr #,##0.00000000;(Fr #,##0.00000000)' , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000000  , '{:,.8f}', u'\u0141 #,##0.00000000;(\u0141 #,##0.00000000)', '{:,.5f}', u'\u0141 #,##0.00000;(\u0141 #,##0.00000)']
     # Ny Bitcoin Center settings
     #[ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  100000  , '{:,.5f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)', '{:,.3f}', u'\u0e3f #,##0.000;(\u0e3f #,##0.000)'],
     #[ 'LTC' , u'\u0141' , 'Litecoin' ,  True,  100000  , '{:,.5f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)', '{:,.3f}', u'\u0141 #,##0.000;(\u0141 #,##0.000)']
   ]
+
+  if options.satoshi_mode:
+    currencies = [
+      [ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
+      [ 'BRL' , 'R$'      , 'Real'     ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
+      [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100 , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'       , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'   ],
+      [ 'XOF' , 'Fr'      , 'CFA Franc',  False, 100 , '{:,.8f}', u'Fr #,##0.00;(Fr #,##0.00)'         , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
+      [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  10000, '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)', '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)' ],
+    ]
+
+
   for c in currencies:
     if Currency.get_currency(session,c[0]) :
       continue
@@ -2395,7 +2522,7 @@ def db_bootstrap(session):
     #['BTCILS', 'ILS', "BTC / ILS" ],
     #['BTCMXN', 'MXN', "BTC / MXN" ],
     ['BTCVEF', 'VEF', "BTC / VEF" ],
-    ['BTCXOF', 'XOF', "BTC / CFA Frank" ],
+    ['BTCXOF', 'XOF', "BTC / CFA Franc" ],
   ]
   for inst in instruments:
     if Instrument.get_instrument(session, inst[0]):
@@ -2419,6 +2546,65 @@ def db_bootstrap(session):
   #    session.commit()
 
   if options.test_mode:
+
+    if not DepositMethods.get_deposit_method(session, 90000009 ):
+      bo = DepositMethods(id=90000009,
+                          broker_id=89999999,
+                          name="la_check",
+                          description=u'Check',
+                          disclaimer=u'3 dias habiles.',
+                          type='BTI',
+                          percent_fee=300, #3%
+                          fixed_fee=0,
+                          broker_deposit_ctrl_num=90001,
+                          currency='VEF',
+                          parameters= json.dumps( {
+                            'download_filename': 'instrucciones_deposito_cheque_{{id}}.html',
+                            'html_template':'latin_america_check.html',
+                            'currency':'BsF',
+                            'value': '{{value}}',
+                            'current_date': '{{current_date}}',
+                            'control_number': '{{broker_deposit_ctrl_num}}',
+                            'account_name': 'Kevin Alejandro Charles Briceno',
+                            'address_line_1': 'Valencia, Carabobo',
+                            'address_line_2': 'Avenida Paseo Cabriales , Torre Movilnet oficina international warrioirs c.a.',
+                            'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
+                            } ) )
+      session.add(bo)
+      session.commit()
+
+    if not DepositMethods.get_deposit_method(session, 90000008 ):
+      bo = DepositMethods(id=90000008,
+                          broker_id=89999999,
+                          name="wire_transfer_la",
+                          description=u'Trasferencia Bancaria',
+                          disclaimer=u'3 dias habiles',
+                          type='BTI',
+                          percent_fee=135,  # 1.35
+                          fixed_fee=0,
+                          broker_deposit_ctrl_num=290001,
+                          currency='VEF',
+                          parameters= json.dumps( {
+                            'download_filename': 'la_wire_transfer_{{id}}.html',
+                            'html_template':'la_wire_transfer.html',
+                            'currency':'BsF',
+                            'value': '{{value}}',
+                            'current_date': '{{current_date}}',
+                            'control_number': '{{broker_deposit_ctrl_num}}',
+                            'bank_name' : 'Banco Mercantil',
+                            'account_type':'Cuenta corriente',
+                            'account_number' : '0105 0056 7310 5630 3166',
+                            'account_name': 'Kevin Alejandro Charles Briceno',
+                            'additional_line_1': 'Cedula de Identidad 20.031.729',
+                            'additional_line_2': 'Email: bitexvenezuela@gmail.com',
+                            'disclaimer': u"Cuando usted reliza un pago a traves de nuestro banco asociado "
+                                          u"(Banco Mercantil) su dinero es reflejado con mayor rapidez que si usted"
+                                          u" realiza un pago a traves de un tercer banco",
+                            } ) )
+      session.add(bo)
+      session.commit()
+
+
     if not DepositMethods.get_deposit_method(session, 90000010 ):
       bo = DepositMethods(id=90000010,
                          broker_id=9000001,

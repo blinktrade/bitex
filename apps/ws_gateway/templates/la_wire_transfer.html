@@ -46,40 +46,39 @@
   <div class="content-fluid">
     <table id="depositForm" class="table table-condensed">
 
-      <tr><td colspan="3"><h4>Instruções para depósito</h4></td></tr>
+      <tr><td colspan="3"><h4>Deposit Instructions</h4></td></tr>
       <tr>
-        <td>Número de controle:</td>
+        <td>Numero de control:</td>
         <td>{{control_number}}</td>
       </tr>
       <tr>
-        <td>Data de criação:</td>
+        <td>Emitido:</td>
         <td>{{current_date}}</td>
       </tr>
       <tr>
-        <td>Forma de depósito:</td>
-        <td>Transferência bancária</td>
+        <td>Método de deposito:</td>
+        <td>Cheque</td>
       </tr>
       <tr>
-        <td>Instruções:</td>
+        <td>Instrucciones:</td>
         <td>
-          1a. <b>Depósito no caixa: </b>Se dirija até uma agiencia bancária do banco {{bank_name}} e realize o depósito<br/>
-          1b. <b>Depósito online: </b> Se conecte no seu banco pela internet e realize a transferência <br/>
-          2. Seguem os dados para a transferência:<br/>
-          
-
-          Código do banco: {{bank_number}}<br/>
-          Nome do banco: {{bank_name}}<br/>
-          Agência: {{account_branch}}<br/>
-          Número da conta: {{account_number}}<br/>
-          Titular: {{account_name}}<br/>
-          CPF/CNPJ: {{account_id}}<br/>
-          4. <b>Importantissimo: Anote o seu número de controle ({{control_number}})! no comprovante do seu depósito</b><br/>
-          5. Tire uma foto do comprovante ou print screen do recibo do depósito.<br/>
-          6. Faça o upload do comprovante na seção de depósito.<br/>
+          1a. <b>Deposito directo: </b>dirijase a su banco de preferencia y solicite información para realizar el deposito <br/>
+          1b. <b>Transferencia electronica: </b> ingrese su opcion de banca en linea y solicite la opcion de realizar transferencia electronica<br/>
+          2. Complete el formulario de transferencia.
+          <b>Importante: Escriba o numero de control ({{control_number}}) en el campo de Concepto</b><br/>
+          Informacion: <br/>
+          Nombre del banco {{bank_name}} <br/>
+          Número de cuenta #{{account_number}} <br/>
+          Tipo de cuenta #{{account_type}} <br/>
+          Nombre del titular: {{account_name}} <br/>
+          {{additional_line_1}}<br/>
+          {{additional_line_2}}<br/>
+          3. Tome un foto del comprobante de deposito<br/>
+          4. Suba el comprobante en el sistema<br/>
         </td>
       </tr>
       <tr>
-        <td>Valor a depositar:</td>
+        <td>Total:</td>
         <td>{{currency}} {{value}}</td>
       </tr>
       <tr>
@@ -90,5 +89,4 @@
   </div>
 </div>
 </body>
-</html>    
-
+</html>

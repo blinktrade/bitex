@@ -153,7 +153,18 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
 
   this.blink_delay_ = opt_blinkDelay || 700;
 
-  bitex.ui.DataGrid.call(this,  { 'rowIDFn': this.getRowID , 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+  /** @desc Order manager table tittle */
+  var MSG_ORDER_MANAGER_TABLE_TITLE = goog.getMsg('My orders');
+
+  var options = {
+    'rowIDFn': this.getRowID ,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns,
+    'title': MSG_ORDER_MANAGER_TABLE_TITLE,
+    'showSearch': false
+  };
+
+  bitex.ui.DataGrid.call(this,  options , opt_domHelper);
 };
 goog.inherits(bitex.ui.OrderManager, bitex.ui.DataGrid);
 
