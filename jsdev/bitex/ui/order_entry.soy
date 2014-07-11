@@ -34,51 +34,51 @@
     <div class="clearfix">
 
       <label for="{$id}_total">
-    {if $side == 1}
-      {msg desc="Amount label for buying on simple order entry"} I want to spend:{/msg}
-    {else}
-      {msg desc="Amount label for selling on simple order entry"} I want to sell:{/msg}
-    {/if}
+        {if $side == 1}
+          {msg desc="Amount label for buying on simple order entry"} I want to spend:{/msg}
+        {else}
+          {msg desc="Amount label for selling on simple order entry"} I want to sell:{/msg}
+        {/if}
       </label>
       <div class="input-prepend input-block-level order-entry-simple-data">
         <span class="add-on order-entry-simple-price-sign">
-      {if $side == 1}
-        {$currency_symbol}
-      {else}
-        {$crypto_currency_symbol}
-      {/if}
+          {if $side == 1}
+            {$currency_symbol}
+          {else}
+            {$crypto_currency_symbol}
+          {/if}
         </span>
         <input id="{$id}_total" class="input-block-level order-entry-simple-total" type="text" required/>
       </div>
       <div class="order-entry-simple-summary">
 
         <div class="order-entry-simple-summary-item">
-      {if $side == 1}
-        {msg desc="Purchase amount label on simple order entry"}Purchase amount:{/msg}
-      {else}
-        {msg desc="Selling amount label on simple order entry"}Sell amount:{/msg}
-      {/if}
+          {if $side == 1}
+            {msg desc="Purchase amount label on simple order entry"}Purchase amount:{/msg}
+          {else}
+            {msg desc="Selling amount label on simple order entry"}Sell amount:{/msg}
+          {/if}
           <strong class="pull-right"><span id="{$id}_amount">-</span></strong>
         </div>
 
         <div class="order-entry-simple-summary-item">
-        {msg desc="Fee label on simple order entry"}Fee{/msg} ( {$formatted_fee} ) :
+          {msg desc="Fee label on simple order entry"}Fee{/msg} ( {$formatted_fee} ) :
           <strong class="pull-right"><span id="{$id}_fee">-</span></strong>
         </div>
 
         <div class="order-entry-simple-summary-item">
-        {msg desc="Price per crypto currency label on simple order entry"}Price per {$crypto_currency_description}:{/msg}
+          {msg desc="Price per crypto currency label on simple order entry"}Price per {$crypto_currency_description}:{/msg}
           <strong class="pull-right"><span id="{$id}_avg_price">.</span></strong>
         </div>
 
 
         <div class="order-entry-simple-summary-item">
           <strong>
-        {if $side == 1}
-          {msg desc="Total label on simple order entry"}{$crypto_currency_description} to receive{/msg}
-        {else}
-          {msg desc="Total label on simple order entry"}{$currency_description} to receive{/msg}
-        {/if}
+            {if $side == 1}
+              {msg desc="Total label on simple order entry"}{$crypto_currency_description} to receive{/msg}
+            {else}
+              {msg desc="Total label on simple order entry"}{$currency_description} to receive{/msg}
+            {/if}
             <span class="pull-right"  id="{$id}_total_to_receive">-</span>
           </strong>
         </div>

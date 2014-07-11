@@ -120,6 +120,13 @@ bitex.ui.DataGrid.prototype.element_prev_button_;
  * @type {!Element}
  * @private
  */
+bitex.ui.DataGrid.prototype.element_refresh_;
+
+
+/**
+ * @type {!Element}
+ * @private
+ */
 bitex.ui.DataGrid.prototype.element_next_button_;
 
 /**
@@ -226,6 +233,7 @@ bitex.ui.DataGrid.prototype.decorateInternal = function(element) {
 
   this.element_start_counter_ = goog.dom.getElementByClass( 'grid-start', element );
   this.element_end_counter_   = goog.dom.getElementByClass( 'grid-end', element );
+  this.element_refresh_       = goog.dom.getElementByClass( 'grid-refresh', element );
   this.element_prev_button_   = goog.dom.getElementByClass( 'grid-prevpage', element );
   this.element_next_button_   = goog.dom.getElementByClass( 'grid-nextpage', element );
 
@@ -255,6 +263,15 @@ bitex.ui.DataGrid.prototype.decorateInternal = function(element) {
       }
     }
   }
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.ui.DataGrid.prototype.handleRefreshPage_ = function(e){
+  this.render_data_();
 };
 
 
@@ -369,6 +386,7 @@ bitex.ui.DataGrid.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
 
   var handler = this.getHandler();
+  handler.listen(this.element_refresh_, goog.events.EventType.CLICK, this.handleRefreshPage_);
   handler.listen(this.element_prev_button_, goog.events.EventType.CLICK, this.handlePreviousPage_);
   handler.listen(this.element_next_button_, goog.events.EventType.CLICK, this.handleNextPage_);
 

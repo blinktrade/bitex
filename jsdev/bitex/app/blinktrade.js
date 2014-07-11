@@ -311,8 +311,6 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   var profileView         = new bitex.view.ProfileView(this);
   var brokerApplicationView= new bitex.view.NullView(this);
 
-
-
   this.views_.addChild( toolBarView         );
   this.views_.addChild( sideBarView         );
   this.views_.addChild( startView           );
@@ -465,9 +463,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.SHOW_RECEIPT, this.onShowReceipt_);
   handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
-  handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_ );
-
-
+  handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_);
 
   this.connectBitEx();
 };
