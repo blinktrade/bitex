@@ -188,9 +188,9 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
     var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
     var symbol = selected_symbol.symbol;
 
-    if (!this.isActiveView()) {
+    /*if (!this.isActiveView()) {
       return;
-    }
+    }*/
 
     var buy_order_entry = this.getChildAt(0);
     var sell_order_entry = this.getChildAt(1);

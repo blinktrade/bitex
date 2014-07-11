@@ -399,14 +399,14 @@ def generate_security_status(symbol, req_id):
 
 def generate_md_full_refresh(symbol, market_depth, entries, req_id):
     entry_list = []
-    mdsubscriber = MarketDataSubscriber.get(symbol)
+    md_subscriber = MarketDataSubscriber.get(symbol)
 
     for entry_type in entries:
         if entry_type == '0' or entry_type == '1':
             if entry_type == '0':  # Bid
-                orders = mdsubscriber.buy_side
+                orders = md_subscriber.buy_side
             else:  # Offer
-                orders = mdsubscriber.sell_side
+                orders = md_subscriber.sell_side
 
             entry_position = 0
             for order in orders:
@@ -429,7 +429,7 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
                     break
         elif entry_type == '2':
             trade_list = []
-            for trade in mdsubscriber.get_last_trades():
+            for trade in md_subscriber.get_last_trades():
                 trade_list.append({
                     "MDEntryType": "2",  # Trade
                     "Symbol": symbol,
