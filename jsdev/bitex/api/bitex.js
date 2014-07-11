@@ -127,6 +127,8 @@ bitex.api.BitEx.EventType = {
   TRADE_HISTORY: 'trade_history',
   TRADE_HISTORY_RESPONSE: 'trade_history_response',
 
+  TRADERS_RANK_RESPONSE: 'traders_rank',
+
   LEDGER_LIST_RESPONSE: 'ledger_list',
 
   /* Brokers */
@@ -392,6 +394,11 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
     case 'U35': // Ledger List Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE + '.' + msg['LedgerListReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE, msg ) );
+      break;
+
+    case 'U37': // Traders rank Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADERS_RANK_RESPONSE + '.' + msg['TradersRankReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADERS_RANK_RESPONSE, msg ) );
       break;
 
     case 'B1': // Process Deposit Reponse
@@ -739,6 +746,39 @@ bitex.api.BitEx.prototype.requestTradeHistory = function(opt_requestId, opt_page
     msg['Filter'] = opt_filter;
   }
 
+
+  this.sendMessage(msg);
+
+  return requestId;
+};
+
+/**
+ * Request Traders ranking
+ * @param {number=} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_page. Defaults to 0
+ * @param {number=} opt_limit. Defaults to 100
+ * @param {number=} opt_clientID
+ * @param {Array.<string>=} opt_filter
+ */
+bitex.api.BitEx.prototype.requestTradersRank = function(opt_requestId, opt_page, opt_limit, opt_clientID, opt_filter){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var page = opt_page || 0;
+  var limit = opt_limit || 100;
+
+  var msg = {
+    'MsgType': 'U36',
+    'TradersRankReqID': requestId,
+    'Page': page,
+    'PageSize': limit
+  };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID)){
+    msg['ClientID'] = opt_clientID;
+  }
+
+  if (goog.isDefAndNotNull(opt_filter) && opt_filter.length > 0 ) {
+    msg['Filter'] = opt_filter;
+  }
 
   this.sendMessage(msg);
 

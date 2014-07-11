@@ -1,6 +1,6 @@
 goog.provide('bitex.view.RankingView');
 goog.require('bitex.view.View');
-
+goog.require('bitex.ui.RankingViewTable');
 
 /**
  * @param {*} app
@@ -11,31 +11,13 @@ goog.require('bitex.view.View');
 bitex.view.RankingView = function(app, opt_domHelper) {
   bitex.view.View.call(this, app, opt_domHelper);
 
-  this.market_data_subscription_id_ = null;
-  this.market_data_subscription_symbol_ = null;
 };
 goog.inherits(bitex.view.RankingView, bitex.view.View);
-
-
-/**
- * @type {number}
- */
-bitex.view.RankingView.prototype.market_data_subscription_id_;
-
-/**
- * @type {Array.<string>}
- */
-bitex.view.RankingView.prototype.market_data_subscription_symbol_;
-
-/**
- * @type {bitex.ui.TradeHistory}
- */
-bitex.view.RankingView.prototype.last_trades_table_;
 
 /**
  * @type {bitex.ui.RankingViewTable}
  */
-bitex.view.RankingView.prototype.market_view_table_;
+bitex.view.RankingView.prototype.ranking_table_;
 
 
 bitex.view.RankingView.prototype.enterView = function() {
@@ -62,8 +44,49 @@ bitex.view.RankingView.prototype.exitDocument = function() {
 };
 
 bitex.view.RankingView.prototype.recreateComponents_ = function() {
+    var handler = this.getHandler();
+
+    this.ranking_table_ = new bitex.ui.RankingViewTable();
+    handler.listen(this.ranking_table_,
+                   bitex.ui.DataGrid.EventType.REQUEST_DATA,
+                   this.onRankingTableRequestData_);
+
+    handler.listen(this.getApplication().getBitexConnection(),
+                 bitex.api.BitEx.EventType.TRADERS_RANK_RESPONSE, this.onTradeRankResponse_);
+
+    this.addChild(this.ranking_table_, true);
 };
 
 bitex.view.RankingView.prototype.destroyComponents_ = function( ) {
+    var handler = this.getHandler();
+
+    if (goog.isDefAndNotNull(this.ranking_table_) ) {
+      handler.unlisten(this.ranking_table_,
+                       bitex.ui.DataGrid.EventType.REQUEST_DATA,
+                       this.onRankingTableRequestData_);
+
+      handler.unlisten(this.getApplication().getBitexConnection(),
+                       bitex.api.BitEx.EventType.TRADERS_RANK_RESPONSE, this.onTradeRankResponse_);
+    }
 };
 
+bitex.view.RankingView.prototype.onRankingTableRequestData_ = function(e) {
+  var page = e.options['Page'];
+  var limit = e.options['Limit'];
+  var filter = e.options['Filter'];
+
+  var conn = this.getApplication().getBitexConnection();
+  conn.requestTradersRank(undefined, page, limit, undefined, filter );
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.RankingView.prototype.onTradeRankResponse_ = function(e) {
+  if (!goog.isDefAndNotNull(this.ranking_table_) ) {
+    return
+  }
+
+  var msg = e.data;
+  this.ranking_table_.setResultSet( msg['TradersRankGrp'], msg['Columns'] );
+};
