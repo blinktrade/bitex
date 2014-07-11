@@ -73,7 +73,8 @@ goog.require('bitex.view.TradingView');
 goog.require('bitex.view.ToolBarView');
 goog.require('bitex.view.MarketView');
 goog.require('bitex.view.LedgerView');
-goog.require('bitex.view.ProfileView')
+goog.require('bitex.view.ProfileView');
+goog.require('bitex.view.RankingView');
 
 
 /**
@@ -353,6 +354,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   var accountOverviewView = new bitex.view.AccountOverview(this);
   var brokerView          = new bitex.view.BrokerView(this);
   var marketView          = new bitex.view.MarketView(this);
+  var rankingView         = new bitex.view.RankingView(this);
   var tradingView         = new bitex.view.TradingView(this);
   var toolBarView         = new bitex.view.ToolBarView(this);
   var sideBarView         = new bitex.view.SideBarView(this);
@@ -383,6 +385,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.views_.addChild( enableTwoFactorView );
   this.views_.addChild( brokerView          );
   this.views_.addChild( marketView          );
+  this.views_.addChild( rankingView         );
   this.views_.addChild( ledgerView          );
   this.views_.addChild( profileView         );
   this.views_.addChild( brokerApplicationView);
@@ -408,6 +411,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   toolBarView.decorate(goog.dom.getElement('id_toolbar') );
   brokerView.decorate(goog.dom.getElement('my_broker'));
   marketView.decorate(goog.dom.getElement('market'));
+  rankingView.decorate(goog.dom.getElement('ranking'));
   ledgerView.decorate(goog.dom.getElement('ledger'));
   profileView.decorate(goog.dom.getElement('profile'));
   brokerApplicationView.decorate(goog.dom.getElement('broker_application'));
@@ -434,8 +438,9 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.router_.addView( '(enable_two_factor)'           , enableTwoFactorView );
   this.router_.addView( '(my_broker)'                   , brokerView          );
   this.router_.addView( '(market)'                      , marketView          );
+  this.router_.addView( '(ranking)'                     , rankingView         );
   this.router_.addView( '(ledger)'                      , ledgerView          );
-  this.router_.addView( '(profile)'                     , profileView          );
+  this.router_.addView( '(profile)'                     , profileView         );
   this.router_.addView( '(broker_application)'          , brokerApplicationView);
 
   this.router_.setView('start');
@@ -2094,6 +2099,7 @@ bitex.app.BlinkTrade.prototype.onBeforeSetView_ = function(e){
       case 'broker_application':
         break;
       case 'market':
+      case 'ranking':
         if ( !this.conn_.isConnected() )
           this.router_.setView('start');
         break;

@@ -67,6 +67,7 @@
 
       <ul class="nav navbar-nav pull-right">
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Market</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="ranking">Ranking</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Signup</a></li>
         <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn-link" style="padding: 6px 15px 10px;" >connect <i class="icon-white icon-repeat"></i></button></li>
@@ -217,7 +218,6 @@
       </form>
   </div>
 </div>
-
 
 <div id="forgot_password" class="page row bitex-view">
   <div class="page-header">
@@ -479,7 +479,6 @@
   </div>
 </div>
 
-
 <div id="ledger">
   <div class="section-title">
     <h3 class="bitex-view-title">Ledger</h3>
@@ -491,8 +490,6 @@
     <div id="id_ledger_list"></div>
   </div>
 </div>
-
-
 
 <div id="settings" class="bitex-view">
   <div class="section-title">
@@ -627,6 +624,13 @@
   <div class="bitex-view-content well"></div>
 </div>
 
+<div id="ranking" class="page row bitex-view">
+  <div class="page-header">
+    <h1 class="bitex-view-title">Best Bitcoin Traders</h1>
+  </div>
+  <div class="bitex-view-content well"></div>
+</div>
+
 <footer class="footer">
   <div class="container">
     <p>
@@ -641,9 +645,6 @@
 <script>
   var app = new BlinkTradeApp();
   app.run();
-  //app.run('wss://www.blinktrade.com/trade/');
-  //app.run('wss://pinhopro.no-ip.org/trade/');
-  //app.run('wss://192.168.1.46/trade/');
 </script>
 
 

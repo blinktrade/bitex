@@ -64,7 +64,8 @@ class Trade(BASE):
         return res[0]
 
     @staticmethod
-    def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+    def get_last_trades(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+        session = scoped_session(sessionmaker(bind=ENGINE))
 
         today = datetime.now()
         timestamp = today - timedelta(days=1)

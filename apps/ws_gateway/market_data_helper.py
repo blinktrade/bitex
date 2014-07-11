@@ -44,7 +44,7 @@ class MarketDataSubscriber(object):
         self.md_pub_socket = None
         self.md_pub_socket_stream = None
         self.ask = 0
-        self.isready = False
+        self.is_ready = False
         self.process_later = []
         self.db_session = db_session
 
@@ -75,7 +75,7 @@ class MarketDataSubscriber(object):
         return trade_client.sendJSON(md_subscription_msg)
 
     def ready(self):
-        self.isready = True
+        self.is_ready = True
         for trade in self.process_later:
           self.on_trade(trade)
 
@@ -92,7 +92,7 @@ class MarketDataSubscriber(object):
 
     def get_last_trades(self):
         """" get_last_trades. """
-        return Trade.get_last_trades(self.db_session)
+        return Trade.get_last_trades()
 
     def get_trades(self, symbol, since):
         """" get_trades. """
@@ -262,7 +262,7 @@ class MarketDataSubscriber(object):
                 self.ask = msg.get('MDEntryPx')
 
     def on_trade(self, msg):
-        if not self.isready:
+        if not self.is_ready:
             self.process_later.append(msg)
             return
 
@@ -365,8 +365,7 @@ class MarketDataPublisher(object):
             self.entry_list_order_depth = []
 
 def generate_trade_history(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
-    md = MarketDataSubscriber.instance();
-    trades = Trade.get_last_trades(md.db_session, page_size, offset, sort_column, sort_order)
+    trades = Trade.get_last_trades(page_size, offset, sort_column, sort_order)
     trade_list = []
     for trade in  trades:
         trade_list.append([ 
@@ -383,17 +382,17 @@ def generate_trade_history(page_size = None, offset = None, sort_column = None, 
 
 
 def generate_security_status(symbol, req_id):
-    mdsubscriber = MarketDataSubscriber.get(symbol)
+    md_subscriber = MarketDataSubscriber.get(symbol)
 
     ss = {
         "MsgType": "f",
         "SecurityStatusReqID": req_id,
         "Symbol": symbol,
-        "HighPx": mdsubscriber.inst_status.max_price,
-        "LowPx": mdsubscriber.inst_status.min_price,
-        "LastPx": mdsubscriber.inst_status.last_price,
-        "BuyVolume": mdsubscriber.inst_status.volume_price,
-        "SellVolume": mdsubscriber.inst_status.volume_size
+        "HighPx": md_subscriber.inst_status.max_price,
+        "LowPx": md_subscriber.inst_status.min_price,
+        "LastPx": md_subscriber.inst_status.last_price,
+        "BuyVolume": md_subscriber.inst_status.volume_price,
+        "SellVolume": md_subscriber.inst_status.volume_size
     }
 
     return ss
