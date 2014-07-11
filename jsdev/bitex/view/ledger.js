@@ -57,14 +57,11 @@ bitex.view.LedgerView.prototype.destroyComponents_ = function( ) {
                      bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE,
                      this.onLedgerListResponse_);
 
-
-    this.ledger_table_.dispose();
   }
 
+  this.removeChildren(true);
   this.ledger_table_ = null;
   this.request_id_ = null;
-
-  goog.dom.removeChildren( goog.dom.getElement('id_ledger_list'));
 };
 
 
@@ -77,16 +74,6 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
 
   this.destroyComponents_();
 
-
-  /**
-   * @desc deposit table title
-   */
-  var MSG_LEDGER_TABLE_TITLE  = goog.getMsg('Ledger');
-
-  /**
-   * @desc placeholder for the search input text in the customers table
-   */
-  var MSG_LEDGER_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Search ...');
 
   /**
    * @desc All currencies filter label on ledger table filters
@@ -131,18 +118,9 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
   }
 
 
-  goog.soy.renderElement(goog.dom.getElement('id_ledger_list'), bitex.templates.DataGrid, {
-    id: 'id_ledger_list_table',
-    title: MSG_LEDGER_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_LEDGER_TABLE_SEARCH_PLACEHOLDER,
-    button_filters: button_filters
-  });
-
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
-  var el = goog.dom.getElement('id_ledger_list_table');
-  this.ledger_table_ =  new bitex.ui.LedgerActivity();
+  this.ledger_table_ =  new bitex.ui.LedgerActivity(button_filters);
 
   handler.listen(this.ledger_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -152,7 +130,7 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
                  bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE + '.' + this.request_id_,
                  this.onLedgerListResponse_);
 
-  this.ledger_table_.decorate(el);
+  this.addChild(this.ledger_table_, true );
 
   this.ledger_table_.setColumnFormatter('Amount',  this.amountFormatter_, this);
   this.ledger_table_.setColumnFormatter('Balance', this.balanceFormatter_, this);

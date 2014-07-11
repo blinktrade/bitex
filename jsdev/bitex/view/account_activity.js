@@ -55,9 +55,9 @@ bitex.view.AccountActivityView.prototype.destroyComponents_ = function( ) {
                      this.onOrderListResponse_);
 
 
-    this.account_activity_table_.dispose();
   }
 
+  this.removeChildren(true);
   this.account_activity_table_ = null;
   this.request_order_id_ = null;
 };
@@ -73,7 +73,6 @@ bitex.view.AccountActivityView.prototype.recreateComponents_ = function() {
 
   this.request_order_id_ = parseInt( 1e7 * Math.random() , 10 );
 
-  var el = goog.dom.getElement('id_trade_history_table');
   this.account_activity_table_ =  new bitex.ui.AccountActivity();
 
   handler.listen(this.account_activity_table_,
@@ -84,7 +83,7 @@ bitex.view.AccountActivityView.prototype.recreateComponents_ = function() {
                  bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE + '.' + this.request_order_id_,
                  this.onOrderListResponse_);
 
-  this.account_activity_table_.decorate(el);
+  this.addChild(this.account_activity_table_, true);
 
   this.account_activity_table_.setColumnFormatter('Price', this.priceFormatter_, this);
   this.account_activity_table_.setColumnFormatter('AvgPx', this.priceFormatter_, this);

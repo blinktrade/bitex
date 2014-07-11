@@ -188,57 +188,6 @@ bitex.app.BlinkTrade.prototype.error_message_alert_timeout_;
  * @protected
  */
 bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
-  // Create all datagrids
-  goog.dom.removeChildren( goog.dom.getElement('id_ledger_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_trade_list'));
-  goog.dom.removeChildren( goog.dom.getElement('id_customers_well') );
-  goog.dom.removeChildren( goog.dom.getElement('id_trade_history_well') );
-  goog.dom.removeChildren( goog.dom.getElement('account_overview_balances_id'));
-  goog.dom.removeChildren( goog.dom.getElement('id_trading_well'));
-
-
-  /**
-   * @desc last trades table title
-   */
-  var MSG_LAST_TRADES_TABLE_TITLE  = goog.getMsg('Last trades');
-
-  goog.soy.renderElement(goog.dom.getElement('id_trade_list'), bitex.templates.DataGrid, {
-    id: 'id_trade_list_table',
-    title: MSG_LAST_TRADES_TABLE_TITLE,
-    show_search: false
-  });
-
-
-  /** @desc Order manager table tittle */
-  var MSG_ORDER_MANAGER_TABLE_TITLE = goog.getMsg('My orders');
-  goog.soy.renderElement(goog.dom.getElement('id_trading_well'), bitex.templates.DataGrid, {
-    id: 'id_order_manager_table',
-    title: MSG_ORDER_MANAGER_TABLE_TITLE,
-    show_search: false
-  });
-
-
-  /**
-   * @desc Title  for the customers table
-   */
-  var MSG_CUSTOMERS_TABLE_TITLE = goog.getMsg('Customers');
-
-  /**
-   * @desc placeholder for the search input text in the customers table
-   */
-  var MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER = goog.getMsg('Username or email...');
-  goog.soy.renderElement(goog.dom.getElement('id_customers_well'), bitex.templates.DataGrid, {
-    id: 'id_customer_table',
-    title: MSG_CUSTOMERS_TABLE_TITLE,
-    show_search: true,
-    search_placeholder: MSG_CUSTOMERS_TABLE_SEARCH_PLACEHOLDER
-  });
-
-  goog.soy.renderElement(goog.dom.getElement('id_trade_history_well'), bitex.templates.DataGrid, {
-    id: 'id_trade_history_table'
-  });
-
-
   // create all order entries
   goog.dom.removeChildren( goog.dom.getElement('offer_book_order_entry_content'));
   var buy_order_entry_el = goog.soy.renderAsElement(bitex.templates.OrderEntry, {

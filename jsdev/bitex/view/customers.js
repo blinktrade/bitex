@@ -86,11 +86,8 @@ bitex.view.CustomersView.prototype.destroyComponents_ = function( ) {
     handler.unlisten(this.getApplication().getBitexConnection(),
                      bitex.api.BitEx.EventType.WITHDRAW_LIST_RESPONSE + '.' + this.request_id_,
                      this.onWithdrawListReponse_);
-
-
-    this.customers_table_.dispose();
   }
-
+  this.removeChildren(true);
   this.customers_table_ = null;
   this.request_id_ = null;
 };
@@ -125,7 +122,7 @@ bitex.view.CustomersView.prototype.recreateComponents_ = function() {
                  bitex.ui.Customers.EventType.DETAIL,
                  this.onUserDetailsClick_ );
 
-  this.customers_table_ .decorate(goog.dom.getElement('id_customer_table'));
+  this.addChild(this.customers_table_, true );
 };
 
 
