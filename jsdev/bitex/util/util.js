@@ -1,4 +1,7 @@
 goog.provide('bitex.util');
+goog.require('goog.math.Long');
+goog.require('goog.crypt');
+goog.require('goog.crypt.Sha256');
 
 
 bitex.util.decimalPlaces = function(num) {
@@ -321,3 +324,79 @@ bitex.util.getCountries = function() {
     "ZW": "Zimbabwe"
   };
 };
+
+bitex.util.isValidAddress = function(address) {
+  var decoded = bitex.util.base58Decode(address);
+
+  var checksum = decoded.substr(decoded.length - 4);
+  var rest = decoded.substr(0, decoded.length - 4);
+
+  var good_checksum = bitex.util.hex2a(bitex.util.sha256_digest(bitex.util.hex2a(bitex.util.sha256_digest(rest)))).substr(0, 4);
+
+  if (checksum != good_checksum) return false;
+  return true;
+}
+
+bitex.util.sha256_digest = function(data) {
+  var sha256 = new goog.crypt.Sha256();
+  sha256.update(data);
+
+  return goog.crypt.byteArrayToHex(sha256.digest());
+}
+
+
+bitex.util.hex2a = function(hex) {
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2)
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    return str;
+}
+
+
+bitex.util.base58Decode = function(string) {
+
+  var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+  var ALPHABET_MAP = {}
+  for(var i = 0; i < ALPHABET.length; i++) {
+    ALPHABET_MAP[ALPHABET.charAt(i)] = i
+  }
+  var BASE = 58
+
+  if (string.length === 0) return 0;
+
+  var input = string.split('').map(function(c){
+    return ALPHABET_MAP[c]
+  })
+
+  var i, j, bytes = [0]
+  for (i = 0; i < input.length; i++) {
+    for (j = 0; j < bytes.length; j++) bytes[j] *= BASE
+    bytes[bytes.length - 1] += input[i]
+
+    var carry = 0
+    for (j = bytes.length - 1; j >= 0; j--){
+      bytes[j] += carry
+      carry = bytes[j] >> 8
+      bytes[j] &= 0xff
+    }
+
+    while (carry) {
+      bytes.unshift(carry)
+      carry = bytes[0] >> 8
+      bytes[0] &= 0xff
+    }
+  }
+
+  // deal with leading zeros
+  for (i = 0; i < input.length - 1 && input[i] == 0; i++) bytes.unshift(0)
+
+  var result = "";
+  for (var i = 0; i < bytes.length; i++) {
+    result += String.fromCharCode(bytes[i]);
+  }
+
+  return result;
+}
+
+
+
