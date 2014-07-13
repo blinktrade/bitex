@@ -1763,8 +1763,8 @@ def db_bootstrap(session):
     if not User.get_user(session, 'nybitcoincenter'):
       e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=0, broker_username='bitex', password='abc12345',
                country_code='US', state='NY',
-               transaction_fee_buy=0,
-               transaction_fee_sell=0,
+               transaction_fee_buy=20,
+               transaction_fee_sell=20,
                verified=2, is_staff=False, is_system=False, is_broker=True)
       session.add(e)
       session.commit()

@@ -41,7 +41,9 @@ bitex.view.View.EventType = {
   SECURITY_STATUS_SUBSCRIBE: 'sec_subscribe',
   SECURITY_STATUS_UNSUBSCRIBE: 'sec_unsubscribe',
 
+  SEND_ORDER: 'send_order',
   CANCEL_ORDER: 'cancel_order',
+
   REQUEST_WITHDRAW: 'request_withdraw',
   CONFIRM_WITHDRAW: 'confirm_withdraw',
   PROCESS_WITHDRAW: 'process_withdraw',

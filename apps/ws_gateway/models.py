@@ -99,7 +99,7 @@ class Trade(BASE):
                           symbol=msg['symbol'],
                           size=msg['size'],
                           price=msg['price'],
-                          created=datetime.strptime(msg['created'], "%Y-%m-%d %H:%M:%S"))
+                          created=datetime.strptime(msg['trade_date'] + ' ' + msg['trade_time'], "%Y-%m-%d %H:%M:%S"))
 
             session.add(trade)
             session.commit()

@@ -145,11 +145,10 @@ bitex.view.TradingView.prototype.destroyComponents_ = function( ) {
                      bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE + '.' + this.request_order_id_,
                      this.onOrderListResponse_);
 
-
-    this.order_manager_table_.dispose();
   }
   goog.dom.removeChildren( goog.dom.getElement('trading_order_entry_content'));
 
+  this.removeChildren(true);
   this.order_manager_table_ = null;
   this.request_order_id_ = null;
 };
@@ -179,6 +178,7 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     currency_description:this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(3)),
     side:'1',
     type:'2',
+    client_id: model.get('UserID'),
     broker_id: model.get('BrokerID'),
     currency_code: selected_symbol.symbol.substr(3),
     currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(3)),
@@ -187,7 +187,8 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     fee: model.get('Broker')['TransactionFeeBuy'],
     formatted_fee: model.get('Broker')['FormattedTransactionFeeBuy']
   });
-  this.bid_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
+  //this.bid_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
+  this.addChild(this.bid_order_entry_, true);
 
 
   this.ask_order_entry_ = new bitex.ui.OrderEntry();
@@ -200,6 +201,7 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     currency_description:this.getApplication().getCurrencyDescription(selected_symbol.symbol.substr(3)),
     side:'2',
     type:'2',
+    client_id: model.get('UserID'),
     broker_id: model.get('BrokerID'),
     currency_code: selected_symbol.symbol.substr(3),
     currency_format:this.getApplication().getCurrencyHumanFormat(selected_symbol.symbol.substr(3)),
@@ -208,12 +210,16 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     fee: model.get('Broker')['TransactionFeeBuy'],
     formatted_fee: model.get('Broker')['FormattedTransactionFeeSell']
   });
-  this.ask_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
+  //this.ask_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
+  this.addChild(this.ask_order_entry_, true);
+
+
+  handler.listen(this.bid_order_entry_, bitex.ui.OrderEntry.EventType.SUBMIT, this.onSimpleOrderAction_ );
+  handler.listen(this.ask_order_entry_, bitex.ui.OrderEntry.EventType.SUBMIT, this.onSimpleOrderAction_ );
 
 
   this.request_order_id_ = parseInt( 1e7 * Math.random() , 10 );
 
-  var el = goog.dom.getElement('id_order_manager_table');
   this.order_manager_table_ =  new bitex.ui.OrderManager();
 
   handler.listen(this.getApplication().getBitexConnection(),
@@ -228,8 +234,7 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
                  bitex.api.BitEx.EventType.ORDER_LIST_RESPONSE + '.' + this.request_order_id_,
                  this.onOrderListResponse_);
 
-
-  this.order_manager_table_.decorate(el);
+  this.addChild(this.order_manager_table_, true);
 
   this.order_manager_table_.setColumnFormatter('Price', this.priceFormatter_, this);
   this.order_manager_table_.setColumnFormatter('AvgPx', this.priceFormatter_, this);
@@ -327,6 +332,15 @@ bitex.view.TradingView.prototype.getOrderId = function() {
 bitex.view.TradingView.prototype.getClientOrderId = function() {
   return this.client_order_id_;
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.TradingView.prototype.onSimpleOrderAction_ = function(e) {
+  console.log('onSimpleOrderAction_');
+};
+
 
 
 /**

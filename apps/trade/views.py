@@ -139,12 +139,14 @@ def processNewOrderSingle(session, msg):
   from errors import NotAuthorizedError, InvalidClientIDError
 
   if msg.has('ClientID') and not session.user.is_broker:
-    if msg.get('ClientID').isdigit() and int(msg.get('ClientID')) != session.user.id:
-      raise NotAuthorizedError()
-    elif msg.get('ClientID') != session.user.username:
-      raise NotAuthorizedError()
-    elif msg.get('ClientID') != session.user.email:
-      raise NotAuthorizedError()
+    if isinstance(msg.get('ClientID'), int ):
+      if msg.get('ClientID') != session.user.id and str(msg.get('ClientID')) != session.user.username:
+        raise NotAuthorizedError()
+    else:
+      if (msg.get('ClientID').isdigit() and int(msg.get('ClientID')) != session.user.id)  and \
+         msg.get('ClientID') != session.user.username and \
+         msg.get('ClientID') != session.user.email:
+        raise NotAuthorizedError()
 
   account_id = session.user.account_id
   account_user = session.user
@@ -154,7 +156,7 @@ def processNewOrderSingle(session, msg):
     if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
       client = None
       if msg.get('ClientID').isdigit():
-        client = User.get_user( application.db_session, user_id= int(msg.get('ClientID') ))
+        client = User.get_user( application.db_session, user_id= int(msg.get('ClientID')))
 
       if not client:
         client = User.get_user(application.db_session, username= msg.get('ClientID'))

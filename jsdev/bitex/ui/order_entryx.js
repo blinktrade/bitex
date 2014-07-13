@@ -1,6 +1,5 @@
 goog.provide('bitex.ui.OrderEntryX');
 goog.provide('bitex.ui.OrderEntryX.EventType');
-goog.provide('bitex.ui.OrderEntryXEvent');
 
 goog.require('goog.dom.forms');
 
@@ -20,7 +19,6 @@ goog.require('bitex.util');
 bitex.ui.OrderEntryX = function(opt_blinkDelay, opt_domHelper) {
   goog.base(this, opt_domHelper);
 
-  this.marketPrice_ = 0;
   this.lastChangedField_ = "amount";
 };
 goog.inherits(bitex.ui.OrderEntryX, goog.ui.Component);
@@ -112,12 +110,6 @@ bitex.ui.OrderEntryX.prototype.clientIdEl_;
 bitex.ui.OrderEntryX.prototype.brokerIdEl_;
 
 /**
- * @type {number}
- * @private
- */
-bitex.ui.OrderEntryX.prototype.marketPrice_;
-
-/**
  * @type {string}
  * @private
  */
@@ -176,11 +168,6 @@ bitex.ui.OrderEntryX.prototype.enterDocument = function() {
   handler.listen( new goog.events.InputHandler(this.totalEl_),
                   goog.events.InputHandler.EventType.INPUT,
                   this.onChangeTotal_ );
-
-  handler.listen( new goog.events.InputHandler(this.feeEl_),
-                  goog.events.InputHandler.EventType.INPUT,
-                  this.onChangeFee_ );
-
 
   handler.listen(this.actionButtonEl_, goog.events.EventType.CLICK, this.onAction_ );
 };
@@ -253,9 +240,6 @@ bitex.ui.OrderEntryX.prototype.onBlockNonNumberKeys_ = function(e) {
           break;
         case this.totalEl_:
           this.onChangeTotal_(e);
-          break;
-        case this.feeEl_:
-          this.onChangeFee_(e);
           break;
       }
 
@@ -353,9 +337,6 @@ bitex.ui.OrderEntryX.prototype.setBrokerID = function(value){
   goog.dom.forms.setValue(this.brokerIdEl_, value);
 };
 
-
-
-
 /**
  * @return {string}
  */
@@ -381,7 +362,7 @@ bitex.ui.OrderEntryX.prototype.getAmount = function(){
   if (isNaN(res)) {
     res = 0;
   }
-  return res;
+  return parseInt(res * 1e8, 10);
 };
 
 /**
@@ -392,7 +373,7 @@ bitex.ui.OrderEntryX.prototype.setAmount = function(value){
     return;
   }
 
-  goog.dom.forms.setValue(this.amountEl_, value);
+  goog.dom.forms.setValue(this.amountEl_, value / 1e8);
 };
 
 
@@ -405,7 +386,7 @@ bitex.ui.OrderEntryX.prototype.getPrice = function(){
   if (isNaN(res)) {
     res = 0;
   }
-  return res;
+  return parseInt(res * 1e8, 10);
 };
 
 /**
@@ -416,7 +397,7 @@ bitex.ui.OrderEntryX.prototype.setPrice = function(value){
     return;
   }
 
-  goog.dom.forms.setValue(this.priceEl_, value);
+  goog.dom.forms.setValue(this.priceEl_, value / 1e8);
 };
 
 
@@ -429,7 +410,8 @@ bitex.ui.OrderEntryX.prototype.getTotal = function(){
   if (isNaN(res)) {
     res = 0;
   }
-  return res;
+
+  return parseInt(res * 1e8, 10)
 };
 
 /**
@@ -440,7 +422,7 @@ bitex.ui.OrderEntryX.prototype.setTotal = function(value){
     return;
   }
 
-  goog.dom.forms.setValue(this.totalEl_, value);
+  goog.dom.forms.setValue(this.totalEl_, value/1e8);
 };
 
 
@@ -464,35 +446,10 @@ bitex.ui.OrderEntryX.prototype.setFee = function(value){
     return;
   }
 
-  goog.dom.forms.setValue(this.feeEl_, value);
+  goog.dom.forms.setValue(this.feeEl_);
 };
 
 
-/**
- * @return {number}
- */
-bitex.ui.OrderEntryX.prototype.getMarketPrice = function(){
-  var res = goog.string.toNumber(this.marketPrice_);
-  if (isNaN(res)) {
-    res = 0;
-  }
-  return res;
-};
-
-
-/**
- * @param {number} value
- */
-bitex.ui.OrderEntryX.prototype.setMarketPrice = function(value) {
-  if (!goog.isNumber(value)) {
-    return;
-  }
-
-  if (this.getMarketPrice() === this.getPrice() ) {
-    this.setPrice(this.marketPrice_);
-  }
-  this.marketPrice_ = value;
-};
 
 /**
  * @param {boolean} value
@@ -509,10 +466,9 @@ bitex.ui.OrderEntryX.prototype.setBrokerMode = function(value) {
  * @private
  */
 bitex.ui.OrderEntryX.prototype.onChangeAmount_ = function(e) {
-  var total = (this.getPrice() * (this.getAmount() + this.getFee() ));
+  var total = (this.getPrice() * this.getAmount()) / 1e8;
   this.setTotal(total);
   this.lastChangedField_ = "amount";
-
 
   this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
@@ -524,15 +480,14 @@ bitex.ui.OrderEntryX.prototype.onChangeAmount_ = function(e) {
  */
 bitex.ui.OrderEntryX.prototype.onChangePrice_ = function(e) {
   if (this.lastChangedField_ === "amount") {
-    var total = (this.getPrice() * (this.getAmount() + this.getFee() ));
+    var total = (this.getPrice() * this.getAmount()) / 1e8;
     this.setTotal(total);
   } else {
     if (this.getPrice() > 0) {
-      var amount = (this.getTotal() / this.getPrice()) - this.getFee();
+      var amount = this.getTotal() / this.getPrice() * 1e8;
       this.setAmount(amount);
     }
   }
-
   this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
 
@@ -542,31 +497,13 @@ bitex.ui.OrderEntryX.prototype.onChangePrice_ = function(e) {
  * @private
  */
 bitex.ui.OrderEntryX.prototype.onChangeTotal_ = function(e) {
-  var amount = (this.getTotal() / this.getPrice()) - this.getFee();
+  var amount = this.getTotal() / this.getPrice() * 1e8;
   this.setAmount(amount);
   this.lastChangedField_ = "total";
 
   this.actionButtonEl_.disabled = this.getTotal()<=0;
 };
 
-
-/**
- * @param {goog.events.Event} e
- * @private
- */
-bitex.ui.OrderEntryX.prototype.onChangeFee_ = function(e) {
-  if (this.lastChangedField_ === "amount") {
-    var total = (this.getPrice() * (this.getAmount() + this.getFee() ));
-    this.setTotal(total);
-  } else {
-    if (this.getPrice() > 0) {
-      var amount = (this.getTotal() / this.getPrice()) - this.getFee();
-      this.setAmount(amount);
-    }
-  }
-
-  this.actionButtonEl_.disabled = this.getTotal()<=0;
-};
 
 
 /**
@@ -580,36 +517,4 @@ bitex.ui.OrderEntryX.prototype.onAction_ = function(e) {
   }
 };
 
-
-
-/**
- *
- * @param {string} type
- * @param {string} symbol
- * @param {number} qty
- * @param {number} price
- * @extends {goog.events.Event}
- * @constructor
- */
-bitex.ui.OrderEntryXEvent = function(type, symbol, qty, price) {
-  goog.events.Event.call(this, type);
-
-  /**
-   * @type {string}
-   */
-  this.symbol = symbol;
-
-  /**
-   * @type {number}
-   */
-  this.qty = qty;
-
-  /**
-   * @type {number}
-   */
-  this.price = price;
-
-
-};
-goog.inherits(bitex.ui.OrderEntryXEvent, goog.events.Event);
 

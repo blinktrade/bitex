@@ -1208,7 +1208,7 @@ bitex.api.BitEx.prototype.requestDepositMethods = function( opt_requestId ) {
  * @param {number} price
  * @param {string} side
  * @param {number} broker_id
- * @param {string=} opt_client_id
+ * @param {string|number=} opt_client_id
  * @param {number=} opt_clientOrderId. Defaults to random generated number
  * @param {string=} opt_orderType Defaults to Limited Order
  * @return {number}
@@ -1217,8 +1217,6 @@ bitex.api.BitEx.prototype.requestDepositMethods = function( opt_requestId ) {
 bitex.api.BitEx.prototype.sendOrder_ = function( symbol, qty, price, side, broker_id, opt_client_id, opt_clientOrderId, opt_orderType ){
   var clientOrderId = opt_clientOrderId || parseInt( 1e7 * Math.random() , 10 );
   var orderType = '' + opt_orderType || '2';
-  price = parseInt(price * 1e8, 10);
-  qty = parseInt(qty * 1e8, 10);
 
   var msg = {
     'MsgType': 'D',

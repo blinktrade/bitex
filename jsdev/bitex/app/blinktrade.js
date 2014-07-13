@@ -394,6 +394,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 
   handler.listen(this.views_, bitex.ui.OrderEntryX.EventType.SUBMIT, this.onUserOrderEntry_ );
   handler.listen(this.views_, bitex.view.View.EventType.CANCEL_ORDER, this.onUserCancelOrder_ );
+  handler.listen(this.views_, bitex.ui.OrderEntry.EventType.SUBMIT, this.onUserOrderEntry_ );
+
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE, this.onUserMarketDataSubscribe_);
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE, this.onUserMarketDataUnsubscribe_);
 
@@ -1145,6 +1147,8 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
  * @private
  */
 bitex.app.BlinkTrade.prototype.onUserOrderEntry_ = function(e){
+  console.log('bitex.app.BlinkTrade.prototype.onUserOrderEntry_');
+
   /**
    * @desc notification for send order request
    */

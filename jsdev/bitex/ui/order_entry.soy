@@ -10,6 +10,7 @@
  * @param side
  * @param type
  * @param broker_id
+ * @param client_id
  * @param formatted_fee
  */
 {template .OrderEntry}
@@ -18,6 +19,7 @@
   <input id="{$id}_side" type="hidden" name="side" class="order-entry-side" value="{$side}"/>
   <input id="{$id}_type" type="hidden" name="type" class="order-entry-type" value="{$type}"/>
   <input id="{$id}_broker_id" type="hidden" name="broker_id" class="order-entry-broker-id" value="{$broker_id}"/>
+  <input id="{$id}_client_id" type="hidden" name="client_id" class="order-entry-broker-id" value="{$client_id}"/>
 
   <div class="order-entry-simple-heading">
     <div class="clearfix">
@@ -51,16 +53,6 @@
         <input id="{$id}_total" class="input-block-level order-entry-simple-total" type="text" required/>
       </div>
       <div class="order-entry-simple-summary">
-
-        <div class="order-entry-simple-summary-item">
-          {if $side == 1}
-            {msg desc="Purchase amount label on simple order entry"}Purchase amount:{/msg}
-          {else}
-            {msg desc="Selling amount label on simple order entry"}Sell amount:{/msg}
-          {/if}
-          <strong class="pull-right"><span id="{$id}_amount">-</span></strong>
-        </div>
-
         <div class="order-entry-simple-summary-item">
           {msg desc="Fee label on simple order entry"}Fee{/msg} ( {$formatted_fee} ) :
           <strong class="pull-right"><span id="{$id}_fee">-</span></strong>
@@ -71,6 +63,7 @@
           <strong class="pull-right"><span id="{$id}_avg_price">.</span></strong>
         </div>
 
+        <hr style="margin: auto;" />
 
         <div class="order-entry-simple-summary-item">
           <strong>
@@ -82,6 +75,14 @@
             <span class="pull-right"  id="{$id}_total_to_receive">-</span>
           </strong>
         </div>
+
+        <button id="{$id}_action_simple" class="btn btn-large btn-primary input-block-level">
+          {if $side == 1}
+            {msg desc="Buy button label on simple order entry"}Buy {$crypto_currency_description}{/msg}
+          {else}
+            {msg desc="Sell button label on simple order entry"}Sell {$crypto_currency_description}{/msg}
+          {/if}
+        </button>
 
       </div>
     </div>

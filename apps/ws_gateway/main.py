@@ -431,6 +431,8 @@ class WebSocketGatewayApplication(tornado.web.Application):
             msg['buyer_username']   = trade[5]
             msg['seller_username']  = trade[6]
             msg['created']          = trade[7]
+            msg['trade_date']       = trade[7][:10]
+            msg['trade_time']       = trade[7][11:]
             msg['order_id']         = trade[8]
             msg['counter_order_id'] = trade[9]
             Trade.create( self.db_session, msg)
