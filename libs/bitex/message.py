@@ -230,7 +230,7 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('Username')
       self.raise_exception_if_required_tag_is_missing('UserReqTyp')
 
-      reqId = self.message.get('UserReqID')
+      reqId = self.message.get('UserReqTyp')
       if reqId in ('1', '3'):
         self.raise_exception_if_required_tag_is_missing('Password')
 

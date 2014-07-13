@@ -91,6 +91,7 @@ bitex.api.BitEx.EventType = {
   ERROR_MESSAGE: 'error_message',
   LOGIN_OK: 'login_ok',
   LOGIN_ERROR: 'login_error',
+  CHANGE_PASSWORD_RESPONSE: 'change_password_error',
 
   NEWS: 'news',
 
@@ -303,6 +304,12 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'BF': // Login response:
+
+      if (msg['UserReqTyp'] == 3 ) {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CHANGE_PASSWORD_RESPONSE, msg ) );
+        break;
+      }
+
       if (msg['UserStatus'] == 1 ) {
         this.logged_ = true;
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_OK, msg ) );
@@ -1051,16 +1058,27 @@ bitex.api.BitEx.prototype.resetPassword = function(token, new_password){
 
 
 /**
+ * @param {string} username
  * @param {string} password
  * @param {string} new_password
+ * @param {string} opt_requestId. Defaults to random generated number
  */
-bitex.api.BitEx.prototype.changePassword = function(password, new_password ){
+bitex.api.BitEx.prototype.changePassword = function(username, password, new_password, opt_second_factor, opt_requestId ){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
   var msg = {
     'MsgType': 'BE',
-    'UserReqID': '3',
+    'UserReqID': requestId,
+    'UserReqTyp': '3',
+    'Username': username,
     'Password': password,
     'NewPassword': new_password
   };
+
+  if (goog.isDefAndNotNull(opt_second_factor)) {
+    msg['SecondFactor'] = opt_second_factor;
+  }
+
   this.sendMessage(msg);
 };
 

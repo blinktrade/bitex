@@ -39,7 +39,13 @@ class Session(object):
       return processTestRequest(self, msg)
 
     elif msg.type == 'BE': # login
-      return processLogin(self, msg)
+
+      reqId = msg.get('UserReqTyp')
+      if reqId == '1':
+        return processLogin(self, msg)
+
+      if reqId == '3':
+        return processChangePassword(self, msg)
 
     elif msg.type == 'D':  # New Order Single
       return processNewOrderSingle(self, msg)

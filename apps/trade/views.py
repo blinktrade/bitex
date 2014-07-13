@@ -23,7 +23,44 @@ def processTestRequest(session, msg):
     "TestReqID": msg.get("TestReqID")
   }, cls=JsonEncoder)
 
+
+@login_required
+def processChangePassword(session, msg):
+  # Authenticate the user
+  need_second_factor = False
+  user = None
+  try:
+    user = User.authenticate(application.db_session,
+                             msg.get('Username'),
+                             msg.get('Password'),
+                             msg.get('SecondFactor'))
+  except NeedSecondFactorException:
+    need_second_factor = True
+
+
+  if user is None:
+    login_response = {
+      'MsgType':          'BF',
+      'Username':         '',
+      'UserStatus':       3,
+      'UserReqTyp':       3,
+      'NeedSecondFactor': need_second_factor,
+      'UserStatusText':   u'A senha informada está incorreta.' if not need_second_factor else u'Segundo fator de autenticação inválido'
+    }
+    return json.dumps(login_response, cls=JsonEncoder)
+
+  user.set_password(msg.get('NewPassword'))
+
+  login_response = {
+      'MsgType': 'BF',
+      'UserStatus':       3,
+      'UserReqTyp':       3,
+      'UserStatusText': u'Senha alterada com sucesso!'
+  }
+  return json.dumps(login_response, cls=JsonEncoder)
+
 def processLogin(session, msg):
+
   # Authenticate the user
   need_second_factor = False
   try:
@@ -93,6 +130,7 @@ def processLogin(session, msg):
   if session.user.is_broker:
     login_response['Profile'] = {
       'Type'               : 'BROKER',
+      'Username'           : session.user.username                ,
       'Verified'           : session.user.verified                ,
       'VerificationData'   : session.user.verification_data       ,
       'TwoFactorEnabled'   : session.user.two_factor_enabled      ,
@@ -124,6 +162,8 @@ def processLogin(session, msg):
   else:
     login_response['Profile'] = {
       'Type'               : 'USER',
+      'UserID'             : session.user.id,
+      'Username'           : session.user.username,
       'Email'              : session.profile.email,
       'State'              : session.profile.state,
       'Country'            : session.profile.country_code,
@@ -293,7 +333,6 @@ def processTradersRankRequest(session, msg):
   }
 
   return json.dumps(response_msg, cls=JsonEncoder)
-
 
 def processSecurityListRequest(session, msg):
   request_type = msg.get('SecurityListRequestType')

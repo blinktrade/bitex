@@ -854,6 +854,43 @@
 
 
 /**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewUser}
+  <table class="table table-striped account-overview-table" style="width: 350px">
+    <tbody>
+      <tr>
+        <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
+        <td>{$msg_customer_detail['ID']}</td>
+      </tr>
+      <tr>
+        <td><strong>{msg desc="label on  overview header"}Username{/msg}</strong></td>
+        <td>{$msg_customer_detail['Username']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Email{/msg}</strong></td>
+         <td>{$msg_customer_detail['Email']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}State{/msg}</strong></td>
+         <td>{$msg_customer_detail['State']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Country{/msg}</strong></td>
+         <td>{$msg_customer_detail['CountryCode']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
+         <td class="account-overview-val account-overview-verified">
+         </td>
+      </tr>
+    </tbody>
+  </table>
+{/template}
+
+
+
+/**
   * @param clientID
   */
 {template .EnterVerificationDataDialogContent}
