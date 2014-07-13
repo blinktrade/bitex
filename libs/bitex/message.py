@@ -161,6 +161,9 @@ class JsonMessage(BaseMessage):
       'U34': 'LedgerListRequest',
       'U35': 'LedgerListResponse',
 
+      'U36': 'TradersRankRequest',
+      'U37': 'TradersRankResponse',
+
       # Broker messages
       'B0':  'ProcessDeposit',
       'B1':  'ProcessDepositResponse',

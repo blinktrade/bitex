@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Buy and sell Crypto currencies.">
+
+    <meta name="keywords" content="bitcoin, bitcoin exchange, bitcoin decentralized exchange">
+
+    <meta name="author" content="BlinkTrade">
+
+    <title>Escrow</title>
+
+     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
+    <!-- link href="css/jqueryMobile/jquery.mobile-1.4.3.min.css" -->
+    <link href="css/escrow_style.css" rel="stylesheet">
+    
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+
+</head>
+<body>
+
+    <!--
+    *************************************************************************************
+
+	Login
+
+	*************************************************************************************
+	-->
+    <div data-role="page" id="login">
+
+        <div data-role="header" style="overflow:hidden;">
+            <h1></h1>
+            <a href="#signup" data-icon="user" class="ui-btn-right">Sign up</a>
+            <div data-role="navbar">
+
+            </div>
+        </div>
+
+       <div data-role="main" class="ui-content">
+       		<div align="center">
+           	<h1></h1>
+            <img src="/images/blinktrade.png" width="50%">
+           </div>
+           <form method="post">
+                <table width="100%" border="0">
+                      <tr>
+                        <td> <label for="username">Username:</label></td>
+                        <td><input type="text" name="username" id="username"></td>
+                      </tr>
+                      <tr>
+                        <td><label for="username">Password:</label></td>
+                        <td><input type="password" name="pwd" id="pwd"></td>
+                      </tr>
+                 </table>
+                 
+                 <a href="#menu" class="ui-btn" value="login">Login</a>
+           </form>
+
+       </div>
+
+		<div data-role="footer">
+        	<h1></h1>
+       </div>
+
+    </div>
+    <!-- END LOGIN -->
+
+    <!--
+    *************************************************************************************
+
+	Sign up
+
+	*************************************************************************************
+	-->
+
+    <div data-role="page" id="signup">
+
+        <div data-role="header">
+                <h1>Sign up</h1>
+               <a href="#login" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+               <div data-role="navbar">
+
+               </div>
+         </div>
+
+        <div align="center">
+           	<h1></h1>
+            <img src="/images/blinktrade.png" width="50%">
+        </div>
+
+
+        <div data-role="main">
+
+             <ul data-role="listview" data-inset="true">
+                <li class="ui-field-contain">
+                    <label for="username">Username:</label>
+                    <input type="text" placeholder="Your username will be public available to everybody." name="firsname" id="firsname" value="" data-clear-btn="true">
+                    <br />
+                </li>
+                <li class="ui-field-contain">
+                    <label for="email">Email:</label>
+                    <input type="email" placeholder="Email" name="email" id="email" value="" data-clear-btn="true">
+                    <br />
+                </li>
+
+                  <li class="ui-field-contain">
+                    <label for="pwd">Password:</label>
+                    <input type="password" placeholder="Password" name="pwd" id="pwd" value="" data-clear-btn="true">
+                    <br />
+                </li>
+
+                 <li class="ui-field-contain">
+                    <label for="pwd2">Confirm your password:</label>
+                    <input type="password" placeholder="Confirm your password" name="pwd2" id="pwd2" value="" data-clear-btn="true">
+                    <br />
+                </li>
+
+                <li class="ui-field-contain">
+                    <select placeholder="Country" name="country" id="country">country
+                    <option value="1">Country</option>
+                    </select>
+                    <br />
+
+                    <select placeholder="Broker" name="Broker" id="Broker">Broker
+                    <option value="1">Broker</option>
+                    </select>
+                    <br />
+
+                </li>
+
+
+             </ul>
+
+
+
+                <li class="ui-field-contain">Terms of service <h1></h1>
+                    <input type="checkbox" name="terms" id="terms" checked="">
+                    <br />
+                    I agree with terms terms of service.
+                </li>
+
+            <a href="#login" class="ui-btn" value="confirm">Confirm</a>
+
+        </div>
+
+    </div>
+
+	<!--
+    *************************************************************************************
+
+	Menu
+
+	*************************************************************************************
+	-->
+
+    <div data-role = "page" id="menu">
+    	
+        <div data-role="header">
+       		<h1>Menu</h1>
+
+           <div data-role="navbar">
+
+           </div>
+       </div>
+       
+       <div data-role="main" align="center">
+       		<br />
+       		<img src="/images/blinktrade.png" width="50%">
+           <br />
+            
+            <a href="#receive" class="ui-btn" value="receive" > Receive </a>
+            <a href="#my_transaction" class="ui-btn" value="my_transaction" > My Transaction </a>
+            <a href="#request_payout" class="ui-btn" value="request_payout" > Request Payout </a>
+
+            <a href="#login" class="ui-btn ui-btn-corner-all" value="receive" > Logout</a>
+
+       </div>
+       
+       
+
+       
+    </div>
+    
+    <!-- END MENU-->
+
+	<!--
+	*************************************************************************************
+
+	Request Paymont
+
+	*************************************************************************************
+	-->
+	<div data-role="page" id="request_payout" >
+         <div data-role="header">
+                <h1>Payout</h1>
+               <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+               <div data-role="navbar">
+               
+               </div>
+         </div>
+
+        <div data-role="main">
+
+            <table width="100%" border="0">
+                <tr>
+                    <td>
+                        <label for="amount">Amount:</label>
+                    </td>
+                    <td>
+                        <input type="number" name="amount" id="amount" value="">
+                    </td>
+                </tr>
+                 <tr class="ui-field-contain">
+                    <td>
+                        <label for="how">How:</label>
+                    </td>
+                    <td>
+                        <select name="how" id="how" data-mini="true" data-inline="true">
+                            <option value="night">Night</option>
+                            <option value="afternoon">Afternoon</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <a href="#menu" class="ui-btn" value="ok" >Ok</a>
+        </div>
+
+    </div>
+
+    <!-- END -->
+
+    <!--
+	*************************************************************************************
+
+	My Transaction
+
+	*************************************************************************************
+	-->
+
+    <div data-role="page" id="my_transaction">
+
+        <div data-role="header">
+           <h1>My Transaction</h1>
+           <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+           <a href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext ui-btn-inline">Delete</a>
+        </div>
+        <div data-role="navbar">
+        </div>
+
+        <!-- div class="ui-content">
+            <table data-role="table" data-mode="columntoggle" class="ui-responsive" id="myTable">
+              <thead>
+                <tr>
+                  <th data-priority="6">To / From</th>
+                  <th>Date</th>
+                  <th data-priority="1">Amount</th>
+                  <th data-priority="2">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+        </div -->
+
+
+
+
+        <ul data-role="listview" data-count-theme="b" data-inset="true">
+            <li>Jul 11th,  7:00AM <span class="ui-li-count">$ 600.0 </span> </li>
+        </ul>
+        <ul data-role="listview" data-count-theme="b" data-inset="true">
+            <li>Jul 12th, 11:00AM <span class="ui-li-count">$ 300.0 </span> </li>
+        </ul>
+        <ul data-role="listview" data-count-theme="a" data-inset="true">
+            <li>Jul 12th, 12:30AM <span class="ui-li-count">$-300.0 </span> </li>
+        </ul>
+        <ul data-role="listview" data-count-theme="b" data-inset="true">
+            <li>Jul 12th,  8:00PM <span class="ui-li-count">$ 700.0 </span> </li>
+        </ul>
+
+    </div>
+
+    <!--
+	*************************************************************************************
+
+	Receive
+
+	*************************************************************************************
+	-->
+
+    <div data-role="page" id="receive">
+
+        <div data-role="header">
+           <h1>Receive</h1>
+           <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+        </div>
+        <div data-role="navbar">
+
+        </div>
+
+        <div data-role="main" class="ui-content">
+
+            <table width="100%" border="0">
+
+                <tr>
+                  <td colspan="3"> <input type="number" name="display" id="display"> </td>
+                </tr>
+
+
+                <tr>
+                  <td> <a href="" class="ui-btn" value="1" >7</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >8</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >9</a> </td>
+                </tr>
+                <tr>
+                  <td> <a href="" class="ui-btn" value="1" >4</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >5</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >6</a> </td>
+                </tr>
+                <tr>
+                  <td> <a href="" class="ui-btn" value="1" >1</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >2</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >3</a> </td>
+                </tr>
+                <tr>
+                  <td> <a href="" class="ui-btn" value="1" >.</a> </td>
+                  <td> <a href="" class="ui-btn" value="1" >0</a> </td>
+                  <td width="35%"> <a href="#balance-report" class="ui-btn" value="enter">Enter</a> </td>
+                </tr>
+          </table>
+
+        </div>
+
+    </div>
+
+ <!--
+	*************************************************************************************
+
+	Balance Report
+
+	*************************************************************************************
+	-->
+
+    <div data-role="page" id="balance-report">
+
+        <div data-role="header">
+           <h1>Receive</h1>
+           <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+          <a href="#dialog-complete" class="ui-btn ui-shadow ui-corner-all ui-icon-plus ui-btn-icon-notext">Add</a>
+        </div>
+        <div data-role="navbar">
+
+        </div>
+
+        <div data-role="main" class="ui-content">
+          <table width="100%" border="0">
+            <tr>
+              <td colspan="3"><input disabled="disabled" type="text" name="display_balance" id="display_balance"></td>
+            </tr>
+            <tr>
+              <td colspan="2">Purchase Amount</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td colspan="2">Fee( 0% )</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td colspan="2">Total:</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td colspan="3">&nbsp;</td>
+            </tr>
+            <tr>
+              <td><textarea name="address" id="address"></textarea></td>
+              <td colspan="2"><img src="http://cdn.socialmediaexaminer.com/images/0211jk-sme-code.png" width="106" height="88"></td>
+            </tr>
+            <tr>
+              <td colspan="3">&nbsp;</td>
+            </tr>
+          </table>
+        </div>
+
+    </div>
+
+    <!--
+	*************************************************************************************
+
+	Dialog transaction Complete
+
+	*************************************************************************************
+	-->
+    <div data-role="page" data-dialog="true" id="dialog-complete">
+
+        <div data-role="header">
+            <h1>Transaction Complete</h1>
+        </div>
+
+        <div data-role="main" class="ui-content">
+          <table width="100%" border="0">
+            <tr>
+              <td colspan="2" rowspan="6"><img src="http://images.all-free-download.com/images/graphiclarge/tick_ok_sign_4190.jpg" width="50%"></td>
+              <td>&nbsp;</td>
+              <td>Bitcoin</td>
+              <td colspan="2" rowspan="6">&nbsp;</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>Total</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>Purchase Amount</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>Fee( 0% )</td>
+              <td>0</td>
+            </tr>
+            <tr>
+              <td>&nbsp;</td>
+              <td>Total</td>
+              <td>0</td>
+            </tr>
+          </table>
+        </div>
+
+    </div>
+
+</body>
+</html>

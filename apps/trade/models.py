@@ -135,7 +135,6 @@ class Instrument(Base):
   def __repr__(self):
     return u"<Instrument(symbol=%r, currency=%r, description=%r)>" % (self.symbol, self.currency, self.description)
 
-
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
@@ -375,7 +374,9 @@ class Balance(Base):
   __tablename__         = 'balances'
   id                    = Column(Integer,       primary_key=True)
   account_id            = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  account_name          = Column(String(15),    nullable=False)
   broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  broker_name           = Column(String(30),    nullable=False)
   currency              = Column(String(4),     ForeignKey('currencies.code') ,nullable=False )
   balance               = Column(Integer,       nullable=False, default=0)
   last_update           = Column(DateTime, default=datetime.datetime.now, nullable=False)
@@ -385,6 +386,17 @@ class Balance(Base):
   def __repr__(self):
     return u"<Balance(id=%r, account_id=%r, broker_id=%r, currency=%r, balance=%r)>" % (
       self.id, self.account_id,  self.broker_id, self.currency, self.balance )
+
+  @staticmethod
+  def get_balances_by_rank(session, currency = 'BTC'):
+    entries = session.query(Balance).filter_by(currency = currency).order_by(Balance.balance.desc())
+
+    result_rank = []
+    for i, balance in enumerate(entries):
+        if balance.balance > 0:
+            result_rank.append([i+1, balance.account_name, balance.broker_name, balance.balance])
+
+    return result_rank
 
   @staticmethod
   def get_balances_by_account(session, account_id):
@@ -403,13 +415,15 @@ class Balance(Base):
     return balance_obj.balance
 
   @staticmethod
-  def update_balance(session,operation, account_id, broker_id, currency, value ):
+  def update_balance(session,operation, account_id, account_name, broker_id, broker_name, currency, value ):
     currency  = currency.strip().upper()
     balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
     if not balance_obj:
       balance_obj = Balance(account_id  = account_id,
+                            account_name    = account_name,
                             currency    = currency,
                             broker_id   = broker_id,
+                            broker_name = broker_name,
                             balance     = 0)
 
     if operation == 'CREDIT':
@@ -426,7 +440,6 @@ class Balance(Base):
     application.publish( account_id,  balance_update_msg  )
 
     return balance_obj.balance
-
 
 class Ledger(Base):
   __tablename__         = 'ledger'
@@ -488,7 +501,7 @@ class Ledger(Base):
 
   @staticmethod
   def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None):
-    balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = from_account_id,
                      account_name     = from_account_name,
@@ -505,7 +518,7 @@ class Ledger(Base):
                      description      = description )
     session.add(ledger)
 
-    balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = to_account_id,
                      account_name     = to_account_name,
@@ -525,7 +538,7 @@ class Ledger(Base):
 
   @staticmethod
   def deposit(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
-    balance = Balance.update_balance(session, 'CREDIT', account_id, broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'CREDIT', account_id, account_name, broker_id, broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
                      account_name     = account_name,
@@ -545,7 +558,7 @@ class Ledger(Base):
 
   @staticmethod
   def withdraw(session, account_id, account_name, payee_id, payee_name, broker_id, broker_name, payee_broker_id, payee_broker_name, currency, amount, reference=None, description=None):
-    balance = Balance.update_balance(session, 'DEBIT', account_id, broker_id, currency, amount)
+    balance = Balance.update_balance(session, 'DEBIT', account_id, account_name, broker_id, broker_name, currency, amount)
     ledger = Ledger( currency         = currency,
                      account_id       = account_id,
                      account_name     = account_name,
@@ -571,7 +584,7 @@ class Ledger(Base):
     to_symbol = symbol[:3].upper()   #BTC
     from_symbol = symbol[3:].upper() #USD
 
-    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.broker_id, from_symbol, total_value )
+    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.account_username, order.broker_id, order.broker_username, from_symbol, total_value )
     order_record_debit = Ledger( currency         = from_symbol,
                                  account_id       = order.account_id,
                                  account_name     = order.account_username,
@@ -589,7 +602,7 @@ class Ledger(Base):
     session.add(order_record_debit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, counter_order.broker_id, from_symbol, total_value )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', counter_order.account_id, counter_order.account_username, counter_order.broker_id, counter_order.broker_username, from_symbol, total_value )
     counter_order_record_credit = Ledger(currency     = from_symbol,
                                          account_id   = counter_order.account_id,
                                          account_name = counter_order.account_username,
@@ -607,7 +620,7 @@ class Ledger(Base):
     session.add(counter_order_record_credit)
 
 
-    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.broker_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'CREDIT' if order.is_buy else 'DEBIT', order.account_id, order.account_username, order.broker_id, order.broker_username, to_symbol, qty )
     order_record_credit = Ledger(currency     = to_symbol,
                                  account_id   = order.account_id,
                                  account_name = order.account_username,
@@ -624,7 +637,7 @@ class Ledger(Base):
                                  description  = 'T')
     session.add(order_record_credit)
 
-    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.broker_id, to_symbol, qty )
+    balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.account_username, counter_order.broker_id, counter_order.broker_username, to_symbol, qty )
     counter_order_record_debit = Ledger(currency     = to_symbol,
                                         account_id   = counter_order.account_id,
                                         account_name = counter_order.account_username,
@@ -642,7 +655,7 @@ class Ledger(Base):
     session.add(counter_order_record_debit)
 
     def process_execution_fee(session,trade_id, order, currency, amount ):
-      balance = Balance.update_balance(session, 'DEBIT', order.account_id, order.broker_id, currency, amount )
+      balance = Balance.update_balance(session, 'DEBIT', order.account_id, order.account_username, order.broker_id, order.broker_username, currency, amount )
       order_fee_record = Ledger(currency          = currency,
                                 account_id        = order.account_id,
                                 account_name      = order.account_username,
@@ -659,7 +672,7 @@ class Ledger(Base):
                                 description       = 'TF')
       session.add(order_fee_record)
 
-      balance = Balance.update_balance(session, 'CREDIT', order.broker_id, order.broker_id, currency, amount )
+      balance = Balance.update_balance(session, 'CREDIT', order.broker_id, order.broker_username, order.broker_id, order.broker_username, currency, amount )
       broker_fee_record  = Ledger(currency          = currency,
                                   account_id        = order.broker_id,
                                   account_name      = order.broker_username,
@@ -688,9 +701,6 @@ class Ledger(Base):
     counter_order_fee_amount =  counter_order_fee_base_amount * (counter_order.fee / 10000.)
     if counter_order_fee_amount:
       process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount )
-
-
-
 
 class Broker(Base):
   __tablename__         = 'brokers'
@@ -775,7 +785,6 @@ class Broker(Base):
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from )
 
-
 class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
   id              = Column(Integer,       primary_key=True)
@@ -831,7 +840,6 @@ class UserPasswordReset(Base):
                       template= "password-reset",
                       language= 'ptBR',
                       params=  json.dumps({'token':token, 'username':req.user.username } ))
-
 
 class UserEmail(Base):
   __tablename__   = 'user_email'
@@ -893,7 +901,6 @@ class UserEmail(Base):
     application.publish( 'EMAIL' , msg )
 
     return  user_email
-
 
 class Withdraw(Base):
   __tablename__   = 'withdraws'
@@ -1139,7 +1146,6 @@ class Withdraw(Base):
       self.broker_username, self.data, self.percent_fee, self.fixed_fee,
       self.confirmation_token, self.status, self.created, self.reason_id, self.reason, self.paid_amount)
 
-
 class Order(Base):
   __tablename__   = 'orders'
 
@@ -1329,7 +1335,6 @@ class Order(Base):
   def is_sell(self):
     return  self.side == '2'
 
-
 class Trade(Base):
   __tablename__     = 'trade'
   #id                = Column(String,        primary_key=True)
@@ -1394,8 +1399,6 @@ class Trade(Base):
             trades = trades.order(sort_column).desc()
 
     return trades
-
-
 
 class Deposit(Base):
   __tablename__           = 'deposit'
@@ -1647,7 +1650,6 @@ class Deposit(Base):
       session.add(self)
       session.flush()
 
-
 class DepositMethods(Base):
   __tablename__             = 'deposit_options'
   id                        = Column(Integer,    primary_key=True)
@@ -1714,8 +1716,6 @@ class DepositMethods(Base):
     session.flush()
 
     return deposit
-
-
 
 Base.metadata.create_all(engine)
 
