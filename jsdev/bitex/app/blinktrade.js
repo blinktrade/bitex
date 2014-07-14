@@ -2043,8 +2043,11 @@ bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
   var sent = new Date(msg['SendTime']);
   //var server = new Date(msg['TransactTime']);
   var just_now = new Date(Date.now());
-  
+
   console.log('heartbeat latency": ', just_now - sent, 'ms');
+
+
+  this.getModel().set('latency', just_now - sent );
 };
 
 /**
