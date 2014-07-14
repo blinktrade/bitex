@@ -68,6 +68,8 @@ bitex.view.RankingView.prototype.destroyComponents_ = function( ) {
       handler.unlisten(this.getApplication().getBitexConnection(),
                        bitex.api.BitEx.EventType.TRADERS_RANK_RESPONSE, this.onTradeRankResponse_);
     }
+
+    this.removeChildren(true);
 };
 
 bitex.view.RankingView.prototype.onRankingTableRequestData_ = function(e) {

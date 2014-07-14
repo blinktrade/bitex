@@ -35,6 +35,8 @@ bitex.view.View.EventType = {
 
   CHANGE_BROKER: 'change_broker',
 
+  CHANGE_PASSWORD: 'change_password',
+
   MARKET_DATA_SUBSCRIBE: 'md_subscribe',
   MARKET_DATA_UNSUBSCRIBE: 'md_unsubscribe',
 
