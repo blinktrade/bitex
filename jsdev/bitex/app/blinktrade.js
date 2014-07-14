@@ -252,22 +252,10 @@ bitex.app.BlinkTrade.validateBitcoinAddress_ = function(el, condition, minLength
     throw MSG_BITEX_ERROR_VALIDATE_REQUIRED;
   }
 
-  if ( caption == 'Wallet' ) {
-      if ( !bitex.util.isValidAddress( elValue ) ) {
-          /** @desc Error Validade Bitcoin Address*/
-        var MSG_BITEX_ERROR_VALIDATE_BTC_ADDRESS = goog.getMsg("{$c} typed is not a valid Bitcoin address", {c:caption});
-        throw MSG_BITEX_ERROR_VALIDATE_BTC_ADDRESS;
-      }
-  }
-  else {
-      if (!elValue.match(
-          /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/)) {
-
-        /** @desc Error validate email*/
-        var MSG_BITEX_ERROR_VALIDATE_EMAIL =
-            goog.getMsg("{$c} is not a valid email address", {c:caption});
-        throw MSG_BITEX_ERROR_VALIDATE_EMAIL;
-      }
+  if ( !bitex.util.isValidAddress( elValue ) ) {
+      /** @desc Error Validade Bitcoin Address*/
+    var MSG_BITEX_ERROR_VALIDATE_BTC_ADDRESS = goog.getMsg("{$c} typed is not a valid Bitcoin address", {c:caption});
+    throw MSG_BITEX_ERROR_VALIDATE_BTC_ADDRESS;
   }
 
 }
