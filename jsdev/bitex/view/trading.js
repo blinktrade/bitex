@@ -1,7 +1,7 @@
 goog.provide('bitex.view.TradingView');
 goog.require('bitex.view.View');
 
-goog.require('bitex.ui.OrderEntry');
+goog.require('bitex.ui.SimpleOrderEntry');
 goog.require('bitex.ui.OrderManager');
 
 goog.require('bitex.templates');
@@ -64,12 +64,12 @@ bitex.view.TradingView.prototype.client_order_id;
 bitex.view.TradingView.prototype.order_manager_table_;
 
 /**
- * @type {bitex.ui.OrderEntry}
+ * @type {bitex.ui.SimpleOrderEntry}
  */
 bitex.view.TradingView.prototype.bid_order_entry_;
 
 /**
- * @type {bitex.ui.OrderEntry}
+ * @type {bitex.ui.SimpleOrderEntry}
  */
 bitex.view.TradingView.prototype.ask_order_entry_;
 
@@ -168,7 +168,7 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
   this.destroyComponents_();
 
 
-  this.bid_order_entry_ = new bitex.ui.OrderEntry();
+  this.bid_order_entry_ = new bitex.ui.SimpleOrderEntry();
   this.bid_order_entry_.setModel( {
     username: model.get('Username'),
     symbol: selected_symbol.symbol,
@@ -187,11 +187,10 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     fee: model.get('Broker')['TransactionFeeBuy'],
     formatted_fee: model.get('Broker')['FormattedTransactionFeeBuy']
   });
-  //this.bid_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
   this.addChild(this.bid_order_entry_, true);
 
 
-  this.ask_order_entry_ = new bitex.ui.OrderEntry();
+  this.ask_order_entry_ = new bitex.ui.SimpleOrderEntry();
   this.ask_order_entry_.setModel({
     username: model.get('Username'),
     symbol: selected_symbol.symbol,
@@ -210,12 +209,11 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
     fee: model.get('Broker')['TransactionFeeBuy'],
     formatted_fee: model.get('Broker')['FormattedTransactionFeeSell']
   });
-  //this.ask_order_entry_.render(goog.dom.getFirstElementChild(this.getContentElement() ));
   this.addChild(this.ask_order_entry_, true);
 
 
-  handler.listen(this.bid_order_entry_, bitex.ui.OrderEntry.EventType.SUBMIT, this.onSimpleOrderAction_ );
-  handler.listen(this.ask_order_entry_, bitex.ui.OrderEntry.EventType.SUBMIT, this.onSimpleOrderAction_ );
+  handler.listen(this.bid_order_entry_, bitex.ui.SimpleOrderEntry.EventType.SUBMIT, this.onSimpleOrderAction_ );
+  handler.listen(this.ask_order_entry_, bitex.ui.SimpleOrderEntry.EventType.SUBMIT, this.onSimpleOrderAction_ );
 
 
   this.request_order_id_ = parseInt( 1e7 * Math.random() , 10 );

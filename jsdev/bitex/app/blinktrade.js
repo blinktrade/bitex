@@ -15,6 +15,7 @@ goog.require('bitex.ui.OrderBook.Side');
 
 goog.require('bitex.ui.OrderEntryX');
 goog.require('bitex.ui.OrderEntryX.EventType');
+goog.require('bitex.ui.SimpleOrderEntry.EventType');
 
 
 goog.require('bitex.ui.OrderBook.EventType');
@@ -394,7 +395,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 
   handler.listen(this.views_, bitex.ui.OrderEntryX.EventType.SUBMIT, this.onUserOrderEntry_ );
   handler.listen(this.views_, bitex.view.View.EventType.CANCEL_ORDER, this.onUserCancelOrder_ );
-  handler.listen(this.views_, bitex.ui.OrderEntry.EventType.SUBMIT, this.onUserOrderEntry_ );
+  handler.listen(this.views_, bitex.ui.SimpleOrderEntry.EventType.SUBMIT, this.onUserOrderEntry_ );
 
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_SUBSCRIBE, this.onUserMarketDataSubscribe_);
   handler.listen(this.views_, bitex.view.View.EventType.MARKET_DATA_UNSUBSCRIBE, this.onUserMarketDataUnsubscribe_);
