@@ -557,6 +557,23 @@ bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor
   this.sendMessage(msg);
 };
 
+
+bitex.api.BitEx.prototype.sendHearBeat = function(){
+  var reqId = parseInt(Math.random() * 1000000, 10);
+
+  var d = new Date();
+
+  var msg = {
+    'MsgType': '0',
+    'TestReqID': reqId,
+    'SendTime': d.getTime()
+  };
+
+  this.sendMessage(msg);
+};
+
+
+
 /**
  * @param {boolean} enable
  * @param {string=} opt_secret
