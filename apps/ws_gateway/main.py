@@ -47,6 +47,9 @@ import zmq
 from bitex.message import JsonMessage, InvalidMessageException
 from bitex.zmq_client import TradeClient, TradeClientException
 
+import calendar, time
+
+
 from zmq.eventloop.zmqstream import ZMQStream
 
 define("callback_url")
@@ -149,6 +152,19 @@ class WebSocketHandler(websocket.WebSocketHandler):
             print 'in_message ,', self.trade_client.connection_id, ' , ***LOGIN***'
         else:
             print 'in_message ,', self.trade_client.connection_id, ',', raw_message
+
+
+        if req_msg.isHeartbeat():
+
+          response_msg = {
+              'MsgType'           : '0',
+              'TestReqID'         : req_msg.get('TestReqID'),
+              'SendTime'          : req_msg.get('SendTime'),
+              'TransactTime'      : calendar.timegm(time.gmtime())*1000
+          }
+
+          self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
+          return
 
         if req_msg.isTradeHistoryRequest():  # Trade History request
             self.on_trade_history_request(req_msg)
