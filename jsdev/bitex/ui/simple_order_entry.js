@@ -1,6 +1,5 @@
 goog.provide('bitex.ui.SimpleOrderEntry');
 goog.provide('bitex.ui.SimpleOrderEntry.EventType');
-goog.provide('bitex.ui.SimpleOrderEntry.Verb');
 goog.provide('bitex.ui.SimpleOrderEntry.Side');
 
 goog.require('bitex.ui.SimpleOrderEntry.templates');
@@ -9,6 +8,8 @@ goog.require('goog.ui.Component');
 goog.require('goog.i18n.NumberFormat');
 
 goog.require('goog.string');
+goog.require('bitex.util');
+goog.require('bitex.util.PriceAmountCalculatorVerb');
 
 /**
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
@@ -20,17 +21,9 @@ goog.require('goog.string');
 bitex.ui.SimpleOrderEntry = function(opt_blinkDelay, opt_domHelper) {
   goog.base(this, opt_domHelper);
 
-  this.blink_delay_ = opt_blinkDelay || 700;
   this.order_depth_ = [];
 };
 goog.inherits(bitex.ui.SimpleOrderEntry, goog.ui.Component);
-
-
-/**
- * @type {number}
- * @private
- */
-bitex.ui.SimpleOrderEntry.prototype.blink_delay_;
 
 /**
  * @type {.Array<.Array<Object>>}
@@ -54,7 +47,7 @@ bitex.ui.SimpleOrderEntry.prototype.total_element_;
  * @type {string}
  * @private
  */
-bitex.ui.SimpleOrderEntryX.prototype.last_changed_field_;
+bitex.ui.SimpleOrderEntry.prototype.last_changed_field_;
 
 
 /**
@@ -88,14 +81,6 @@ bitex.ui.SimpleOrderEntry.OrderDepthIndex = {
   PRICE: 0,
   SIZE: 1,
   USERNAME: 2
-};
-
-/**
- * @enum {number}
- */
-bitex.ui.SimpleOrderEntry.Verb = {
-  SPEND: 0,
-  GET: 1
 };
 
 
@@ -271,68 +256,6 @@ bitex.ui.SimpleOrderEntry.prototype.onActionSimple_ = function(e) {
 
 
 /**
- * @param {number} user_input
- * @param {bitex.ui.SimpleOrderEntry.Verb} verb
- * @param {.Array<.Array<Object>>} order_depth
- * @param {string} username
- * @return {Array.<number>=}
- * @private
- */
-bitex.ui.SimpleOrderEntry.prototype.calculatePriceAmountAndFee_ = function(user_input, verb, order_depth, username) {
-  var amount = 0;
-  var price = 0;
-  var vwap = 0;
-
-  var order;
-  var total_volume = 0;
-
-  var total = user_input;
-  var fee =  total * this.getModel().fee / 10000;
-  var work_total = total - fee;
-
-  for ( var order_idx in order_depth) {
-    order = order_depth[order_idx];
-    if (username  == order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.USERNAME] ) {
-      continue;
-    }
-
-    var order_volume = order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE] * order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE] / 1e8;
-
-    if (verb == bitex.ui.SimpleOrderEntry.Verb.SPEND) {
-      if (order_volume >= work_total) {
-        amount += (work_total / order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE] ) * 1e8;
-        price = order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE];
-        work_total = 0;
-        vwap =  (total - fee) / amount;
-        break;
-      } else if (order_volume < work_total) {
-        amount += order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE];
-        work_total -= order_volume;
-      }
-    } else if (verb == bitex.ui.SimpleOrderEntry.Verb.GET) {
-      if (order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE] >= work_total) {
-        price = order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE];
-        total_volume += (order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE] * work_total /1e8 );
-        vwap = total_volume / (total - fee);
-        amount = vwap * (total - fee);
-        work_total = 0;
-        break;
-      } else if (order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE] < work_total) {
-        total_volume += order_volume;
-        work_total -= order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE];
-      }
-    }
-  }
-
-  if (work_total === 0 && amount > 0) {
-    return [ price, parseInt(amount,10),  parseInt(fee, 10),  vwap  ];
-  }
-
-};
-
-
-
-/**
  * @param {goog.events.Event} e
  * @private
  */
@@ -357,10 +280,11 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
   total = total * 1e8;
 
   var price_amount_fee;
-  price_amount_fee = this.calculatePriceAmountAndFee_( total,
-                                                       bitex.ui.SimpleOrderEntry.Verb.GET,
-                                                       this.order_depth_,
-                                                       this.getModel().username);
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee( total,
+                                                            bitex.util.PriceAmountCalculatorVerb.GET,
+                                                            this.order_depth_,
+                                                            this.getModel().username,
+                                                            this.getModel().fee);
 
   if (!goog.isDefAndNotNull(price_amount_fee)) {
     return;
@@ -407,10 +331,11 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
 
   var total = this.getTotal() * 1e8;
   var price_amount_fee;
-  price_amount_fee = this.calculatePriceAmountAndFee_( total,
-                                                       bitex.ui.SimpleOrderEntry.Verb.SPEND,
-                                                       this.order_depth_ ,
-                                                       this.getModel().username);
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee(total,
+                                                           bitex.util.PriceAmountCalculatorVerb.SPEND,
+                                                           this.order_depth_ ,
+                                                           this.getModel().username,
+                                                           this.getModel().fee);
 
   if (!goog.isDefAndNotNull(price_amount_fee)) {
     return;

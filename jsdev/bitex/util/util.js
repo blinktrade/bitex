@@ -1,4 +1,6 @@
 goog.provide('bitex.util');
+goog.provide('bitex.util.PriceAmountCalculatorVerb');
+
 goog.require('goog.math.Long');
 goog.require('goog.crypt');
 goog.require('goog.crypt.Sha256');
@@ -325,6 +327,83 @@ bitex.util.getCountries = function() {
   };
 };
 
+/**
+ * @enum {number}
+ */
+bitex.util.PriceAmountCalculatorVerb = {
+  SPEND: 0,
+  GET: 1
+};
+
+/**
+ * @param {number} user_input
+ * @param {bitex.util.PriceAmountCalculatorVerb} verb
+ * @param {.Array<.Array<Object>>} order_depth
+ * @param {string} username
+ * @param {number} fee
+ * @return {Array.<number>=}
+ */
+bitex.util.calculatePriceAmountAndFee = function(user_input, verb, order_depth, username, fee) {
+  var amount = 0;
+  var price = 0;
+  var vwap = 0;
+
+  var order;
+  var total_volume = 0;
+
+  /**
+   * @enum {number}
+   */
+  var OrderDepthIndex = {
+    PRICE: 0,
+    SIZE: 1,
+    USERNAME: 2
+  };
+
+  var total = user_input;
+  var fee =  total * fee / 10000;
+  var work_total = total - fee;
+
+  for ( var order_idx in order_depth) {
+    order = order_depth[order_idx];
+    if (username  == order[OrderDepthIndex.USERNAME] ) {
+      continue;
+    }
+
+    var order_volume = order[OrderDepthIndex.PRICE] * order[OrderDepthIndex.SIZE] / 1e8;
+
+    if (verb == bitex.util.PriceAmountCalculatorVerb.SPEND) {
+      if (order_volume >= work_total) {
+        amount += (work_total / order[OrderDepthIndex.PRICE] ) * 1e8;
+        price = order[OrderDepthIndex.PRICE];
+        work_total = 0;
+        vwap =  (total - fee) / amount;
+        break;
+      } else if (order_volume < work_total) {
+        amount += order[OrderDepthIndex.SIZE];
+        work_total -= order_volume;
+      }
+    } else if (verb == bitex.util.PriceAmountCalculatorVerb.GET) {
+      if (order[OrderDepthIndex.SIZE] >= work_total) {
+        price = order[OrderDepthIndex.PRICE];
+        total_volume += (order[OrderDepthIndex.PRICE] * work_total /1e8 );
+        vwap = total_volume / (total - fee);
+        amount = vwap * (total - fee);
+        work_total = 0;
+        break;
+      } else if (order[OrderDepthIndex.SIZE] < work_total) {
+        total_volume += order_volume;
+        work_total -= order[OrderDepthIndex.SIZE];
+      }
+    }
+  }
+
+  if (work_total === 0 && amount > 0) {
+    return [ price, parseInt(amount,10),  parseInt(fee, 10),  vwap  ];
+  }
+  return undefined;
+};
+
 bitex.util.isValidAddress = function(address) {
   var decoded = bitex.util.base58Decode(address);
 
@@ -333,16 +412,15 @@ bitex.util.isValidAddress = function(address) {
 
   var good_checksum = bitex.util.hex2a(bitex.util.sha256_digest(bitex.util.hex2a(bitex.util.sha256_digest(rest)))).substr(0, 4);
 
-  if (checksum != good_checksum) return false;
-  return true;
-}
+  return (checksum == good_checksum);
+};
 
 bitex.util.sha256_digest = function(data) {
   var sha256 = new goog.crypt.Sha256();
   sha256.update(data);
 
   return goog.crypt.byteArrayToHex(sha256.digest());
-}
+};
 
 
 bitex.util.hex2a = function(hex) {
@@ -350,48 +428,50 @@ bitex.util.hex2a = function(hex) {
     for (var i = 0; i < hex.length; i += 2)
         str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     return str;
-}
+};
 
 
 bitex.util.base58Decode = function(string) {
 
-  var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-  var ALPHABET_MAP = {}
-  for(var i = 0; i < ALPHABET.length; i++) {
-    ALPHABET_MAP[ALPHABET.charAt(i)] = i
+  var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  var ALPHABET_MAP = {};
+  for(var m = 0; m < ALPHABET.length; m++) {
+    ALPHABET_MAP[ALPHABET.charAt(i)] = m;
   }
-  var BASE = 58
+  var BASE = 58;
 
   if (string.length === 0) return 0;
 
   var input = string.split('').map(function(c){
-    return ALPHABET_MAP[c]
-  })
+    return ALPHABET_MAP[c];
+  });
 
-  var i, j, bytes = [0]
+  var i, j, bytes = [0];
   for (i = 0; i < input.length; i++) {
-    for (j = 0; j < bytes.length; j++) bytes[j] *= BASE
-    bytes[bytes.length - 1] += input[i]
+    for (j = 0; j < bytes.length; j++) bytes[j] *= BASE;
+    bytes[bytes.length - 1] += input[i];
 
-    var carry = 0
+    var carry = 0;
     for (j = bytes.length - 1; j >= 0; j--){
-      bytes[j] += carry
-      carry = bytes[j] >> 8
-      bytes[j] &= 0xff
+      bytes[j] += carry;
+      carry = bytes[j] >> 8;
+      bytes[j] &= 0xff;
     }
 
     while (carry) {
-      bytes.unshift(carry)
-      carry = bytes[0] >> 8
-      bytes[0] &= 0xff
+      bytes.unshift(carry);
+      carry = bytes[0] >> 8;
+      bytes[0] &= 0xff;
     }
   }
 
   // deal with leading zeros
-  for (i = 0; i < input.length - 1 && input[i] == 0; i++) bytes.unshift(0)
+  for (i = 0; i < input.length - 1 && input[i] == 0; i++) {
+    bytes.unshift(0);
+  }
 
   var result = "";
-  for (var i = 0; i < bytes.length; i++) {
+  for (i = 0; i < bytes.length; i++) {
     result += String.fromCharCode(bytes[i]);
   }
 
