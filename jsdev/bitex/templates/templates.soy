@@ -614,21 +614,30 @@
   */
 {template .DepositWithdrawDialogContent}
   <form class="form-horizontal" data-deposit-status="prepare">
+  <fieldset>
+
     <input type="hidden" name="Currency" value="{$currency}">
 
     {if $side == 'client'}
+
+
       <div class="control-group">
+      <div class="ctrlHolder">
         <label class="control-label">Amount</label>
         <div class="controls">
           <div class="input-prepend">
             <span class="add-on">{$currencySign}</span>
-            <input id="{$amountID}" type="text" class="input-small" size="16" name="Amount">
+            <input id="{$amountID}" uniform-validators="required" type="text" class="input-small" size="16" name="Amount">
           </div>
         </div>
       </div>
+      </div>
+
     {else}
       <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
     {/if}
+
+    <div class="error"></div>
 
     {if not $force_method}
       {if length($methods) > 1}
@@ -740,10 +749,12 @@
             {foreach $field in $method['fields'] }
               {if $field['side'] == $side}
                 <div class="control-group">
+                <div class="ctrlHolder">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                    <input class="withdraw-field" uniform-validators="validateAddress" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
                   </div>
+                </div>
                 </div>
               {/if}
             {/foreach}
@@ -758,6 +769,7 @@
       <div class="controls" class="dlg-response-group-value" >
       </div>
     </div>
+    </fieldset>
 
   </form>
 {/template}
