@@ -18,6 +18,11 @@ var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID = goog.getMsg('ID');
 /**
  * @desc Column Status of the Order Manager
  */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_DESCRIPTION = goog.getMsg('Description');
+
+/**
+ * @desc Column Status of the Order Manager
+ */
 var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS = goog.getMsg('Status');
 
 /**
@@ -50,6 +55,10 @@ var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_CUM_QTY = goog.getMsg('Cum Qty');
  */
 var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_AVG_PX = goog.getMsg('Average Price');
 
+/**
+ * @desc Column Volume Price of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME = goog.getMsg('Total');
 
 /**
  * @desc Column Order Date of the Order Manager
@@ -59,7 +68,7 @@ var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ORDER_DATE = goog.getMsg('Date/Time'
 /**
  * @desc Column Actions of the Order Manager
  */
-var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME = goog.getMsg('Actions');
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS = goog.getMsg('Actions');
 
 /**
  * @desc Column Buy Side of the Order Manager
@@ -71,14 +80,67 @@ var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_BUY = goog.getMsg('Buy');
  */
 var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_SELL = goog.getMsg('Sell');
 
+
 /**
+ * @param {string} opt_mode. Defaults to advanced mode
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
-  var grid_columns = [
+bitex.ui.OrderManager = function(opt_mode, opt_blinkDelay, opt_domHelper) {
+  this.mode_ = opt_mode || 'advanced';
+  this.blink_delay_ = opt_blinkDelay || 700;
+
+  var grid_columns_simple = [
+    {
+      'property': 'OrderID',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID,
+      'sortable': false,
+      'formatter': function(s, rowSet) { return rowSet['ClOrdID']},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-id'); }
+    },{
+      'property': 'Side',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_DESCRIPTION,
+      'sortable': false,
+      'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'description'); }
+    },{
+      'property': 'OrdStatus',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS,
+      'sortable': false,
+      'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'status'); }
+    },{
+      'property': 'AvgPx',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_PRICE,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
+    },{
+      'property': 'Volume',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'volume'); }
+    },{
+      'property': 'ClOrdID',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS,
+      'sortable': false,
+      'formatter': function(id, row_set_obj){
+        var classes = "icon-remove";
+        var attributes = { 'class':classes, 'data-client-order-id': id } ;
+
+        if ( goog.isDefAndNotNull(row_set_obj) ) {
+          attributes['data-order-id'] = row_set_obj["OrderID"];
+        }
+
+        var i =goog.dom.createDom( 'i', attributes );
+        return goog.dom.createDom( 'a', { 'class':"btn btn-mini btn-danger"}, i);
+      },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
+    }
+  ];
+
+  var grid_columns_advanced = [
     {
       'property': 'OrderID',
       'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID,
@@ -134,7 +196,7 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'ClOrdID',
-      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME,
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS,
       'sortable': false,
       'formatter': function(id, row_set_obj){
         var classes = "icon-remove";
@@ -151,7 +213,6 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
     }
   ];
 
-  this.blink_delay_ = opt_blinkDelay || 700;
 
   /** @desc Order manager table tittle */
   var MSG_ORDER_MANAGER_TABLE_TITLE = goog.getMsg('My orders');
@@ -159,10 +220,14 @@ bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
   var options = {
     'rowIDFn': this.getRowID ,
     'rowClassFn':this.getRowClass,
-    'columns': grid_columns,
+    'columns': grid_columns_advanced,
     'title': MSG_ORDER_MANAGER_TABLE_TITLE,
     'showSearch': false
   };
+
+  if (this.mode_ == 'simple') {
+    options['columns'] = grid_columns_simple;
+  }
 
   bitex.ui.DataGrid.call(this,  options , opt_domHelper);
 };
@@ -219,6 +284,11 @@ bitex.ui.OrderManager.EventType = {
  */
 bitex.ui.OrderManager.prototype.blink_delay_;
 
+/**
+ * @type {string}
+ * @private
+ */
+bitex.ui.OrderManager.prototype.mode_;
 
 /**
  * @type {string}
@@ -268,22 +338,23 @@ bitex.ui.OrderManager.prototype.getRowClass = function(row_set) {
 };
 
 /**
+ * @param {string} client_order_id
+ */
+bitex.ui.OrderManager.prototype.removeOrder = function(client_order_id) {
+  var rowId = this.getId() + '_' + client_order_id;
+
+  var el = goog.dom.getElement(rowId);
+  if (goog.isDefAndNotNull(el)) {
+    goog.dom.removeNode(el);
+  }
+};
+
+/**
  * @param  {Object} execution_report_msg
  */
 bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_report_msg){
-  var rowId = this.getRowID(execution_report_msg);
-
-  if (execution_report_msg['LeavesQty'] === 0 ) {
-    var el = goog.dom.getElement(rowId);
-    if (goog.isDefAndNotNull(el)) {
-      goog.dom.removeNode(el);
-    }
-    return;
-  }
-
   this.insertOrUpdateRecord(execution_report_msg, 0);
 };
-
 
 
 /** @inheritDoc */
