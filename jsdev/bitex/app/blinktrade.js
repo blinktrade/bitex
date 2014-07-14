@@ -1997,11 +1997,11 @@ bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
 
   var msg = e.data;
 
-  var d = new Date(msg['SendTime']);
-  var d1 = new Date(msg['TransactTime']);
+  var sent = new Date(msg['SendTime']);
+  //var server = new Date(msg['TransactTime']);
+  var just_now = new Date(Date.now());
 
-  console.log(d, ' - ', d1);
-
+  console.log('heartbeat latency": ', just_now - sent, 'ms');
 };
 
 /**
