@@ -404,6 +404,14 @@ bitex.util.calculatePriceAmountAndFee = function(user_input, verb, order_depth, 
   return undefined;
 };
 
+/**
+ * @param {Element} element
+ * @return {boolean}
+ */
+bitex.util.validateForm = function(element){
+
+}
+
 bitex.util.isValidAddress = function(address) {
   var decoded = bitex.util.base58Decode(address);
 
