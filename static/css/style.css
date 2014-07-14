@@ -586,6 +586,10 @@ keyframes notification {
     width: 60px;
 }
 
+.withdraw-method-editor-field-validator {
+    width: 130px;
+}
+
 .withdraw-method-editor-field-name,
 .withdraw-method-editor-field-label {
     width: 120px;

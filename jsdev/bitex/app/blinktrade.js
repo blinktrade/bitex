@@ -481,7 +481,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 bitex.app.BlinkTrade.prototype.onBitexRawMessageLogger_ = function(action, e) {
   var raw_msg = e.data;
   try {
-    console.log(action + ':' + raw_msg);
+      console.log(action + ':' + raw_msg);
   } catch(e) {}
 };
 
@@ -2045,8 +2045,6 @@ bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
   var just_now = new Date(Date.now());
 
   console.log('heartbeat latency": ', just_now - sent, 'ms');
-
-
   this.getModel().set('latency', just_now - sent );
 };
 

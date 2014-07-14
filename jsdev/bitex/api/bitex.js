@@ -571,7 +571,7 @@ bitex.api.BitEx.prototype.sendHearBeat = function(){
   var d = new Date();
 
   var msg = {
-    'MsgType': '0',
+    'MsgType':'0',
     'TestReqID': reqId,
     'SendTime': d.getTime()
   };
