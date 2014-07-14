@@ -752,7 +752,7 @@
                 <div class="ctrlHolder">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" uniform-validators="validateAddress" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
                   </div>
                 </div>
                 </div>
