@@ -882,6 +882,19 @@
       <tr>
          <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
          <td class="account-overview-val account-overview-verified">
+
+ {if $msg_customer_detail['Verified'] == 2 }
+    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
+ {else}
+    {if $msg_customer_detail['Verified'] == 1 }
+      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a> {$msg_customer_detail['VerificationData']}
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>
+    {/if}
+ {/if}
+
          </td>
       </tr>
     </tbody>

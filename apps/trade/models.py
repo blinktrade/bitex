@@ -289,7 +289,7 @@ class User(Base):
     if user and user.check_password(password):
 
       if user.two_factor_enabled:
-        if second_factor is None or int(second_factor) != get_totp_token(user.two_factor_secret):
+        if second_factor is None or second_factor == '' or int(second_factor) != get_totp_token(user.two_factor_secret):
           raise NeedSecondFactorException
 
       # update the last login

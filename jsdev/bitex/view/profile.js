@@ -88,7 +88,7 @@ bitex.view.ProfileView.prototype.enterView = function() {
     customer['Email'] = model.get('Profile')['Email'];
     customer['State'] = model.get('Profile')['State'];
     customer['CountryCode'] = model.get('Profile')['Country'];
-    customer['CountryCode'] = model.get('Profile')['Country'];
+    customer['Verified'] = model.get('Profile')['Verified'];
 
     var account_overview_header_el = goog.dom.getElement('account_overview_user_id');
     goog.soy.renderElement(account_overview_header_el,bitex.templates.AccountOverviewUser, {msg_customer_detail: customer});
