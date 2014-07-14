@@ -27,6 +27,7 @@ goog.inherits(bitex.view.ProfileView, bitex.view.View);
  */
 bitex.view.ProfileView.prototype.change_password_;
 
+
 /**
  * The events fired
  * @enum {string} The event types
@@ -293,4 +294,5 @@ bitex.view.ProfileView.prototype.onAddMethod_ = function(e) {
 bitex.view.ProfileView.prototype.getCode = function() {
   return goog.dom.forms.getValue( goog.dom.getElement('id_second_step_verification'));
 };
+
 
