@@ -156,7 +156,6 @@ bitex.ui.OrderEntryX.prototype.enterDocument = function() {
                  goog.events.KeyHandler.EventType.KEY,
                  this.onBlockNonNumberKeys_);
 
-
   handler.listen( new goog.events.InputHandler(this.amountEl_),
                   goog.events.InputHandler.EventType.INPUT,
                   this.onChangeAmount_ );

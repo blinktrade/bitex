@@ -341,6 +341,13 @@ ul.parsley-error-list li {
 }
 
 
+.simple-order-entry-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
 .order-entry {
 }
 .order-entry-data {

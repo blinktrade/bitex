@@ -1,7 +1,9 @@
-goog.provide('bitex.ui.OrderEntry');
-goog.provide('bitex.ui.OrderEntry.EventType');
+goog.provide('bitex.ui.SimpleOrderEntry');
+goog.provide('bitex.ui.SimpleOrderEntry.EventType');
+goog.provide('bitex.ui.SimpleOrderEntry.Verb');
+goog.provide('bitex.ui.SimpleOrderEntry.Side');
 
-goog.require('bitex.ui.order_entry.templates');
+goog.require('bitex.ui.SimpleOrderEntry.templates');
 goog.require('goog.ui.Component');
 
 goog.require('goog.i18n.NumberFormat');
@@ -15,26 +17,44 @@ goog.require('goog.string');
  * @extends {goog.ui.Component}
  * @constructor
  */
-bitex.ui.OrderEntry = function(opt_blinkDelay, opt_domHelper) {
+bitex.ui.SimpleOrderEntry = function(opt_blinkDelay, opt_domHelper) {
   goog.base(this, opt_domHelper);
 
   this.blink_delay_ = opt_blinkDelay || 700;
   this.order_depth_ = [];
 };
-goog.inherits(bitex.ui.OrderEntry, goog.ui.Component);
+goog.inherits(bitex.ui.SimpleOrderEntry, goog.ui.Component);
 
 
 /**
  * @type {number}
  * @private
  */
-bitex.ui.OrderEntry.prototype.blink_delay_;
+bitex.ui.SimpleOrderEntry.prototype.blink_delay_;
 
 /**
  * @type {.Array<.Array<Object>>}
  * @private
  */
-bitex.ui.OrderEntry.prototype.order_depth_;
+bitex.ui.SimpleOrderEntry.prototype.order_depth_;
+
+/**
+ * @type {Element}
+ * @private
+ */
+bitex.ui.SimpleOrderEntry.prototype.qty_element_;
+
+/**
+ * @type {Element}
+ * @private
+ */
+bitex.ui.SimpleOrderEntry.prototype.total_element_;
+
+/**
+ * @type {string}
+ * @private
+ */
+bitex.ui.SimpleOrderEntryX.prototype.last_changed_field_;
 
 
 /**
@@ -42,13 +62,13 @@ bitex.ui.OrderEntry.prototype.order_depth_;
  * @type {string}
  * @private
  */
-bitex.ui.OrderEntry.BASE_CSS_CLASS_ = goog.getCssName('order-entry');
+bitex.ui.SimpleOrderEntry.BASE_CSS_CLASS_ = goog.getCssName('simple-order-entry');
 
 
 /**
  * @enum {string}
  */
-bitex.ui.OrderEntry.EventType = {
+bitex.ui.SimpleOrderEntry.EventType = {
   SUBMIT: 'simple_order_entry_submitted'
 };
 
@@ -56,7 +76,7 @@ bitex.ui.OrderEntry.EventType = {
 /**
  * @enum {string}
  */
-bitex.ui.OrderEntry.Side = {
+bitex.ui.SimpleOrderEntry.Side = {
   BUY: '1',
   SELL: '2'
 };
@@ -64,11 +84,20 @@ bitex.ui.OrderEntry.Side = {
 /**
  * @enum {number}
  */
-bitex.ui.OrderEntry.OrderDepthIndex = {
+bitex.ui.SimpleOrderEntry.OrderDepthIndex = {
   PRICE: 0,
   SIZE: 1,
   USERNAME: 2
 };
+
+/**
+ * @enum {number}
+ */
+bitex.ui.SimpleOrderEntry.Verb = {
+  SPEND: 0,
+  GET: 1
+};
+
 
 /**
  * Returns base CSS class. This getter is used to get base CSS class part.
@@ -76,19 +105,19 @@ bitex.ui.OrderEntry.OrderDepthIndex = {
  *   goog.getCssName(this.getBaseCssClass(), 'CLASS_NAME')
  * @return {string} Base CSS class.
  */
-bitex.ui.OrderEntry.prototype.getBaseCssClass = function() {
-  return bitex.ui.OrderEntry.BASE_CSS_CLASS_;
+bitex.ui.SimpleOrderEntry.prototype.getBaseCssClass = function() {
+  return bitex.ui.SimpleOrderEntry.BASE_CSS_CLASS_;
 };
 
 /** @override */
-bitex.ui.OrderEntry.prototype.decorateInternal = function(element) {
+bitex.ui.SimpleOrderEntry.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
 };
 
 /** @override */
-bitex.ui.OrderEntry.prototype.createDom = function() {
+bitex.ui.SimpleOrderEntry.prototype.createDom = function() {
 
-  var el = goog.soy.renderAsElement(bitex.ui.order_entry.templates.OrderEntry, {
+  var el = goog.soy.renderAsElement(bitex.ui.SimpleOrderEntry.templates.SimpleOrderEntry, {
     id: this.makeId('order_entry'),
     symbol:this.getModel().symbol,
     crypto_currency_symbol:this.getModel().crypto_currency_symbol,
@@ -101,23 +130,32 @@ bitex.ui.OrderEntry.prototype.createDom = function() {
     formatted_fee: this.getModel().formatted_fee,
     client_id:this.getModel().client_id
   });
-  this.setElementInternal( el )
+  this.setElementInternal(el);
 };
 
 /** @override */
-bitex.ui.OrderEntry.prototype.enterDocument = function() {
+bitex.ui.SimpleOrderEntry.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
 
   var handler = this.getHandler();
   var dom  = this.getDomHelper();
 
-  handler.listen(new goog.events.KeyHandler( this.getElement( this.makeId('order_entry_total') ) ),
+  this.qty_element_ = goog.dom.getElement( this.makeId('order_entry_qty') );
+  this.total_element_ = goog.dom.getElement( this.makeId('order_entry_total') );
+
+  handler.listen(new goog.events.KeyHandler( this.total_element_ ),
+                 goog.events.KeyHandler.EventType.KEY,
+                 this.onBlockNonNumberKeys_);
+  handler.listen(new goog.events.KeyHandler( this.qty_element_ ),
                  goog.events.KeyHandler.EventType.KEY,
                  this.onBlockNonNumberKeys_);
 
-  handler.listen( new goog.events.InputHandler(this.getElement( this.makeId('order_entry_total') )),
+  handler.listen( new goog.events.InputHandler( this.total_element_ ),
                   goog.events.InputHandler.EventType.INPUT,
                   this.onChangeTotal_ );
+  handler.listen( new goog.events.InputHandler( this.qty_element_ ),
+                  goog.events.InputHandler.EventType.INPUT,
+                  this.onChangeQty_ );
 
 
   handler.listen( goog.dom.getElement( this.makeId('order_entry_action_simple') ),
@@ -129,7 +167,7 @@ bitex.ui.OrderEntry.prototype.enterDocument = function() {
  * @param {goog.events.Event} e
  * @private
  */
-bitex.ui.OrderEntry.prototype.onBlockNonNumberKeys_ = function(e) {
+bitex.ui.SimpleOrderEntry.prototype.onBlockNonNumberKeys_ = function(e) {
   var inputEl = e.target;
   var inputValue = goog.dom.forms.getValue(inputEl);
 
@@ -184,7 +222,11 @@ bitex.ui.OrderEntry.prototype.onBlockNonNumberKeys_ = function(e) {
         inputEl.selectionEnd = originalEndPos+1;
       }
 
-      this.onChangeTotal_(e);
+      if (e.target == this.qty_element_) {
+        this.onChangeQty_(e);
+      } else if (e.target == this.total_element_ ) {
+        this.onChangeTotal_(e);
+      }
       e.preventDefault();
     }
   }
@@ -222,84 +264,81 @@ bitex.ui.OrderEntry.prototype.onBlockNonNumberKeys_ = function(e) {
  * @param {goog.events.Event} e
  * @private
  */
-bitex.ui.OrderEntry.prototype.onActionSimple_ = function(e) {
-  console.log('bitex.ui.OrderEntry.prototype.onActionSimple_');
-
+bitex.ui.SimpleOrderEntry.prototype.onActionSimple_ = function(e) {
   e.preventDefault();
-
-  this.dispatchEvent( bitex.ui.OrderEntry.EventType.SUBMIT);
+  this.dispatchEvent( bitex.ui.SimpleOrderEntry.EventType.SUBMIT);
 };
 
 
 /**
  * @param {number} user_input
- * @param {string} verb
+ * @param {bitex.ui.SimpleOrderEntry.Verb} verb
+ * @param {.Array<.Array<Object>>} order_depth
+ * @param {string} username
  * @return {Array.<number>=}
  * @private
  */
-bitex.ui.OrderEntry.prototype.calculatePriceAmountAndFee_ = function(user_input, verb) {
-  var total = 0;
+bitex.ui.SimpleOrderEntry.prototype.calculatePriceAmountAndFee_ = function(user_input, verb, order_depth, username) {
   var amount = 0;
   var price = 0;
-  var fee = 0;
   var vwap = 0;
 
+  var order;
+  var total_volume = 0;
 
-  if (verb == 'SPEND') {
-    total = user_input;
+  var total = user_input;
+  var fee =  total * this.getModel().fee / 10000;
+  var work_total = total - fee;
 
-    fee =  total * this.getModel().fee / 10000;
-
-    // simple math, use the best price
-
-    var work_total = total - fee;
-    var total_volume = 0;
-
-    for ( var order_idx in  this.order_depth_) {
-      var order = this.order_depth_[order_idx];
-      if (this.getModel().username  == order[bitex.ui.OrderEntry.OrderDepthIndex.USERNAME] ) {
-        continue;
-      }
-
-      var order_volume = order[bitex.ui.OrderEntry.OrderDepthIndex.PRICE] * order[bitex.ui.OrderEntry.OrderDepthIndex.SIZE] / 1e8;
-
-      if (this.getModel().side == bitex.ui.OrderEntry.Side.BUY) {
-        if (order_volume >= work_total) {
-          amount += (work_total / order[bitex.ui.OrderEntry.OrderDepthIndex.PRICE] ) * 1e8;
-          price = order[bitex.ui.OrderEntry.OrderDepthIndex.PRICE];
-          work_total = 0;
-          vwap =  (total - fee) / amount;
-          break;
-        } else if (order_volume < work_total) {
-          amount += order[bitex.ui.OrderEntry.OrderDepthIndex.SIZE];
-          work_total -= order_volume;
-        }
-      } else if (this.getModel().side == bitex.ui.OrderEntry.Side.SELL) {
-        if (order[bitex.ui.OrderEntry.OrderDepthIndex.SIZE] >= work_total) {
-          price = order[bitex.ui.OrderEntry.OrderDepthIndex.PRICE];
-          total_volume += (order[bitex.ui.OrderEntry.OrderDepthIndex.PRICE] * work_total /1e8 );
-          vwap = total_volume / (total - fee);
-          amount = vwap * (total - fee);
-          work_total = 0;
-          break;
-        } else if (order[bitex.ui.OrderEntry.OrderDepthIndex.SIZE] < work_total) {
-          total_volume += order_volume;
-          work_total -= order[bitex.ui.OrderEntry.OrderDepthIndex.SIZE];
-        }
-      }
+  for ( var order_idx in order_depth) {
+    order = order_depth[order_idx];
+    if (username  == order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.USERNAME] ) {
+      continue;
     }
 
-    if (work_total === 0 && amount > 0) {
-      return [ price, parseInt(amount,10),  parseInt(fee, 10),  vwap  ];
+    var order_volume = order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE] * order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE] / 1e8;
+
+    if (verb == bitex.ui.SimpleOrderEntry.Verb.SPEND) {
+      if (order_volume >= work_total) {
+        amount += (work_total / order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE] ) * 1e8;
+        price = order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE];
+        work_total = 0;
+        vwap =  (total - fee) / amount;
+        break;
+      } else if (order_volume < work_total) {
+        amount += order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE];
+        work_total -= order_volume;
+      }
+    } else if (verb == bitex.ui.SimpleOrderEntry.Verb.GET) {
+      if (order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE] >= work_total) {
+        price = order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE];
+        total_volume += (order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.PRICE] * work_total /1e8 );
+        vwap = total_volume / (total - fee);
+        amount = vwap * (total - fee);
+        work_total = 0;
+        break;
+      } else if (order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE] < work_total) {
+        total_volume += order_volume;
+        work_total -= order[bitex.ui.SimpleOrderEntry.OrderDepthIndex.SIZE];
+      }
     }
   }
+
+  if (work_total === 0 && amount > 0) {
+    return [ price, parseInt(amount,10),  parseInt(fee, 10),  vwap  ];
+  }
+
 };
+
+
 
 /**
  * @param {goog.events.Event} e
  * @private
  */
-bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
+bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
+  this.last_changed_field_ = 'qty';
+
   if (!goog.isDefAndNotNull(this.order_depth_)) {
     // TODO: Inform the user that he will have to use the advanced method
     return;
@@ -310,9 +349,69 @@ bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
     return;
   }
 
+  var inputValue = goog.dom.forms.getValue( this.qty_element_ );
+  var total = goog.string.toNumber(inputValue);
+  if (isNaN(total)) {
+    return;
+  }
+  total = total * 1e8;
+
+  var price_amount_fee;
+  price_amount_fee = this.calculatePriceAmountAndFee_( total,
+                                                       bitex.ui.SimpleOrderEntry.Verb.GET,
+                                                       this.order_depth_,
+                                                       this.getModel().username);
+
+  if (!goog.isDefAndNotNull(price_amount_fee)) {
+    return;
+  }
+  this.getModel().price = price_amount_fee[0];
+  this.getModel().amount = total;
+  var order_fee =  price_amount_fee[2];
+  var vwap = price_amount_fee[3];
+
+  var currency_formatter = new goog.i18n.NumberFormat( this.getModel().currency_format,
+                                                this.getModel().currency_code );
+
+  var crypto_currency_formatter = new goog.i18n.NumberFormat( this.getModel().crypto_currency_format,
+                                                  this.getModel().crypto_currency_code );
+
+  goog.dom.forms.setValue( this.total_element_, price_amount_fee[1]/1e8 );
+
+  var formatted_fee = crypto_currency_formatter.format(order_fee/1e8);
+  goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_fee') ), formatted_fee );
+
+  var human_average_price = currency_formatter.format(vwap);
+  if (this.getModel().side == bitex.ui.SimpleOrderEntry.Side.SELL) {
+    human_average_price = crypto_currency_formatter.format(vwap);
+  }
+  goog.dom.setTextContent(  goog.dom.getElement( this.makeId('order_entry_avg_price') ), human_average_price );
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
+  this.last_changed_field_ = 'total';
+
+  if (!goog.isDefAndNotNull(this.order_depth_)) {
+    // TODO: Inform the user that he will have to use the advanced method
+    return;
+  }
+
+  if (!this.order_depth_.length) {
+    // TODO: Inform the user that he will have to use the advanced method
+    return;
+  }
 
   var total = this.getTotal() * 1e8;
-  var price_amount_fee = this.calculatePriceAmountAndFee_( total, 'SPEND' );
+  var price_amount_fee;
+  price_amount_fee = this.calculatePriceAmountAndFee_( total,
+                                                       bitex.ui.SimpleOrderEntry.Verb.SPEND,
+                                                       this.order_depth_ ,
+                                                       this.getModel().username);
+
   if (!goog.isDefAndNotNull(price_amount_fee)) {
     return;
   }
@@ -320,11 +419,10 @@ bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
   this.getModel().amount = price_amount_fee[1];
   var order_fee =  price_amount_fee[2];
   var vwap = price_amount_fee[3];
-  console.log(price_amount_fee);
 
   var spend_formatter;
   var receive_formatter;
-  if (this.getModel().side == bitex.ui.OrderEntry.Side.BUY) {
+  if (this.getModel().side == bitex.ui.SimpleOrderEntry.Side.BUY) {
     spend_formatter = new goog.i18n.NumberFormat( this.getModel().currency_format,
                                                   this.getModel().currency_code );
 
@@ -338,14 +436,13 @@ bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
                                                     this.getModel().currency_code );
   }
 
+  goog.dom.forms.setValue( this.qty_element_, this.getModel().amount/1e8 );
+
   var formatted_fee = spend_formatter.format(order_fee/1e8);
   goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_fee') ), formatted_fee );
 
-  var human_amount = receive_formatter.format( this.getModel().amount/1e8 );
-  goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_total_to_receive') ), human_amount );
-
   var human_average_price = spend_formatter.format(vwap);
-  if (this.getModel().side == bitex.ui.OrderEntry.Side.SELL) {
+  if (this.getModel().side == bitex.ui.SimpleOrderEntry.Side.SELL) {
     human_average_price = receive_formatter.format(vwap);
   }
   goog.dom.setTextContent(  goog.dom.getElement( this.makeId('order_entry_avg_price') ), human_average_price );
@@ -354,19 +451,23 @@ bitex.ui.OrderEntry.prototype.onChangeTotal_ = function(e) {
 /**
  * @param {.Array<.Array>} order_depth
  */
-bitex.ui.OrderEntry.prototype.setOrderDepth = function(order_depth) {
+bitex.ui.SimpleOrderEntry.prototype.setOrderDepth = function(order_depth) {
   // order_depth = [ [ price, size, username ], [price, size, username ] ... ]
   this.order_depth_ = order_depth;
 
-  this.onChangeTotal_();
+  if (this.last_changed_field_ == 'total') {
+    this.onChangeTotal_();
+  } else if (this.last_changed_field_ == 'qty') {
+    this.onChangeQty_();
+  }
 };
 
 
 /**
  * @return {number|null}
  */
-bitex.ui.OrderEntry.prototype.getTotal = function(){
-  var inputValue = goog.dom.forms.getValue(goog.dom.getElement( this.makeId('order_entry_total')));
+bitex.ui.SimpleOrderEntry.prototype.getTotal = function(){
+  var inputValue = goog.dom.forms.getValue( this.total_element_ );
   var res = goog.string.toNumber(inputValue);
   if (isNaN(res)) {
     res = 0;
@@ -378,14 +479,14 @@ bitex.ui.OrderEntry.prototype.getTotal = function(){
 /**
  * @return {string}
  */
-bitex.ui.OrderEntry.prototype.getSymbol = function(){
+bitex.ui.SimpleOrderEntry.prototype.getSymbol = function(){
   return this.getModel().symbol;
 };
 
 /**
  * @return {string}
  */
-bitex.ui.OrderEntry.prototype.getSide = function(){
+bitex.ui.SimpleOrderEntry.prototype.getSide = function(){
   return this.getModel().side;
 };
 
@@ -393,21 +494,21 @@ bitex.ui.OrderEntry.prototype.getSide = function(){
 /**
  * @return {string}
  */
-bitex.ui.OrderEntry.prototype.getType = function(){
+bitex.ui.SimpleOrderEntry.prototype.getType = function(){
   return this.getModel().type;
 };
 
 /**
  * @return {number}
  */
-bitex.ui.OrderEntry.prototype.getBrokerID = function(){
+bitex.ui.SimpleOrderEntry.prototype.getBrokerID = function(){
   return this.getModel().broker_id;
 };
 
 /**
  * @param {number}
  */
-bitex.ui.OrderEntry.prototype.setBrokerID = function(broker_id){
+bitex.ui.SimpleOrderEntry.prototype.setBrokerID = function(broker_id){
   this.getModel().broker_id = broker_id;
   goog.dom.forms.setValue(goog.dom.getElement( this.makeId('order_entry_broker_id')));
 };
@@ -416,14 +517,14 @@ bitex.ui.OrderEntry.prototype.setBrokerID = function(broker_id){
 /**
  * @return {number}
  */
-bitex.ui.OrderEntry.prototype.getClientID = function(){
+bitex.ui.SimpleOrderEntry.prototype.getClientID = function(){
   return this.getModel().client_id;
 };
 
 /**
  * @param {number}
     */
-bitex.ui.OrderEntry.prototype.setClientID = function(client_id){
+bitex.ui.SimpleOrderEntry.prototype.setClientID = function(client_id){
   this.getModel().client_id = client_id;
   goog.dom.forms.setValue(goog.dom.getElement( this.makeId('order_entry_client_id')));
 };
@@ -432,14 +533,14 @@ bitex.ui.OrderEntry.prototype.setClientID = function(client_id){
 /**
  * @return {number}
  */
-bitex.ui.OrderEntry.prototype.getPrice = function(){
+bitex.ui.SimpleOrderEntry.prototype.getPrice = function(){
   return this.getModel().price;
 };
 
 /**
  * @return {number}
  */
-bitex.ui.OrderEntry.prototype.getAmount = function(){
+bitex.ui.SimpleOrderEntry.prototype.getAmount = function(){
   return this.getModel().amount;
 };
 
