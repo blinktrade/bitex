@@ -142,6 +142,13 @@ bitex.app.BlinkTrade.prototype.url_;
 bitex.app.BlinkTrade.prototype.conn_;
 
 /**
+ * @type {goog.Timer}
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.timer_;
+
+
+/**
  * @type {Object}
  * @private
  */
@@ -366,6 +373,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.SECURITY_LIST, this.onSecurityList_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_OK, this.onUserLoginOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_ERROR, this.onUserLoginError_);
+
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.HEARTBEAT, this.onHearBeat_);
 
   handler.listen(this.views_, bitex.view.View.EventType.CHANGE_PASSWORD, this.onUserChangePassword_ );
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.CHANGE_PASSWORD_RESPONSE, this.onChangePasswordResponse_);
@@ -1982,6 +1991,18 @@ bitex.app.BlinkTrade.prototype.onUserLoginOk_ = function(e) {
 };
 
 
+
+bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
+
+  var msg = e.data;
+
+  var d = new Date(msg['SendTime']);
+  var d1 = new Date(msg['TransactTime']);
+
+  console.log(d, ' - ', d1);
+
+};
+
 /**
  * @param {bitex.api.BitExEvent} e
  */
@@ -2402,6 +2423,19 @@ bitex.app.BlinkTrade.prototype.onConnectionOpen_ = function(e){
       }
     }
   }
+
+  var handler = this.getHandler();
+  this.timer_ = new goog.Timer(30000);
+  handler.listen( this.timer_, goog.Timer.TICK, this.onTimerHeartBeat_ );
+  this.timer_.start();
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onTimerHeartBeat_ = function(e){
+  this.conn_.sendHearBeat();
 };
 
 /**
