@@ -14,3 +14,6 @@ jQuery.mobile = function () {};
 jQuery.mobile.prototype.changePage = function(to, opt_options) {};
 
 
+
+jQuery.mobile.prototype.activePage = function() {};
+
