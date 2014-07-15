@@ -449,7 +449,7 @@ bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
   var username = goog.dom.forms.getValue( goog.dom.getElement('id_login_username') );
   var password = goog.dom.forms.getValue( goog.dom.getElement('id_login_password') );
 
-  this.model_.set('Password',  e.target.getPassword() );
+  this.model_.set('Password',  password);
   this.conn_.login(username, password);
 };
 
