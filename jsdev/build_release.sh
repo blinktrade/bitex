@@ -97,6 +97,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --compiler_flags="--externs=./externs/jquery-1.9.js" \
   --compiler_flags="--externs=./externs/twitter-bootstrap.js" \
   --compiler_flags="--externs=./externs/parsley.js" \
+  --compiler_flags="--externs=./externs/jquerymobile-1.4.3.js" \
   --compiler_flags="--externs=./externs/sticky.js" \
   --compiler_flags="--debug=TRUE" \
   --compiler_flags="--formatting=PRETTY_PRINT" \
@@ -115,6 +116,8 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
 #python ./closure-library/closure/bin/build/closurebuilder.py  \
 #  --root=./closure-library/ \
 #  --root=./closure-bootstrap/javascript/ \
+#  --root=./scottlogic/ \
+#  --root=./uniform/ \
 #  --root=./bitex \
 #  --namespace=bitex.app.BlinkTrade \
 #  --output_mode=compiled \
@@ -127,6 +130,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
 #  --compiler_flags="--externs=./externs/jquery-1.9.js" \
 #  --compiler_flags="--externs=./externs/twitter-bootstrap.js" \
 #  --compiler_flags="--externs=./externs/parsley.js" \
+# --compiler_flags="--externs=./externs/jquerymobile-1.4.3.js" \
 #  --compiler_flags="--externs=./externs/sticky.js" \
 #  --compiler_flags="--externs=./externs/facebook_javascript_sdk.js" \
 #  --compiler_flags="--translations_project='bitex'" \
@@ -143,6 +147,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --root=./closure-library/ \
   --root=./closure-bootstrap/javascript/ \
   --root=./scottlogic/ \
+  --root=./uniform/ \
   --root=./bitex \
   --namespace=bitex.app.MerchantApp \
   --output_mode=compiled \

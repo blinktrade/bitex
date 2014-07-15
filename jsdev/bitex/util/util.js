@@ -404,23 +404,19 @@ bitex.util.calculatePriceAmountAndFee = function(user_input, verb, order_depth, 
   return undefined;
 };
 
-/**
- * @param {Element} element
- * @return {boolean}
- */
-bitex.util.validateForm = function(element){
-
-}
 
 bitex.util.isValidAddress = function(address) {
-  var decoded = bitex.util.base58Decode(address);
+  // TODO: Check if the bitcoin address is valid or not
 
-  var checksum = decoded.substr(decoded.length - 4);
-  var rest = decoded.substr(0, decoded.length - 4);
+  //var decoded = bitex.util.base58Decode(address);
 
-  var good_checksum = bitex.util.hex2a(bitex.util.sha256_digest(bitex.util.hex2a(bitex.util.sha256_digest(rest)))).substr(0, 4);
+  //var checksum = decoded.substr(decoded.length - 4);
+  //var rest = decoded.substr(0, decoded.length - 4);
 
-  return (checksum == good_checksum);
+  //var good_checksum = bitex.util.hex2a(bitex.util.sha256_digest(bitex.util.hex2a(bitex.util.sha256_digest(rest)))).substr(0, 4);
+
+  //return (checksum == good_checksum);
+  return true;
 };
 
 bitex.util.sha256_digest = function(data) {
