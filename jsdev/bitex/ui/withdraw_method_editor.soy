@@ -22,6 +22,15 @@
             <option value="client" {if $data['type'] == 'text'}selected{/if}>{msg desc="Text option on type select"}Text{/msg}</option>
         </select>
     </td>
+
+    <td>
+        <select id="{$id}_field_{$idx}_validator" class="withdraw-method-editor-field-validator">
+            <option value="required" {if $data['validator'] == 'required'}selected{/if} >Required</option>
+            <option value="email" {if $data['validator'] == 'validateEmail'}selected{/if} >Email</option>
+            <option value="btc_address" {if $data['validator'] == 'validateAddress'}selected{/if}  >BTC Address</option>
+        </select>
+    </td>
+
     <td><input id="{$id}_field_{$idx}_value" type="text" class="input-block-level withdraw-method-editor-field-value" placeholder="" value="{$data['value']}"></td>
     <td><button id="{$id}_field_{$idx}_delete" data-index="{$idx}" class="btn btn-mini btn-danger withdraw-method-editor-field-action-delete withdraw-method-editor-field-action">{msg desc="Field delete action"}delete{/msg}</button></td>
   </tr>
@@ -86,6 +95,7 @@
                     <th> {msg desc="Method field header"}Label{/msg} </th>
                     <th> {msg desc="Method field header"}Placeholder{/msg} </th>
                     <th> {msg desc="Method field header"}Type{/msg} </th>
+                    <th> {msg desc="Method field header"}Validator{/msg} </th>
                     <th> {msg desc="Method field header"}Value{/msg} </th>
                     <th> {msg desc="Method field header"}Actions{/msg} </th>
                 </tr>
