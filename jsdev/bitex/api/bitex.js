@@ -523,6 +523,13 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case '8':  //Execution Report
+      if (!goog.isDefAndNotNull(msg['Volume'])) {
+        if (goog.isDefAndNotNull(msg['AvgPx']) && msg['AvgPx'] > 0)   {
+          msg['Volume'] = msg['CumQty'] * msg['AvgPx'] / 1e8;
+        } else {
+          msg['Volume'] = 0;
+        }
+      }
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.EXECUTION_REPORT, msg) );
       break;
   }
@@ -564,7 +571,7 @@ bitex.api.BitEx.prototype.sendHearBeat = function(){
   var d = new Date();
 
   var msg = {
-    'MsgType': '0',
+    'MsgType':'0',
     'TestReqID': reqId,
     'SendTime': d.getTime()
   };

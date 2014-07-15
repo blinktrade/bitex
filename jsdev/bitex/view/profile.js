@@ -27,6 +27,7 @@ goog.inherits(bitex.view.ProfileView, bitex.view.View);
  */
 bitex.view.ProfileView.prototype.change_password_;
 
+
 /**
  * The events fired
  * @enum {string} The event types
@@ -40,8 +41,9 @@ bitex.view.ProfileView.EventType = {
 bitex.view.ProfileView.prototype.enterView = function() {
   goog.base(this, 'enterView');
   var model = this.getApplication().getModel();
-  if (model.get('IsBroker') ) {
+  var handler = this.getHandler();
 
+  if (model.get('IsBroker') ) {
 
     var withdraw_methods = new bitex.ui.WithdrawMethods();
     var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
@@ -80,7 +82,6 @@ bitex.view.ProfileView.prototype.enterView = function() {
     this.addChild(withdraw_methods, true);
     withdraw_methods.enterDocument();
   } else {
-    var handler = this.getHandler();
 
     var customer = {};
     customer['ID'] = model.get('Profile')['UserID'];
@@ -99,8 +100,6 @@ bitex.view.ProfileView.prototype.enterView = function() {
   this.change_password_.enterDocument();
 
   handler.listen(this, bitex.ui.ChangePassword.EventType.CHANGE_PASSWORD, this.onChangePassword_);
-
-
 };
 
 /**
@@ -273,7 +272,7 @@ bitex.view.ProfileView.prototype.onEditMethod_ = function(e) {
   dialog_.addChild(withdraw_method_editor, true);
   dialog_.setButtonSet( buttonSet);
   dialog_.setVisible(true);
-  goog.style.setWidth(dialog_.getElement(), 700);
+  goog.style.setWidth(dialog_.getElement(), 850);
 };
 
 
@@ -293,4 +292,5 @@ bitex.view.ProfileView.prototype.onAddMethod_ = function(e) {
 bitex.view.ProfileView.prototype.getCode = function() {
   return goog.dom.forms.getValue( goog.dom.getElement('id_second_step_verification'));
 };
+
 

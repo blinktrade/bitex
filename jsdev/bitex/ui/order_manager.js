@@ -80,6 +80,11 @@ var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_BUY = goog.getMsg('Buy');
  */
 var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_SELL = goog.getMsg('Sell');
 
+/**
+ * @desc cancel order button on order manager component
+ */
+var MSG_ORDER_MANAGER_ACTION_CANCEL_ORDER = goog.getMsg('cancel');
+
 
 /**
  * @param {string} opt_mode. Defaults to advanced mode
@@ -126,15 +131,18 @@ bitex.ui.OrderManager = function(opt_mode, opt_blinkDelay, opt_domHelper) {
       'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS,
       'sortable': false,
       'formatter': function(id, row_set_obj){
-        var classes = "icon-remove";
-        var attributes = { 'class':classes, 'data-client-order-id': id } ;
+        var classes = "btn btn-mini btn-danger";
+        var attributes = { 'class':classes, 'data-action':'cancel', 'data-client-order-id': id } ;
 
         if ( goog.isDefAndNotNull(row_set_obj) ) {
           attributes['data-order-id'] = row_set_obj["OrderID"];
+
+          if (row_set_obj["LeavesQty"] == 0) {
+            return "";
+          }
         }
 
-        var i =goog.dom.createDom( 'i', attributes );
-        return goog.dom.createDom( 'a', { 'class':"btn btn-mini btn-danger"}, i);
+        return goog.dom.createDom( 'a', attributes, MSG_ORDER_MANAGER_ACTION_CANCEL_ORDER );
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
     }
@@ -199,15 +207,18 @@ bitex.ui.OrderManager = function(opt_mode, opt_blinkDelay, opt_domHelper) {
       'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS,
       'sortable': false,
       'formatter': function(id, row_set_obj){
-        var classes = "icon-remove";
-        var attributes = { 'class':classes, 'data-client-order-id': id } ;
+        var classes = "btn btn-mini btn-danger";
+        var attributes = { 'class':classes, 'data-action':'cancel', 'data-client-order-id': id } ;
 
         if ( goog.isDefAndNotNull(row_set_obj) ) {
           attributes['data-order-id'] = row_set_obj["OrderID"];
+
+          if (row_set_obj["LeavesQty"] == 0) {
+            return "";
+          }
         }
 
-        var i =goog.dom.createDom( 'i', attributes );
-        return goog.dom.createDom( 'a', { 'class':"btn btn-mini btn-danger"}, i);
+        return goog.dom.createDom( 'a', attributes, MSG_ORDER_MANAGER_ACTION_CANCEL_ORDER );
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
     }

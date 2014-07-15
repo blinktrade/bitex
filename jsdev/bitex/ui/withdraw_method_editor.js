@@ -79,7 +79,7 @@ bitex.ui.WithdrawMethodEditor.prototype.onAddField_ = function(e) {
   wrapper.innerHTML = bitex.ui.withdraw_method_editor.templates.WithdrawMethodFieldLineEditor({
     id: this.makeId('form'),
     idx: '',
-    data: { 'side': 'client', 'name':'', 'label':'', 'placeholder':'', 'type':'', 'value':'' }
+    data: { 'side': 'client', 'name':'', 'validator':'', 'label':'', 'placeholder':'', 'type':'', 'value':'' }
   });
   goog.dom.appendChild( table_tbody_el, wrapper.firstChild );
 };

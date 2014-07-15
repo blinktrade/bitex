@@ -120,7 +120,7 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
 
   this.request_id_ = parseInt( 1e7 * Math.random() , 10 );
 
-  this.ledger_table_ =  new bitex.ui.LedgerActivity(button_filters);
+  this.ledger_table_ =  new bitex.ui.LedgerActivity(button_filters, model.get('IsBroker') );
 
   handler.listen(this.ledger_table_,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,

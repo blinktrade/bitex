@@ -244,6 +244,8 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
   */
   this.order_manager_table_.setColumnFormatter('AvgPx', this.avgPriceFormatter_, this);
   this.order_manager_table_.setColumnFormatter('Volume', this.priceFormatter_, this);
+  handler.listen(this.order_manager_table_.getElement(), goog.events.EventType.CLICK, this.onCancelOrder_ );
+
 
   this.market_data_subscription_id_ = parseInt( 1e7 * Math.random() , 10 );
   this.market_data_subscription_symbol_ = selected_symbol.symbol;
@@ -488,13 +490,32 @@ bitex.view.TradingView.prototype.getClientOrderId = function() {
  * @private
  */
 bitex.view.TradingView.prototype.onSimpleOrderAction_ = function(e) {
-  console.log('onSimpleOrderAction_');
+
+};
+
+
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
+bitex.view.TradingView.prototype.onCancelOrder_ = function(e) {
+  console.log('bitex.view.TradingView.prototype.onCancelOrder_');
+  if (e.target.getAttribute('data-action') == 'cancel') {
+    e.stopPropagation();
+    e.preventDefault();
+
+    this.order_id_        = e.target.getAttribute('data-order-id');
+    this.client_order_id_ = e.target.getAttribute('data-client-order-id');
+
+    this.dispatchEvent(bitex.view.View.EventType.CANCEL_ORDER);
+  }
 };
 
 
 
 /**
  * @param {bitex.api.BitExEvent} e
+ * @private
  */
 bitex.view.TradingView.prototype.onExecutionReport_ = function(e){
   if (!goog.isDefAndNotNull(this.order_manager_table_) ) {
@@ -502,13 +523,6 @@ bitex.view.TradingView.prototype.onExecutionReport_ = function(e){
   }
 
   this.order_manager_table_.processExecutionReport(e.data);
-  /*
-  var execution_report_msg = e.data;
-  if (execution_report_msg['LeavesQty'] === 0 ) {
-    var client_order_id =  execution_report_msg['ClOrdID'];
-    this.order_manager_table_.removeOrder(client_order_id);
-  }
-  */
 };
 
 
