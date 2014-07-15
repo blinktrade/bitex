@@ -39,8 +39,6 @@ bitex.model.Model = function(element, opt_map, var_args){
 
   this.map_ = new goog.structs.Map(opt_map, var_args);
 
-  console.log(" Model ");
-
 };
 goog.inherits(bitex.model.Model, goog.events.EventTarget);
 

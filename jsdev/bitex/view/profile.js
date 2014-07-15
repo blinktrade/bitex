@@ -237,7 +237,7 @@ bitex.view.ProfileView.prototype.onDeleteMethod_ = function(e) {
   } );
 
 
-  console.log('deleted ' + currency + ',' + withdraw_method  );
+  //console.log('deleted ' + currency + ',' + withdraw_method  );
   delete model.get('Profile')['WithdrawStructure'][currency][idx];
 };
 
@@ -282,7 +282,7 @@ bitex.view.ProfileView.prototype.onEditMethod_ = function(e) {
  */
 bitex.view.ProfileView.prototype.onAddMethod_ = function(e) {
   var currency = e.target.getSelectedCurrency();
-  console.log('adding withdraw method for ' + currency )
+  //console.log('adding withdraw method for ' + currency )
 };
 
 

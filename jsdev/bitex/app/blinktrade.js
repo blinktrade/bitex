@@ -231,7 +231,6 @@ bitex.app.BlinkTrade.prototype.createHtmlTemplates_ = function() {
 bitex.app.BlinkTrade.prototype.getHandler = function() {
   return this.handler_ ||
       (this.handler_ = new goog.events.EventHandler(this));
-
 };
 
 /**
@@ -999,7 +998,6 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
   var total_fees_element_id = goog.string.getRandomString();
   var net_value_element_id = goog.string.getRandomString();
 
-  console.log( 'onBrokerProcessWithdraw_:' + action);
 
   if (action === 'CANCEL') {
 
@@ -1219,8 +1217,6 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
  * @private
  */
 bitex.app.BlinkTrade.prototype.onUserOrderEntry_ = function(e){
-  console.log('bitex.app.BlinkTrade.prototype.onUserOrderEntry_');
-
   /**
    * @desc notification for send order request
    */
@@ -1998,10 +1994,9 @@ bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
   var msg = e.data;
 
   var sent = new Date(msg['SendTime']);
-  //var server = new Date(msg['TransactTime']);
   var just_now = new Date(Date.now());
 
-  console.log('heartbeat latency": ', just_now - sent, 'ms');
+  this.getModel().set('latency', just_now - sent );
 };
 
 /**
@@ -2429,6 +2424,7 @@ bitex.app.BlinkTrade.prototype.onConnectionOpen_ = function(e){
   this.timer_ = new goog.Timer(30000);
   handler.listen( this.timer_, goog.Timer.TICK, this.onTimerHeartBeat_ );
   this.timer_.start();
+  this.conn_.sendHearBeat();
 };
 
 /**

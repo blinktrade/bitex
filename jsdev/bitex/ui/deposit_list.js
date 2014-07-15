@@ -123,7 +123,6 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
               return true;
             }
           });
-          console.log(goog.debug.deepExpose(crypto_currency_def));
 
           if (goog.isDefAndNotNull(crypto_currency_def)) {
             if (goog.isDefAndNotNull(rowSet['PaidValue']) && rowSet['PaidValue'] > 0 ) {

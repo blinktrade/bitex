@@ -495,7 +495,7 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
             e.stopPropagation();
 
             var verification_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
-            console.log(goog.debug.deepExpose(verification_data));
+            //console.log(goog.debug.deepExpose(verification_data));
 
             if ( goog.isDefAndNotNull(verification_data['VerificationData']) &&
                 !goog.string.isEmpty(verification_data['VerificationData']) ) {

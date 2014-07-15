@@ -499,7 +499,6 @@ bitex.view.TradingView.prototype.onSimpleOrderAction_ = function(e) {
  * @private
  */
 bitex.view.TradingView.prototype.onCancelOrder_ = function(e) {
-  console.log('bitex.view.TradingView.prototype.onCancelOrder_');
   if (e.target.getAttribute('data-action') == 'cancel') {
     e.stopPropagation();
     e.preventDefault();

@@ -58,19 +58,20 @@
            	<h1></h1>
             <img src="/images/blinktrade.png" width="50%">
            </div>
-           <form method="post">
+           <form>
                 <table width="100%" border="0">
                       <tr>
-                        <td> <label for="username">Username:</label></td>
-                        <td><input type="text" name="username" id="username"></td>
+                        <td> <label for="id_login_username">Username:</label></td>
+                        <td><input type="text" name="username" id="id_login_username"></td>
                       </tr>
                       <tr>
-                        <td><label for="username">Password:</label></td>
-                        <td><input type="password" name="pwd" id="pwd"></td>
+                        <td><label for="id_login_password">Password:</label></td>
+                        <td><input type="password" name="pwd" id="id_login_password"></td>
                       </tr>
                  </table>
                  
-                 <a href="#menu" class="ui-btn" value="login">Login</a>
+                 <button id="id_login_btn_login" class="ui-btn">Login</button>
+                 <span class="bitex-model" data-model-key="latency" style="display: none" ></span>
            </form>
 
        </div>
@@ -461,17 +462,11 @@
 
 </body>
 
-<!--<script>-->
-  <!--$( document ).ready(function() {-->
-    <!--var app = new MerchantApp();-->
-    <!--app.run();-->
-  <!--});-->
-<!--</script>-->
-
-
 <script>
-  var app = new MerchantApp();
-  app.run();
+  $( document ).ready(function() {
+    var app = new MerchantApp();
+    app.run();
+  });
 </script>
 
 </html>
