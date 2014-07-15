@@ -44,6 +44,12 @@ var MSG_LEDGER_ACTIVITY_TABLE_COLUMN_OPERATION = goog.getMsg('Operation');
 var MSG_LEDGER_ACTIVITY_TABLE_COLUMN_DESCRIPTION = goog.getMsg('Description');
 
 /**
+ * @desc Column Account Name of the Ledger Activity
+ */
+var MSG_LEDGER_ACTIVITY_TABLE_COLUMN_ACCOUNT_NAME = goog.getMsg('Account');
+
+
+/**
  * @desc Column Payee of the Ledger Activity
  */
 var MSG_LEDGER_ACTIVITY_TABLE_COLUMN_PAYEE = goog.getMsg('Payee');
@@ -51,11 +57,18 @@ var MSG_LEDGER_ACTIVITY_TABLE_COLUMN_PAYEE = goog.getMsg('Payee');
 
 /**
  * @param {*} button_filters
+ * @param {boolean} opt_broker_mode
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
- * @extends {goog.ui.Component}
+ * @extends {bitex.ui.DataGrid}
  */
-bitex.ui.LedgerActivity = function(button_filters, opt_domHelper) {
+bitex.ui.LedgerActivity = function(button_filters, opt_broker_mode, opt_domHelper) {
+  var broker_mode = false;
+  if (opt_broker_mode === true) {
+    broker_mode = opt_broker_mode;
+  }
+
+
   var grid_columns = [
     {
       'property': 'Created',
@@ -95,16 +108,22 @@ bitex.ui.LedgerActivity = function(button_filters, opt_domHelper) {
         /**
          * @desc Ledger trade  description
          */
-        var MSG_LEDGER_TRADE_DESCRIPTION = goog.getMsg('Trade against {$payee}', {
-          payee: rowSet['PayeeName']
-        });
+        var MSG_LEDGER_TRADE_DESCRIPTION = goog.getMsg('Trade');
 
         /**
          * @desc Ledger trade fee description
          */
         var MSG_LEDGER_TRADE_FEE_DESCRIPTION = goog.getMsg('Fee on trade');
 
+
+        /**
+         * @desc Ledger trade  description
+         */
+        var MSG_LEDGER_TRADE_BONUS_DESCRIPTION = goog.getMsg('Bonus');
+
         switch(s) {
+          case 'B':
+            return MSG_LEDGER_TRADE_BONUS_DESCRIPTION;
           case 'D':
             return MSG_LEDGER_DEPOSIT_DESCRIPTION;
           case 'DF':
@@ -121,6 +140,11 @@ bitex.ui.LedgerActivity = function(button_filters, opt_domHelper) {
       },
       'classes': function() { return goog.getCssName(bitex.ui.LedgerActivity.CSS_CLASS, 'description'); }
     },{
+      'property': 'PayeeName',
+      'label': MSG_LEDGER_ACTIVITY_TABLE_COLUMN_PAYEE,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.DepositList.CSS_CLASS, 'payee'); }
+    },{
       'property': 'Amount',
       'label': MSG_LEDGER_ACTIVITY_TABLE_COLUMN_AMOUNT,
       'sortable': false,
@@ -132,8 +156,6 @@ bitex.ui.LedgerActivity = function(button_filters, opt_domHelper) {
       'classes': function() { return goog.getCssName(bitex.ui.LedgerActivity.CSS_CLASS, 'balance'); }
     }
   ];
-
-
 
   /**
    * @desc deposit table title

@@ -12,6 +12,7 @@ from bitex.errors import OrderNotFound
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
+from sqlalchemy import desc
 from sqlalchemy.sql.expression import and_, or_, exists
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint
 from sqlalchemy.orm import  relationship, backref
@@ -490,7 +491,7 @@ class Ledger(Base):
                                      Ledger.reference == filter
                                      ))
 
-    query = query.order_by(Ledger.created)
+    query = query.order_by(desc(Ledger.created))
 
     if page_size:
       query = query.limit(page_size)
