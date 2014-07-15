@@ -149,6 +149,7 @@ bitex.app.MerchantApp.prototype.onConnectionOpen_ = function(e){
   // auto login in case of the user reconnecting
   var username = this.getModel().get('Username');
   var password = this.getModel().get('Password');
+
   if (goog.isDefAndNotNull(username) && goog.isDefAndNotNull(password)) {
     if (!goog.string.isEmpty(username) && !goog.string.isEmpty(password) ) {
       if (password.length >= 8 ) {
