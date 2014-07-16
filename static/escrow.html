@@ -155,37 +155,37 @@
              <ul data-role="listview" data-inset="true">
                 <li class="ui-field-contain">
                     <label for="id_signup_username">Username:</label>
-                    <input type="text" placeholder="Your username will be public available to everybody." name="Username" id="id_signup_username" value="" data-clear-btn="true">
+                    <input type="text" uniform-validators="required; validatePhrase_" placeholder="Your username will be public available to everybody." name="Username" id="id_signup_username" value="" data-clear-btn="true">
                     <br />
                 </li>
                 <li class="ui-field-contain">
                     <label for="id_signup_email">Email:</label>
-                    <input type="email" placeholder="Email" name="email" id="id_signup_email" value="" data-clear-btn="true">
+                    <input type="email" uniform-validators="required; validateEmail" placeholder="Email" name="email" id="id_signup_email" value="" data-clear-btn="true">
                     <br />
                 </li>
 
                   <li class="ui-field-contain">
                     <label for="id_signup_password">Password:</label>
-                    <input type="password" placeholder="Password" name="pwd" id="id_signup_password" value="" data-clear-btn="true">
+                    <input type="password" uniform-validators="required" placeholder="Password" name="pwd" id="id_signup_password" value="" data-clear-btn="true">
                     <br />
                 </li>
 
                  <li class="ui-field-contain">
                     <label for="id_signup_password_2">Confirm your password:</label>
-                    <input type="password" placeholder="Confirm your password" name="pwd2" id="id_signup_password_2" value="" data-clear-btn="true">
+                    <input type="password" uniform-validators="required" placeholder="Confirm your password" name="pwd2" id="id_signup_password_2" value="" data-clear-btn="true">
                     <br />
                 </li>
 
                 <li class="ui-field-contain">
-                    <select placeholder="Country" name="Country" id="id_signup_country"></select>
+                    <select placeholder="Country" uniform-validators="required" name="Country" id="id_signup_country"></select>
                 </li>
 
-               <li class="ui-field-contain">
-                    <select placeholder="State or Province" name="State" id="id_signup_state"></select>
-                </li>
+                  <li class="ui-field-contain">
+                      <select placeholder="State or Province" name="State" id="id_signup_state"></select>
+                  </li>
 
                 <li>
-                    <select placeholder="Broker" name="Broker" id="id_signup_broker"></select>
+                    <select placeholder="Broker" uniform-validators="required" name="Broker" id="id_signup_broker"></select>
                 </li>
 
              </ul>
