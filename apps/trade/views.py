@@ -395,7 +395,7 @@ def processSignup(session, msg):
       'MsgType': 'BF',
       'Username': '',
       'UserStatus': 3,
-      'UserStatusText': u'Username already taken!'
+      'UserStatusText': u'Username or email already taken!'
     }
     application.db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
