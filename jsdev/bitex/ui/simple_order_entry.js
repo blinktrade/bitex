@@ -307,6 +307,7 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
                                                             this.getModel().fee);
 
   if (!goog.isDefAndNotNull(price_amount_fee)) {
+    this.disableActions_(false);
     return;
   }
   this.getModel().price = price_amount_fee[0];
@@ -360,6 +361,7 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
                                                            this.getModel().fee);
 
   if (!goog.isDefAndNotNull(price_amount_fee)) {
+    this.disableActions_(false);
     return;
   }
   this.getModel().price = price_amount_fee[0];
