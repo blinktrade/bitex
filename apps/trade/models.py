@@ -19,6 +19,7 @@ from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 import json
 
+from copy import deepcopy
 from bitex.json_encoder import JsonEncoder
 
 from tornado.options import  options
@@ -870,7 +871,7 @@ class UserEmail(Base):
     session.add(user_email)
     session.flush()
 
-    msg = {
+    user_msg = {
       'MsgType'       : 'C',
       'EmailThreadID' : user_email.id,
       'OrigTime'      : user_email.created,
@@ -883,7 +884,9 @@ class UserEmail(Base):
       'Template'      : '',
       'Params'        : '{}'
     }
-    application.publish( user_id, msg )
+    application.publish( user_id, user_msg )
+
+    msg = deepcopy( user_msg )
 
     if body:
       msg['RawData'] = body
@@ -898,9 +901,7 @@ class UserEmail(Base):
     if params:
       msg['Params'] = params
 
-
     application.publish( 'EMAIL' , msg )
-
     return  user_email
 
 class Withdraw(Base):

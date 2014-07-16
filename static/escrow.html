@@ -22,7 +22,7 @@
 
 </head>
 <body>
-
+    <div id="id_notifications" class="notifications top-right" style="z-index: 9000;"></div>
 
     <div data-role="page" id="preLoad">
 
@@ -101,15 +101,15 @@
            	<h1></h1>
             <img src="/images/blinktrade.png" width="50%">
            </div>
-           <form>
+           <form id="id_form_login">
                 <table width="100%" border="0">
-                      <tr>
-                        <td> <label for="id_login_username">Username:</label></td>
-                        <td><input type="text" name="username" id="id_login_username"></td>
+                      <tr class="ctrlHolder">
+                        <td><label for="id_login_username">Username:</label></td>
+                        <td><input type="text" name="username" id="id_login_username" uniform-validators="required; validatePhrase" ></td>
                       </tr>
-                      <tr>
+                      <tr class="ctrlHolder">
                         <td><label for="id_login_password">Password:</label></td>
-                        <td><input type="password" name="pwd" id="id_login_password"></td>
+                        <td><input type="password" name="pwd" id="id_login_password" uniform-validators="required"></td>
                       </tr>
                  </table>
                  
