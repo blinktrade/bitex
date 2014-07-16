@@ -46,7 +46,7 @@
             <h1></h1>
             <img src="/images/blinktrade.png" width="50%">
             <br />
-            <p> Your Account is not verification, waiting 24h...</p>
+            <p> Your Account is not active, waiting 24h...</p>
         </div>
 
     </div>
@@ -75,7 +75,7 @@
             <img src="/images/blinktrade.png" width="50%">
             <br />
             <p> Your password is wrong!</p>
-            <button  >Back Login</button>
+            <a href="#login" class="ui-btn">Back Login</a>
 
         </div>
 
@@ -135,7 +135,7 @@
 	-->
 
     <div data-role="page" id="signup">
-
+      <form>
         <div data-role="header">
                 <h1>Sign up</h1>
                <a href="#login" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
@@ -154,56 +154,52 @@
 
              <ul data-role="listview" data-inset="true">
                 <li class="ui-field-contain">
-                    <label for="username">Username:</label>
-                    <input type="text" placeholder="Your username will be public available to everybody." name="firsname" id="firsname" value="" data-clear-btn="true">
+                    <label for="id_signup_username">Username:</label>
+                    <input type="text" placeholder="Your username will be public available to everybody." name="Username" id="id_signup_username" value="" data-clear-btn="true">
                     <br />
                 </li>
                 <li class="ui-field-contain">
-                    <label for="email">Email:</label>
-                    <input type="email" placeholder="Email" name="email" id="email" value="" data-clear-btn="true">
+                    <label for="id_signup_email">Email:</label>
+                    <input type="email" placeholder="Email" name="email" id="id_signup_email" value="" data-clear-btn="true">
                     <br />
                 </li>
 
                   <li class="ui-field-contain">
-                    <label for="pwd">Password:</label>
-                    <input type="password" placeholder="Password" name="pwd" id="pwd" value="" data-clear-btn="true">
+                    <label for="id_signup_password">Password:</label>
+                    <input type="password" placeholder="Password" name="pwd" id="id_signup_password" value="" data-clear-btn="true">
                     <br />
                 </li>
 
                  <li class="ui-field-contain">
-                    <label for="pwd2">Confirm your password:</label>
-                    <input type="password" placeholder="Confirm your password" name="pwd2" id="pwd2" value="" data-clear-btn="true">
+                    <label for="id_signup_password_2">Confirm your password:</label>
+                    <input type="password" placeholder="Confirm your password" name="pwd2" id="id_signup_password_2" value="" data-clear-btn="true">
                     <br />
                 </li>
 
                 <li class="ui-field-contain">
-                    <select placeholder="Country" name="country" id="country">country
-                    <option value="1">Country</option>
-                    </select>
-                    <br />
-
-                    <select placeholder="Broker" name="Broker" id="Broker">Broker
-                    <option value="1">Broker</option>
-                    </select>
-                    <br />
-
+                    <select placeholder="Country" name="Country" id="id_signup_country"></select>
                 </li>
 
+               <li class="ui-field-contain">
+                    <select placeholder="State or Province" name="State" id="id_signup_state"></select>
+                </li>
+
+                <li>
+                    <select placeholder="Broker" name="Broker" id="id_signup_broker"></select>
+                </li>
 
              </ul>
 
+              <li class="ui-field-contain">Terms of service <h1></h1>
+                  <input type="checkbox" name="terms" id="id_signup_terms" >
+                  <br />
+                  <label> I agree with terms terms of service.</label>
+              </li>
 
-
-                <li class="ui-field-contain">Terms of service <h1></h1>
-                    <input type="checkbox" name="terms" id="terms" checked="">
-                    <br />
-                    I agree with terms terms of service.
-                </li>
-
-            <a href="#login" class="ui-btn" value="confirm">Confirm</a>
+            <button href="#" class="ui-btn" id="id_signup_confirm">Confirm</button>
 
         </div>
-
+      </form>
     </div>
 
 	<!--
