@@ -254,6 +254,24 @@ bitex.ui.SimpleOrderEntry.prototype.onActionSimple_ = function(e) {
   this.dispatchEvent( bitex.ui.SimpleOrderEntry.EventType.SUBMIT);
 };
 
+bitex.ui.SimpleOrderEntry.prototype.disableActions_ = function(enabled) {
+
+  var action_button = new goog.ui.Button();
+  action_button.decorate(goog.dom.getElement( this.makeId('order_entry_action_simple')));
+  action_button.setEnabled(enabled);
+
+  if ( enabled ) {
+      goog.dom.setTextContent(  goog.dom.getElement( this.makeId('order_entry_avg_price') ), "" );
+  }
+  else {
+      /**
+       * @desc no orders available to provide market liquidity ( simple order entry )
+      */
+      var MSG_NO_LIQUIDITY_ERROR = goog.getMsg('  ** No liquidity, please switch to advanced mode');
+
+      goog.dom.setTextContent(  goog.dom.getElement( this.makeId('order_entry_avg_price') ), MSG_NO_LIQUIDITY_ERROR );
+  }
+}
 
 /**
  * @param {goog.events.Event} e
@@ -262,13 +280,15 @@ bitex.ui.SimpleOrderEntry.prototype.onActionSimple_ = function(e) {
 bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
   this.last_changed_field_ = 'qty';
 
+  this.disableActions_(true);
+
   if (!goog.isDefAndNotNull(this.order_depth_)) {
-    // TODO: Inform the user that he will have to use the advanced method
+    this.disableActions_(false);
     return;
   }
 
   if (!this.order_depth_.length) {
-    // TODO: Inform the user that he will have to use the advanced method
+    this.disableActions_(false);
     return;
   }
 
@@ -319,13 +339,15 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
 bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
   this.last_changed_field_ = 'total';
 
+  this.disableActions_(true);
+
   if (!goog.isDefAndNotNull(this.order_depth_)) {
-    // TODO: Inform the user that he will have to use the advanced method
+    this.disableActions_(false);
     return;
   }
 
   if (!this.order_depth_.length) {
-    // TODO: Inform the user that he will have to use the advanced method
+    this.disableActions_(false);
     return;
   }
 

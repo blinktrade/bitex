@@ -46,13 +46,9 @@
     <div class="span2">
       <div class="row-fluid">
         {if $side == 1}
-          <a  id="{$id}_action_simple" href="#" class="btn btn-large btn-success order-entry-action span12">
-            {msg desc="Buy button in Order Entry"}BUY{/msg}
-          </a>
+          <button id="{$id}_action_simple" class="btn btn-large btn-success order-entry-action span12">{msg desc="Buy button in Order Entry"}BUY{/msg}</button>
         {else}
-          <a  id="{$id}_action_simple" href="#" class="btn btn-large btn-danger order-entry-action span12">
-            {msg desc="Buy button in Order Entry"}SELL{/msg}
-          </a>
+          <button id="{$id}_action_simple" class="btn btn-large btn-danger order-entry-action span12">{msg desc="Buy button in Order Entry"}SELL{/msg}</button>
         {/if}
       </div>
     </div>
