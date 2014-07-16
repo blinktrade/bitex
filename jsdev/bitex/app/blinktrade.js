@@ -77,6 +77,10 @@ goog.require('bitex.view.LedgerView');
 goog.require('bitex.view.ProfileView');
 goog.require('bitex.view.RankingView');
 
+goog.require('uniform.Uniform');
+goog.require('uniform.Meta');               // Switch according to the test($MODULE_NAME$)
+goog.require('uniform.Validators');         // Switch according to the test($MODULE_NAME$)
+
 
 /**
  * @param {string=} opt_default_country
@@ -234,6 +238,33 @@ bitex.app.BlinkTrade.prototype.getHandler = function() {
 };
 
 /**
+ * @param {Element} el
+ * @param {string} condition
+ * @param {number} minLength
+ * @param {string} caption
+ */
+bitex.app.BlinkTrade.validateBitcoinAddress_ = function(el, condition, minLength, caption) {
+  if (condition && !eval(condition)) {
+    return;
+  }
+
+  var elValue = goog.dom.forms.getValue(el);
+  if (!goog.isDefAndNotNull(elValue) || goog.string.isEmpty(elValue)) {
+    /** @desc Error Validade Required in Validators*/
+    var MSG_BITEX_ERROR_VALIDATE_REQUIRED = goog.getMsg("{$c} is required", {c:caption});
+    throw MSG_BITEX_ERROR_VALIDATE_REQUIRED;
+  }
+
+  if ( !bitex.util.isValidAddress( elValue ) ) {
+      /** @desc Error Validade Bitcoin Address*/
+    var MSG_BITEX_ERROR_VALIDATE_BTC_ADDRESS = goog.getMsg("{$c} typed is not a valid Bitcoin address", {c:caption});
+    throw MSG_BITEX_ERROR_VALIDATE_BTC_ADDRESS;
+  }
+};
+
+
+
+/**
  * @param {string} opt_url
  */
 bitex.app.BlinkTrade.prototype.run = function(opt_url) {
@@ -242,6 +273,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
     url = opt_url;
   }
 
+  uniform.Validators.getInstance().registerValidatorFn('validateAddress',  bitex.app.BlinkTrade.validateBitcoinAddress_);
 
   this.createHtmlTemplates_();
 
@@ -930,31 +962,37 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
         true);
   }, this);
 
-  handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+  handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
     if (e.key == 'ok') {
-      var withdraw_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
 
-      var amount = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];
-      var method = withdraw_data['Method']; delete withdraw_data['Method'];
-      var currency = withdraw_data['Currency']; delete withdraw_data['Currency'];
+      var form_element = goog.dom.getFirstElementChild(dlg.getContentElement());
 
-      this.conn_.requestWithdraw( e.target.getRequestId(),
-                                  amount,
-                                  method,
-                                  currency,
-                                  withdraw_data );
+      var uf = new uniform.Uniform();
+      uf.decorate(  form_element ) ;
+      var error_list = uf.validate();
+      if (error_list.length > 0) {
+        goog.array.forEach(error_list, function(error_msg) {
+          this.showNotification( 'error', 'Validation error:' + error_msg );
+        }, this );
+
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      else {
+        var withdraw_data = bitex.util.getFormAsJSON(form_element);
+
+        var amount = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];
+        var method = withdraw_data['Method']; delete withdraw_data['Method'];
+        var currency = withdraw_data['Currency']; delete withdraw_data['Currency'];
+
+        this.conn_.requestWithdraw( e.target.getRequestId(),
+                                    amount,
+                                    method,
+                                    currency,
+                                    withdraw_data );
+      }
     }
   }, this);
-
-  /*
-
-  this.conn_.requestWithdraw( e.target.getRequestId(),
-                              e.target.getAmount(),
-                              e.target.getMethod(),
-                              e.target.getCurrency(),
-                              e.target.getWithdrawData() );
-
-  */
 };
 
 
@@ -1990,7 +2028,6 @@ bitex.app.BlinkTrade.prototype.onUserLoginOk_ = function(e) {
 
 
 bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
-
   var msg = e.data;
 
   var sent = new Date(msg['SendTime']);
