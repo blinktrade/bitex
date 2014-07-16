@@ -492,7 +492,13 @@ bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
   var error_list = uf.validate();
   if (error_list.length > 0) {
     goog.array.forEach(error_list, function(error_msg) {
-      this.showNotification( 'error', error_msg );
+
+      /**
+       * @desc Error notification title
+       */
+      var MSG_MERCHANTAPP_VALIDATION_ERROR_NOTIFICATION_TITLE = goog.getMsg('Error');
+
+      this.showNotification( 'danger', MSG_MERCHANTAPP_VALIDATION_ERROR_NOTIFICATION_TITLE, error_msg );
     }, this );
     e.stopPropagation();
     e.preventDefault();
