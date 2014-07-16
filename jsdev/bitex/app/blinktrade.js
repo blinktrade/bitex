@@ -972,7 +972,12 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
       var error_list = uf.validate();
       if (error_list.length > 0) {
         goog.array.forEach(error_list, function(error_msg) {
-          this.showNotification( 'error', 'Validation error:' + error_msg );
+          /**
+           * @desc Withdraw  form validation error
+           */
+          var MSG_CURRENCY_WITHDRAW_VALIDATION_ERROR_NOTIFICATION = goog.getMsg('Error: {$message}',{'message': error_msg} );
+
+          this.showNotification( 'error', MSG_CURRENCY_WITHDRAW_VALIDATION_ERROR_NOTIFICATION );
         }, this );
 
         e.stopPropagation();
@@ -2043,8 +2048,7 @@ bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
   goog.dom.classes.add( document.body, 'bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
-  goog.dom.classes.remove( document.body, 'bitex-non-broker' );
-
+  goog.dom.classes.remove( document.body, 'bitex-non-broker');
 
   var msg = e.data;
 
