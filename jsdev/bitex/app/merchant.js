@@ -27,6 +27,10 @@ goog.require('goog.array');
 goog.require('goog.string');
 goog.require('goog.object');
 
+goog.require('bootstrap.Alert');
+goog.require('uniform.Uniform');
+goog.require('uniform.Meta');               // Switch according to the test($MODULE_NAME$)
+goog.require('uniform.Validators');         // Switch according to the test($MODULE_NAME$)
 
 /**
  * @param {string=} opt_default_country
@@ -175,6 +179,40 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
     console.log(e);
   }
 };
+
+/**
+ * @param {string} type
+ * @param {string} title
+ * @param {string} content
+ * @param {number} opt_display_time.  Defaults to 3000 milliseconds
+ */
+bitex.app.MerchantApp.prototype.showNotification = function(type , title, content,  opt_display_time) {
+  var display_time = 3000;
+  if ( goog.isNumber(opt_display_time) ) {
+    display_time = opt_display_time;
+  }
+
+  var alert_content = goog.dom.createDom( 'span', undefined,
+                                          [goog.dom.createDom( 'strong', undefined, title), ' ', content ] );
+
+  var notification = new bootstrap.Alert(type, alert_content, true );
+
+  notification.render( goog.dom.getElement('id_notifications') );
+
+  if (display_time > 0) {
+    var handler = this.getHandler();
+
+    goog.Timer.callOnce(function(e){
+      var anim = new goog.fx.dom.FadeOutAndHide(notification.getElement(), 200);
+      handler.listenOnce(anim, goog.fx.Transition.EventType.END, function(e) {
+        notification.dispose();
+        anim.dispose();
+      });
+      anim.play();
+    }, display_time, this);
+  }
+};
+
 
 /**
  * @param {goog.events.Event} e
@@ -491,6 +529,27 @@ bitex.app.MerchantApp.prototype.getModel = function() {
 bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
   e.preventDefault();
   e.stopPropagation();
+
+  var form_element =  goog.dom.getElement('id_form_login');
+
+  var uf = new uniform.Uniform();
+  uf.decorate(  form_element ) ;
+  var error_list = uf.validate();
+  if (error_list.length > 0) {
+    goog.array.forEach(error_list, function (error_msg) {
+
+      /**
+       * @desc Error notification title
+       */
+      var MSG_MERCHANTAPP_VALIDATION_ERROR_NOTIFICATION_TITLE = goog.getMsg('Error');
+
+      this.showNotification('danger', MSG_MERCHANTAPP_VALIDATION_ERROR_NOTIFICATION_TITLE, error_msg);
+    }, this);
+    e.stopPropagation();
+    e.preventDefault();
+
+    return;
+  }
 
   var username = goog.dom.forms.getValue( goog.dom.getElement('id_login_username') );
   var password = goog.dom.forms.getValue( goog.dom.getElement('id_login_password') );
