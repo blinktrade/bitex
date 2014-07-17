@@ -109,6 +109,7 @@ bitex.api.BitEx.EventType = {
 
   /* Withdraws */
   WITHDRAW_RESPONSE: 'withdraw_response',
+  WITHDRAW_CONFIRMATION_RESPONSE: 'withdraw_confirmation_response',
   WITHDRAW_LIST_RESPONSE: 'withdraw_list_response',
   WITHDRAW_REFRESH: 'withdraw_refresh',
   PROCESS_WITHDRAW_RESPONSE: 'process_withdraw',
@@ -349,9 +350,13 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH, msg ) );
       break;
 
-
+    case 'U25': // WithDraw Confirmation response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE + '.' + msg['WithdrawReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, msg ) );
+      break;
 
     case 'U7': // Withdraw Response
+
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE + '.' + msg['WithdrawReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
       break;
