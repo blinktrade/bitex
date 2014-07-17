@@ -2024,8 +2024,20 @@ def db_bootstrap(session):
                          ],
                          'USD': [ {
                                       'method':'paypal',
-                                      'description':'Saque direto via paypal',
+                                      'description':'paypal',
                                       'disclaimer':'Realizado na hora. O Paypal poderá cobrar taxas adicionais',
+                                      'percent_fee': 30, # 0.3 percent
+                                      'fixed_fee': 0,
+                                      'fields': [
+                                          {'side':'client',  'name': 'Email'          , 'validator':'validateEmail', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
+                                          {'side':'broker',  'name': 'TransactionID'  , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                          {'side':'broker',  'name': 'Link'           , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                          ]
+                                  },
+                                  {
+                                      'method':'cash',
+                                      'description':'cash',
+                                      'disclaimer':'someone must validate it in person',
                                       'percent_fee': 30, # 0.3 percent
                                       'fixed_fee': 0,
                                       'fields': [
