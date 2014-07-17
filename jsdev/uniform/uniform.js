@@ -803,7 +803,9 @@ uniform.Uniform.prototype.validate = function() {
       this.logger_.info(validationError);
 
       var controlHolderEl = this.findControlHolderEl_(el);
-      goog.dom.classes.add(controlHolderEl, this.getCssInvalidState());
+      if (goog.isDefAndNotNull(controlHolderEl)) {
+        goog.dom.classes.add(controlHolderEl, this.getCssInvalidState());
+      }
       errors.push(validationError);
     }
   }

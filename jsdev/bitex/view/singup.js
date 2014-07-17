@@ -41,6 +41,7 @@ bitex.view.SignupView.prototype.enterDocument = function(){
   var broker_el = goog.dom.getElement('id_signup_broker');
 
   var countries = bitex.util.getCountries();
+
   goog.object.forEach( countries, function(country_info, country_code ) {
     var country = country_info;
 

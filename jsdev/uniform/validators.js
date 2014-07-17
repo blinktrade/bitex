@@ -25,6 +25,8 @@ uniform.Validators = function() {
   this.metaMap_.set('validateAlpha'    ,this.validateAlpha_);
   this.metaMap_.set('validateAlphaNum' ,this.validateAlphaNum_);
   this.metaMap_.set('validatePhrase'   ,this.validatePhrase_);
+  this.metaMap_.set('validateUsername' ,this.validateUsername_);
+
 };
 goog.addSingletonGetter(uniform.Validators);
 
@@ -38,8 +40,7 @@ uniform.Validators.prototype.metaMap_ = null;
  * @param {string} className   CSS class name
  * @param {Array.<number,uniform.MetaFunction>} validatorFn
  */
-uniform.Validators.prototype.registerValidatorFn = function(className,
-                                                                          validatorFn){
+uniform.Validators.prototype.registerValidatorFn = function(className, validatorFn){
   this.metaMap_.set(className,validatorFn);
 };
 
@@ -47,12 +48,11 @@ uniform.Validators.prototype.registerValidatorFn = function(className,
  * @param {Element} el
  * @param {string} caption
  */
-uniform.Validators.prototype.runValidation = function(el,
-                                                                    caption){
+uniform.Validators.prototype.runValidation = function(el, caption){
   uniform.util.executeElementMetaTags(el,
-                                                    'uniform-validators',
-                                                    this.metaMap_,
-                                                    caption);
+                                      'uniform-validators',
+                                      this.metaMap_,
+                                      caption);
 };
 
 /**
@@ -63,12 +63,7 @@ uniform.Validators.prototype.runValidation = function(el,
  * @param {string} caption
  * @private
  */
-uniform.Validators.prototype.validateRequired_ = function(el,
-                                                                        condition,
-                                                                        params,
-                                                                        caption){
-
-
+uniform.Validators.prototype.validateRequired_ = function(el,condition,params,caption){
   if (condition && !eval(condition)) {
     return;
   }
@@ -90,12 +85,7 @@ uniform.Validators.prototype.validateRequired_ = function(el,
  * @param {string} caption
  * @private
  */
-uniform.Validators.prototype.validateMinLength_ = function(el,
-                                                                condition,
-                                                                minLength,
-                                                                caption) {
-
-
+uniform.Validators.prototype.validateMinLength_ = function(el,condition,minLength,caption) {
   if (condition && !eval(condition)) {
     return;
   }
@@ -118,10 +108,7 @@ uniform.Validators.prototype.validateMinLength_ = function(el,
  * @param {string} params
  * @param {string} caption
  */
-uniform.Validators.prototype.validateEmail_ = function(el,
-                                                                     condition,
-                                                                     params,
-                                                                     caption){
+uniform.Validators.prototype.validateEmail_ = function(el,condition, params, caption){
   if (condition && !eval(condition)) {
     return;
   }
@@ -145,10 +132,7 @@ uniform.Validators.prototype.validateEmail_ = function(el,
  * @param {string} maxLength
  * @param {string} caption
  */
-uniform.Validators.prototype.validateMaxLength_ = function(el,
-                                                                         condition,
-                                                                         maxLength,
-                                                                         caption){
+uniform.Validators.prototype.validateMaxLength_ = function(el,condition,maxLength,caption){
 
   if (condition && !eval(condition)) {
     return;
@@ -171,10 +155,7 @@ uniform.Validators.prototype.validateMaxLength_ = function(el,
  * @param {string} maxValue
  * @param {string} caption
  */
-uniform.Validators.prototype.validateMax_ = function(el,
-                                                                   condition,
-                                                                   maxValue,
-                                                                   caption){
+uniform.Validators.prototype.validateMax_ = function(el, condition,  maxValue, caption){
 
   if (condition && !eval(condition)) {
     return;
@@ -198,16 +179,10 @@ uniform.Validators.prototype.validateMax_ = function(el,
  * @param {string} minValue
  * @param {string} caption
  */
-uniform.Validators.prototype.validateMin_ = function(el,
-                                                                   condition,
-                                                                   minValue,
-                                                                   caption){
-
+uniform.Validators.prototype.validateMin_ = function(el,condition, minValue, caption){
   if (condition && !eval(condition)) {
     return;
   }
-
-
   minValue = parseInt(minValue,10);
 
   var fieldValue = parseInt(goog.dom.forms.getValue(el));
@@ -227,10 +202,7 @@ uniform.Validators.prototype.validateMin_ = function(el,
  * @param {string} params
  * @param {string} caption
  */
-uniform.Validators.prototype.validateNumber_ = function(el,
-                                                                      condition,
-                                                                      params,
-                                                                      caption) {
+uniform.Validators.prototype.validateNumber_ = function(el,condition, params, caption) {
 
   if (condition && !eval(condition)) {
     return;
@@ -256,10 +228,7 @@ uniform.Validators.prototype.validateNumber_ = function(el,
  * @param {string} params
  * @param {string} caption
  */
-uniform.Validators.prototype.validateInteger_ = function(el,
-                                                                       condition,
-                                                                       params,
-                                                                       caption){
+uniform.Validators.prototype.validateInteger_ = function(el, condition, params, caption){
   if (condition && !eval(condition)) {
     return;
   }
@@ -280,10 +249,7 @@ uniform.Validators.prototype.validateInteger_ = function(el,
  * @param {string} params
  * @param {string} caption
  */
-uniform.Validators.prototype.validateAlpha_ = function(el,
-                                                                     condition,
-                                                                     params,
-                                                                     caption){
+uniform.Validators.prototype.validateAlpha_ = function(el, condition, params, caption){
 
   if (condition && !eval(condition)) {
     return;
@@ -307,10 +273,7 @@ uniform.Validators.prototype.validateAlpha_ = function(el,
  * @param {string} params
  * @param {string} caption
  */
-uniform.Validators.prototype.validateAlphaNum_ = function(el,
-                                                                        condition,
-                                                                        params,
-                                                                        caption){
+uniform.Validators.prototype.validateAlphaNum_ = function(el, condition, params, caption){
   if (condition && !eval(condition)) {
     return;
   }
@@ -333,10 +296,7 @@ uniform.Validators.prototype.validateAlphaNum_ = function(el,
  * @param {string} params
  * @param {string} caption
  */
-uniform.Validators.prototype.validatePhrase_ = function(el,
-                                                                      condition,
-                                                                      params,
-                                                                      caption){
+uniform.Validators.prototype.validatePhrase_ = function(el, condition, params, caption){
   if (condition && !eval(condition)) {
     return;
   }
@@ -354,3 +314,31 @@ uniform.Validators.prototype.validatePhrase_ = function(el,
     throw MSG_ERROR_VALIDATE_PHRASE;
   }
 };
+
+/**
+ * Username
+ * @param {Element} el
+ * @param {string} condition
+ * @param {string} params
+ * @param {string} caption
+ */
+uniform.Validators.prototype.validateUsername_ = function(el, condition, params, caption){
+  if (condition && !eval(condition)) {
+    return;
+  }
+
+  var elValue = goog.dom.forms.getValue(el);
+
+  if (elValue.match(/^[a-zA-Z0-9](_(?!(\.|_))|\.(?!(_|\.))|[a-zA-Z0-9]){1,18}[a-zA-Z0-9]$/) || goog.string.isEmpty(elValue) ) {
+    return;
+  } else {
+    /** @desc error validate phrase */
+    var MSG_ERROR_VALIDATE_USERNAME =
+        goog.getMsg('{$c} should contain only alphabetic ' +
+                        'characters, numbers, and the ' +
+                        'following characters: . _ -', {c:caption});
+    throw MSG_ERROR_VALIDATE_USERNAME;
+  }
+};
+
+

@@ -1013,12 +1013,17 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
       uf.decorate(  form_element ) ;
       error_list = uf.validate();
       if (error_list.length > 0) {
-          goog.array.forEach(error_list, function(error_msg) {
-            this.showNotification( 'error', 'Validation error:' + error_msg );
-          }, this );
+        goog.array.forEach(error_list, function(error_msg) {
+          /**
+           * @desc Withdraw  form validation error
+           */
+          var MSG_CURRENCY_WITHDRAW_VALIDATION_ERROR_NOTIFICATION = goog.getMsg('Error: {$message}',{'message': error_msg} );
 
-          e.stopPropagation();
-          e.preventDefault();
+          this.showNotification( 'error', MSG_CURRENCY_WITHDRAW_VALIDATION_ERROR_NOTIFICATION );
+        }, this );
+
+        e.stopPropagation();
+        e.preventDefault();
       }
       else {
           var withdraw_data = bitex.util.getFormAsJSON(form_element);
@@ -2095,8 +2100,7 @@ bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
   goog.dom.classes.add( document.body, 'bitex-not-logged'  );
   goog.dom.classes.remove( document.body, 'bitex-logged' );
   goog.dom.classes.remove( document.body, 'bitex-broker' );
-  goog.dom.classes.remove( document.body, 'bitex-non-broker' );
-
+  goog.dom.classes.remove( document.body, 'bitex-non-broker');
 
   var msg = e.data;
 
