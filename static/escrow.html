@@ -137,7 +137,7 @@
 	-->
 
     <div data-role="page" id="signup">
-      <form>
+      <form id="id_form_signup">
         <div data-role="header">
                 <h1>Sign up</h1>
                <a href="#login" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
@@ -155,48 +155,50 @@
         <div data-role="main">
 
              <ul data-role="listview" data-inset="true">
-                <li class="ui-field-contain">
+                <li class="ui-field-contain ctrlHolder">
                     <label for="id_signup_username">Username:</label>
-                    <input type="text" uniform-validators="required; validatePhrase_" placeholder="Your username will be public available to everybody." name="Username" id="id_signup_username" value="" data-clear-btn="true">
+                    <input type="text" uniform-validators="required; validateMinLength 3; validateUsername; validateMaxLength 18" placeholder="Your username will be public available to everybody." name="Username" id="id_signup_username" value="" data-clear-btn="true">
                     <br />
                 </li>
-                <li class="ui-field-contain">
+                <li class="ui-field-contain ctrlHolder">
                     <label for="id_signup_email">Email:</label>
                     <input type="email" uniform-validators="required; validateEmail" placeholder="Email" name="email" id="id_signup_email" value="" data-clear-btn="true">
                     <br />
                 </li>
 
-                  <li class="ui-field-contain">
+                  <li class="ui-field-contain ctrlHolder">
                     <label for="id_signup_password">Password:</label>
-                    <input type="password" uniform-validators="required" placeholder="Password" name="pwd" id="id_signup_password" value="" data-clear-btn="true">
+                    <input type="password" uniform-validators="required; validateMinLength 8; validateMaxLength 20" placeholder="Password" name="pwd" id="id_signup_password" value="" data-clear-btn="true">
                     <br />
                 </li>
 
-                 <li class="ui-field-contain">
+                 <li class="ui-field-contain ctrlHolder">
                     <label for="id_signup_password_2">Confirm your password:</label>
-                    <input type="password" uniform-validators="required" placeholder="Confirm your password" name="pwd2" id="id_signup_password_2" value="" data-clear-btn="true">
+                    <input type="password" uniform-validators="required; validateMinLength 8; validateMaxLength 20" placeholder="Confirm your password" name="pwd2" id="id_signup_password_2" value="" data-clear-btn="true">
                     <br />
                 </li>
 
-                <li class="ui-field-contain">
-                    <select placeholder="Country" uniform-validators="required" name="Country" id="id_signup_country"></select>
+                <li class="ui-field-contain ctrlHolder">
+                    <select uniform-validators="required;" placeholder="Country" uniform-validators="required" name="Country" id="id_signup_country"></select>
                 </li>
 
-                  <li class="ui-field-contain">
-                      <select placeholder="State or Province" name="State" id="id_signup_state"></select>
-                  </li>
+                <li class="ui-field-contain ctrlHolder">
+                    <select placeholder="State or Province" name="State" id="id_signup_state"></select>
+                </li>
 
-                <li>
-                    <select placeholder="Broker" uniform-validators="required" name="Broker" id="id_signup_broker"></select>
+                <li class="ctrlHolder">
+                    <select uniform-validators="required;" placeholder="Broker" uniform-validators="required" name="Broker" id="id_signup_broker"></select>
                 </li>
 
              </ul>
 
-              <li class="ui-field-contain">Terms of service <h1></h1>
-                  <input type="checkbox" name="terms" id="id_signup_terms" >
-                  <br />
-                  <label> I agree with terms terms of service.</label>
-              </li>
+              <div style="text-align: center">
+                <li class="ui-field-contain" style="text-align: center">Terms of service <h1></h1>
+                    <input align="center" type="checkbox" name="terms" id="id_signup_terms" style="text-align: center">
+                    <br />
+                    <p> I agree with terms terms of service.</p>
+                </li>
+              </div>
 
             <button href="#" class="ui-btn" id="id_signup_confirm">Confirm</button>
 
@@ -345,15 +347,31 @@
 
     </div>
 
-    <!--
-	*************************************************************************************
-
-	Receive
-
-	*************************************************************************************
-	-->
-
+     <!--
+      @ Description: Receive
+    -->
     <div data-role="page" id="receive">
+
+      <script type="text/javascript">
+          $( document ).ready(function() {
+            $(":button").click(function(){
+              vlr = $(this).val();
+                atual = $("#id_display_receive").val();
+
+                if(atual=="0"){
+                  atual = "";
+                }
+
+                if(vlr=="Delete"){
+                  $("#id_display_receive").val("0");
+                }else{
+                  $("#id_display_receive").val(atual + vlr);
+                }
+
+             });
+          });
+
+        </script>
 
         <div data-role="header">
            <h1>Receive</h1>
@@ -365,35 +383,36 @@
 
         <div data-role="main" class="ui-content">
 
-            <table width="100%" border="0">
-
-                <tr>
-                  <td colspan="3"> <input type="number" name="display" id="display"> </td>
-                </tr>
-
-
-                <tr>
-                  <td> <a href="" class="ui-btn" value="1" >7</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >8</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >9</a> </td>
-                </tr>
-                <tr>
-                  <td> <a href="" class="ui-btn" value="1" >4</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >5</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >6</a> </td>
-                </tr>
-                <tr>
-                  <td> <a href="" class="ui-btn" value="1" >1</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >2</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >3</a> </td>
-                </tr>
-                <tr>
-                  <td> <a href="" class="ui-btn" value="1" >.</a> </td>
-                  <td> <a href="" class="ui-btn" value="1" >0</a> </td>
-                  <td width="35%"> <a href="#balance-report" class="ui-btn" value="enter">Enter</a> </td>
-                </tr>
-          </table>
-
+            <!--<form id="id_form_receive">-->
+              <table width="100%" border="0" id="id_display_main" >
+                  <tr>
+                    <td colspan="3"> <input type="text" value="" name="display" id="id_display_receive" style="text-align: right"> </td>
+                  </tr>
+                  <tr>
+                    <td colspan="3"><input type="button" class="ui-btn" value="Delete" id="Clear" ></td>
+                  </tr>
+                  <tr>
+                    <td> <input type="button" class="ui-btn" value="7" id="7" data-display-value="7" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="8" id="8" data-display-value="8" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="9" id="9" data-display-value="9" ></input> </td>
+                  </tr>
+                  <tr>
+                    <td> <input type="button" class="ui-btn" value="4" id="4" data-display-value="4" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="5" id="5" data-display-value="5" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="6" id="6" data-display-value="6" ></input> </td>
+                  </tr>
+                  <tr>
+                    <td> <input type="button" class="ui-btn" value="1" id="1" data-display-value="1" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="2" id="2" data-display-value="2" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="3" id="3" data-display-value="3" ></input> </td>
+                  </tr>
+                  <tr>
+                    <td> <input type="button" class="ui-btn" value="." id="." data-display-value="."></input> </td>
+                    <td> <input type="button" class="ui-btn" value="0" id="0" data-display-value="0"></input> </td>
+                    <td width="35%"> <button class="ui-btn" id="id_enter_btn_receive">Enter</button></td>
+                  </tr>
+              </table>
+            <!--</form>-->
         </div>
 
     </div>
@@ -406,7 +425,7 @@
 	*************************************************************************************
 	-->
 
-    <div data-role="page" id="balance-report">
+    <div data-role="page" id="id_balance-report">
 
         <div data-role="header">
            <h1>Receive</h1>
@@ -420,11 +439,11 @@
         <div data-role="main" class="ui-content">
           <table width="100%" border="0">
             <tr>
-              <td colspan="3"><input disabled="disabled" type="text" name="display_balance" id="display_balance"></td>
+              <td colspan="3"><input disabled="disabled" type="text" name="id_display_balance" id="id_display_balance"></td>
             </tr>
             <tr>
-              <td colspan="2">Purchase Amount</td>
-              <td>0</td>
+              <td colspan="2" id="">Purchase Amount</td>
+              <td><label id="id_balance_report_purchase_amount"></label> </td>
             </tr>
             <tr>
               <td colspan="2">Fee( 0% )</td>
