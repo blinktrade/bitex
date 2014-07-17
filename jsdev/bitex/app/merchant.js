@@ -120,6 +120,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   var signup_country_el = goog.dom.getElement('id_signup_country');
   var signup_state_el   = goog.dom.getElement('id_signup_state');
   var broker_el         = goog.dom.getElement('id_signup_broker');
+  var id_display_main  = goog.dom.getElement('id_display_main');
 
   var countries = bitex.util.getCountries();
   goog.object.forEach( countries, function(country_info, country_code ) {
@@ -139,7 +140,11 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen(signup_state_el, goog.events.EventType.CHANGE, this.onChangeState_);
   handler.listen(broker_el, goog.events.EventType.CHANGE, this.onChangeBroker_);
 
+  handler.listen(id_display_main, goog.events.EventType.CLICK, this.onClick_);
+
   handler.listen( model, bitex.model.Model.EventType.SET + "BrokerList", this.onBrokerList_ );
+
+
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_);
   handler.listen( this.conn_, bitex.api.BitEx.EventType.CLOSED, this.onConnectionClose_ );
@@ -159,6 +164,8 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
   handler.listen( goog.dom.getElement('id_signup_confirm'), goog.events.EventType.CLICK, this.onUserSignupButtonClick_ );
+
+  handler.listen( goog.dom.getElement('id_enter_btn_receive'), goog.events.EventType.CLICK, this.onEnterReceiveClick_ );
 
   var button_signup = new goog.ui.Button();
   button_signup.decorate(goog.dom.getElement('id_signup_confirm'));
@@ -344,6 +351,7 @@ bitex.app.MerchantApp.prototype.onSecurityList_ =   function(e) {
     var last_price = 'last_price_' +  currency_key;
 
     this.model_.set('formatted_' + last_price, this.formatCurrency(0, instrument['Currency'], true), true);
+
   }, this );
 
   this.model_.set('SecurityList', msg);
@@ -559,6 +567,42 @@ bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
 };
 
 /**
+ *
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  var value_display = goog.dom.forms.getValue( goog.dom.getElement('id_display_receive'));
+
+  console.log(" Value Display");
+  console.log(value_display);
+
+
+   if (goog.string.isEmpty(value_display) || value_display == "0") {
+     /**
+     * @desc Put a value on merchant app balance-repor form
+     */
+    var MSG_MERCHANTAPP_DISPLAY_PUT_A_VALUE= goog.getMsg('Put a Value');
+
+    this.showNotification('danger', '', MSG_MERCHANTAPP_DISPLAY_PUT_A_VALUE );
+
+    return;
+  }
+
+  /**
+   * Load infos about Balance Report
+   */
+
+  goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'), value_display );
+  jQuery.mobile.changePage('#id_balance-report');
+
+};
+
+/**
  * @param {goog.events.Event} e
  * @private
  */
@@ -572,7 +616,34 @@ bitex.app.MerchantApp.prototype.onUserSignupButtonClick_ = function(e) {
   var password_2= goog.dom.forms.getValue( goog.dom.getElement('id_signup_password_2') );
   var email     = goog.dom.forms.getValue( goog.dom.getElement('id_signup_email') );
   var country   = goog.dom.forms.getValue( goog.dom.getElement('id_signup_country') );
+  var state     = goog.dom.forms.getValue( goog.dom.getElement('id_signup_state') );
   var broker    = goog.dom.forms.getValue( goog.dom.getElement('id_signup_broker') );
+
+
+  var form_element =  goog.dom.getElement('id_form_signup');
+
+  var uf = new uniform.Uniform();
+  uf.decorate(  form_element ) ;
+  var error_list = uf.validate();
+  if (error_list.length > 0) {
+    goog.array.forEach(error_list, function (error_msg) {
+      this.showNotification('danger', '', error_msg);
+    }, this);
+
+    return;
+  }
+
+  if (password !== password_2) {
+    /**
+     * @desc Passwords doesn' match on merchant app signup form
+     */
+    var MSG_MERCHANTAPP_SIGNUP_PWD_DOESNT_MATCH = goog.getMsg('Passwords does not match');
+
+    this.showNotification('danger', '', MSG_MERCHANTAPP_SIGNUP_PWD_DOESNT_MATCH );
+
+    return;
+  }
+
 
   this.model_.set('Password', password);
 
@@ -580,7 +651,7 @@ bitex.app.MerchantApp.prototype.onUserSignupButtonClick_ = function(e) {
   this.conn_.signUp( username,
                      password,
                      email,
-                     "NY",
+                     state,
                      country,
                      goog.string.toNumber(broker));
 
@@ -657,8 +728,6 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
     this.onChangeBroker_();
   }
 
-
-  console.log("\n onBrokerList_ End \n");
 
 };
 
@@ -759,6 +828,17 @@ bitex.app.MerchantApp.prototype.onChangeState_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
+bitex.app.MerchantApp.prototype.onClick_ = function(e){
+
+  //  console.log(e);
+  //  console.log(e.target.getAttribute("data-display-value"));
+
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
 bitex.app.MerchantApp.prototype.onChangeBroker_ = function(e){
   var model = this.getModel();
   var selected_broker = goog.dom.forms.getValue(goog.dom.getElement('id_signup_broker') ) ;
@@ -778,11 +858,6 @@ bitex.app.MerchantApp.prototype.onChangeBroker_ = function(e){
     broker['FormattedTransactionFeeBuy'] = fmt.format(broker['TransactionFeeBuy'] / 10000);
     broker['FormattedTransactionFeeSell'] = fmt.format(broker['TransactionFeeSell'] / 10000);
 
-//    goog.soy.renderElement(goog.dom.getElement('signup_broker_details'), bitex.templates.BrokerView, {
-//      show_title: false,
-//      msg_broker:broker,
-//      broker_list: broker_list
-//    });
   }
 };
 
