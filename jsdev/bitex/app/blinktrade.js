@@ -422,6 +422,10 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.VERIFY_CUSTOMER_UPDATE, this.onBitexVerifyCustomerUpdate_ );
 
+  handler.listen( this.conn_,bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
+  handler.listen( this.conn_,bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
+
+
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
 
@@ -484,6 +488,48 @@ bitex.app.BlinkTrade.prototype.onBitexRawMessageLogger_ = function(action, e) {
       console.log(action + ':' + raw_msg);
   } catch(e) {}
 };
+
+
+bitex.app.BlinkTrade.prototype.onBitexWithdrawConfirmationResponse_ = function(e) {
+  var msg = e.data;
+
+  if (!goog.isDefAndNotNull(msg['ConfirmationToken'])) {
+
+      /** @desc invalid confirmation toker */
+      var MSG_INVALID_CONFIRMATION_TOKEN = goog.getMsg("Invalid confirmation token!");
+
+      this.showNotification('error', MSG_INVALID_CONFIRMATION_TOKEN  );
+      this.onBitexWithdrawResponse_(e);
+  }
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onBitexWithdrawResponse_ = function(e) {
+  var dlg_content = bitex.templates.WithdrawConfirmationDialogContent({id: "id_withdraw_confirmation"}) ;
+
+  /**
+   * @desc withdraw confirmation dialog title
+   */
+  var MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE = goog.getMsg('Confirm');
+
+  var withdrawConfirmationDialog = this.showDialog(dlg_content,
+                                                   MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE,
+                                                   bootstrap.Dialog.ButtonSet.createOkCancel());
+
+
+  var handler = this.getHandler();
+  handler.listenOnce(withdrawConfirmationDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+    if (e.key == 'ok') {
+      this.conn_.confirmWithdraw( goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") ) );
+    }
+  }, this);
+};
+
+
 
 /**
  * Connect to the bitex Server

@@ -109,15 +109,6 @@ bitex.view.WithdrawView.prototype.qr_data_verb_;
  */
 bitex.view.WithdrawView.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
-  var model = this.getApplication().getModel();
-  var handler = this.getHandler();
-
-
-  handler.listen( this.getApplication().getBitexConnection(),
-                  bitex.api.BitEx.EventType.WITHDRAW_RESPONSE,
-                  this.onBitexWithdrawResponse_);
-
-
 };
 
 
@@ -194,31 +185,8 @@ bitex.view.WithdrawView.prototype.onWithdrawListTableClick_ = function(e) {
   }
 };
 
-/**
- * @param {goog.events.Event} e
- * @private
- */
-bitex.view.WithdrawView.prototype.onBitexWithdrawResponse_ = function(e) {
-  var dlg_content = bitex.templates.WithdrawConfirmationDialogContent({id: "id_withdraw_confirmation"}) ;
-
-  /**
-   * @desc withdraw confirmation dialog title
-   */
-  var MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE = goog.getMsg('Confirm');
-
-  var withdrawConfirmationDialog = this.getApplication().showDialog(dlg_content,
-                                                                    MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE,
-                                                                    bootstrap.Dialog.ButtonSet.createOkCancel());
 
 
-  var handler = this.getHandler();
-  handler.listenOnce(withdrawConfirmationDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
-    if (e.key == 'ok') {
-      this.confirmation_token_ = goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") );
-      this.dispatchEvent(  bitex.view.View.EventType.CONFIRM_WITHDRAW );
-    }
-  }, this);
-};
 
 
 bitex.view.WithdrawView.prototype.getConfirmationToken = function() {
