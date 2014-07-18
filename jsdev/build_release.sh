@@ -10,6 +10,11 @@ java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogM
 
 java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
   --shouldProvideRequireSoyNamespaces --codeStyle concat --cssHandlingScheme GOOG  \
+  --outputPathFormat  './bitex/templates/{INPUT_FILE_NAME_NO_EXT}.soy.js' \
+  ./bitex/templates/merchant.soy
+
+java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
+  --shouldProvideRequireSoyNamespaces --codeStyle concat --cssHandlingScheme GOOG  \
   --outputPathFormat  './bitex/ui/{INPUT_FILE_NAME_NO_EXT}.soy.js' \
   ./bitex/ui/bitex_datagrid.soy
 

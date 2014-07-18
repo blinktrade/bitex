@@ -2041,9 +2041,7 @@ def db_bootstrap(session):
                                       'percent_fee': 30, # 0.3 percent
                                       'fixed_fee': 0,
                                       'fields': [
-                                          {'side':'client',  'name': 'Email'          , 'validator':'validateEmail', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
-                                          {'side':'broker',  'name': 'TransactionID'  , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                          {'side':'broker',  'name': 'Link'           , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                          {'side':'client',  'name': 'hour'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Hour'        , 'placeholder':'' },
                                           ]
                                   }
                          ]
