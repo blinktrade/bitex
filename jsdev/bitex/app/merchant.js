@@ -105,6 +105,13 @@ bitex.app.MerchantApp.prototype.transactions_list_view_;
 bitex.app.MerchantApp.prototype.ledger_request_id_;
 
 /**
+ * @type {number}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.market_data_subscription_id_;
+
+
+/**
  * Event handler.
  * TODO(user): rename it to handler_ after all component subclasses in
  * inside Google have been cleaned up.
@@ -513,6 +520,13 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
 
   // Request Deposit Options
   this.conn_.requestDepositMethods();
+
+
+  var instruments = [];
+  goog.object.forEach(allowed_markets, function( obj, instrument ) {
+    instruments.push(instrument);
+  });
+  this.market_data_subscription_id_ =  this.conn_.subscribeMarketData(0, instruments, ['0'] );
 
   if (this.getModel().get('IsVerified')) {
     jQuery.mobile.changePage('#menu')
