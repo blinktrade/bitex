@@ -16,6 +16,8 @@ goog.require('goog.fx.dom');
 
 goog.require('goog.events.InputHandler');
 
+goog.require('goog.style');
+
 goog.require('goog.events');
 goog.require('goog.dom.forms');
 goog.require('goog.dom.classes');
@@ -33,6 +35,7 @@ goog.require('uniform.Meta');               // Switch according to the test($MOD
 goog.require('uniform.Validators');         // Switch according to the test($MODULE_NAME$)
 
 goog.require('bitex.ui.ListView');
+goog.require('bitex.ui.Merchant.templates');
 
 /**
  * @param {string=} opt_default_country
@@ -135,7 +138,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   var signup_state_el   = goog.dom.getElement('id_signup_state');
   var broker_el         = goog.dom.getElement('id_signup_broker');
   var id_display_main  = goog.dom.getElement('id_display_main');
-  var withdraw_selector_el = goog.dom.getElement('withdraw-method-selector');
+  var withdraw_selector_el = goog.dom.getElement('id_withdraw_method_selector');
 
 
   var countries = bitex.util.getCountries();
@@ -259,8 +262,6 @@ bitex.app.MerchantApp.prototype.onConnectionOpen_ = function(e){
   handler.listen( this.timer_, goog.Timer.TICK, this.onTimerHeartBeat_ );
   this.timer_.start();
   this.conn_.sendHearBeat();
-
-  console.log("#LOGIN");
 
   jQuery.mobile.changePage('#login')
 
@@ -479,30 +480,36 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
     broker_currencies.addAll(profile['BrokerCurrencies']);
   }
   this.getModel().set('Profile',  profile);
+
   if (msg['IsBroker'] ) {
     this.getModel().set('SelectedBrokerID', this.getModel().get('Profile')['BrokerID']);
+
   } else if (goog.isDefAndNotNull(msg['Broker'])) {
     this.getModel().set('SelectedBrokerID', this.getModel().get('Broker')['BrokerID']);
 
-    list_currencies = [];
-    goog.object.forEach(this.getModel().get('Broker')['WithdrawStructure'],  function(withdraw_methods, currency) {
+    var el_withdraw_method_selector = goog.dom.getElement('id_withdraw_method_selector');
+    goog.dom.removeChildren(el_withdraw_method_selector);
+
+    var el_withdraw_currency_selector = goog.dom.getElement('id_withdraw_currency_selector');
+    goog.dom.removeChildren(el_withdraw_currency_selector);
+
+    var currency_count = 0;
+
+    goog.object.forEach(this.getModel().get('Broker')['WithdrawStructure'], function(withdraw_methods, currency) {
         if (!this.isCryptoCurrency(currency)) {
-            list_currencies.push(withdraw_methods)
+            goog.dom.appendChild(el_withdraw_currency_selector, goog.dom.createDom('option', { 'value' : currency }, currency));
+
+            goog.array.forEach(withdraw_methods,  function(method) {
+                goog.dom.appendChild(el_withdraw_method_selector, goog.dom.createDom('option', { 'value' : method.method },method.description));
+            });
+
+            goog.events.dispatchEvent(el_withdraw_method_selector, goog.events.EventType.CHANGE);
+
+            currency_count = currency_count + 1;
         }
     }, this);
 
-    withdraw_selector = goog.dom.getElement('withdraw-method-selector');
-    goog.dom.removeChildren(withdraw_selector);
-
-    if (list_currencies.length > 1) {
-        // TODO: exibir ou esconder select
-    } else {
-        goog.array.forEach(list_currencies[0],  function(method) {
-            goog.dom.appendChild(withdraw_selector, goog.dom.createDom('option', { 'value' : method.method },method.description));
-        });
-        goog.events.dispatchEvent(withdraw_selector, goog.events.EventType.CHANGE);
-    }
-
+    goog.style.showElement(goog.dom.getElement('id_payout_currency'), currency_count > 1);
   }
 
   this.getModel().set('AllowedMarkets', allowed_markets);
@@ -802,8 +809,6 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
   // auto select the country/state in case there is only one broker
   //
 
-  console.log("\n onBrokerList_ \n");
-
   var model = this.getModel();
 
   var broker_list = model.get("BrokerList");
@@ -943,11 +948,43 @@ bitex.app.MerchantApp.prototype.onSelectCountry_ = function(selected_country) {
 };
 
 /**
+ * @param {goog.array} fields
+ * @private
+ */
+bitex.app.MerchantApp.prototype.createWitdrawRequiredFields_ = function(current_fields){
+
+    var el_withdraw_method_fields = goog.dom.getElement('id_withdraw_method_fields');
+    goog.dom.removeChildren(el_withdraw_method_fields);
+
+    goog.array.forEach(current_fields, function(current_field) {
+        if ( current_field['side'] == "client") {
+            goog.dom.appendChild(el_withdraw_method_fields,
+                goog.soy.renderAsElement( bitex.ui.Merchant.templates.WithdrawFieldContent, { field: current_field } ) );
+        }
+    });
+}
+
+/**
  * @param {goog.events.Event} e
  * @private
  */
 bitex.app.MerchantApp.prototype.onChangeWithDrawMethod_ = function(e){
-    console.log('changed=>', e.target);
+
+    var el_withdraw_method_selector = goog.dom.getElement('id_withdraw_method_selector');
+    var withdraw_method_value = goog.dom.forms.getValue(el_withdraw_method_selector);
+
+    var el_withdraw_currency_selector = goog.dom.getElement('id_withdraw_currency_selector');
+    var withdraw_currency_value = goog.dom.forms.getValue(el_withdraw_currency_selector);
+
+    goog.object.forEach(this.getModel().get('Broker')['WithdrawStructure'], function(withdraw_methods, currency) {
+        if ( withdraw_currency_value == currency){
+            goog.array.forEach(withdraw_methods, function(method) {
+                if ( method['method'] == withdraw_method_value ) {
+                    this.createWitdrawRequiredFields_( method['fields'] );
+                }
+            }, this);
+        }
+    }, this);
 };
 
 
