@@ -263,11 +263,18 @@
                 <input type="number" name="amount" id="amount" value="">
             </div>
 
+            <div id="id_payout_currency">
+                <div class="ui-field-contain">
+                    <label for="id_withdraw_currency_selector">Currency:</label>
+                    <select name="Method" id="id_withdraw_currency_selector" data-mini="true" data-inline="true">
+                    </select>
+                </div>
+            </div>
+
             <div class="ui-field-contain">
-                <label for="withdraw-method-selector">How:</label>
-                <select name="Method" id="withdraw-method-selector" data-mini="true" data-inline="true">
-                    <option value="night">Night</option>
-                    <option value="afternoon">Afternoon</option>
+                <label for="id_withdraw_method_selector">How:</label>
+                <select name="Method" id="id_withdraw_method_selector" data-mini="true" data-inline="true">
+                    <option value="null">Choose one</option>
                 </select>
             </div>
 
