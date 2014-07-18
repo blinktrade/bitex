@@ -1,0 +1,28 @@
+{namespace bitex.ui.ListView.templates}
+
+
+/**
+  * @param? id
+  * @param? base_class
+  * @param? show_search
+  * @param? search_placeholder
+  */
+{template .ListView}
+  <div {if $id} id="{$id}" {/if} >
+    {if $show_search}
+      <form class="ui-filterable">
+        <div class="ui-input-search ui-shadow-inset ui-input-has-clear ui-body-inherit ui-corner-all">
+          <input data-type="search" {if $search_placeholder}placeholder="{$search_placeholder}"{/if} data-lastval="">
+          <a href="#" class="ui-input-clear ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all ui-input-clear-hidden"></a>
+        </div>
+      </form>
+    {/if}
+    <ul data-role="listview"
+      {if $show_search}data-filter="true"{/if}
+      {if $search_placeholder}data-filter-placeholder="{$search_placeholder}"{/if}
+        class="ui-listview ui-listview-inset ui-corner-all ui-shadow {if $base_class}{$base_class}{/if}"
+        data-inset="true">
+
+    </ul>
+  </div>
+{/template}
