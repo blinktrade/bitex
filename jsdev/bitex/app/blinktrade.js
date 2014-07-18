@@ -1024,8 +1024,7 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
 
         e.stopPropagation();
         e.preventDefault();
-      }
-      else {
+      } else {
           var withdraw_data = bitex.util.getFormAsJSON(form_element);
 
           var amount = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];

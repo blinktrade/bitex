@@ -37,6 +37,7 @@ goog.require('uniform.Validators');         // Switch according to the test($MOD
 goog.require('bitex.ui.ListView');
 goog.require('bitex.ui.Merchant.templates');
 
+
 /**
  * @param {string=} opt_default_country
  * @param {number=} opt_default_broker_id
@@ -157,8 +158,8 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   var signup_country_el = goog.dom.getElement('id_signup_country');
   var signup_state_el   = goog.dom.getElement('id_signup_state');
   var broker_el         = goog.dom.getElement('id_signup_broker');
-  var id_display_main  = goog.dom.getElement('id_display_main');
   var withdraw_selector_el = goog.dom.getElement('id_withdraw_method_selector');
+  var withdraw_submit_el =  goog.dom.getElement('id_withdraw_method_submit');
 
 
   this.form_receive_ =  new uniform.Uniform();
@@ -182,11 +183,13 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen(signup_state_el, goog.events.EventType.CHANGE, this.onChangeState_);
   handler.listen(broker_el, goog.events.EventType.CHANGE, this.onChangeBroker_);
 
-  handler.listen(id_display_main, goog.events.EventType.CLICK, this.onClick_);
-
   handler.listen(withdraw_selector_el, goog.events.EventType.CHANGE, this.onChangeWithDrawMethod_  );
 
   handler.listen( model, bitex.model.Model.EventType.SET + "BrokerList", this.onBrokerList_ );
+
+  handler.listen(withdraw_submit_el, goog.events.EventType.CLICK, this.onWithdrawSubmitClick_);
+  handler.listen(goog.dom.getElement('id_withdraw_confirmation_dialog'), goog.events.EventType.CLICK, this.onWithdrawConfirmClick_);
+
 
 
 
@@ -201,10 +204,11 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, this.onBrokerListResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.SECURITY_LIST, this.onSecurityList_);
 
-
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_OK, this.onUserLoginOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_ERROR, this.onUserLoginError_);
 
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
 
   handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
@@ -361,6 +365,45 @@ bitex.app.MerchantApp.prototype.onBrokerListResponse_ =  function(e){
 
 
   this.model_.set('BrokerList', broker_list);
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onBitexWithdrawConfirmationResponse_ = function(e) {
+  var msg = e.data;
+
+  if (!goog.isDefAndNotNull(msg['ConfirmationToken'])) {
+
+      /** @desc invalid confirmation toker */
+      var MSG_INVALID_CONFIRMATION_TOKEN = goog.getMsg("Invalid confirmation token!");
+
+      this.showNotification('error', MSG_INVALID_CONFIRMATION_TOKEN  );
+
+      location.href = "#id_withdraw_confirmation_dialog";
+  }
+
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onBitexWithdrawResponse_ = function(e) {
+
+  location.href = "#id_withdraw_confirmation_dialog";
+
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onWithdrawConfirmClick_ = function(e){
+    if ( e.target.getAttribute('data-action-value') == "ok") {
+        this.conn_.confirmWithdraw( goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") ) );
+    }
 };
 
 /**
@@ -1126,6 +1169,49 @@ bitex.app.MerchantApp.prototype.createWitdrawRequiredFields_ = function(current_
     });
 }
 
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onWithdrawSubmitClick_ = function(e){
+
+    var form_element = goog.dom.getElement("id_form_request_payout");
+
+    var uf = new uniform.Uniform();
+    uf.decorate(  form_element ) ;
+    var error_list = uf.validate();
+
+    if (error_list.length > 0) {
+      goog.array.forEach(error_list, function (error_msg) {
+        /**
+         * @desc Error notification title on payout screen
+         */
+        var MSG_MERCHANTAPP_PAYOUT_VALIDATION_ERROR_NOTIFICATION_TITLE = goog.getMsg('Payout Error');
+
+        this.showNotification('danger', MSG_MERCHANTAPP_PAYOUT_VALIDATION_ERROR_NOTIFICATION_TITLE, error_msg);
+      }, this);
+
+    } else {
+      var withdraw_data = bitex.util.getFormAsJSON(form_element);
+
+      var amount = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];
+      var method = withdraw_data['Method']; delete withdraw_data['Method'];
+      var currency = goog.dom.forms.getValue(goog.dom.getElement('id_withdraw_currency_selector'));
+
+      this.conn_.requestWithdraw( undefined,
+                                  amount,
+                                  method,
+                                  currency,
+                                  withdraw_data );
+    }
+
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+};
+
 /**
  * @param {goog.events.Event} e
  * @private
@@ -1167,17 +1253,6 @@ bitex.app.MerchantApp.prototype.onChangeState_ = function(e){
   var selected_country = goog.dom.forms.getValue(goog.dom.getElement('id_signup_country') ) ;
   var selected_state = goog.dom.forms.getValue(goog.dom.getElement('id_signup_state') ) ;
   this.onSelectState_(selected_country, selected_state);
-
-};
-
-/**
- * @param {goog.events.Event} e
- * @private
- */
-bitex.app.MerchantApp.prototype.onClick_ = function(e){
-
-  //  console.log(e);
-  //  console.log(e.target.getAttribute("data-display-value"));
 
 };
 
