@@ -725,10 +725,6 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
 
   var value_display = goog.dom.forms.getValue( goog.dom.getElement('id_display_receive'));
 
-  console.log(" Value Display");
-  console.log(value_display);
-
-
    if (goog.string.isEmpty(value_display) || value_display == "0") {
      /**
      * @desc Put a value on merchant app balance-repor form
@@ -744,10 +740,28 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
    * Load infos about Balance Report
    */
 
+  //this.formatCurrency(value_display, instrument['Currency'], true)
   goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'), value_display );
+
+  var price_amount_fee;
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee(value_display,
+                                                            bitex.util.PriceAmountCalculatorVerb.GET,
+                                                            this.order_depth_,
+                                                            this.getModel().username,
+                                                            this.getModel().fee  );
+
+  console.log(price_amount_fee);
+
   jQuery.mobile.changePage('#id_balance-report');
 
 };
+
+/**
+ * @type {.Array<.Array<Object>>}
+ * @private
+ */
+bitex.ui.SimpleOrderEntry.prototype.order_depth_;
+
 
 /**
  * @param {goog.events.Event} e
