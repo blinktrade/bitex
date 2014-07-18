@@ -32,6 +32,8 @@ goog.require('uniform.Uniform');
 goog.require('uniform.Meta');               // Switch according to the test($MODULE_NAME$)
 goog.require('uniform.Validators');         // Switch according to the test($MODULE_NAME$)
 
+goog.require('bitex.ui.ListView');
+
 /**
  * @param {string=} opt_default_country
  * @param {number=} opt_default_broker_id
@@ -89,6 +91,18 @@ bitex.app.MerchantApp.prototype.currency_info_;
  */
 bitex.app.MerchantApp.prototype.all_markets_;
 
+
+/**
+ * @type {bitex.ui.ListView}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.transactions_list_view_;
+
+/**
+ * @type {number}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.ledger_request_id_;
 
 /**
  * Event handler.
@@ -468,7 +482,79 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
       jQuery.mobile.changePage('#menu')
     }
   }
+
+
+
+
+  if (goog.isDefAndNotNull(this.transactions_list_view_)){
+    this.transactions_list_view_.dispose();
+    this.transactions_list_view_ = null;
+  }
+
+  this.ledger_request_id_ = parseInt( 1e7 * Math.random() , 10 );
+  var handler = this.getHandler();
+  this.transactions_list_view_ = new bitex.ui.ListView( {
+    'rowFormatterFn': goog.bind(this.formatTransactionRecord_, this),
+    'rowClassFn': function(rec) { return 'ui-li-has-count' }
+  });
+
+  handler.listen( this.transactions_list_view_ , bitex.ui.ListView.EventType.REQUEST_DATA, this.onTransactionsListViewRequestData_);
+  handler.listen(this.conn_,
+                 bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE + '.' + this.ledger_request_id_,
+                 this.onLedgerListResponse_);
+
+  this.transactions_list_view_.render( goog.dom.getElement('id_transactions_container') );
 };
+
+/**
+ * @param {Object} record
+ * @return {string|Element}
+ */
+bitex.app.MerchantApp.prototype.formatTransactionRecord_ = function(record) {
+  var row_attributes = {
+    'class': 'ui-btn ',
+    'href' : '#'
+  };
+
+  var value_element;
+  if (record['Operation'] == 'D') {
+    value_element = goog.dom.createDom('span',
+                                       ['ui-li-count', 'ui-body-b' ],
+                                       this.formatCurrency(record['Amount']/1e8, record['Currency'], true) );
+  } else {
+    value_element = goog.dom.createDom('span',
+                                       ['ui-li-count', 'ui-body-a' ],
+                                       this.formatCurrency(record['Amount']/1e8, record['Currency'], true) );
+  }
+  return  goog.dom.createDom('a', row_attributes, record['Created'], value_element  );
+};
+
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onTransactionsListViewRequestData_ = function(e) {
+  var page = e.options['Page'];
+  var limit = e.options['Limit'];
+  var userID = this.getModel().get('UserID');
+  var brokerID = this.getModel().get('Broker')['BrokerID'];
+  var currency = 'USD';
+
+  this.conn_.requestLedgerList(this.ledger_request_id_, page, limit, brokerID, userID, currency);
+};
+
+/**
+ *
+ * @param {goog.events.Event} e
+ */
+bitex.app.MerchantApp.prototype.onLedgerListResponse_ = function(e) {
+  if (!goog.isDefAndNotNull(this.transactions_list_view_) ) {
+    return
+  }
+  var msg = e.data;
+  this.transactions_list_view_.setResultSet( msg['LedgerListGrp'], msg['Columns'] );
+};
+
 
 /**
  * @param {bitex.api.BitExEvent} e
