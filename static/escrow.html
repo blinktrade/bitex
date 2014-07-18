@@ -315,14 +315,14 @@
       <script type="text/javascript">
           $( document ).ready(function() {
             $(":button").click(function(){
-              vlr = $(this).val();
-                atual = $("#id_display_receive").val();
+              var vlr = $(this).val();
+                var atual = $("#id_display_receive").val();
 
                 if(atual=="0"){
                   atual = "";
                 }
 
-                if(vlr=="Delete"){
+                if(vlr=="Clear"){
                   $("#id_display_receive").val("0");
                 }else{
                   $("#id_display_receive").val(atual + vlr);
@@ -343,38 +343,40 @@
 
         <div data-role="main" class="ui-content">
 
-            <!--<form id="id_form_receive">-->
+            <form id="id_receive_form">
               <table width="100%" border="0" id="id_display_main" >
                   <tr>
-                    <td colspan="3"> <input type="text" value="" name="display" id="id_display_receive" style="text-align: right"> </td>
+                    <td colspan="3">
+                      <input type="text" value="" name="display" id="id_display_receive" uniform-filters="number" uniform-validators="required; validateNumber" style="text-align: right"/>
+                    </td>
                   </tr>
                   <tr>
-                    <td colspan="3"><input type="button" class="ui-btn" value="Delete" id="Clear" ></td>
+                    <td colspan="3"><input type="button" class="ui-btn" value="Clear" /></td>
                   </tr>
                   <tr>
-                    <td> <input type="button" class="ui-btn" value="7" id="7" data-display-value="7" ></input> </td>
-                    <td> <input type="button" class="ui-btn" value="8" id="8" data-display-value="8" ></input> </td>
-                    <td> <input type="button" class="ui-btn" value="9" id="9" data-display-value="9" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="7" data-display-value="7" /></td>
+                    <td> <input type="button" class="ui-btn" value="8" data-display-value="8" /></td>
+                    <td> <input type="button" class="ui-btn" value="9" data-display-value="9" /></td>
                   </tr>
                   <tr>
-                    <td> <input type="button" class="ui-btn" value="4" id="4" data-display-value="4" ></input> </td>
-                    <td> <input type="button" class="ui-btn" value="5" id="5" data-display-value="5" ></input> </td>
-                    <td> <input type="button" class="ui-btn" value="6" id="6" data-display-value="6" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="4" data-display-value="4" /></td>
+                    <td> <input type="button" class="ui-btn" value="5" data-display-value="5" /></td>
+                    <td> <input type="button" class="ui-btn" value="6" data-display-value="6" /></td>
                   </tr>
                   <tr>
-                    <td> <input type="button" class="ui-btn" value="1" id="1" data-display-value="1" ></input> </td>
-                    <td> <input type="button" class="ui-btn" value="2" id="2" data-display-value="2" ></input> </td>
-                    <td> <input type="button" class="ui-btn" value="3" id="3" data-display-value="3" ></input> </td>
+                    <td> <input type="button" class="ui-btn" value="1" data-display-value="1" /></td>
+                    <td> <input type="button" class="ui-btn" value="2" data-display-value="2" /></td>
+                    <td> <input type="button" class="ui-btn" value="3" data-display-value="3" /></td>
                   </tr>
                   <tr>
-                    <td> <input type="button" class="ui-btn" value="." id="." data-display-value="."></input> </td>
-                    <td> <input type="button" class="ui-btn" value="0" id="0" data-display-value="0"></input> </td>
+                    <td> <input type="button" class="ui-btn" value="." data-display-value="."/></td>
+                    <td> <input type="button" class="ui-btn" value="0" data-display-value="0"/></td>
                     <td width="35%"> <button class="ui-btn" id="id_enter_btn_receive">Enter</button></td>
                   </tr>
               </table>
-            <!--</form>-->
-          <Li class="ui-field-contain ctrlHolder">
-            <select uniform-validators="required;" name="market" id="id_display_market">
+            </form>
+          <Li id="id_receive_currency_control_holder" class="ui-field-contain ctrlHolder">
+            <select id="id_receive_currency" uniform-validators="required;" name="market" >
               <option>AUD </option>
               <option>CAD</option>
               <option>BRL</option>

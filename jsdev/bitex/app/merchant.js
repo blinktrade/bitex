@@ -133,6 +133,12 @@ bitex.app.MerchantApp.prototype.handler_;
 
 
 /**
+ * @type {uniform.Uniform}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.form_receive_;
+
+/**
  * @param {string=} opt_url
  */
 bitex.app.MerchantApp.prototype.run = function(opt_url){
@@ -154,6 +160,9 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   var id_display_main  = goog.dom.getElement('id_display_main');
   var withdraw_selector_el = goog.dom.getElement('id_withdraw_method_selector');
 
+
+  this.form_receive_ =  new uniform.Uniform();
+  this.form_receive_.decorate(goog.dom.getElement('id_receive_form') );
 
   var countries = bitex.util.getCountries();
   goog.object.forEach( countries, function(country_info, country_code ) {
@@ -202,7 +211,9 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( goog.dom.getElement('id_signup_confirm'), goog.events.EventType.CLICK, this.onUserSignupButtonClick_ );
 
   handler.listen( goog.dom.getElement('id_enter_btn_receive'), goog.events.EventType.CLICK, this.onEnterReceiveClick_ );
-  handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ )
+  handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ );
+
+
 
 
   var button_signup = new goog.ui.Button();
@@ -501,6 +512,17 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
 
   } else if (goog.isDefAndNotNull(msg['Broker'])) {
     this.getModel().set('SelectedBrokerID', this.getModel().get('Broker')['BrokerID']);
+
+    goog.dom.removeChildren(goog.dom.getElement('id_receive_currency'));
+    goog.array.forEach(this.getModel().get('Broker')['Currencies'], function(currency_code){
+      var currency_el = goog.dom.createDom('option',
+                                           {'value': currency_code},
+                                           currency_code + '-' + this.conn_.getCurrencyDescription(currency_code));
+      goog.dom.appendChild(goog.dom.getElement('id_receive_currency'), currency_el);
+    }, this);
+    goog.style.showElement( goog.dom.getElement('id_receive_currency_control_holder'),
+                            this.getModel().get('Broker')['Currencies'].length > 1 );
+
 
     var el_withdraw_method_selector = goog.dom.getElement('id_withdraw_method_selector');
     goog.dom.removeChildren(el_withdraw_method_selector);
@@ -834,48 +856,58 @@ bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
  * @private
  */
 bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
-
   e.preventDefault();
   e.stopPropagation();
 
-  var value_display = goog.dom.forms.getValue( goog.dom.getElement('id_display_receive'));
+  var error_list = this.form_receive_.validate();
+  if (error_list.length > 0) {
+    goog.array.forEach(error_list, function (error_msg) {
 
-   if (goog.string.isEmpty(value_display) || value_display == "0") {
-     /**
-     * @desc Put a value on merchant app balance-repor form
-     */
-    var MSG_MERCHANTAPP_DISPLAY_PUT_A_VALUE= goog.getMsg('Put a Value');
+      /**
+       * @desc Error notification title
+       */
+      var MSG_MERCHANT_APP_RECEIVE_VALUE_VALIDATION_ERROR_NOTIFICATION_TITLE = goog.getMsg('Invalid amount');
 
-    this.showNotification('danger', '', MSG_MERCHANTAPP_DISPLAY_PUT_A_VALUE );
+      this.showNotification('danger', MSG_MERCHANT_APP_RECEIVE_VALUE_VALIDATION_ERROR_NOTIFICATION_TITLE, error_msg);
+    }, this);
 
     return;
   }
+
+
+  var value_to_receive = goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement('id_display_receive'))) ;
+   if (value_to_receive <= 0) {
+      /**
+        * @desc Put a value on merchant app balance-report form
+        */
+      var MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT = goog.getMsg('Missing amount');
+
+      this.showNotification('danger', '', MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT );
+      return;
+    }
+
+
 
   /**
    * Load infos about Balance Report
    */
 
   //this.formatCurrency(value_display, instrument['Currency'], true)
-  goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'), value_display );
+  goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'),
+                           this.conn_.formatCurrency(value_to_receive, 'USD', true) );
 
   var price_amount_fee;
-  price_amount_fee = bitex.util.calculatePriceAmountAndFee(value_display,
-                                                            bitex.util.PriceAmountCalculatorVerb.GET,
-                                                            this.order_depth_,
-                                                            this.getModel().username,
-                                                            this.getModel().fee  );
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee( parseInt(value_to_receive * 1e8, 10),
+                                                            bitex.util.PriceAmountCalculatorVerb.SPEND,
+                                                            this.bids_['BTCUSD'],
+                                                            this.getModel().get('Username'),
+                                                            this.getModel().get('Broker')['TransactionFeeSell'] );
 
   console.log(price_amount_fee);
 
   jQuery.mobile.changePage('#id_balance-report');
 
 };
-
-/**
- * @type {.Array<.Array<Object>>}
- * @private
- */
-bitex.ui.SimpleOrderEntry.prototype.order_depth_;
 
 
 /**

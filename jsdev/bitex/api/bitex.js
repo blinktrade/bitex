@@ -202,10 +202,73 @@ bitex.api.BitEx.prototype.getHandler = function() {
 
 
 /**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.api.BitEx.prototype.getCurrencyDescription  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.description;
+};
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.api.BitEx.prototype.getCurrencyHumanFormat  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.human_format;
+};
+
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.api.BitEx.prototype.getCurrencyFormat  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.format;
+};
+
+/**
+ * @param {string} currency_code
+ * @return {string}
+ */
+bitex.api.BitEx.prototype.getCurrencySign  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.sign;
+};
+
+
+/**
+ * @param {string} currency_code
+ * @return {boolean}
+ */
+bitex.api.BitEx.prototype.isCryptoCurrency  =   function(currency_code) {
+  /**
+   * @type {bitex.model.OrderBookCurrencyModel}
+   */
+  var currency_def = this.currency_info_[currency_code];
+  return currency_def.is_crypto;
+};
+
+/**
  * @param {number} amount
  * @param {string} currency_code
+ * @param {boolean=} opt_human
  */
-bitex.api.BitEx.prototype.formatCurrency  =   function(amount, currency_code) {
+bitex.api.BitEx.prototype.formatCurrency  =   function(amount, currency_code, opt_human) {
   if (!goog.isDefAndNotNull(this.currency_info_)) {
     return amount;
   }
@@ -214,8 +277,15 @@ bitex.api.BitEx.prototype.formatCurrency  =   function(amount, currency_code) {
    * @type {bitex.model.OrderBookCurrencyModel}
    */
   var currency_def = this.currency_info_[currency_code];
-  var formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
+  var formatter;
+  if (goog.isDefAndNotNull(opt_human) && opt_human === true) {
+    formatter = new goog.i18n.NumberFormat( currency_def.human_format, currency_def.code );
+  } else {
+    formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
+  }
   return formatter.format(amount);
+
+
 };
 
 /**
@@ -230,6 +300,7 @@ bitex.api.BitEx.prototype.onSecurityList_ =   function(msg) {
     this.currency_info_[ currency['Code'] ] = {
       code: currency['Code'],
       format: currency['FormatJS'],
+      human_format: currency['HumanFormatJS'],
       description : currency['Description'],
       sign : currency['Sign'],
       pip : currency['Pip'],
