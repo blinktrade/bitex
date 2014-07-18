@@ -179,11 +179,13 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_OK, this.onUserLoginOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_ERROR, this.onUserLoginError_);
 
-
+  handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
   handler.listen( goog.dom.getElement('id_signup_confirm'), goog.events.EventType.CLICK, this.onUserSignupButtonClick_ );
 
   handler.listen( goog.dom.getElement('id_enter_btn_receive'), goog.events.EventType.CLICK, this.onEnterReceiveClick_ );
+  handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ )
+
 
   var button_signup = new goog.ui.Button();
   button_signup.decorate(goog.dom.getElement('id_signup_confirm'));
@@ -522,19 +524,34 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
     }
   }
 
-  if (goog.isDefAndNotNull(this.transactions_list_view_)){
-    this.transactions_list_view_.dispose();
-    this.transactions_list_view_ = null;
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onMyTransactionMenuClick_ = function(e) {
+  if (!this.getModel().get('IsVerified')) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
   }
+
+  if (goog.isDefAndNotNull(this.transactions_list_view_)) {
+    return;
+  }
+
 
   this.ledger_request_id_ = parseInt( 1e7 * Math.random() , 10 );
   var handler = this.getHandler();
-  this.transactions_list_view_ = new bitex.ui.ListView( {
+  this.transactions_list_view_ = new bitex.ui.ListView({
     'rowFormatterFn': goog.bind(this.formatTransactionRecord_, this),
-    'rowClassFn': function(rec) { return 'ui-li-has-count' }
+    'rowClassFn': function(rec) { return [ 'ui-li-static','ui-body-inherit','ui-li-has-count' ]; }
   });
 
-  handler.listen( this.transactions_list_view_ , bitex.ui.ListView.EventType.REQUEST_DATA, this.onTransactionsListViewRequestData_);
+  handler.listen( this.transactions_list_view_ ,
+                  bitex.ui.ListView.EventType.REQUEST_DATA,
+                  this.onTransactionsListViewRequestData_);
   handler.listen(this.conn_,
                  bitex.api.BitEx.EventType.LEDGER_LIST_RESPONSE + '.' + this.ledger_request_id_,
                  this.onLedgerListResponse_);
@@ -542,16 +559,24 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
   this.transactions_list_view_.render( goog.dom.getElement('id_transactions_container') );
 };
 
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onTransactionsRefreshClick_ = function(e) {
+  if (goog.isDefAndNotNull(this.transactions_list_view_)) {
+    this.transactions_list_view_.setPage(0);
+    this.transactions_list_view_.clear();
+    this.transactions_list_view_.reload();
+  }
+};
+
 /**
  * @param {Object} record
- * @return {string|Element}
+ * @return {Element}
  */
 bitex.app.MerchantApp.prototype.formatTransactionRecord_ = function(record) {
-  var row_attributes = {
-    'class': 'ui-btn ',
-    'href' : '#'
-  };
-
   var value_element;
   if (record['Operation'] == 'D') {
     value_element = goog.dom.createDom('span',
@@ -562,7 +587,7 @@ bitex.app.MerchantApp.prototype.formatTransactionRecord_ = function(record) {
                                        ['ui-li-count', 'ui-body-a' ],
                                        this.formatCurrency(record['Amount']/1e8, record['Currency'], true) );
   }
-  return  goog.dom.createDom('a', row_attributes, record['Created'], value_element  );
+  return  [record['Created'],value_element];
 };
 
 /**
@@ -580,15 +605,15 @@ bitex.app.MerchantApp.prototype.onTransactionsListViewRequestData_ = function(e)
 };
 
 /**
- *
  * @param {goog.events.Event} e
+ * @private
  */
 bitex.app.MerchantApp.prototype.onLedgerListResponse_ = function(e) {
   if (!goog.isDefAndNotNull(this.transactions_list_view_) ) {
     return
   }
   var msg = e.data;
-  this.transactions_list_view_.setResultSet( msg['LedgerListGrp'], msg['Columns'] );
+  this.transactions_list_view_.appendResultSet( msg['LedgerListGrp'], msg['Columns'] );
 };
 
 
