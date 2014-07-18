@@ -444,10 +444,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'W':
       if ( msg['MarketDepth'] != 1 ) { // Has Market Depth
-        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR) );
-        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR + '.' + msg['MDReqID']) );
-        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR) );
-        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR + '.' + msg['MDReqID']) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR, msg ) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR + '.' + msg['MDReqID'], msg) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR, msg) );
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADE_CLEAR + '.' + msg['MDReqID'], msg) );
 
         for ( var x in msg['MDFullGrp']) {
           var entry = msg['MDFullGrp'][x];

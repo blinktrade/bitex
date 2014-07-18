@@ -59,6 +59,7 @@ bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
 
   this.currency_info_       = {};
   this.all_markets_         = {};
+  this.bids_                = {};
 };
 goog.inherits(bitex.app.MerchantApp, goog.events.EventTarget);
 goog.addSingletonGetter(bitex.app.MerchantApp);
@@ -113,6 +114,12 @@ bitex.app.MerchantApp.prototype.ledger_request_id_;
  */
 bitex.app.MerchantApp.prototype.market_data_subscription_id_;
 
+
+/**
+ * @type {.Array<Object>}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.bids_;
 
 /**
  * Event handler.
@@ -188,6 +195,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_OK, this.onUserLoginOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_ERROR, this.onUserLoginError_);
+
 
   handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
@@ -534,6 +542,14 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
     instruments.push(instrument);
   });
   this.market_data_subscription_id_ =  this.conn_.subscribeMarketData(0, instruments, ['0'] );
+  var handler = this.getHandler();
+
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.ORDER_BOOK_CLEAR + '.' + this.market_data_subscription_id_, this.onOBClear_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDERS_THRU + '.' + this.market_data_subscription_id_, this.onOBDeleteOrdersThru_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.ORDER_BOOK_DELETE_ORDER + '.' + this.market_data_subscription_id_, this.onOBDeleteOrder_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.ORDER_BOOK_UPDATE_ORDER + '.' + this.market_data_subscription_id_, this.onOBUpdateOrder_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.ORDER_BOOK_NEW_ORDER + '.' + this.market_data_subscription_id_, this.onOBNewOrder_);
+
 
   if (this.getModel().get('IsVerified')) {
     jQuery.mobile.changePage('#menu')
@@ -546,6 +562,92 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
   }
 
 };
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onOBClear_ = function(e){
+  var msg   = e.data;
+  var symbol = msg['Symbol'];
+  this.bids_[symbol] = [];
+
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onOBDeleteOrdersThru_ = function(e){
+  var msg   = e.data;
+  var index = msg['MDEntryPositionNo'];
+  var side  = msg['MDEntryType'];
+  var symbol = msg['Symbol'];
+
+  if (side == '0') {
+    this.bids_[symbol].splice(0,index);
+  }
+
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onOBDeleteOrder_ = function(e){
+  var msg   = e.data;
+  var index = msg['MDEntryPositionNo'] - 1;
+  var side  = msg['MDEntryType'];
+  var symbol = msg['Symbol'];
+
+  if (side == '0') {
+    this.bids_[symbol].splice(index,1);
+  }
+
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onOBUpdateOrder_ = function(e){
+  var msg   = e.data;
+  var index = msg['MDEntryPositionNo'] - 1;
+  var qty   = msg['MDEntrySize'];
+  var side  = msg['MDEntryType'];
+  var symbol = msg['Symbol'];
+
+  if (side == '0') {
+    this.bids_[symbol][index] = [ this.bids_[index][0], qty, this.bids_[index][2] ];
+  }
+
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onOBNewOrder_ = function(e){
+  var msg       = e.data;
+  var index     = msg['MDEntryPositionNo'] - 1;
+  var price     = msg['MDEntryPx'];
+  var qty       = msg['MDEntrySize'];
+  var username  = msg['Username'];
+  var broker    = msg['Broker'];
+  var orderId   = msg['OrderID'];
+  var side      = msg['MDEntryType'];
+  var symbol = msg['Symbol'];
+
+  if (side == '0') {
+    goog.array.insertAt( this.bids_[symbol], [price, qty, username], index );
+  }
+
+};
+
 
 /**
  * @param {goog.events.Event} e
