@@ -247,7 +247,24 @@
 
 	*************************************************************************************
 	-->
-	<div data-role="page" id="request_payout" >
+
+    <div data-role="page" data-dialog="true" id="id_withdraw_confirmation_dialog">
+
+        <div data-role="header">
+            <h1>Confirmation</h1>
+        </div>
+
+        <div data-role="main" class="ui-content">
+            <p>We just sent a confirmation code to your email.</p>
+            <input id="id_withdraw_confirmation" placeholder="Confirmation code" >
+            <p><i>This is security measure to improve your account security</i></p>
+
+			<a href="#" data-role="button" data-rel="back" data-action-value="ok">Confirm</a>
+			<a href="#" data-role="button" data-rel="back" data-action-value="cancel" >Cancel</a>
+        </div>
+    </div>
+
+	<div data-role="page" id="request_payout" data-transition="flip" >
         <form id="id_form_request_payout">
 
          <div data-role="header">
