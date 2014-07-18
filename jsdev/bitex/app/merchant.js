@@ -597,7 +597,7 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
    * Load infos about Balance Report
    */
 
-  this.formatCurrency(value_display, instrument['Currency'], true)
+  //this.formatCurrency(value_display, instrument['Currency'], true)
   goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'), value_display );
   jQuery.mobile.changePage('#id_balance-report');
 
