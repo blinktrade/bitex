@@ -100,6 +100,7 @@
             <img src="/images/blinktrade.png" width="50%">
            </div>
            <form id="id_form_login">
+
                 <table width="100%" border="0">
                       <tr class="ctrlHolder">
                         <td><label for="id_login_username">Username:</label></td>
@@ -247,6 +248,8 @@
 	*************************************************************************************
 	-->
 	<div data-role="page" id="request_payout" >
+        <form id="id_form_request_payout">
+
          <div data-role="header">
                 <h1>Payout</h1>
                <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
@@ -258,8 +261,8 @@
         <div role="main" class="ui-content">
 
             <div class="ui-field-contain">
-                <label for="amount">Amount:</label>
-                <input type="number" name="amount" id="amount" value="">
+                <label for="Amount">Amount:</label>
+                <input type="number" uniform-validators="required; validateNumber" name="Amount" id="Amount" value="">
             </div>
 
             <div id="id_payout_currency">
@@ -273,15 +276,14 @@
             <div class="ui-field-contain">
                 <label for="id_withdraw_method_selector">How:</label>
                 <select name="Method" id="id_withdraw_method_selector" data-mini="true" data-inline="true">
-                    <option value="null">Choose one</option>
                 </select>
             </div>
 
             <div id="id_withdraw_method_fields" class="ui-field-contain"> </div>
 
-            <input type="submit" value="Ok"></input>
+            <input id="id_withdraw_method_submit" type="submit" value="Ok"></input>
         </div>
-
+      </form>
     </div>
 
     <!-- END -->

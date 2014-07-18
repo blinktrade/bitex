@@ -139,6 +139,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   var broker_el         = goog.dom.getElement('id_signup_broker');
   var id_display_main  = goog.dom.getElement('id_display_main');
   var withdraw_selector_el = goog.dom.getElement('id_withdraw_method_selector');
+  var withdraw_submit_el =  goog.dom.getElement('id_withdraw_method_submit');
 
 
   var countries = bitex.util.getCountries();
@@ -165,7 +166,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen( model, bitex.model.Model.EventType.SET + "BrokerList", this.onBrokerList_ );
 
-
+  handler.listen(withdraw_submit_el, goog.events.EventType.CLICK, this.onWithdrawSubmitClick_);
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_);
   handler.listen( this.conn_, bitex.api.BitEx.EventType.CLOSED, this.onConnectionClose_ );
@@ -963,6 +964,47 @@ bitex.app.MerchantApp.prototype.createWitdrawRequiredFields_ = function(current_
         }
     });
 }
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onWithdrawSubmitClick_ = function(e){
+
+    var form_element = goog.dom.getElement("id_form_request_payout");
+
+    var uf = new uniform.Uniform();
+    uf.decorate(  form_element ) ;
+    var error_list = uf.validate();
+
+    if (error_list.length > 0) {
+      goog.array.forEach(error_list, function (error_msg) {
+        /**
+         * @desc Error notification title on payout screen
+         */
+        var MSG_MERCHANTAPP_PAYOUT_VALIDATION_ERROR_NOTIFICATION_TITLE = goog.getMsg('Payout Error');
+
+        this.showNotification('danger', MSG_MERCHANTAPP_PAYOUT_VALIDATION_ERROR_NOTIFICATION_TITLE, error_msg);
+      }, this);
+
+    } else {
+      var withdraw_data = bitex.util.getFormAsJSON(form_element);
+
+      var amount = goog.string.toNumber(withdraw_data['Amount']); delete withdraw_data['Amount'];
+      var method = withdraw_data['Method']; delete withdraw_data['Method'];
+      var currency = goog.dom.forms.getValue(goog.dom.getElement('id_withdraw_currency_selector'));
+
+      this.conn_.requestWithdraw( undefined,
+                                  amount,
+                                  method,
+                                  currency,
+                                  withdraw_data );
+    }
+
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+};
 
 /**
  * @param {goog.events.Event} e

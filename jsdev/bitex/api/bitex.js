@@ -4,6 +4,7 @@ goog.provide('bitex.api.BitExEvent');
 
 goog.require('goog.net.WebSocket');
 goog.require('goog.i18n.NumberFormat');
+goog.require('goog.json');
 goog.require('goog.events');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
