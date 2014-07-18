@@ -227,7 +227,7 @@
             
             <a href="#receive" class="ui-btn" value="receive" > Receive </a>
             <a href="#my_transaction" class="ui-btn" value="my_transaction" > My Transaction </a>
-            <a href="#request_payout" class="ui-btn" value="request_payout" > Request Payout </a>
+            <a href="#request_payout" id='id_payout_menu' class="ui-btn" value="request_payout" > Request Payout </a>
 
             <a href="#login" class="ui-btn ui-btn-corner-all" value="receive" > Logout</a>
 
@@ -256,30 +256,24 @@
                </div>
          </div>
 
-        <div data-role="main">
+        <div role="main" class="ui-content">
 
-            <table width="100%" border="0">
-                <tr>
-                    <td>
-                        <label for="amount">Amount:</label>
-                    </td>
-                    <td>
-                        <input type="number" name="amount" id="amount" value="">
-                    </td>
-                </tr>
-                 <tr class="ui-field-contain">
-                    <td>
-                        <label for="how">How:</label>
-                    </td>
-                    <td>
-                        <select name="how" id="how" data-mini="true" data-inline="true">
-                            <option value="night">Night</option>
-                            <option value="afternoon">Afternoon</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-            <a href="#menu" class="ui-btn" value="ok" >Ok</a>
+            <div class="ui-field-contain">
+                <label for="amount">Amount:</label>
+                <input type="number" name="amount" id="amount" value="">
+            </div>
+
+            <div class="ui-field-contain">
+                <label for="withdraw-method-selector">How:</label>
+                <select name="Method" id="withdraw-method-selector" data-mini="true" data-inline="true">
+                    <option value="night">Night</option>
+                    <option value="afternoon">Afternoon</option>
+                </select>
+            </div>
+
+            <div id="withdraw-method-fields" class="ui-field-contain"> </div>
+
+            <input type="submit" value="Ok"></input>
         </div>
 
     </div>
