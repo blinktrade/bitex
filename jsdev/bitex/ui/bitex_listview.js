@@ -226,6 +226,14 @@ bitex.ui.ListView.prototype.getFilter = function() {
 };
 
 /**
+ *
+ */
+bitex.ui.ListView.prototype.setPage = function(page) {
+  this.getModel().currentPage = page;
+};
+
+
+/**
  * reloads the ListView
  */
 bitex.ui.ListView.prototype.reload = function() {
@@ -307,21 +315,64 @@ bitex.ui.ListView.prototype.resultSetToElements = function(resultSet, columns) {
   return elements;
 };
 
+
 /**
- *
+ * Clears the list view
+ */
+bitex.ui.ListView.prototype.clear  = function(resultSet, columns) {
+  var ul_element = goog.dom.getElementsByTagNameAndClass ( goog.dom.TagName.UL, undefined, this.getElement() )[0];
+  goog.dom.removeChildren(ul_element);
+};
+
+/**
+ * @param {Array.<Array.<*> >} resultSet
+ * @param {Array.<string >} columns
+ */
+bitex.ui.ListView.prototype.appendResultSet  = function(resultSet, columns) {
+  var ul_element = goog.dom.getElementsByTagNameAndClass ( goog.dom.TagName.UL, undefined, this.getElement() )[0];
+
+  var elements = this.resultSetToElements(resultSet, columns);
+  goog.array.forEach( elements, function(el){
+    goog.dom.appendChild(ul_element, el);
+  }, this );
+
+  if ( elements.length == this.getModel().limit ) {
+    console.log('reached limit');
+
+    /**
+     * @desc Load more button label on list view
+     */
+    var MSG_LIST_VIEW_LOAD_MORE_BUTTON_LABEL = goog.getMsg('Load more...');
+
+    var load_more_button = goog.dom.createDom('a', { 'href':'#', 'class':'ui-btn' }, MSG_LIST_VIEW_LOAD_MORE_BUTTON_LABEL );
+    load_more_button.id = this.makeId('load_more');
+    goog.dom.appendChild(ul_element, load_more_button);
+
+    this.getHandler().listenOnce(load_more_button, goog.events.EventType.CLICK, this.onLoadMoreButtonClick_ );
+  }
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.ui.ListView.prototype.onLoadMoreButtonClick_ = function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+
+  goog.dom.removeNode( goog.dom.getElement(this.makeId('load_more') ) );
+  this.getModel().currentPage += 1;
+  this.render_data_();
+};
+
+/**
  * @param {Array.<Array.<*> >} resultSet
  * @param {Array.<string >} columns
  */
 bitex.ui.ListView.prototype.setResultSet = function(resultSet, columns) {
-  var ul_element = goog.dom.getElementsByTagNameAndClass ( goog.dom.TagName.UL, undefined, this.getElement() )[0];
-  goog.dom.removeChildren(ul_element);
-
-  var elements = this.resultSetToElements(resultSet, columns);
-  goog.array.forEach( elements, function(tr){
-    goog.dom.appendChild(ul_element, tr);
-  }, this );
+  this.clear();
+  this.appendResultSet(resultSet, columns);
 };
-
 
 /**
  *

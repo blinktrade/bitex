@@ -226,11 +226,10 @@
            <br />
             
             <a href="#receive" class="ui-btn" value="receive" > Receive </a>
-            <a href="#my_transaction" class="ui-btn" value="my_transaction" > My Transaction </a>
-            <a href="#request_payout" id='id_payout_menu' class="ui-btn" value="request_payout" > Request Payout </a>
+            <a id='id_my_transaction_menu'  href="#my_transaction" class="ui-btn" value="my_transaction" > My Transaction </a>
+            <a id='id_payout_menu' href="#request_payout" class="ui-btn" value="request_payout" > Request Payout </a>
 
             <a href="#login" class="ui-btn ui-btn-corner-all" value="receive" > Logout</a>
-
        </div>
        
        
@@ -263,15 +262,22 @@
                 <input type="number" name="amount" id="amount" value="">
             </div>
 
+            <div id="id_payout_currency">
+                <div class="ui-field-contain">
+                    <label for="id_withdraw_currency_selector">Currency:</label>
+                    <select name="Method" id="id_withdraw_currency_selector" data-mini="true" data-inline="true">
+                    </select>
+                </div>
+            </div>
+
             <div class="ui-field-contain">
-                <label for="withdraw-method-selector">How:</label>
-                <select name="Method" id="withdraw-method-selector" data-mini="true" data-inline="true">
-                    <option value="night">Night</option>
-                    <option value="afternoon">Afternoon</option>
+                <label for="id_withdraw_method_selector">How:</label>
+                <select name="Method" id="id_withdraw_method_selector" data-mini="true" data-inline="true">
+                    <option value="null">Choose one</option>
                 </select>
             </div>
 
-            <div id="withdraw-method-fields" class="ui-field-contain"> </div>
+            <div id="id_withdraw_method_fields" class="ui-field-contain"> </div>
 
             <input type="submit" value="Ok"></input>
         </div>
@@ -293,7 +299,7 @@
         <div data-role="header">
            <h1>My Transaction</h1>
            <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
-           <a href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext ui-btn-inline">Delete</a>
+           <a id="id_transactions_refresh" href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext ui-btn-inline"></a>
         </div>
         <div data-role="navbar">
         </div>
@@ -391,7 +397,7 @@
         <div data-role="header">
            <h1>Receive</h1>
            <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
-          <a href="#dialog-complete" class="ui-btn ui-shadow ui-corner-all ui-icon-plus ui-btn-icon-notext">Add</a>
+           <a href="#dialog-complete" class="ui-btn ui-shadow ui-corner-all ui-icon-plus ui-btn-icon-notext">Add</a>
         </div>
         <div data-role="navbar">
 
