@@ -37,7 +37,11 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
       }
     }
 
-    response_msg = self.application.application_trade_client.sendJSON(process_deposit_message)
+    try:
+      response_msg = self.application.application_trade_client.sendJSON(process_deposit_message)
+    except TradeClientException, e:
+      self.write_error(400)
+      return
 
     if response_msg.get('Status') == '4':
       self.write("*ok*")

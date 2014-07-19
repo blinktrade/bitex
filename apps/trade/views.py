@@ -1087,8 +1087,8 @@ def processProcessDeposit(session, msg):
   elif msg.get('Action') == 'COMPLETE':
     amount      = int(msg.get('Amount'))
     data        = msg.get('Data')
-    percent_fee = msg.get('PercentFee')
-    fixed_fee   = msg.get('FixedFee')
+    percent_fee = msg.get('PercentFee', 0)
+    fixed_fee   = msg.get('FixedFee', 0)
 
     if percent_fee > deposit.percent_fee:
       raise NotAuthorizedError() # Broker tried to raise their  fees manually
