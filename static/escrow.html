@@ -395,13 +395,7 @@
               </table>
             </form>
           <Li id="id_receive_currency_control_holder" class="ui-field-contain ctrlHolder">
-            <select id="id_receive_currency" uniform-validators="required;" name="market" >
-              <option>AUD </option>
-              <option>CAD</option>
-              <option>BRL</option>
-              <option>CLP</option>
-              <option>USD</option>
-            </select>
+            <select id="id_receive_currency" uniform-validators="required;" name="market" ></select>
           </Li>
 
         </div>
@@ -424,9 +418,11 @@
 
         </div>
         <div data-role="main" class="ui-content">
-          <table width="100%" border="0">
+          <table width="100%" border="0" id="id_receive_crypto_payment_has_liquidity_content" style="display: none">
             <tr>
-              <td colspan="3"><input disabled="disabled" type="text" id="id_amount_to_pay_in_crypto" /></td>
+              <td colspan="3">
+                <div id="id_amount_to_pay_in_crypto" class="ui-shadow-inset ui-body-inherit ui-corner-all pull-right" style="text-align: right;padding: 7px;"></div>
+              </td>
             </tr>
             <tr>
               <td colspan="2" id="">Purchase Amount</td>
@@ -443,6 +439,13 @@
               <td colspan="3">&nbsp;</td>
             </tr>
           </table>
+          <div id="id_receive_crypto_payment_no_liquidity_content" align="center" style="display: none">
+              <br />
+              <img src="/images/blinktrade.png" width="50%">
+              <br />
+              There is no liquidity to complete this transaction!
+          </div>
+
         </div>
 
     </div>

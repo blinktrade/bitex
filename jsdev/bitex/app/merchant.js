@@ -130,6 +130,12 @@ bitex.app.MerchantApp.prototype.bids_;
 bitex.app.MerchantApp.prototype.value_to_receive_in_fiat_;
 
 /**
+ * @type {string}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.market_to_sell_received_fiat_;
+
+/**
  * Event handler.
  * TODO(user): rename it to handler_ after all component subclasses in
  * inside Google have been cleaned up.
@@ -156,6 +162,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   }
   this.url_ = url;
   this.value_to_receive_in_fiat_ = 0;
+  this.market_to_sell_received_fiat_ = null;
 
   var handler = this.getHandler();
   var model = this.getModel();
@@ -565,9 +572,11 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
     this.getModel().set('SelectedBrokerID', this.getModel().get('Broker')['BrokerID']);
 
     goog.dom.removeChildren(goog.dom.getElement('id_receive_currency'));
-    goog.array.forEach(this.getModel().get('Broker')['Currencies'], function(currency_code){
+    goog.object.forEach(this.getModel().get('Broker')['AllowedMarkets'], function(market, symbol){
+      var currency_code = this.conn_.getPriceCurrencyFromSymbol(symbol);
+
       var currency_el = goog.dom.createDom('option',
-                                           {'value': currency_code},
+                                           {'value': symbol},
                                            currency_code + '-' + this.conn_.getCurrencyDescription(currency_code));
       goog.dom.appendChild(goog.dom.getElement('id_receive_currency'), currency_el);
     }, this);
@@ -647,7 +656,7 @@ bitex.app.MerchantApp.prototype.onOBClear_ = function(e){
   this.bids_[symbol] = [];
 
   if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-    this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+    this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
   }
 };
 
@@ -665,7 +674,7 @@ bitex.app.MerchantApp.prototype.onOBDeleteOrdersThru_ = function(e){
     this.bids_[symbol].splice(0,index);
 
     if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
     }
   }
 
@@ -687,7 +696,7 @@ bitex.app.MerchantApp.prototype.onOBDeleteOrder_ = function(e){
 
 
     if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
     }
   }
 };
@@ -708,7 +717,7 @@ bitex.app.MerchantApp.prototype.onOBUpdateOrder_ = function(e){
     this.bids_[symbol][index] = [ this.bids_[index][0], qty, this.bids_[index][2] ];
 
     if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
     }
   }
 };
@@ -733,7 +742,7 @@ bitex.app.MerchantApp.prototype.onOBNewOrder_ = function(e){
     goog.array.insertAt( this.bids_[symbol], [price, qty, username], index );
 
     if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
     }
   }
 };
@@ -957,12 +966,10 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   }
 
   this.value_to_receive_in_fiat_ =  parseInt(value_to_receive * 1e8, 10);
+  this.market_to_sell_received_fiat_ = goog.dom.forms.getValue(goog.dom.getElement('id_receive_currency'));
 
-  //this.formatCurrency(value_display, instrument['Currency'], true)
-  goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'),
-                           this.conn_.formatCurrency(value_to_receive, 'USD', true) );
 
-  this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+  this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
   jQuery.mobile.changePage('#id_receive_crypto_payment');
 };
 
@@ -972,25 +979,40 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
  * @return {boolean}
  */
 bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, fiat_amount ) {
+  if (!goog.isDefAndNotNull(symbol) || fiat_amount <= 0) {
+    goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
+    goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), true);
+    return false;
+  }
+
   var price_amount_fee;
-
-
   price_amount_fee = bitex.util.calculatePriceAmountAndFee( fiat_amount,
                                                             bitex.util.PriceAmountCalculatorVerb.SPEND,
                                                             this.bids_[symbol],
                                                             this.getModel().get('Username'),
                                                             this.getModel().get('Broker')['TransactionFeeSell'] );
+  // [50400000000, 197809600, 200000000, 504.52556305563644]
 
 
   if (goog.isDefAndNotNull(price_amount_fee)) {
-    // [50400000000, 197809600, 200000000, 504.52556305563644]
-    // id_amount_to_pay_in_crypto
-    goog.dom.forms.setValue( goog.dom.getElement('id_amount_to_pay_in_crypto'),
-                             this.conn_.formatCurrency( price_amount_fee[1] / 1e8 , symbol.substr(0,3)));
+    var currency_code = this.conn_.getPriceCurrencyFromSymbol(symbol);
+    var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(symbol);
+
+    goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'),
+                             this.conn_.formatCurrency(fiat_amount/1e8, currency_code, true) );
+
+    goog.dom.setTextContent(goog.dom.getElement('id_amount_to_pay_in_crypto'),
+                            this.conn_.formatCurrency( price_amount_fee[1] / 1e8 , crypto_currency_code ));
 
 
+
+    goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), false);
+    goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), true);
+    return true;
   } else {
-
+    goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
+    goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), true);
+    return false;
   }
 };
 

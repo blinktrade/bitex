@@ -285,8 +285,23 @@ bitex.api.BitEx.prototype.formatCurrency  =   function(amount, currency_code, op
     formatter = new goog.i18n.NumberFormat( currency_def.format, currency_def.code );
   }
   return formatter.format(amount);
+};
 
-
+/**
+ * @param {string} symbol
+ * @return {string}
+ */
+bitex.api.BitEx.prototype.getPriceCurrencyFromSymbol = function(symbol) {
+  // BTCUSD will return USD
+  return symbol.substr(3);
+};
+/**
+ * @param {string} symbol
+ * @return {string}
+ */
+bitex.api.BitEx.prototype.getQtyCurrencyFromSymbol = function(symbol) {
+  // BTCUSD will return BTC
+  return symbol.substr(0,3);
 };
 
 /**
