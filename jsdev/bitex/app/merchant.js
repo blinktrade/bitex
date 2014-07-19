@@ -61,6 +61,8 @@ bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
   this.currency_info_       = {};
   this.all_markets_         = {};
   this.bids_                = {};
+
+  this.deposit_request_id_  = null;
 };
 goog.inherits(bitex.app.MerchantApp, goog.events.EventTarget);
 goog.addSingletonGetter(bitex.app.MerchantApp);
@@ -113,6 +115,12 @@ bitex.app.MerchantApp.prototype.ledger_request_id_;
  * @type {number}
  * @private
  */
+bitex.app.MerchantApp.prototype.deposit_request_id_;
+
+/**
+ * @type {number}
+ * @private
+ */
 bitex.app.MerchantApp.prototype.market_data_subscription_id_;
 
 
@@ -151,6 +159,8 @@ bitex.app.MerchantApp.prototype.handler_;
  * @private
  */
 bitex.app.MerchantApp.prototype.form_receive_;
+
+
 
 /**
  * @param {string=} opt_url
@@ -574,10 +584,14 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
     goog.dom.removeChildren(goog.dom.getElement('id_receive_currency'));
     goog.object.forEach(this.getModel().get('Broker')['AllowedMarkets'], function(market, symbol){
       var currency_code = this.conn_.getPriceCurrencyFromSymbol(symbol);
+      var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(symbol);
 
-      var currency_el = goog.dom.createDom('option',
-                                           {'value': symbol},
-                                           currency_code + '-' + this.conn_.getCurrencyDescription(currency_code));
+      /** @desc options for the merchant to accept  */
+      var MSG_MERCHANT_APP_SELECT_SYMBOL = goog.getMsg('He pays in {$cryptoCurrency}, you get {$currency}',{
+        currency: this.conn_.getCurrencyDescription(currency_code), cryptoCurrency:this.conn_.getCurrencyDescription(crypto_currency_code)});
+
+      var currency_el = goog.dom.createDom('option', {'value': symbol}, MSG_MERCHANT_APP_SELECT_SYMBOL);
+
       goog.dom.appendChild(goog.dom.getElement('id_receive_currency'), currency_el);
     }, this);
     goog.style.showElement( goog.dom.getElement('id_receive_currency_control_holder'),
@@ -968,9 +982,37 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   this.value_to_receive_in_fiat_ =  parseInt(value_to_receive * 1e8, 10);
   this.market_to_sell_received_fiat_ = goog.dom.forms.getValue(goog.dom.getElement('id_receive_currency'));
 
+  var handler = this.getHandler();
+  var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(this.market_to_sell_received_fiat_);
+  this.deposit_request_id_= parseInt( 1e7 * Math.random() , 10 );
+  handler.listenOnce( this.conn_, bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + this.deposit_request_id_,
+                      this.onDepositResponse_);
+  goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), '');
+  goog.dom.removeChildren(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'));
+
+  this.conn_.requestDeposit( this.deposit_request_id_, undefined , undefined, undefined, crypto_currency_code);
 
   this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
   jQuery.mobile.changePage('#id_receive_crypto_payment');
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
+  var msg = e.data;
+  goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'),
+                          msg['Data']['InputAddress']);
+
+
+  var qr_code_element = goog.dom.createDom('img', {
+    'src': 'http://chart.apis.google.com/chart?cht=qr&chs=320x320&chl=' + msg['Data']['InputAddress'],
+    'width': '100%'
+  });
+  goog.dom.appendChild(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'),
+                       qr_code_element);
 };
 
 /**
