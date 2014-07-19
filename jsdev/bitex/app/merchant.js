@@ -122,6 +122,13 @@ bitex.app.MerchantApp.prototype.market_data_subscription_id_;
  */
 bitex.app.MerchantApp.prototype.bids_;
 
+
+/**
+ * @type {number}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.value_to_receive_in_fiat_;
+
 /**
  * Event handler.
  * TODO(user): rename it to handler_ after all component subclasses in
@@ -148,6 +155,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
     url = opt_url;
   }
   this.url_ = url;
+  this.value_to_receive_in_fiat_ = 0;
 
   var handler = this.getHandler();
   var model = this.getModel();
@@ -638,6 +646,9 @@ bitex.app.MerchantApp.prototype.onOBClear_ = function(e){
   var symbol = msg['Symbol'];
   this.bids_[symbol] = [];
 
+  if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
+    this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+  }
 };
 
 /**
@@ -652,6 +663,10 @@ bitex.app.MerchantApp.prototype.onOBDeleteOrdersThru_ = function(e){
 
   if (side == '0') {
     this.bids_[symbol].splice(0,index);
+
+    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
+      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+    }
   }
 
 };
@@ -669,8 +684,12 @@ bitex.app.MerchantApp.prototype.onOBDeleteOrder_ = function(e){
 
   if (side == '0') {
     this.bids_[symbol].splice(index,1);
-  }
 
+
+    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
+      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+    }
+  }
 };
 
 
@@ -687,8 +706,11 @@ bitex.app.MerchantApp.prototype.onOBUpdateOrder_ = function(e){
 
   if (side == '0') {
     this.bids_[symbol][index] = [ this.bids_[index][0], qty, this.bids_[index][2] ];
-  }
 
+    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
+      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+    }
+  }
 };
 
 
@@ -709,8 +731,11 @@ bitex.app.MerchantApp.prototype.onOBNewOrder_ = function(e){
 
   if (side == '0') {
     goog.array.insertAt( this.bids_[symbol], [price, qty, username], index );
-  }
 
+    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
+      this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+    }
+  }
 };
 
 
@@ -904,6 +929,7 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
 
   var error_list = this.form_receive_.validate();
   if (error_list.length > 0) {
+    this.value_to_receive_in_fiat_ = 0;
     goog.array.forEach(error_list, function (error_msg) {
 
       /**
@@ -919,39 +945,54 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
 
 
   var value_to_receive = goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement('id_display_receive'))) ;
-   if (value_to_receive <= 0) {
-      /**
-        * @desc Put a value on merchant app balance-report form
-        */
-      var MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT = goog.getMsg('Missing amount');
+  if (value_to_receive <= 0) {
+    this.value_to_receive_in_fiat_ = 0;
+    /**
+      * @desc Put a value on merchant app balance-report form
+      */
+    var MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT = goog.getMsg('Missing amount');
 
-      this.showNotification('danger', '', MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT );
-      return;
-    }
+    this.showNotification('danger', '', MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT );
+    return;
+  }
 
-
-
-  /**
-   * Load infos about Balance Report
-   */
+  this.value_to_receive_in_fiat_ =  parseInt(value_to_receive * 1e8, 10);
 
   //this.formatCurrency(value_display, instrument['Currency'], true)
   goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'),
                            this.conn_.formatCurrency(value_to_receive, 'USD', true) );
 
+  this.recalculateCryptoPayment( 'BTCUSD', this.value_to_receive_in_fiat_ );
+  jQuery.mobile.changePage('#id_receive_crypto_payment');
+};
+
+/**
+ * @param {string} symbol
+ * @param {number} fiat_amount
+ * @return {boolean}
+ */
+bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, fiat_amount ) {
   var price_amount_fee;
-  price_amount_fee = bitex.util.calculatePriceAmountAndFee( parseInt(value_to_receive * 1e8, 10),
+
+
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee( fiat_amount,
                                                             bitex.util.PriceAmountCalculatorVerb.SPEND,
-                                                            this.bids_['BTCUSD'],
+                                                            this.bids_[symbol],
                                                             this.getModel().get('Username'),
                                                             this.getModel().get('Broker')['TransactionFeeSell'] );
 
-  console.log(price_amount_fee);
 
-  jQuery.mobile.changePage('#id_balance-report');
+  if (goog.isDefAndNotNull(price_amount_fee)) {
+    // [50400000000, 197809600, 200000000, 504.52556305563644]
+    // id_amount_to_pay_in_crypto
+    goog.dom.forms.setValue( goog.dom.getElement('id_amount_to_pay_in_crypto'),
+                             this.conn_.formatCurrency( price_amount_fee[1] / 1e8 , symbol.substr(0,3)));
 
+
+  } else {
+
+  }
 };
-
 
 /**
  * @param {goog.events.Event} e
