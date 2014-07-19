@@ -804,6 +804,17 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
   return requestId;
 };
 
+bitex.api.BitEx.prototype.updateUserProfile = function(userId, fields, opt_requestId){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+  var msg = {
+    'MsgType': 'U38',
+    'UpdateReqID': requestId,
+    'UserId': userId,
+    'Fields': fields
+  };
+  this.sendMessage(msg);
+};
+
 /**
  * Request deposit list
  * @param {number=} opt_requestId. Defaults to random generated number

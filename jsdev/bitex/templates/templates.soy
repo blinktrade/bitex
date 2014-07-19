@@ -322,6 +322,34 @@
 
 
 /**
+  * @param id
+  * @param buy_fee
+  * @param sell_fee
+  */
+{template .UserFeesDialogContent}
+
+  <form class="form-horizontal">
+
+    <div class="control-group">
+      <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Buy fee{/msg}</label>
+      <div class="controls">
+        <input id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
+      </div>
+    </div>
+
+
+    <div class="control-group">
+      <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Sell fee{/msg}</label>
+      <div class="controls">
+        <input id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
+      </div>
+    </div>
+
+  </form>
+
+{/template}
+
+/**
   * @param accounts
   */
 {template .YourAccountSummary}
@@ -860,6 +888,11 @@
          <td><strong>{msg desc="label on  overview header"}Registration date{/msg}</strong></td>
          <td>{$msg_customer_detail['Created']}</td>
       </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Needs email confirmation on withdraw{/msg}</strong></td>
+         <td>{$msg_customer_detail['withdraw_email_validation']}</td>
+      </tr>
+
     </tbody>
   </table>
 {/template}

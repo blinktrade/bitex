@@ -164,6 +164,9 @@ class JsonMessage(BaseMessage):
       'U36': 'TradersRankRequest',
       'U37': 'TradersRankResponse',
 
+      'U38': 'UpdateUserProfile',
+      'U39': 'UpdateUserProfileResponse',
+
       # Broker messages
       'B0':  'ProcessDeposit',
       'B1':  'ProcessDepositResponse',
