@@ -213,10 +213,6 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( model, bitex.model.Model.EventType.SET + "BrokerList", this.onBrokerList_ );
 
   handler.listen(withdraw_submit_el, goog.events.EventType.CLICK, this.onWithdrawSubmitClick_);
-  handler.listen(goog.dom.getElement('id_withdraw_confirmation_dialog'), goog.events.EventType.CLICK, this.onWithdrawConfirmClick_);
-
-
-
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_);
   handler.listen( this.conn_, bitex.api.BitEx.EventType.CLOSED, this.onConnectionClose_ );
@@ -241,9 +237,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen( goog.dom.getElement('id_enter_btn_receive'), goog.events.EventType.CLICK, this.onEnterReceiveClick_ );
   handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ );
-
-
-
+  handler.listen( goog.dom.getElement('id_withdraw_confirmation_dialog'), goog.events.EventType.CLICK, this.onWithdrawConfirmClick_);
 
   var button_signup = new goog.ui.Button();
   button_signup.decorate(goog.dom.getElement('id_signup_confirm'));
@@ -322,12 +316,27 @@ bitex.app.MerchantApp.prototype.onConnectionOpen_ = function(e){
 
 };
 
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
+
 bitex.app.MerchantApp.prototype.onConnectionClose_ = function(e){
   jQuery.mobile.changePage('#preLoad')
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
 bitex.app.MerchantApp.prototype.onConnectionError_ = function(e){
   jQuery.mobile.changePage('#preLoad')
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
 bitex.app.MerchantApp.prototype.onConnectionErrorMessage_ = function(e) {
   // TODO: Show a popup to the user with the error message.
 };
@@ -341,6 +350,10 @@ bitex.app.MerchantApp.prototype.onTimerHeartBeat_ = function(e){
 };
 
 
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
 bitex.app.MerchantApp.prototype.onHearBeat_ = function(e) {
 
   var msg = e.data;
@@ -523,6 +536,10 @@ bitex.app.MerchantApp.prototype.adjustBrokerData_ = function(broker_info) {
   return broker_info;
 };
 
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
 bitex.app.MerchantApp.prototype.isCryptoCurrency  =   function(currency_code) {
   /**
    * @type {bitex.model.OrderBookCurrencyModel}
@@ -530,7 +547,6 @@ bitex.app.MerchantApp.prototype.isCryptoCurrency  =   function(currency_code) {
   var currency_def = this.currency_info_[currency_code];
   return currency_def.is_crypto;
 };
-
 
 /**
  * @param {bitex.api.BitExEvent} e
@@ -1113,7 +1129,10 @@ bitex.app.MerchantApp.prototype.onUserSignupButtonClick_ = function(e) {
 
 };
 
-
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
 bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
   //
   // auto select the country/state in case there is only one broker
@@ -1185,6 +1204,10 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
 
 };
 
+/**
+ * @param {goog.events.Event} e
+ * @protected
+ */
 bitex.app.MerchantApp.prototype.onSelectCountry_ = function(selected_country) {
 
   var signup_state_el = goog.dom.getElement('id_signup_state');
