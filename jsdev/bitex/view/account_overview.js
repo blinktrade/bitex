@@ -207,6 +207,10 @@ bitex.view.AccountOverview.prototype.destroyComponents_ = function(customer ) {
                    bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE + '.' + this.request_id_,
                    this.onVerifyCustomerResponse_);
 
+  handler.unlisten(goog.dom.getElement('id_btn_user_fees'),
+                 goog.events.EventType.CLICK,
+                 this.onBtnUserFeesClick_ );
+
 
   goog.dom.removeChildren(account_overview_header_el);
 
@@ -319,6 +323,10 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
   handler.listen(account_overview_header_el,
                  goog.events.EventType.CLICK,
                  this.onAccountOverviewHeaderClick_ );
+
+  handler.listen(goog.dom.getElement('id_btn_user_fees'),
+                 goog.events.EventType.CLICK,
+                 this.onBtnUserFeesClick_ );
 
   handler.listen(this.getApplication().getBitexConnection(),
                  bitex.api.BitEx.EventType.VERIFY_CUSTOMER_RESPONSE + '.' + this.request_id_,
@@ -461,6 +469,35 @@ bitex.view.AccountOverview.prototype.onVerifyCustomerResponse_ = function(e) {
 
   goog.dom.removeChildren(verified_data_el);
   goog.dom.appendChild(verified_data_el, new_verified_data_el);
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+bitex.view.AccountOverview.prototype.onBtnUserFeesClick_ = function(e) {
+  var dlg_content = bitex.templates.UserFeesDialogContent({id: "id_user_fees", buy_fee:"0", sell_fee:"0"}) ;
+
+  /**
+   * @desc user custom fees
+   */
+  var MSG_USER_FEES_DIALOG_TITLE = goog.getMsg('Set custom user fees');
+
+  var userFeesDialog = this.getApplication().showDialog(dlg_content,
+                                                   MSG_USER_FEES_DIALOG_TITLE,
+                                                   bootstrap.Dialog.ButtonSet.createOkCancel());
+
+
+  var handler = this.getHandler();
+  handler.listenOnce(userFeesDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+    if (e.key == 'ok') {
+      var fee_buy = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_buy_fee" ) );
+      var fee_sell = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_sell_fee" ) );
+      var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+      var conn = this.getApplication().getBitexConnection();
+      conn.updateUserProfile(selectedCustomer['ID'], { 'transaction_fee_buy': fee_buy, 'transaction_fee_sell': fee_sell });
+    }
+  }, this);
+
 };
 
 /**

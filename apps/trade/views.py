@@ -313,6 +313,26 @@ def processCancelOrderRequest(session, msg):
 
   return ""
 
+@login_required
+def processUpdateUserProfile(session, msg):
+  user = User.get_user(application.db_session, None, None, msg.get('UserId'))
+  updated_fields = 0
+  if user:
+    fields = msg.get('Fields')
+
+    for field, field_value in fields.iteritems():
+      if hasattr(user, field):
+        setattr(user, field, field_value)
+        updated_fields += 1
+
+    application.db_session.commit()
+
+  return json.dumps({
+    "MsgType":"U39",
+    "UpdatedFields": updated_fields,
+    "UpdateReqID": msg.get("UpdateReqID")
+  }, cls=JsonEncoder)
+
 def processTradersRankRequest(session, msg):
   page            = msg.get('Page', 0)
   page_size       = msg.get('PageSize', 100)
@@ -656,7 +676,6 @@ def processRequestDeposit(session, msg):
   response_msg['DepositReqID'] = msg.get('DepositReqID')
   return json.dumps(response_msg, cls=JsonEncoder)
 
-
 def depositRecordToDepositMessage( deposit ):
   deposit_message = dict()
   deposit_message['DepositID']           = deposit.id
@@ -744,7 +763,6 @@ def processWithdrawConfirmationRequest(session, msg):
   response_u25['ConfirmationToken'] = withdraw_data.confirmation_token,
 
   return json.dumps(response_u25, cls=JsonEncoder)
-
 
 @login_required
 def processWithdrawListRequest(session, msg):
@@ -860,7 +878,6 @@ def processBrokerListRequest(session, msg):
   }
   return json.dumps(response_msg, cls=JsonEncoder)
 
-
 @login_required
 @staff_user_required
 def processRequestDatabaseQuery(session, msg):
@@ -896,7 +913,6 @@ def processRequestDatabaseQuery(session, msg):
     'ResultSet': [ [ l for l in res ] for res in  result_set ]
   }
   return json.dumps(result, cls=JsonEncoder)
-
 
 @login_required
 @broker_user_required
@@ -945,8 +961,6 @@ def processCustomerListRequest(session, msg):
   }
   return json.dumps(response_msg, cls=JsonEncoder)
 
-
-
 @login_required
 @broker_user_required
 def processCustomerDetailRequest(session, msg):
@@ -972,7 +986,6 @@ def processCustomerDetailRequest(session, msg):
     'Username'          : client.username
   }
   return json.dumps(response_msg, cls=JsonEncoder)
-
 
 def processVerifyCustomer(session, msg):
   broker_id = msg.get('BrokerID')
@@ -1003,7 +1016,6 @@ def processVerifyCustomer(session, msg):
     'VerificationData'    : msg.get('VerificationData')
   }
   return json.dumps(response_msg, cls=JsonEncoder)
-
 
 @login_required
 @broker_user_required
@@ -1113,7 +1125,6 @@ def processProcessDeposit(session, msg):
   result['MsgType'] =  'B1'
   result['ProcessDepositReqID'] = msg.get('ProcessDepositReqID')
   return json.dumps(result, cls=JsonEncoder)
-
 
 @login_required
 def processLedgerListRequest(session, msg):
