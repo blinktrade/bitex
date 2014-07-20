@@ -316,20 +316,12 @@ def processCancelOrderRequest(session, msg):
 @login_required
 def processUpdateUserProfile(session, msg):
   user = User.get_user(application.db_session, None, None, msg.get('UserId'))
-  updated_fields = 0
   if user:
-    fields = msg.get('Fields')
-
-    for field, field_value in fields.iteritems():
-      if hasattr(user, field):
-        setattr(user, field, field_value)
-        updated_fields += 1
-
+    user.update(msg.get('Fields'))
     application.db_session.commit()
 
   return json.dumps({
     "MsgType":"U39",
-    "UpdatedFields": updated_fields,
     "UpdateReqID": msg.get("UpdateReqID")
   }, cls=JsonEncoder)
 
@@ -935,7 +927,8 @@ def processCustomerListRequest(session, msg):
 
   result_set = []
   columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,
-              'Created'         , 'LastLogin'      , 'Verified'          , 'VerificationData'   , 'TwoFactorEnabled' ]
+              'Created'         , 'LastLogin'      , 'Verified'          , 'VerificationData'   , 'TwoFactorEnabled',
+              'TransactionFeeBuy', 'TransactionFeeSell', 'NeedWithdrawEmail' ]
 
   for entity in user_list:
     result_set.append( [
@@ -948,7 +941,10 @@ def processCustomerListRequest(session, msg):
       entity.last_login           ,
       entity.verified             ,
       entity.verification_data    ,
-      entity.two_factor_enabled
+      entity.two_factor_enabled   ,
+      entity.transaction_fee_buy  ,
+      entity.transaction_fee_sell ,
+      entity.withdraw_email_validation
     ])
 
   response_msg = {

@@ -57,7 +57,8 @@ bitex.view.View.EventType = {
   UPLOAD_RECEIPT: 'upload_receipt',
   SHOW_RECEIPT: 'show_receipt' ,
 
-  SET_VERIFIED: 'set_verified'
+  SET_VERIFIED: 'set_verified',
+  SET_WITHDRAW_EMAIL: 'set_withdraw_email'
 };
 
 
