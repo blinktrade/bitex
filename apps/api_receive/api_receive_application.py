@@ -7,6 +7,7 @@ from tornado.options import  options
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from create_receive_handler import ReceiveHandler
+from wallet_notify_handler import  WalletNotifyHandler
 
 from bitcoinrpc.authproxy import AuthServiceProxy
 
@@ -14,7 +15,8 @@ class ApiReceiveApplication(tornado.web.Application):
   def __init__(self):
     handlers = [
       (r"/api/receive", ReceiveHandler),
-    ]
+      (r"/api/walletnotify/(?P<txid>[^\/]+)", WalletNotifyHandler),
+      ]
     settings = dict(
       cookie_secret='cookie_secret'
     )
