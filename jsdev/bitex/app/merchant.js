@@ -421,6 +421,14 @@ bitex.app.MerchantApp.prototype.onBitexWithdrawConfirmationResponse_ = function(
 
       location.href = "#id_withdraw_confirmation_dialog";
   }
+  else {
+      /** @desc Withdraw user notification */
+      var MSG_WITHDRAW_NOTIFICATION_USER_CONFIRMED_TITLE = goog.getMsg("Withdraw confirmed");
+
+      this.showNotification('info', MSG_WITHDRAW_NOTIFICATION_USER_CONFIRMED_TITLE  );
+
+      location.href = "#menu";
+  }
 
 };
 

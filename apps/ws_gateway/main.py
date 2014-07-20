@@ -57,6 +57,7 @@ define("port", type=int  ,help="port")
 define("gateway_log", help="logging" )
 define("trade_in", help="trade zmq queue")
 define("trade_pub",help="trade zmq publish queue")
+define("url_payment_processor",help="blockchain api_receive url", default='https://blockchain.info/api/receive')
 define("session_timeout_limit", default=0, help="Session timeout")
 define("db_echo",default=False, help="Prints every database command on the stdout")
 
@@ -197,19 +198,13 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 parameters = urllib.urlencode({
                     'method': 'create',
                     'address': hot_wallet,
-                    'callback': callback_url
+                    'callback': callback_url,
+                    'currency': currency
                 })
 
-                url_payment_processor = None
-                if currency == 'BTC':
-                    url_payment_processor = 'https://blockchain.info/api/receive'
-
-                if not url_payment_processor:
-                    # TODO: Return NOT SUPPORTED COIN error to the user
-                    return
 
                 try:
-                    url_payment_processor += '?' + parameters
+                    url_payment_processor = options.url_payment_processor + '?' + parameters
                     print "invoking .. ", url_payment_processor
                     response = urllib2.urlopen(url_payment_processor)
                     data = json.load(response)
@@ -493,6 +488,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
 def main():
 
     print 'callback_url', options.callback_url
+    print 'url_payment_processor', options.url_payment_processor
     print 'port', options.port
     print 'trade_in', options.trade_in
     print 'trade_pub', options.trade_pub
