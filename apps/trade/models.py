@@ -1036,7 +1036,7 @@ class Withdraw(Base):
                       self.broker_id,         # to_broker_id
                       self.broker_username,   # to_broker_name
                       self.currency,          # currency
-                      total_fees,             # amount
+                      self.amount,            # amount
                       str(self.id),           # reference
                       'W'                     # descriptions
       )
@@ -2025,32 +2025,45 @@ def db_bootstrap(session):
                          'USD': [ {
                                       'method':'paypal',
                                       'description':'paypal',
-                                      'disclaimer':'Realizado na hora. O Paypal poderá cobrar taxas adicionais',
-                                      'percent_fee': 30, # 0.3 percent
+                                      'disclaimer':'You still might have to pay PayPal fees',
+                                      'percent_fee': 300, # 3 percent
                                       'fixed_fee': 0,
                                       'fields': [
                                           {'side':'client',  'name': 'Email'          , 'validator':'validateEmail', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
                                           {'side':'broker',  'name': 'TransactionID'  , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
                                           {'side':'broker',  'name': 'Link'           , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
-                                          ]
-                                  },
-                                  {
+                                      ]
+                                  },{
                                       'method':'cash',
-                                      'description':'cash',
-                                      'disclaimer':'someone must validate it in person',
-                                      'percent_fee': 30, # 0.3 percent
+                                      'description':'Cash',
+                                      'disclaimer':'Armored car will deliver the cash in hands',
+                                      'percent_fee': 100, # 1%
                                       'fixed_fee': 0,
                                       'fields': [
-                                          {'side':'client',  'name': 'hour'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Hour'        , 'placeholder':'' },
-                                          ]
-                                  }
+                                          {'side':'client',  'name': 'Hour'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Hour'          , 'placeholder':'' },
+                                          {'side':'broker',  'name': 'DeliveredTime' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Delivered Time', 'placeholder':'' },
+                                          {'side':'broker',  'name': 'DeliveredTo'   , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Delivered To'  , 'placeholder':'' },
+                                      ]
+                                  }, {
+                                   'method':'ach',
+                                   'description':'ACH',
+                                   'disclaimer':'1 business day',
+                                   'percent_fee': 100, # 1% percent
+                                   'fixed_fee': int(.3 * 1e8), # $0.30
+                                   'fields': [
+                                       {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                                       {'side':'client', 'name': 'RoutingNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                                       {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 888888' },
+                                       {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                   ]
+                                 }
                          ]
                      }),
                      crypto_currencies=json.dumps([
                          {
                              "CurrencyCode": "BTC",
                              "CurrencyDescription":"Bitcoin",
-                             "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                             "Confirmations":[ [0, 1e8, 0], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                              "Wallets": [
                                  { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
                                  { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
@@ -2058,7 +2071,7 @@ def db_bootstrap(session):
                          }
                      ]),
                      accept_customers_from=json.dumps([
-                         [ "*", 'US_NY'],  # everywhere, including US_NY
+                         [ 'US_NY'],  # Only US_NY
                          [ "US",  # except US and all other states
                            "US_AL","US_AK","US_AZ","US_AR","US_CA","US_CO","US_CT","US_DE","US_DC","US_FL",
                            "US_GA","US_HI","US_ID","US_IL","US_IN","US_IA","US_KS","US_KY","US_LA","US_ME",
@@ -2078,8 +2091,8 @@ def db_bootstrap(session):
                          { "Operation" : "Wire transfer withdraw",         "Fee":"0.3%"             , "Terms":"Next business day" },
                          { "Operation" : "PayPal withdrawal",              "Fee":"0%"               , "Terms":"Instant" },
                          ]),
-                     transaction_fee_buy=20, # 0.2%
-                     transaction_fee_sell=20, # 0.2%
+                     transaction_fee_buy=20,   # 0.2%
+                     transaction_fee_sell=20,  # 0.2%
                      status='1',
                      ranking=5)
           session.add(e)
