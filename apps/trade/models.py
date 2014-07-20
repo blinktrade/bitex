@@ -50,7 +50,6 @@ class AlchemyJSONEncoder(json.JSONEncoder):
 
     return json.JSONEncoder.default(self, obj)
 
-
 def generate_two_factor_secret():
   return base64.b32encode(os.urandom(10))
 
@@ -65,7 +64,6 @@ def get_hotp_token(secret, intervals_no):
 def get_totp_token(secret):
   return get_hotp_token(secret, intervals_no=int(time.time())//30)
 
-
 def get_hexdigest(algorithm, salt, raw_password):
   """
   Returns a string of the hexdigest of the given plaintext password and salt
@@ -78,7 +76,6 @@ def get_hexdigest(algorithm, salt, raw_password):
     import bcrypt
     return bcrypt.hashpw(raw_password, salt)
   raise Exception("Got unknown password algorithm type in password.")
-
 
 class NeedSecondFactorException(Exception):
   pass
@@ -169,6 +166,9 @@ class User(Base):
   transaction_fee_buy   = Column(Integer, nullable=True, default=0)
   transaction_fee_sell  = Column(Integer, nullable=True, default=0)
 
+  withdraw_email_validation  = Column(Boolean, nullable=False, default=True)
+
+
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
            u" password_algo=%r, password_salt=%r, password=%r,"\
@@ -240,7 +240,6 @@ class User(Base):
         query = query.order(sort_column).desc()
     return query
 
-
   @staticmethod
   def signup(session, username, email, password, state, country_code, broker_id):
     if User.get_user( session, username=username , email=email):
@@ -280,7 +279,6 @@ class User(Base):
 
     return u, broker
 
-
   @staticmethod
   def authenticate(session, user, password, second_factor=None):
     user = User.get_user( session, user, user)
@@ -299,6 +297,12 @@ class User(Base):
 
       return user
     return None
+
+  def update(self, fields):
+    for field, field_value in fields.iteritems():
+      if field in  ['transaction_fee_buy', 'transaction_fee_sell', 'withdraw_email_validation']:
+        if hasattr(self, field):
+          setattr(self, field, field_value)
 
   def enable_two_factor(self, enable, secret, second_factor):
     if enable:
@@ -937,7 +941,7 @@ class Withdraw(Base):
 
   @staticmethod
   def user_confirm(session, confirmation_token):
-    withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).first()
+    withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).filter_by( status = 0 ).first()
     if not withdraw_data:
       return  None
 

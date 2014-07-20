@@ -845,6 +845,19 @@
 /**
   * @param msg_customer_detail
   */
+{template .AccountOverviewHeaderWithDrawEmailData}
+    {if $msg_customer_detail['NeedWithdrawEmail'] }
+      <span class="label label-success">{msg desc="label on  overview header"}Enabled{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_WITHDRAW_EMAIL" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Disable{/msg}</a>
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}Disabled{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_WITHDRAW_EMAIL" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Enabled{/msg}</a>
+    {/if}
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
 {template .AccountOverviewHeader}
   <table class="table table-striped account-overview-table" style="width: 350px">
     <tbody>
@@ -890,7 +903,11 @@
       </tr>
       <tr>
          <td><strong>{msg desc="label on  overview header"}Needs email confirmation on withdraw{/msg}</strong></td>
-         <td>{$msg_customer_detail['withdraw_email_validation']}</td>
+         <td class="account-overview-val account-overview-withdraw-email">
+          {call .AccountOverviewHeaderWithDrawEmailData}
+            {param msg_customer_detail: $msg_customer_detail /}
+          {/call}
+         </td>
       </tr>
 
     </tbody>

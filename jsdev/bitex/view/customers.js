@@ -101,6 +101,7 @@ bitex.view.CustomersView.prototype.recreateComponents_ = function() {
   var handler = this.getHandler();
 
   if (goog.isDefAndNotNull( this.customers_table_)) {
+    this.customers_table_.reload();
     return;
   }
 
