@@ -475,7 +475,8 @@ bitex.view.AccountOverview.prototype.onVerifyCustomerResponse_ = function(e) {
  * @param {goog.events.Event} e
  */
 bitex.view.AccountOverview.prototype.onBtnUserFeesClick_ = function(e) {
-  var dlg_content = bitex.templates.UserFeesDialogContent({id: "id_user_fees", buy_fee:"0", sell_fee:"0"}) ;
+  var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+  var dlg_content = bitex.templates.UserFeesDialogContent({id: "id_user_fees", buy_fee:selectedCustomer['TransactionFeeBuy'], sell_fee:selectedCustomer['TransactionFeeSell']}) ;
 
   /**
    * @desc user custom fees
@@ -495,6 +496,12 @@ bitex.view.AccountOverview.prototype.onBtnUserFeesClick_ = function(e) {
       var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
       var conn = this.getApplication().getBitexConnection();
       conn.updateUserProfile(selectedCustomer['ID'], { 'transaction_fee_buy': fee_buy, 'transaction_fee_sell': fee_sell });
+
+      selectedCustomer['TransactionFeeBuy'] = fee_buy;
+      selectedCustomer['TransactionFeeSell'] = fee_sell;
+
+      this.getApplication().getModel().set('SelectedCustomer', selectedCustomer);
+
     }
   }, this);
 
@@ -516,6 +523,29 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
     var handler = this.getHandler();
 
     switch( data_action ) {
+      case 'SET_WITHDRAW_EMAIL':
+
+        var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+
+        this.client_id_ =  selectedCustomer['ID'];
+        this.verification_data_ = {'withdraw_email_validation': !selectedCustomer['NeedWithdrawEmail'] };
+
+        this.dispatchEvent(bitex.view.View.EventType.SET_WITHDRAW_EMAIL);
+
+        var new_withdraw_email_data_el = soy.renderAsElement( bitex.templates.AccountOverviewHeaderWithDrawEmailData,
+                                                        {msg_customer_detail: {'NeedWithdrawEmail' : !selectedCustomer['NeedWithdrawEmail'] } } );
+
+        var withdraw_email_data_el = goog.dom.getElementByClass('account-overview-withdraw-email',
+                                                       goog.dom.getElement('account_overview_header_id') );
+
+        goog.dom.removeChildren(withdraw_email_data_el);
+        goog.dom.appendChild(withdraw_email_data_el, new_withdraw_email_data_el);
+
+        selectedCustomer['NeedWithdrawEmail'] = !selectedCustomer['NeedWithdrawEmail'];
+        this.getApplication().getModel().set('SelectedCustomer', selectedCustomer);
+
+
+        break;
       case 'SET_VERIFIED':
         var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
         /** @desc Verification Data Dialog content title */
