@@ -17,7 +17,6 @@ BASE = declarative_base()
 
 class Trade(BASE):
     __tablename__ = 'trade'
-    #id = Column(String, primary_key=True)
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, nullable=False)
     counter_order_id = Column(Integer, nullable=False)
@@ -31,8 +30,8 @@ class Trade(BASE):
     trade_type = Column(Integer, nullable=False, default=0)  # regular trade
 
     def __repr__(self):
-        return "<Trade(id=%r, order_id:%r, counter_order_id:%r, buyer_username=%r,seller_username=%r,  " \
-               "side:%r, symbol=%r, size:%r, price:%r, created=%r, trade_type=%r )>"\
+        return "<Trade(id=%r, order_id=%r, counter_order_id=%r, buyer_username=%r,seller_username=%r,  " \
+               "side=%r, symbol=%r, size=%r, price=%r, created=%r, trade_type=%r )>"\
             % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
                self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
