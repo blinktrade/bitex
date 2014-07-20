@@ -941,7 +941,7 @@ class Withdraw(Base):
 
   @staticmethod
   def user_confirm(session, confirmation_token):
-    withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).first()
+    withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).filter_by( status = 0 ).first()
     if not withdraw_data:
       return  None
 
