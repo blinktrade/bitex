@@ -59,7 +59,7 @@ class ForwardingAddress(Base):
 
   @staticmethod
   def get_unconfirmed_by_client(session):
-    return session.query(ForwardingAddress).filter_by(is_confirmed_by_client=False).filter_by(status>=1)
+    return session.query(ForwardingAddress).filter_by(is_confirmed_by_client=False).filter(ForwardingAddress.status > 0)
 
   def get_callback_url(self):
     from urlparse import urlparse, ParseResult

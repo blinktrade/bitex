@@ -11,6 +11,7 @@ class BlockNotifyHandler(tornado.web.RequestHandler):
 
     unconfirmed_forwarding_addresses = ForwardingAddress.get_unconfirmed_by_client(self.application.db_session)
 
+    should_commit = False
     for unconfirmed_forwarding_address in unconfirmed_forwarding_addresses:
       try:
         self.application.log('DEBUG', 'invoking bitcoind gettransaction ' + unconfirmed_forwarding_address.input_transaction_hash )
@@ -19,11 +20,13 @@ class BlockNotifyHandler(tornado.web.RequestHandler):
         unconfirmed_forwarding_address.confirmations = tx['confirmations']
         unconfirmed_forwarding_address.confirm_callback_attempt += 1
         self.application.db_session.add(unconfirmed_forwarding_address)
+        should_commit = True
 
         self.application.invoke_callback_url(unconfirmed_forwarding_address)
       except Exception,e:
         self.application.log('ERROR', str(e))
+    if should_commit:
+      self.application.db_session.commit()
 
-    self.application.db_session.commit()
     self.write('*ok*')
 
