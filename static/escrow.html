@@ -275,8 +275,8 @@
         <div role="main" class="ui-content">
 
             <div class="ui-field-contain">
-                <label for="Amount">Amount:</label>
-                <input type="number" uniform-validators="required; validateNumber" name="Amount" id="Amount" style="text-align: right" value="">
+                <label for="id_payout_amount">Amount:</label>
+                <input type="number" uniform-validators="required; validateNumber" name="Amount" id="id_payout_amount" style="text-align: right" value="">
             </div>
 
             <div id="id_payout_currency">
@@ -293,9 +293,12 @@
                 </select>
             </div>
 
+            <input id="id_payout_fixed_fee" type="hidden" value="0">
+            <input id="id_payout_percent_fee" type="hidden" value="0">
+
             <div class="ui-field-contain">
                 <label >Fees:</label>
-                <label style="text-align: left;">0</label>
+                <label id='id_payout_fees' style="text-align: left;">0</label>
             </div>
 
             <div id="id_withdraw_method_fields" class="ui-field-contain"> </div>
