@@ -512,8 +512,8 @@
 <script>
 
   function repaint_payout() {
-      $('#id_withdraw_method_selector').selectmenu("refresh");
       $('#id_form_request_payout').trigger("create");
+      $('#id_withdraw_method_selector').selectmenu("refresh");
   }
 
   $( document ).ready(function() {
