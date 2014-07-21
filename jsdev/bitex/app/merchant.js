@@ -1105,9 +1105,31 @@ bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
 bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
   var msg = e.data;
 
+  /** @desc Title of deposit notification */
+  var MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_TITLE = goog.getMsg('Received');
+
+  /** @desc Content of deposit notification */
+  var MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_CONTENT = goog.getMsg('{$formattedAmount}', {
+    formattedAmount: this.conn_.formatCurrency( msg['PaidValue'], msg['Currency'] )
+  });
+
+  if (msg['Status'] != '4') {
+    return;
+  }
+
+  this.showNotification('success',
+                        MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_TITLE,
+                        MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_CONTENT);
 
 
-  /* {
+  var remaining_amount_to_be_paid = this.price_amount_fee_to_pay_[1];
+
+
+  jQuery.mobile.changePage('#dialog-complete');
+
+
+  /*
+  {
     "Username": "rodrigo",
     "DepositMethodName": "deposit_btc",
     "Status": "4",
@@ -1134,7 +1156,8 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
     "Type": "CRY",
     "FixedFee": 0,
     "AccountID": 90000000
-  } */
+  }
+  */
 
 
 };
