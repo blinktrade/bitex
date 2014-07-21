@@ -1528,6 +1528,7 @@ bitex.app.MerchantApp.prototype.onChangeWithDrawMethod_ = function(e){
                     goog.dom.forms.setValue(el_payout_percent_fee, method['percent_fee']);
 
                     this.createWitdrawRequiredFields_( method['fields'] );
+                    repaint_payout();
                 }
             }, this);
         }
