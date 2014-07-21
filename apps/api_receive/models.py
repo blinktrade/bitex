@@ -24,7 +24,7 @@ class ForwardingAddress(Base):
   value                     = Column(Integer)
   miners_fee                = Column(Integer)
   fwd_value                 = Column(Integer)
-  status                    = Column(Integer,nullable=False, default=0)
+  status                    = Column(Integer,nullable=False, default=0, index=True)
   signed_fwd_transaction    = Column(Text)
   created                   = Column(DateTime, default=datetime.datetime.now, nullable=False, index=True)
   transmitted               = Column(DateTime)
@@ -59,7 +59,7 @@ class ForwardingAddress(Base):
 
   @staticmethod
   def get_unconfirmed_by_client(session):
-    return session.query(ForwardingAddress).filter_by(is_confirmed_by_client=False)
+    return session.query(ForwardingAddress).filter_by(is_confirmed_by_client=False).filter_by(status>=1)
 
   def get_callback_url(self):
     from urlparse import urlparse, ParseResult
