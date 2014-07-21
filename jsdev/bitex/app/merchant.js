@@ -61,6 +61,7 @@ bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
   this.currency_info_       = {};
   this.all_markets_         = {};
   this.bids_                = {};
+  this.price_amount_fee_to_pay_ = null;
 
   this.deposit_request_id_  = null;
 };
@@ -160,6 +161,17 @@ bitex.app.MerchantApp.prototype.handler_;
  */
 bitex.app.MerchantApp.prototype.form_receive_;
 
+/**
+ * @type {Array.<number>}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.price_amount_fee_to_pay_;
+
+/**
+ * @type {string}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.input_address_;
 
 
 /**
@@ -230,6 +242,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.DEPOSIT_REFRESH, this.onDepositRefresh_ );
 
   handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
@@ -1076,16 +1089,82 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
  */
 bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
   var msg = e.data;
+
+  this.input_address_ = msg['Data']['InputAddress'];
   goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'),
                           msg['Data']['InputAddress']);
 
 
-  var qr_code_element = goog.dom.createDom('img', {
-    'src': 'http://chart.apis.google.com/chart?cht=qr&chs=320x320&chl=' + msg['Data']['InputAddress'],
-    'width': '100%'
-  });
-  goog.dom.appendChild(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'),
-                       qr_code_element);
+  this.redrawQrCode_();
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
+  var msg = e.data;
+
+
+
+  /* {
+    "Username": "rodrigo",
+    "DepositMethodName": "deposit_btc",
+    "Status": "4",
+    "DepositReqID": null,
+    "Data": {
+      "InputAddress": "mhmzxWPwwonu8uSfMqRYp5TzGjHDC5Ln89",
+      "InputTransactionHash": "976768430689ec360281640c13de151116f52b905c200e8382313d15f0d22710",
+      "Destination": "myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT",
+      "Confirmations": 0,
+      "TransactionHash": "4d9d221953f09752e92847ee43a69773ad253f349401e139a16f0e82c4c3a974"},
+    "PaidValue": 3209353,
+    "Created": "2014-07-21 04:46:32",
+    "UserID": 90000000,
+    "DepositMethodID": null,
+    "Value": 0,
+    "ControlNumber": null,
+    "DepositID": "f9414d5164d04994a9a5ee2e2d37b58d",
+    "Currency": "BTC",
+    "Reason": null,
+    "ReasonID": null,
+    "BrokerID": 9000001,
+    "MsgType": "U23",
+    "PercentFee": 0,
+    "Type": "CRY",
+    "FixedFee": 0,
+    "AccountID": 90000000
+  } */
+
+
+};
+
+/**
+ * @private
+ */
+bitex.app.MerchantApp.prototype.redrawQrCode_ = function(){
+  if (! goog.isDefAndNotNull(this.input_address_)) {
+    return;
+  }
+
+  var img_src = 'http://chart.apis.google.com/chart?cht=qr&chs=320x320&chl=' + this.input_address_;
+
+  if (this.price_amount_fee_to_pay_) {
+    var amount = (this.price_amount_fee_to_pay_[1] / 1e8);
+    var bitcoin_url = 'bitcoin://' + this.input_address_ + '?amount=' + amount;
+    img_src = 'http://chart.apis.google.com/chart?cht=qr&chs=320x320&chl=' + encodeURIComponent(bitcoin_url);
+  }
+
+  var current_element = goog.dom.getFirstElementChild(
+      goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'));
+  if (!goog.isDefAndNotNull( current_element )) {
+    goog.dom.appendChild(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'),
+                         goog.dom.createDom('img', { 'src': img_src, 'width': '100%' }));
+  } else {
+    if (current_element.src !=  img_src) {
+      current_element.src = img_src;
+    }
+  }
 };
 
 /**
@@ -1100,16 +1179,16 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, fia
     return false;
   }
 
-  var price_amount_fee;
-  price_amount_fee = bitex.util.calculatePriceAmountAndFee( fiat_amount,
-                                                            bitex.util.PriceAmountCalculatorVerb.SPEND,
-                                                            this.bids_[symbol],
-                                                            this.getModel().get('Username'),
-                                                            this.getModel().get('Broker')['TransactionFeeSell'] );
+
+  this.price_amount_fee_to_pay_ = bitex.util.calculatePriceAmountAndFee(fiat_amount,
+                                                                        bitex.util.PriceAmountCalculatorVerb.SPEND,
+                                                                        this.bids_[symbol],
+                                                                        this.getModel().get('Username'),
+                                                                        this.getModel().get('Broker')['TransactionFeeSell'] );
   // [50400000000, 197809600, 200000000, 504.52556305563644]
 
 
-  if (goog.isDefAndNotNull(price_amount_fee)) {
+  if (goog.isDefAndNotNull(this.price_amount_fee_to_pay_)) {
     var currency_code = this.conn_.getPriceCurrencyFromSymbol(symbol);
     var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(symbol);
 
@@ -1117,12 +1196,13 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, fia
                              this.conn_.formatCurrency(fiat_amount/1e8, currency_code, true) );
 
     goog.dom.setTextContent(goog.dom.getElement('id_amount_to_pay_in_crypto'),
-                            this.conn_.formatCurrency( price_amount_fee[1] / 1e8 , crypto_currency_code ));
+                            this.conn_.formatCurrency( this.price_amount_fee_to_pay_[1] / 1e8 , crypto_currency_code ));
 
 
 
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), true);
+    this.redrawQrCode_();
     return true;
   } else {
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
