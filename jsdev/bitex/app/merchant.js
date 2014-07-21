@@ -238,6 +238,8 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( goog.dom.getElement('id_enter_btn_receive'), goog.events.EventType.CLICK, this.onEnterReceiveClick_ );
   handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ );
   handler.listen( goog.dom.getElement('id_withdraw_confirmation_dialog'), goog.events.EventType.CLICK, this.onWithdrawConfirmClick_);
+  handler.listen( goog.dom.getElement('id_payout_amount'), goog.events.InputHandler.EventType.INPUT, this.onWithdrawPayoutAmountChange_);
+
 
   var button_signup = new goog.ui.Button();
   button_signup.decorate(goog.dom.getElement('id_signup_confirm'));
@@ -440,6 +442,53 @@ bitex.app.MerchantApp.prototype.onBitexWithdrawResponse_ = function(e) {
 
   location.href = "#id_withdraw_confirmation_dialog";
 
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onWithdrawPayoutAmountChange_ = function(e){
+
+  var el_fixed_fee = goog.dom.getElement('id_payout_fixed_fee');
+  var el_payout_percent_fee = goog.dom.getElement('id_payout_percent_fee');
+  var el_payout_amount = goog.dom.getElement('id_payout_amount');
+
+  var el_total_fees = goog.dom.getElement('id_payout_fees');
+  goog.dom.setTextContent( el_total_fees,  0 );
+
+
+  var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
+  var pos = [0];
+  var raw_amount = goog.dom.forms.getValue(el_payout_amount );
+  var amount = valueFormatter.parse(raw_amount , pos );
+  if (pos[0] != raw_amount.length || isNaN(amount) || amount <= 0 ) {
+    return;
+  }
+  amount = amount * 1e8;
+
+  var percent_fee = goog.dom.forms.getValue( el_payout_percent_fee );
+  pos = [0];
+  var percent_fee_value = valueFormatter.parse(percent_fee, pos);
+  if (isNaN(percent_fee_value)) {
+    percent_fee_value = 0;
+  }
+
+
+  var fixed_fee = goog.dom.forms.getValue( el_fixed_fee );
+  pos = [0];
+  var fixed_fee_value = valueFormatter.parse(fixed_fee, pos);
+  if (isNaN(fixed_fee_value)) {
+    fixed_fee_value = 0;
+  }
+  fixed_fee_value = fixed_fee_value * 1e8;
+
+  var total_percent_fee_value = ((amount - fixed_fee_value) * (percent_fee_value/100.0));
+  var total_fixed_fee_value = fixed_fee_value;
+  var total_fees = total_percent_fee_value + total_fixed_fee_value;
+
+  goog.dom.setTextContent( el_total_fees,  total_fees/1e8 );
 };
 
 /**
@@ -1362,8 +1411,19 @@ bitex.app.MerchantApp.prototype.onChangeWithDrawMethod_ = function(e){
 
     goog.object.forEach(this.getModel().get('Broker')['WithdrawStructure'], function(withdraw_methods, currency) {
         if ( withdraw_currency_value == currency){
+
+            var el_fixed_fee = goog.dom.getElement('id_payout_fixed_fee');
+            var el_payout_percent_fee = goog.dom.getElement('id_payout_percent_fee');
+
+            goog.dom.forms.setValue(el_fixed_fee, '0');
+            goog.dom.forms.setValue(el_payout_percent_fee, '0');
+
             goog.array.forEach(withdraw_methods, function(method) {
                 if ( method['method'] == withdraw_method_value ) {
+
+                    goog.dom.forms.setValue(el_fixed_fee, method['fixed_fee']);
+                    goog.dom.forms.setValue(el_payout_percent_fee, method['percent_fee']);
+
                     this.createWitdrawRequiredFields_( method['fields'] );
                 }
             }, this);
