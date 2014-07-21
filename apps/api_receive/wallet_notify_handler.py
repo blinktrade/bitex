@@ -30,9 +30,16 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
       self.send_error(404)
       return
 
-    if fwd_transaction_record.is_transmitted():
+    if fwd_transaction_record.is_transmitted() and fwd_transaction_record.input_transaction_hash == txid:
       self.write('*ok*')
       return
+    elif fwd_transaction_record.is_transmitted() and fwd_transaction_record.input_transaction_hash != txid:
+      self.application.log('DEBUG', 'User is sending a second transaction to the same address' )
+      fwd_transaction_record = ForwardingAddress.create( self.application.db_session,
+                                                         fwd_transaction_record.destination_address,
+                                                         fwd_transaction_record.input_address,
+                                                         fwd_transaction_record.callback )
+
 
 
     if not fwd_transaction_record.is_complete():
