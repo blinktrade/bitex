@@ -2069,8 +2069,8 @@ def db_bootstrap(session):
                              "CurrencyDescription":"Bitcoin",
                              "Confirmations":[ [0, 1e8, 0], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                              "Wallets": [
-                                 { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
-                                 { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                                 { "type":"cold", "address":"myzyH6qpB4PhtCCkmp45q2ff1UQkoR3o1p", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
+                                 { "type":"hot", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
                                  ]
                          }
                      ]),

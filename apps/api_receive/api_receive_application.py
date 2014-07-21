@@ -3,11 +3,15 @@ import logging
 import tornado.ioloop
 import tornado.web
 from tornado.options import  options
+from tornado import httpclient
+from functools import partial
+
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from create_receive_handler import ReceiveHandler
 from wallet_notify_handler import  WalletNotifyHandler
+from block_notify_handler import BlockNotifyHandler
 
 from bitcoinrpc.authproxy import AuthServiceProxy
 
@@ -16,6 +20,7 @@ class ApiReceiveApplication(tornado.web.Application):
     handlers = [
       (r"/api/receive", ReceiveHandler),
       (r"/api/walletnotify/(?P<txid>[^\/]+)", WalletNotifyHandler),
+      (r"/api/blocknotify/(?P<hash>[^\/]+)", BlockNotifyHandler),
       ]
     settings = dict(
       cookie_secret='cookie_secret'
@@ -27,6 +32,7 @@ class ApiReceiveApplication(tornado.web.Application):
     input_log_file_handler.setFormatter(formatter)
 
     self.bitcoind = AuthServiceProxy(options.rpc_url, options.rpc_username, options.rpc_password )
+    self.paytxfee = self.bitcoind.getinfo()['paytxfee']
 
 
     self.replay_logger = logging.getLogger("REPLAY")
@@ -39,6 +45,30 @@ class ApiReceiveApplication(tornado.web.Application):
     db_bootstrap(self.db_session)
 
     self.log_start_data()
+
+  def invoke_callback_url(self, forwarding_address):
+    url = forwarding_address.get_callback_url()
+    self.log('EXECUTE', 'curl ' + url)
+
+    http_client = httpclient.AsyncHTTPClient()
+    http_client.fetch(url, partial(self.on_handle_callback_url, forwarding_address.id ))
+
+
+  def on_handle_callback_url(self, forwarding_address_id, response ):
+    from models import ForwardingAddress
+    forwarding_address = ForwardingAddress.get_by_id(self.db_session, forwarding_address_id)
+
+    if response.error:
+      self.log('ERROR', str(response.error))
+      forwarding_address.callback_number_of_errors += 1
+      self.db_session.add(forwarding_address)
+      self.db_session.commit()
+    else:
+      if response.body == '*ok*':
+        forwarding_address.is_confirmed_by_client = True
+        self.db_session.add(forwarding_address)
+        self.db_session.commit()
+
 
   def log(self, command, key, value=None):
     log_msg = command + ',' + key
