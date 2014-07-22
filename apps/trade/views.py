@@ -628,6 +628,7 @@ def processRequestDeposit(session, msg):
   input_address     = msg.get('InputAddress')
   destination       = msg.get('Destination')
   secret            = msg.get('Secret')
+  client_order_id   = msg.get('ClOrdID')
 
   should_broadcast = False
   if deposit_option_id:
@@ -640,11 +641,11 @@ def processRequestDeposit(session, msg):
       response = {'MsgType':'U19', 'DepositID': -1 }
       return json.dumps(response, cls=JsonEncoder)
 
-    deposit = deposit_option.generate_deposit(  application.db_session, session.user, value )
+    deposit = deposit_option.generate_deposit(  application.db_session, session.user, value, client_order_id )
     application.db_session.commit()
     should_broadcast = True
   elif currency:
-    deposit = Deposit.create_crypto_currency_deposit(application.db_session, session.user, currency, input_address, destination, secret)
+    deposit = Deposit.create_crypto_currency_deposit(application.db_session, session.user, currency, input_address, destination, secret, client_order_id)
     application.db_session.commit()
     should_broadcast = True
 
@@ -689,11 +690,13 @@ def depositRecordToDepositMessage( deposit ):
   deposit_message['Reason']              = deposit.reason
   deposit_message['PercentFee']          = deposit.percent_fee
   deposit_message['FixedFee']            = deposit.fixed_fee
+  deposit_message['ClOrdID']             = deposit.client_order_id
   return deposit_message
 
 @login_required
 def processWithdrawRequest(session, msg):
-  reqId        = msg.get('WithdrawReqID')
+  reqId           = msg.get('WithdrawReqID')
+  client_order_id = msg.get('ClOrdID')
 
   withdraw_record = Withdraw.create(application.db_session,
                                     session.user,
@@ -701,7 +704,8 @@ def processWithdrawRequest(session, msg):
                                     msg.get('Currency'),
                                     msg.get('Amount'),
                                     msg.get('Method'),
-                                    msg.get('Data', {} ))
+                                    msg.get('Data', {} ),
+                                    client_order_id )
 
   application.db_session.commit()
 
@@ -729,6 +733,7 @@ def withdrawRecordToWithdrawMessage( withdraw ):
   withdraw_message['PercentFee']          = withdraw.percent_fee
   withdraw_message['FixedFee']            = withdraw.fixed_fee
   withdraw_message['PaidAmount']          = withdraw.paid_amount
+  withdraw_message['ClOrdID']             = withdraw.client_order_id
   return withdraw_message
 
 @login_required
@@ -783,7 +788,8 @@ def processWithdrawListRequest(session, msg):
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Method'   , 'Currency'     , 'Amount' , 'Data',
               'Created'      , 'Status'   , 'ReasonID'     , 'Reason' , 'PercentFee',
-              'FixedFee'     , 'PaidAmount', 'UserID'      , 'Username', 'BrokerID' ]
+              'FixedFee'     , 'PaidAmount', 'UserID'      , 'Username', 'BrokerID' ,
+              'ClOrdID']
 
   for withdraw in withdraws:
     withdraw_list.append( [
@@ -801,7 +807,8 @@ def processWithdrawListRequest(session, msg):
       withdraw.paid_amount,
       withdraw.user_id,
       withdraw.username,
-      withdraw.broker_id
+      withdraw.broker_id,
+      withdraw.client_order_id
     ])
 
   response_msg = {
@@ -1212,7 +1219,8 @@ def processDepositListRequest(session, msg):
               'PaidValue'    , 'Data'           , 'Created'           ,
               'ControlNumber', 'PercentFee'     , 'FixedFee'          ,
               'Status'       , 'ReasonID'       , 'Reason'            ,
-              'Username'     , 'UserID'         , 'BrokerID']
+              'Username'     , 'UserID'         , 'BrokerID'          ,
+              'ClOrdID']
 
   for deposit in deposits:
     deposit_list.append( [
@@ -1233,7 +1241,8 @@ def processDepositListRequest(session, msg):
       deposit.reason,
       deposit.username,
       deposit.user_id,
-      deposit.broker_id
+      deposit.broker_id,
+      deposit.client_order_id
     ])
 
   response_msg = {

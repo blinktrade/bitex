@@ -1076,7 +1076,12 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), '');
   goog.dom.removeChildren(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'));
 
-  this.conn_.requestDeposit( this.deposit_request_id_, undefined , undefined, undefined, crypto_currency_code);
+  this.conn_.requestDeposit( this.deposit_request_id_,
+                             undefined ,
+                             undefined,
+                             undefined,
+                             crypto_currency_code,
+                             '' + this.deposit_request_id_);
 
   this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
   jQuery.mobile.changePage('#id_receive_crypto_payment');
@@ -1105,6 +1110,14 @@ bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
 bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
   var msg = e.data;
 
+  if (msg['Status'] != '4') {
+    return;
+  }
+
+  if (msg['ClOrdID'] != '' + this.deposit_request_id_ ) {
+    return;
+  }
+
   /** @desc Title of deposit notification */
   var MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_TITLE = goog.getMsg('Received');
 
@@ -1112,10 +1125,6 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
   var MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_CONTENT = goog.getMsg('{$formattedAmount}', {
     formattedAmount: this.conn_.formatCurrency( msg['PaidValue'], msg['Currency'] )
   });
-
-  if (msg['Status'] != '4') {
-    return;
-  }
 
   this.showNotification('success',
                         MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_TITLE,
@@ -1139,7 +1148,8 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
       "InputTransactionHash": "976768430689ec360281640c13de151116f52b905c200e8382313d15f0d22710",
       "Destination": "myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT",
       "Confirmations": 0,
-      "TransactionHash": "4d9d221953f09752e92847ee43a69773ad253f349401e139a16f0e82c4c3a974"},
+      "TransactionHash": "4d9d221953f09752e92847ee43a69773ad253f349401e139a16f0e82c4c3a974"
+    },
     "PaidValue": 3209353,
     "Created": "2014-07-21 04:46:32",
     "UserID": 90000000,
@@ -1155,7 +1165,8 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
     "PercentFee": 0,
     "Type": "CRY",
     "FixedFee": 0,
-    "AccountID": 90000000
+    "AccountID": 90000000,
+    "ClOrdID": XXXXX,
   }
   */
 
@@ -1220,8 +1231,6 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, fia
 
     goog.dom.setTextContent(goog.dom.getElement('id_amount_to_pay_in_crypto'),
                             this.conn_.formatCurrency( this.price_amount_fee_to_pay_[1] / 1e8 , crypto_currency_code ));
-
-
 
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), true);

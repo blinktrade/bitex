@@ -928,6 +928,8 @@ class Withdraw(Base):
   reason_id       = Column(Integer)
   reason          = Column(String)
 
+  client_order_id = Column(String(30), index=True)
+
   percent_fee     = Column(Integer,    nullable=False, default=0)
   fixed_fee       = Column(Integer,    nullable=False, default=0)
   paid_amount     = Column(Integer,    nullable=False, default=0, index=True)
@@ -1100,7 +1102,7 @@ class Withdraw(Base):
     return query
 
   @staticmethod
-  def create(session, user, broker,  currency, amount, method, data):
+  def create(session, user, broker,  currency, amount, method, data, client_order_id):
     import uuid
     confirmation_token = uuid.uuid4().hex
 
@@ -1125,6 +1127,7 @@ class Withdraw(Base):
                                confirmation_token = confirmation_token,
                                percent_fee        = percent_fee,
                                fixed_fee          = fixed_fee,
+                               client_order_id    = client_order_id,
                                data               = data )
     session.add(withdraw_record)
     session.flush()
@@ -1428,6 +1431,8 @@ class Deposit(Base):
   data                    = Column(Text,       nullable=False, index=True)
   created                 = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
 
+  client_order_id         = Column(String(30), index=True)
+
   percent_fee             = Column(Integer,    nullable=False, default=0)
   fixed_fee               = Column(Integer,    nullable=False, default=0)
 
@@ -1436,30 +1441,34 @@ class Deposit(Base):
 
   def __repr__(self):
     return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
-           u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, fixed_fee=%r, percent_fee=%r, data=%r)>" % (
+           u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, fixed_fee=%r, percent_fee=%r, client_order_id=%r, data=%r)>" % (
       self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id, self.deposit_option_name, self.broker_deposit_ctrl_num,
-      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.fixed_fee, self.percent_fee, self.data )
+      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.fixed_fee, self.percent_fee, self.client_order_id, self.data )
 
   @staticmethod
-  def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret ):
+  def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret, client_order_id ):
     import uuid
     deposit_id = uuid.uuid4().hex
 
     deposit = Deposit(
-      id                      = deposit_id,
-      deposit_option_name     = 'deposit_' + currency.lower(),
-      user_id                 = user.id,
-      account_id              = user.id,
-      username                = user.username,
-      broker_username         = user.broker_username,
-      broker_id               = user.broker_id,
-      type                    = 'CRY',
-      currency                = currency,
-      secret                  = secret,
-      percent_fee             = 0,
-      fixed_fee               = 0,
-      data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } )
-    )
+        id                      = deposit_id,
+        deposit_option_name     = 'deposit_' + currency.lower(),
+        user_id                 = user.id,
+        account_id              = user.id,
+        username                = user.username,
+        broker_username         = user.broker_username,
+        broker_id               = user.broker_id,
+        type                    = 'CRY',
+        currency                = currency,
+        secret                  = secret,
+        percent_fee             = 0,
+        fixed_fee               = 0,
+        data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } )
+      )
+
+    if client_order_id:
+      deposit.client_order_id =  client_order_id
+
 
     session.add(deposit)
 
@@ -1684,7 +1693,7 @@ class DepositMethods(Base):
   def get_list(session, broker_id):
     return  session.query(DepositMethods).filter_by(broker_id=broker_id)
 
-  def generate_deposit(self,session, user, value):
+  def generate_deposit(self,session, user, value, client_order_id):
     self.broker_deposit_ctrl_num += 1
     import uuid
     deposit_id = uuid.uuid4().hex
@@ -1705,12 +1714,16 @@ class DepositMethods(Base):
       percent_fee             = self.percent_fee,
       value                   = value
     )
+    if client_order_id:
+      deposit.client_order_id =  client_order_id
+
 
     t = template.Template(self.parameters)
 
     template_parameters = { 'id':deposit_id,
                             'broker_deposit_ctrl_num': self.broker_deposit_ctrl_num,
                             'user' : user,
+                            'client_order_id': client_order_id,
                             'current_date': datetime.date.today(),
                             'value' : value/1e8,
                             'currency': self.currency,
