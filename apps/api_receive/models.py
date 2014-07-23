@@ -67,7 +67,7 @@ class ForwardingAddress(Base):
 
     callback_url_parse = urlparse(self.callback)
     query_args = {
-      'original_value'        : self.value,
+      'fee'                   : self.miners_fee,
       'value'                 : self.fwd_value,
       'input_address'         : self.input_address,
       'confirmations'         : self.confirmations,

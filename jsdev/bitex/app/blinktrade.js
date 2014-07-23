@@ -2449,6 +2449,13 @@ bitex.app.BlinkTrade.prototype.adjustBrokerData_ = function(broker_info) {
   broker_info['BrokerCurrencies'] = broker_currencies;
   broker_info['AllowedMarkets'] = allowed_markets;
 
+  var percent_fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.PERCENT);
+  percent_fmt.setMaximumFractionDigits(2);
+  percent_fmt.setMinimumFractionDigits(2);
+
+  broker_info['FormattedTransactionFeeBuy'] = percent_fmt.format(broker_info['TransactionFeeBuy'] / 10000);
+  broker_info['FormattedTransactionFeeSell'] = percent_fmt.format(broker_info['TransactionFeeSell'] / 10000);
+
   return broker_info;
 };
 

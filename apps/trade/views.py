@@ -1089,8 +1089,6 @@ def processProcessDeposit(session, msg):
                           'ProcessDepositReqID':msg.get('ProcessDepositReqID') ,
                           'ReasonID':'-1'} , cls=JsonEncoder)
 
-
-
   if msg.get('Action') == 'CONFIRM':
     data        = msg.get('Data')
     deposit.user_confirm(application.db_session, data )
@@ -1100,10 +1098,10 @@ def processProcessDeposit(session, msg):
     data        = msg.get('Data')
     deposit.set_in_progress(application.db_session, data)
   elif msg.get('Action') == 'COMPLETE':
-    amount      = int(msg.get('Amount'))
-    data        = msg.get('Data')
-    percent_fee = msg.get('PercentFee', 0)
-    fixed_fee   = msg.get('FixedFee', 0)
+    amount          = int(msg.get('Amount'))
+    data            = msg.get('Data')
+    percent_fee     = msg.get('PercentFee', 0)
+    fixed_fee       = msg.get('FixedFee', 0)
 
     if percent_fee > deposit.percent_fee:
       raise NotAuthorizedError() # Broker tried to raise their  fees manually

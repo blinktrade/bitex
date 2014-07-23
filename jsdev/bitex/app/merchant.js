@@ -61,7 +61,7 @@ bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
   this.currency_info_       = {};
   this.all_markets_         = {};
   this.bids_                = {};
-  this.price_amount_fee_to_pay_ = null;
+  this.quote_list_          = {};
 
   this.deposit_request_id_  = null;
 };
@@ -162,10 +162,10 @@ bitex.app.MerchantApp.prototype.handler_;
 bitex.app.MerchantApp.prototype.form_receive_;
 
 /**
- * @type {Array.<number>}
+ * @type {Object}
  * @private
  */
-bitex.app.MerchantApp.prototype.price_amount_fee_to_pay_;
+bitex.app.MerchantApp.prototype.quote_list_;
 
 /**
  * @type {string}
@@ -269,8 +269,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   try{
     this.conn_.open(this.url_);
   } catch( e ) {
-    // TODO: Show a popup error to the user.
-    console.log(e);
+    this.showNotification( 'danger', 'Error', '' + e  );
   }
 };
 
@@ -603,11 +602,19 @@ bitex.app.MerchantApp.prototype.adjustBrokerData_ = function(broker_info) {
   broker_info['BrokerCurrencies'] = broker_currencies;
   broker_info['AllowedMarkets'] = allowed_markets;
 
+  var percent_fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.PERCENT);
+  percent_fmt.setMaximumFractionDigits(2);
+  percent_fmt.setMinimumFractionDigits(2);
+
+  broker_info['FormattedTransactionFeeBuy'] = percent_fmt.format(broker_info['TransactionFeeBuy'] / 10000);
+  broker_info['FormattedTransactionFeeSell'] = percent_fmt.format(broker_info['TransactionFeeSell'] / 10000);
+
+
   return broker_info;
 };
 
 /**
- * @param {goog.events.Event} e
+ * @param {string} currency_code
  * @protected
  */
 bitex.app.MerchantApp.prototype.isCryptoCurrency  =   function(currency_code) {
@@ -1064,6 +1071,9 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
     this.showNotification('danger', '', MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT );
     return;
   }
+  goog.dom.forms.setValue(goog.dom.getElement('id_display_receive'), "");
+
+
 
   this.value_to_receive_in_fiat_ =  parseInt(value_to_receive * 1e8, 10);
   this.market_to_sell_received_fiat_ = goog.dom.forms.getValue(goog.dom.getElement('id_receive_currency'));
@@ -1071,6 +1081,8 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   var handler = this.getHandler();
   var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(this.market_to_sell_received_fiat_);
   this.deposit_request_id_= parseInt( 1e7 * Math.random() , 10 );
+  this.quote_list_[this.deposit_request_id_] = [];
+
   handler.listenOnce( this.conn_, bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + this.deposit_request_id_,
                       this.onDepositResponse_);
   goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), '');
@@ -1107,7 +1119,7 @@ bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
+bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e){
   var msg = e.data;
 
   if (msg['Status'] != '4') {
@@ -1131,7 +1143,50 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e) {
                         MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_CONTENT);
 
 
-  var remaining_amount_to_be_paid = this.price_amount_fee_to_pay_[1];
+  var paid_value = msg['PaidValue'];
+  if (goog.isDefAndNotNull(msg['Data']['ForwardFee']) ) {
+    paid_value += msg['Data']['ForwardFee'];
+  }
+
+  console.log( this.quote_list_[this.deposit_request_id_] );
+  console.log( 'PaidValue : ' + paid_value + ',' + new Date().getTime() );
+
+  var quote = goog.array.find( this.quote_list_[this.deposit_request_id_], function(user_quote) {
+    if (user_quote[0] === paid_value) {
+      return true;
+    }
+  }, this);
+
+  // let's consider the last quotation in case the user didn't pay any of the values we quoted previously.
+  if (!goog.isDefAndNotNull(quote)) {
+    this.quote_list_[this.deposit_request_id_].splice(1); // let's delete all previous quotes
+    quote = this.quote_list_[this.deposit_request_id_][0]; // and only consider the latest one
+  }
+
+  var now = new Date();
+  var quote_timestamp = quote[5];
+  var elapsed_time_ms = now.getTime() - quote_timestamp;
+
+  // is the elapsed time within 5 minutes?
+
+  console.log('elapsed_time_ms: '  + elapsed_time_ms + ' ms');
+
+  //[1565625, 64000000000, 2000000, 1002000000, "BTCUSD", 1406097247216]
+
+  // send limited sell order.
+  var symbol = quote[4];
+  var amount = quote[0];
+  var price  = quote[1];
+  this.conn_.sendSellLimitedOrder(symbol, amount, price, undefined, undefined, this.deposit_request_id_);
+
+
+  // pay more ?
+
+  // pay less ?
+
+
+
+  console.log(quote);
 
 
   jQuery.mobile.changePage('#dialog-complete');
@@ -1181,12 +1236,21 @@ bitex.app.MerchantApp.prototype.redrawQrCode_ = function(){
     return;
   }
 
-  var img_src = 'http://chart.apis.google.com/chart?cht=qr&chs=320x320&chl=' + this.input_address_;
+  var img_src = 'https://chart.googleapis.com/chart?cht=qr&chs=320x320&chl=' + this.input_address_;
 
-  if (this.price_amount_fee_to_pay_) {
-    var amount = (this.price_amount_fee_to_pay_[1] / 1e8);
+  var quote_data;
+  if (goog.isDefAndNotNull(this.quote_list_[this.deposit_request_id_])) {
+    if (goog.isArrayLike( this.quote_list_[this.deposit_request_id_] )) {
+      if (goog.isArrayLike( this.quote_list_[this.deposit_request_id_][0] )) {
+        quote_data = this.quote_list_[this.deposit_request_id_][0];
+      }
+    }
+  }
+
+  if (goog.isDefAndNotNull(quote_data)) {
+    var amount = (quote_data[0] / 1e8);
     var bitcoin_url = 'bitcoin://' + this.input_address_ + '?amount=' + amount;
-    img_src = 'http://chart.apis.google.com/chart?cht=qr&chs=320x320&chl=' + encodeURIComponent(bitcoin_url);
+    img_src = 'https://chart.googleapis.com/chart?cht=qr&chs=320x320&chl=' + encodeURIComponent(bitcoin_url);
   }
 
   var current_element = goog.dom.getFirstElementChild(
@@ -1203,34 +1267,64 @@ bitex.app.MerchantApp.prototype.redrawQrCode_ = function(){
 
 /**
  * @param {string} symbol
- * @param {number} fiat_amount
+ * @param {number} total_amount_to_receive_in_fiat
  * @return {boolean}
  */
-bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, fiat_amount ) {
-  if (!goog.isDefAndNotNull(symbol) || fiat_amount <= 0) {
+bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, total_amount_to_receive_in_fiat ) {
+  if (!goog.isDefAndNotNull(symbol) || total_amount_to_receive_in_fiat <= 0) {
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), true);
     return false;
   }
 
+  var order_price_and_expected_amount_and_fee_and_expercted_avg_price =
+      bitex.util.calculatePriceAmountAndFee(total_amount_to_receive_in_fiat,
+                                            bitex.util.PriceAmountCalculatorVerb.SPEND,
+                                            this.bids_[symbol],
+                                            this.getModel().get('Username'),
+                                            this.getModel().get('Broker')['TransactionFeeSell'] );
+  if (goog.isDefAndNotNull(order_price_and_expected_amount_and_fee_and_expercted_avg_price)) {
 
-  this.price_amount_fee_to_pay_ = bitex.util.calculatePriceAmountAndFee(fiat_amount,
-                                                                        bitex.util.PriceAmountCalculatorVerb.SPEND,
-                                                                        this.bids_[symbol],
-                                                                        this.getModel().get('Username'),
-                                                                        this.getModel().get('Broker')['TransactionFeeSell'] );
-  // [50400000000, 197809600, 200000000, 504.52556305563644]
-
-
-  if (goog.isDefAndNotNull(this.price_amount_fee_to_pay_)) {
     var currency_code = this.conn_.getPriceCurrencyFromSymbol(symbol);
     var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(symbol);
+    var fee = total_amount_to_receive_in_fiat * this.getModel().get('Broker')['TransactionFeeSell']/10000;
+    var quote =  order_price_and_expected_amount_and_fee_and_expercted_avg_price[0];
+    var amount_to_pay = parseInt(((total_amount_to_receive_in_fiat +  fee) / quote) * 1e8, 10);
+    total_amount_to_receive_in_fiat += fee;
+    var timestamp = new Date();
 
-    goog.dom.setTextContent( goog.dom.getElement('id_balance_report_purchase_amount'),
-                             this.conn_.formatCurrency(fiat_amount/1e8, currency_code, true) );
+    var quote_data = [amount_to_pay, quote, fee, total_amount_to_receive_in_fiat, symbol, timestamp.getTime() ];
+    if (goog.isArrayLike(this.quote_list_[this.deposit_request_id_])) {
+      goog.array.insertAt( this.quote_list_[this.deposit_request_id_], quote_data , 0);
+    } else {
+      this.quote_list_[this.deposit_request_id_] = [quote_data ] ;
+    }
 
+    // amount to pay in crypto
     goog.dom.setTextContent(goog.dom.getElement('id_amount_to_pay_in_crypto'),
-                            this.conn_.formatCurrency( this.price_amount_fee_to_pay_[1] / 1e8 , crypto_currency_code ));
+                            this.conn_.formatCurrency( amount_to_pay / 1e8 , crypto_currency_code, false ));
+
+    // price per crypto
+    goog.dom.setTextContent( goog.dom.getElement('id_balance_report_qty_currency_description'),
+                             this.conn_.getCurrencyDescription(crypto_currency_code) );
+
+    goog.dom.setTextContent( goog.dom.getElement('id_balance_report_quote'),
+                             this.conn_.formatCurrency(quote / 1e8, currency_code  ) );
+
+    // Fee in fiat
+    goog.style.showElement(goog.dom.getElement('id_balance_report_fee_row'),
+                           this.getModel().get('Broker')['TransactionFeeSell'] > 0);
+
+    goog.dom.setTextContent( goog.dom.getElement('id_balance_report_broker_fee'),
+                             this.getModel().get('Broker')['FormattedTransactionFeeSell']  );
+
+    goog.dom.setTextContent(goog.dom.getElement('id_balance_report_fee_amount'),
+                            this.conn_.formatCurrency( fee/1e8 , currency_code ));
+
+    // Total amount to receive in fiat
+    goog.dom.setTextContent( goog.dom.getElement('id_balance_report_total'),
+                             this.conn_.formatCurrency(total_amount_to_receive_in_fiat/1e8, currency_code, true) );
+
 
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), true);
@@ -1374,7 +1468,7 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
 };
 
 /**
- * @param {goog.events.Event} e
+ * @param {string} selected_country
  * @protected
  */
 bitex.app.MerchantApp.prototype.onSelectCountry_ = function(selected_country) {
@@ -1450,7 +1544,7 @@ bitex.app.MerchantApp.prototype.onSelectCountry_ = function(selected_country) {
 };
 
 /**
- * @param {goog.array} fields
+ * @param {goog.array} current_fields
  * @private
  */
 bitex.app.MerchantApp.prototype.createWitdrawRequiredFields_ = function(current_fields){
