@@ -17,6 +17,10 @@ class Session(object):
 
   def set_user(self, user):
     if user is None:
+      self.user = None
+      self.is_broker = False
+      self.profile = None
+      self.should_end = False
       return
 
     if self.user:

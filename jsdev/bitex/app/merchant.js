@@ -821,7 +821,7 @@ bitex.app.MerchantApp.prototype.onOBUpdateOrder_ = function(e){
   var symbol = msg['Symbol'];
 
   if (side == '0') {
-    this.bids_[symbol][index] = [ this.bids_[index][0], qty, this.bids_[index][2] ];
+    this.bids_[symbol][index] = [ this.bids_[symbol][index][0], qty, this.bids_[symbol][index][2] ];
 
     if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
       this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
@@ -1088,14 +1088,35 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), '');
   goog.dom.removeChildren(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'));
 
+  this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
+  var amount = this.quote_list_[this.deposit_request_id_][0][0];
+  var price = this.quote_list_[this.deposit_request_id_][0][1];
+
+
+  var instructions = [ {
+    'Timeout': 120,
+    'Filter': { 'PaidValue' : amount },
+    'Msg': {
+      'MsgType': 'D',
+      'ClOrdID': '' + this.deposit_request_id_,
+      'Symbol': this.market_to_sell_received_fiat_,
+      'Side': '2', // Sell
+      'OrdType': '2', // Limited order
+      'Price': price,
+      'OrderQty': amount,
+      'BrokerID': this.getModel().get('Broker')['BrokerID']
+    }
+  }];
+
   this.conn_.requestDeposit( this.deposit_request_id_,
                              undefined ,
-                             undefined,
+                             amount,
                              undefined,
                              crypto_currency_code,
-                             '' + this.deposit_request_id_);
+                             '' + this.deposit_request_id_,
+                             instructions );
 
-  this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
+
   jQuery.mobile.changePage('#id_receive_crypto_payment');
 };
 
@@ -1177,7 +1198,7 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e){
   var symbol = quote[4];
   var amount = quote[0];
   var price  = quote[1];
-  this.conn_.sendSellLimitedOrder(symbol, amount, price, undefined, undefined, this.deposit_request_id_);
+  //this.conn_.sendSellLimitedOrder(symbol, amount, price, undefined, undefined, this.deposit_request_id_);
 
 
   // pay more ?
@@ -1592,10 +1613,10 @@ bitex.app.MerchantApp.prototype.onWithdrawSubmitClick_ = function(e){
       var currency = goog.dom.forms.getValue(goog.dom.getElement('id_withdraw_currency_selector'));
 
       this.conn_.requestWithdraw( undefined,
-                                  amount,
+                                  parseInt(amount * 1e8, 10),
                                   method,
                                   currency,
-                                  withdraw_data );
+                                  withdraw_data);
     }
 
     e.stopPropagation();

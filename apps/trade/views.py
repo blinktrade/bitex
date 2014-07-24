@@ -617,7 +617,8 @@ def processRequestDeposit(session, msg):
     'Status'            : deposit.status,
     'DataLen'           : len(deposit.data),
     'Data'              : deposit.data,
-    'Created'           : deposit.created
+    'Created'           : deposit.created,
+    'ClOrdID'           : deposit.client_order_id
   }
   return json.dumps(response, cls=JsonEncoder)
 
@@ -629,23 +630,37 @@ def processRequestDeposit(session, msg):
   destination       = msg.get('Destination')
   secret            = msg.get('Secret')
   client_order_id   = msg.get('ClOrdID')
+  instructions      = msg.get('Instructions')
+  value             = msg.get('Value')
 
   should_broadcast = False
   if deposit_option_id:
     if session.user is None :
       raise NotAuthorizedError()
 
-    value             = msg.get('Value')
+
     deposit_option = DepositMethods.get_deposit_method(application.db_session, deposit_option_id)
     if not deposit_option:
       response = {'MsgType':'U19', 'DepositID': -1 }
       return json.dumps(response, cls=JsonEncoder)
 
-    deposit = deposit_option.generate_deposit(  application.db_session, session.user, value, client_order_id )
+    deposit = deposit_option.generate_deposit(  application.db_session,
+                                                session.user,
+                                                value,
+                                                client_order_id,
+                                                instructions )
     application.db_session.commit()
     should_broadcast = True
   elif currency:
-    deposit = Deposit.create_crypto_currency_deposit(application.db_session, session.user, currency, input_address, destination, secret, client_order_id)
+    deposit = Deposit.create_crypto_currency_deposit(application.db_session,
+                                                     session.user,
+                                                     currency,
+                                                     input_address,
+                                                     destination,
+                                                     secret,
+                                                     client_order_id,
+                                                     instructions,
+                                                     value)
     application.db_session.commit()
     should_broadcast = True
 
@@ -1069,6 +1084,7 @@ def processProcessWithdraw(session, msg):
 
 def processProcessDeposit(session, msg):
   secret       = msg.get('Secret')
+  instruction_msg_after_deposit = None
 
   if not secret:
     deposit_id   = msg.get('DepositID')
@@ -1109,10 +1125,23 @@ def processProcessDeposit(session, msg):
     if fixed_fee > deposit.fixed_fee:
       raise NotAuthorizedError() # Broker tried to raise their  fees manually
 
-    deposit.process_confirmation(application.db_session, amount, percent_fee, fixed_fee, data)
-
+    instruction_msg_after_deposit = deposit.process_confirmation(application.db_session,
+                                                                 amount,
+                                                                 percent_fee,
+                                                                 fixed_fee,
+                                                                 data)
 
   application.db_session.commit()
+
+  if instruction_msg_after_deposit:
+    msg = JsonMessage( json.dumps(instruction_msg_after_deposit) )
+
+    if session.user:
+      session.process_message(msg)
+    else:
+      session.set_user(User.get_user( application.db_session, user_id=deposit.user_id))
+      session.process_message(msg)
+      session.set_user(None)
 
 
   deposit_refresh = depositRecordToDepositMessage(deposit)

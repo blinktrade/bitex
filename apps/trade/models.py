@@ -1430,6 +1430,7 @@ class Deposit(Base):
   status                  = Column(String(1),  nullable=False, default='0', index=True) # 0-Pending, 1-Unconfirmed, 2-In-progress, 4-Complete, 8-Cancelled
   data                    = Column(Text,       nullable=False, index=True)
   created                 = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
+  instructions            = Column(Text)
 
   client_order_id         = Column(String(30), index=True)
 
@@ -1440,13 +1441,17 @@ class Deposit(Base):
   reason                  = Column(String)
 
   def __repr__(self):
-    return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
-           u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, fixed_fee=%r, percent_fee=%r, client_order_id=%r, data=%r)>" % (
-      self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id, self.deposit_option_name, self.broker_deposit_ctrl_num,
-      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason, self.fixed_fee, self.percent_fee, self.client_order_id, self.data )
+    return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, " \
+           u"deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
+           u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, " \
+           u"fixed_fee=%r, percent_fee=%r, client_order_id=%r, data=%r, instructions=%r)>" % (
+      self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id,
+      self.deposit_option_name, self.broker_deposit_ctrl_num,
+      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason,
+      self.fixed_fee, self.percent_fee, self.client_order_id, self.data, self.instructions )
 
   @staticmethod
-  def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret, client_order_id ):
+  def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret, client_order_id, instructions=None, value=None ):
     import uuid
     deposit_id = uuid.uuid4().hex
 
@@ -1463,12 +1468,17 @@ class Deposit(Base):
         secret                  = secret,
         percent_fee             = 0,
         fixed_fee               = 0,
-        data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } )
+        data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } ),
       )
+
+    if instructions:
+      deposit.instructions = json.dumps(instructions)
 
     if client_order_id:
       deposit.client_order_id =  client_order_id
 
+    if value:
+      deposit.value = value
 
     session.add(deposit)
 
@@ -1606,24 +1616,25 @@ class Deposit(Base):
     else:
       should_confirm = True
 
-
-    should_adjust_ledger = False
-    if should_confirm and self.status != '4':
-      self.paid_value = amount
-      self.percent_fee = percent_fee
-      self.fixed_fee = fixed_fee
-      self.status = '4'
-      should_adjust_ledger = True
-      should_update = True
-
-
-    elif  should_confirm and self.status == '4':
+    if  should_confirm and self.status == '4':
       # The user probably saved the deposit address and he is sending to the same address
       if self.type == 'CRY' and self.paid_value != amount:
         # TODO: Create another deposit
         # and process the deposit
         return
 
+    should_execute_instructions = False
+    should_adjust_ledger = False
+    if should_confirm and self.status != '4':
+      self.paid_value = amount
+      self.percent_fee = percent_fee
+      self.fixed_fee = fixed_fee
+      self.status = '4'
+
+      if self.instructions:
+        should_execute_instructions = True
+      should_adjust_ledger = True
+      should_update = True
 
     if should_adjust_ledger:
       total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (self.percent_fee/10000.0))
@@ -1660,10 +1671,70 @@ class Deposit(Base):
                         'DF'                    # descriptions
         )
 
+
+    instruction_to_execute = None
+    if should_execute_instructions:
+      instruction_to_execute = self.get_instructions()
+
+
+
     if should_update:
       self.data = json.dumps(new_data)
       session.add(self)
       session.flush()
+
+    return instruction_to_execute
+
+  def get_instructions(self):
+    if self.instructions is None:
+      return None
+
+    try:
+      now = datetime.datetime.now()
+      instruction_age_in_seconds = (now - self.created).seconds
+
+      instructions_list = json.loads(self.instructions)
+      for instruction in instructions_list:
+        #
+        # Check if the instruction has timed out
+        #
+        has_timed_out = False
+        if 'Timeout' in instruction:
+          has_timed_out = instruction_age_in_seconds > instruction['Timeout']
+
+        if has_timed_out:
+          on_timeout_action = 'continue'
+          if 'onTimeout' in instruction:
+            on_timeout_action = instruction['onTimeout']
+
+          if on_timeout_action == 'continue':
+            continue
+          if on_timeout_action == 'break':
+            break
+
+        if 'Filter' in instruction:
+          filter = instruction['Filter']
+          if 'Value' in filter:
+            if filter['Value'] != self.value:
+              continue
+            if filter['PaidValue'] != self.paid_value:
+              continue
+
+              # check if the instruction is a valid instruction
+        msg = instruction['Msg']
+
+
+        if msg['MsgType'] != 'D':
+          continue  # invalid instruction
+
+        if msg['MsgType'] == 'D':
+          if msg['OrdType'] != '2':
+            continue  # only limited orders
+
+        return msg
+    except Exception,e:
+      pass
+    return  None
 
 class DepositMethods(Base):
   __tablename__             = 'deposit_options'
@@ -1693,7 +1764,7 @@ class DepositMethods(Base):
   def get_list(session, broker_id):
     return  session.query(DepositMethods).filter_by(broker_id=broker_id)
 
-  def generate_deposit(self,session, user, value, client_order_id):
+  def generate_deposit(self,session, user, value, client_order_id, instructions=None):
     self.broker_deposit_ctrl_num += 1
     import uuid
     deposit_id = uuid.uuid4().hex
@@ -1717,6 +1788,8 @@ class DepositMethods(Base):
     if client_order_id:
       deposit.client_order_id =  client_order_id
 
+    if instructions:
+      deposit.instructions = json.dumps(instructions)
 
     t = template.Template(self.parameters)
 

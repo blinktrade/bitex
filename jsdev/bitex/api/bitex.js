@@ -746,7 +746,7 @@ bitex.api.BitEx.prototype.requestWithdraw = function( opt_request_id, amount, me
     'MsgType': 'U6',
     'WithdrawReqID': reqId,
     'Currency': currency,
-    'Amount': parseInt(amount * 1e8, 10),
+    'Amount': amount,
     'Method': method,
     'Data': goog.json.serialize(data)
   };
@@ -1355,8 +1355,9 @@ bitex.api.BitEx.prototype.requestOrderList = function(opt_requestId, opt_page, o
  * @param {number=} opt_depositID
  * @param {string=} opt_currency
  * @param {string=} opt_client_order_id
+ * @param {Array.<Object> =} opt_instructions
  */
-bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositOptionId, opt_value, opt_depositID, opt_currency, opt_client_order_id ) {
+bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositOptionId, opt_value, opt_depositID, opt_currency, opt_client_order_id, opt_instructions ) {
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
@@ -1367,7 +1368,7 @@ bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositO
     msg['DepositMethodID'] = opt_depositOptionId;
   }
   if (goog.isDefAndNotNull(opt_value)) {
-    msg['Value'] = parseInt(opt_value * 1e8, 10) ;
+    msg['Value'] = parseInt(opt_value, 10) ;
   }
   if (goog.isDefAndNotNull(opt_depositID)) {
     msg['DepositID'] = opt_depositID;
@@ -1377,6 +1378,9 @@ bitex.api.BitEx.prototype.requestDeposit = function( opt_requestId, opt_depositO
   }
   if (goog.isDefAndNotNull(opt_client_order_id)) {
     msg['ClOrdID'] = '' + opt_client_order_id;
+  }
+  if (goog.isDefAndNotNull(opt_instructions)) {
+    msg['Instructions'] = opt_instructions;
   }
 
   this.sendMessage(msg);

@@ -1033,23 +1033,13 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
           var currency = withdraw_data['Currency']; delete withdraw_data['Currency'];
 
           this.conn_.requestWithdraw( e.target.getRequestId(),
-                                      amount,
+                                      parseInt(amount * 1e8, 10),
                                       method,
                                       currency,
                                       withdraw_data );
       }
     }
   }, this);
-
-  /*
-
-  this.conn_.requestWithdraw( e.target.getRequestId(),
-                              e.target.getAmount(),
-                              e.target.getMethod(),
-                              e.target.getCurrency(),
-                              e.target.getWithdrawData() );
-
-  */
 };
 
 

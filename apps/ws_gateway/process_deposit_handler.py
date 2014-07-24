@@ -4,6 +4,8 @@ import tornado.httpclient
 import datetime
 import json
 
+from bitex.zmq_client import  TradeClientException
+
 class ProcessDepositHandler(tornado.web.RequestHandler):
   def __init__(self, application, request, **kwargs):
     super(ProcessDepositHandler, self).__init__(application, request, **kwargs)
@@ -14,8 +16,8 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
     if not secret:
       raise tornado.httpclient.HTTPError( 404 )
 
-    fee                     = self.get_argument("fee",                    default=0, strip=False)
-    value                   = self.get_argument("value",                  default=0, strip=False)
+    fee                     = int(self.get_argument("fee",                default=0, strip=False))
+    value                   = int(self.get_argument("value",              default=0, strip=False))
     input_address           = self.get_argument("input_address",          default=None, strip=False)
     input_transaction_hash  = self.get_argument("input_transaction_hash", default=None, strip=False)
     transaction_hash        = self.get_argument("transaction_hash",       default=None, strip=False)
@@ -24,12 +26,15 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
     import random
     req_id = random.randrange(600000,900000)
 
+    if fee:
+      value += fee
+
     process_deposit_message = {
       'MsgType': 'B0',
       'ProcessDepositReqID':req_id,
       'Action': 'COMPLETE',
       'Secret': secret,
-      'Amount': int(value),
+      'Amount': value,
       'Data': {
         'Confirmations': int(confirmations),
         'InputAddress': input_address,
@@ -38,7 +43,7 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
       }
     }
     if fee:
-      process_deposit_message['Data']['ForwardFee'] = int(fee)
+      process_deposit_message['Data']['ForwardFee'] = fee
 
 
     try:
