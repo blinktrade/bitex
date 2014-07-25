@@ -1,6 +1,7 @@
 import tornado.web
 import tornado.httpclient
 import decimal
+import json
 
 class WalletNotifyHandler(tornado.web.RequestHandler):
   def get(self, txid):
@@ -24,7 +25,6 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
       self.send_error(404)
       return
 
-
     fwd_transaction_record = ForwardingAddress.get_by_input_address(self.application.db_session, input_address)
     if fwd_transaction_record is None:
       self.send_error(404)
@@ -47,6 +47,19 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
 
       raw_transaction = self.application.bitcoind.getrawtransaction(txid)
       decoded_raw_transaction = self.application.bitcoind.decoderawtransaction(raw_transaction)
+
+      # get the the payee addresses
+      payee_addresses = []
+      try:
+        for input in decoded_raw_transaction['vin']:
+          input_raw_tx = self.application.bitcoind.getrawtransaction(input['txid'])
+          decoded_input_raw_tx = self.application.bitcoind.decoderawtransaction(input_raw_tx)
+          for payee_address in decoded_input_raw_tx['vout'][ input['vout'] ]['scriptPubKey']['addresses']:
+            payee_addresses.append(  payee_address  )
+      except Exception, e :
+        pass
+
+      self.application.log('PAYEE ADDRESSES ', str (payee_addresses) )
 
       vout_index = 0
       found_address = False
@@ -88,7 +101,8 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
                                               int(float(input_value) * 1e8),
                                               int(float(miners_fee) * 1e8),
                                               int(float(fwd_value) * 1e8),
-                                              signed_fwd_raw_transaction['hex'])
+                                              signed_fwd_raw_transaction['hex'],
+                                              json.dumps(payee_addresses) )
       self.application.db_session.add(fwd_transaction_record)
       self.application.db_session.commit()
 

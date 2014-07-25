@@ -20,6 +20,7 @@ class ForwardingAddress(Base):
   input_address             = Column(String(40), nullable=False, index=True)
   input_transaction_hash    = Column(String(255))
   transaction_hash          = Column(String(255))
+  payee_addresses           = Column(Text)
   confirmations             = Column(Integer,nullable=False, default=0)
   value                     = Column(Integer)
   miners_fee                = Column(Integer)
@@ -35,10 +36,10 @@ class ForwardingAddress(Base):
   def __repr__(self):
     return "<ForwardingAddress(id=%r, callback=%r, destination_address=%r, input_address=%r,input_transaction_hash=%r,"\
            "transaction_hash=%r, confirmations=%r, value=%r,miners_fee=%r, fwd_value=%r, status=%r, " \
-           "is_confirmed_by_client=%r, signed_fwd_transaction=%r)>"\
+           "is_confirmed_by_client=%r, signed_fwd_transaction=%r, payee_addresses=%r)>"\
     % (self.id, self.callback, self.destination_address, self.input_address, self.input_transaction_hash,
        self.transaction_hash, self.confirmations, self.value, self.miners_fee, self.fwd_value, self.status,
-       self.is_confirmed_by_client, self.signed_fwd_transaction)
+       self.is_confirmed_by_client, self.signed_fwd_transaction, self.payee_addresses)
 
 
   @staticmethod
@@ -73,7 +74,8 @@ class ForwardingAddress(Base):
       'confirmations'         : self.confirmations,
       'transaction_hash'      : self.transaction_hash,
       'input_transaction_hash': self.input_transaction_hash,
-      'destination_address'   : self.destination_address
+      'destination_address'   : self.destination_address,
+      'payee_addresses'       : self.payee_addresses
     }
 
     if not callback_url_parse.query:
@@ -90,13 +92,14 @@ class ForwardingAddress(Base):
 
     return callback_url
 
-  def set_as_completed(self, input_transaction_hash,transaction_hash,value,miners_fee,fwd_value,signed_fwd_transaction):
+  def set_as_completed(self, input_transaction_hash,transaction_hash,value,miners_fee,fwd_value,signed_fwd_transaction, payee_addresses = None):
     self.input_transaction_hash = input_transaction_hash
     self.transaction_hash       = transaction_hash
     self.value                  = value
     self.miners_fee             = miners_fee
     self.fwd_value              = fwd_value
     self.signed_fwd_transaction = signed_fwd_transaction
+    self.payee_addresses        = payee_addresses
     self.status                 = 1
 
 
