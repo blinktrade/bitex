@@ -112,6 +112,7 @@ class OrderMatcher(object):
 
     is_last_match_a_partial_execution_on_counter_order = False
     execution_counter = 0
+    number_of_filled_counter_market_orders = 0
     for execution_counter in xrange(0, len(other_side) + 1):
       if execution_counter == len(other_side):
         break # workaround to make the execution_counter be counted until the last order.
@@ -138,8 +139,12 @@ class OrderMatcher(object):
 
       # Get the desired executed price and qty, by matching against the counter_order
       executed_qty = order.match( counter_order, order.leaves_qty)
-      executed_price = counter_order.price
 
+      if counter_order.type == '1': # Market Order
+        executed_price = order.price
+        number_of_filled_counter_market_orders += 1
+      else:
+        executed_price = counter_order.price
 
       # let's get the available qty to execute on the order side
       available_qty_on_order_side = order.get_available_qty_to_execute(session,
@@ -297,7 +302,8 @@ class OrderMatcher(object):
       insert_pos = bisect.bisect_right(self_side, order)
       self_side.insert( insert_pos, order )
 
-      MarketDataPublisher.publish_new_order( self.symbol, md_entry_type , insert_pos, order)
+      if order.type == '2': # Limited orders go to the book.
+        MarketDataPublisher.publish_new_order( self.symbol, md_entry_type , insert_pos, order)
 
     # don't send the first execution report (NEW) if the order was fully cancelled
     if order.is_cancelled and order.cum_qty == 0:
@@ -313,13 +319,13 @@ class OrderMatcher(object):
         del other_side[0: execution_counter-1]
         MarketDataPublisher.publish_executions( self.symbol,
                                                  counter_md_entry_type,
-                                                 execution_counter - 1,
+                                                 execution_counter - 1 - number_of_filled_counter_market_orders,
                                                  other_side[0] )
       else:
         del other_side[0: execution_counter]
         MarketDataPublisher.publish_executions( self.symbol,
                                                  counter_md_entry_type,
-                                                 execution_counter )
+                                                 execution_counter - number_of_filled_counter_market_orders )
 
     if trades_to_publish:
       MarketDataPublisher.publish_trades(self.symbol, trades_to_publish)

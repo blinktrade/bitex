@@ -34,13 +34,13 @@ class MarketDataPublisher(object):
         "Username": order.account_username,
         "Broker": order.broker_username
       })
-
-    md = {
-      "MsgType":"X",
-      "MDBkTyp": '3', # Order Depth
-      "MDIncGrp": entry_list
-    }
-    application.publish( 'MD_INCREMENTAL_' + symbol + '.' + entry_type , md )
+    if entry_list:
+      md = {
+        "MsgType":"X",
+        "MDBkTyp": '3', # Order Depth
+        "MDIncGrp": entry_list
+      }
+      application.publish( 'MD_INCREMENTAL_' + symbol + '.' + entry_type , md )
 
   @staticmethod
   def publish_cancel_order(symbol, entry_type, order_position ):

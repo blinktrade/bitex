@@ -1172,8 +1172,9 @@ class Order(Base):
   status          = Column(String(1),     nullable=False, default='0', index=True)
   symbol          = Column(String(12),    nullable=False)
   side            = Column(String(1),     nullable=False)
-  type            = Column(String(1),     nullable=False)
-  price           = Column(Integer,       nullable=False)
+  type            = Column(String(1),     nullable=False, default='2')
+  time_in_force   = Column(String(1),     nullable=False, default='1')
+  price           = Column(Integer,       nullable=False, default=0)
   order_qty       = Column(Integer,       nullable=False)
   cum_qty         = Column(Integer,       nullable=False, default=0)
   leaves_qty      = Column(Integer,       nullable=False, default=0)
@@ -1197,17 +1198,24 @@ class Order(Base):
 
   def __repr__(self):
     return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r, client_order_id=%r, " \
-           "broker_id=%r, broker_username=%r," \
+           "broker_id=%r, broker_username=%r, time_in_force=%r, " \
            "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, " \
            "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r)>" \
             % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
-               self.broker_id, self.broker_username,
+               self.broker_id, self.broker_username, self.time_in_force,
                self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
                self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
-      if self.price > other.price:
+      if self.type == '1' and other.type == '2':
+        return -1
+      elif self.type == '1' and other.type == '1':
+        if self.created > other.created:
+          return -1
+        else:
+          return 1
+      elif self.price > other.price:
         return -1
       elif self.price < other.price:
         return  1
@@ -1226,6 +1234,10 @@ class Order(Base):
         return  0
 
   def has_match(self, other):
+    if (self.is_buy and other.is_sell) or (self.is_sell and other.is_buy):
+      if ( self.type == '1' and other.type == '2') or (self.type == '2' and other.type == '1'):
+        return True  # if one of the orders is a market order
+
     if self.is_buy and other.is_sell and self.price >= other.price:
         return True
     elif self.is_sell and other.is_buy and self.price <= other.price:
@@ -1234,7 +1246,7 @@ class Order(Base):
 
   @staticmethod
   def create(session,user_id,account_id,user,username,account_user,account_username,broker_user,
-             broker_username,client_order_id,symbol,side,type,price,order_qty,fee):
+             broker_username,client_order_id,symbol,side,type,price,order_qty, time_in_force, fee):
     order = Order( user_id          = user_id,
                    account_id       = account_id,
                    user             = user,
@@ -1249,6 +1261,7 @@ class Order(Base):
                    type             = type,
                    price            = price,
                    order_qty        = order_qty,
+                   time_in_force    = time_in_force,
                    fee              = fee)
     session.add(order)
     return order
@@ -1278,6 +1291,10 @@ class Order(Base):
       return session.query(Order).filter(Order.status.in_(status_list)).filter_by( account_id = user_id ).order_by(Order.created.desc()).limit( page_size ).offset( offset )
 
   def match(self, other, execute_qty):
+    if (self.is_buy and other.is_sell) or (self.is_sell and other.is_buy):
+      if ( self.type == '1' and other.type == '2') or (self.type == '2' and other.type == '1'):
+        return min( execute_qty, other.leaves_qty)
+
     if self.is_buy and other.is_sell:
       if self.price >= other.price:
         return min( execute_qty, other.leaves_qty)

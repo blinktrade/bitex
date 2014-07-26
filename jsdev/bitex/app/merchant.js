@@ -1093,8 +1093,8 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   var price = this.quote_list_[this.deposit_request_id_][0][1];
 
 
-  var instructions = [ {
-    'Timeout': 120,
+  var instructions = [{
+    'Timeout': 240,  // 4 minutes to pay
     'Filter': { 'PaidValue' : amount },
     'Msg': {
       'MsgType': 'D',

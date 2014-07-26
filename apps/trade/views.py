@@ -274,8 +274,9 @@ def processNewOrderSingle(session, msg):
                        symbol           = msg.get('Symbol'),
                        side             = msg.get('Side'),
                        type             = msg.get('OrdType'),
-                       price            = msg.get('Price'),
+                       price            = msg.get('Price', 0),
                        order_qty        = msg.get('OrderQty'),
+                       time_in_force    = msg.get('TimeInForce', '1'),
                        fee              = fee)
   application.db_session.flush() # just to assign an ID for the order.
 

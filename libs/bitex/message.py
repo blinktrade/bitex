@@ -285,11 +285,25 @@ class JsonMessage(BaseMessage):
 
     elif self.type == 'D':  #New Order Single
       self.raise_exception_if_required_tag_is_missing('ClOrdID')
+
       self.raise_exception_if_required_tag_is_missing('Symbol')
+      self.raise_exception_if_empty('Symbol')
+
       self.raise_exception_if_required_tag_is_missing('Side')
+      self.raise_exception_if_not_in('Side', ( '1', '2' )) # Only BUY and SELL sides
+
       self.raise_exception_if_required_tag_is_missing('OrdType')
-      self.raise_exception_if_required_tag_is_missing('Price')
+
+      self.raise_exception_if_not_in('OrdType', ( '1', '2' )) # only market and limited orders
+
+      if self.get('OrdType') == '2':
+        self.raise_exception_if_required_tag_is_missing('Price')  # price is required for limited orders
+        self.raise_exception_if_not_a_integer('Price')
+        self.raise_exception_if_not_greater_than_zero('Price')
+
       self.raise_exception_if_required_tag_is_missing('OrderQty')
+      self.raise_exception_if_not_a_integer('OrderQty')
+      self.raise_exception_if_not_greater_than_zero('OrderQty')
 
       #TODO: Validate all fields of New Order Single Message
 
