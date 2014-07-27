@@ -331,7 +331,7 @@ bitex.app.MerchantApp.prototype.onConnectionOpen_ = function(e){
   }
 
   var handler = this.getHandler();
-  this.timer_ = new goog.Timer(300000);
+  this.timer_ = new goog.Timer(5000);
   handler.listen( this.timer_, goog.Timer.TICK, this.onTimerHeartBeat_ );
   this.timer_.start();
   this.conn_.sendHearBeat();
