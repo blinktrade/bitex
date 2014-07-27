@@ -24,7 +24,6 @@ class ForwardingAddress(Base):
   confirmations             = Column(Integer,nullable=False, default=0)
   value                     = Column(Integer)
   miners_fee                = Column(Integer)
-  fwd_value                 = Column(Integer)
   status                    = Column(Integer,nullable=False, default=0, index=True)
   signed_fwd_transaction    = Column(Text)
   created                   = Column(DateTime, default=datetime.datetime.now, nullable=False, index=True)
@@ -35,10 +34,10 @@ class ForwardingAddress(Base):
 
   def __repr__(self):
     return "<ForwardingAddress(id=%r, callback=%r, destination_address=%r, input_address=%r,input_transaction_hash=%r,"\
-           "transaction_hash=%r, confirmations=%r, value=%r,miners_fee=%r, fwd_value=%r, status=%r, " \
+           "transaction_hash=%r, confirmations=%r, value=%r,miners_fee=%r, status=%r, " \
            "is_confirmed_by_client=%r, signed_fwd_transaction=%r, payee_addresses=%r)>"\
     % (self.id, self.callback, self.destination_address, self.input_address, self.input_transaction_hash,
-       self.transaction_hash, self.confirmations, self.value, self.miners_fee, self.fwd_value, self.status,
+       self.transaction_hash, self.confirmations, self.value, self.miners_fee, self.status,
        self.is_confirmed_by_client, self.signed_fwd_transaction, self.payee_addresses)
 
 
@@ -68,8 +67,8 @@ class ForwardingAddress(Base):
 
     callback_url_parse = urlparse(self.callback)
     query_args = {
-      'fee'                   : self.miners_fee,
-      'value'                 : self.fwd_value,
+      'fwd_fee'               : self.miners_fee,
+      'value'                 : self.value,
       'input_address'         : self.input_address,
       'confirmations'         : self.confirmations,
       'transaction_hash'      : self.transaction_hash,
@@ -92,12 +91,11 @@ class ForwardingAddress(Base):
 
     return callback_url
 
-  def set_as_completed(self, input_transaction_hash,transaction_hash,value,miners_fee,fwd_value,signed_fwd_transaction, payee_addresses = None):
+  def set_as_completed(self, input_transaction_hash,transaction_hash,value,miners_fee,signed_fwd_transaction, payee_addresses = None):
     self.input_transaction_hash = input_transaction_hash
     self.transaction_hash       = transaction_hash
     self.value                  = value
     self.miners_fee             = miners_fee
-    self.fwd_value              = fwd_value
     self.signed_fwd_transaction = signed_fwd_transaction
     self.payee_addresses        = payee_addresses
     self.status                 = 1

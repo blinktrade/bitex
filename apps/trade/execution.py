@@ -31,6 +31,8 @@ class ExecutionReport(object):
     else :
       self.execution_type  = '4'  # Cancel
 
+    self.order_type = order.type
+    self.time_in_force = order.time_in_force
     self.order_status = order.status
     self.symbol = order.symbol
     self.side =  '1' if order.is_buy else '2'
@@ -62,7 +64,9 @@ class ExecutionReport(object):
       'LeavesQty': self.leaves_qty,
       'CxlQty': self.cxl_qty,
       'AvgPx': self.average_price,
-      'CumQty': self.cum_qty
+      'CumQty': self.cum_qty,
+      'TimeInForce': self.time_in_force,
+      'OrdType': self.order_type
     }
     return  resp
 

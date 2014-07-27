@@ -139,6 +139,13 @@ bitex.app.MerchantApp.prototype.bids_;
 bitex.app.MerchantApp.prototype.value_to_receive_in_fiat_;
 
 /**
+ * @type {number}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.value_received_in_fiat_;
+
+
+/**
  * @type {string}
  * @private
  */
@@ -184,6 +191,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   }
   this.url_ = url;
   this.value_to_receive_in_fiat_ = 0;
+  this.value_received_in_fiat_ = 0;
   this.market_to_sell_received_fiat_ = null;
 
   var handler = this.getHandler();
@@ -252,6 +260,8 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ );
   handler.listen( goog.dom.getElement('id_withdraw_confirmation_dialog'), goog.events.EventType.CLICK, this.onWithdrawConfirmClick_);
   handler.listen( goog.dom.getElement('id_payout_amount'), goog.events.InputHandler.EventType.INPUT, this.onWithdrawPayoutAmountChange_);
+
+  handler.listen( goog.dom.getElement('id_receive_remaining_amount'), goog.events.EventType.CLICK, this.onReceiveRemainingAmount_);
 
 
   var button_signup = new goog.ui.Button();
@@ -761,10 +771,6 @@ bitex.app.MerchantApp.prototype.onOBClear_ = function(e){
   var msg   = e.data;
   var symbol = msg['Symbol'];
   this.bids_[symbol] = [];
-
-  if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-    this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
-  }
 };
 
 /**
@@ -779,12 +785,7 @@ bitex.app.MerchantApp.prototype.onOBDeleteOrdersThru_ = function(e){
 
   if (side == '0') {
     this.bids_[symbol].splice(0,index);
-
-    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
-    }
   }
-
 };
 
 
@@ -800,11 +801,6 @@ bitex.app.MerchantApp.prototype.onOBDeleteOrder_ = function(e){
 
   if (side == '0') {
     this.bids_[symbol].splice(index,1);
-
-
-    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
-    }
   }
 };
 
@@ -822,10 +818,6 @@ bitex.app.MerchantApp.prototype.onOBUpdateOrder_ = function(e){
 
   if (side == '0') {
     this.bids_[symbol][index] = [ this.bids_[symbol][index][0], qty, this.bids_[symbol][index][2] ];
-
-    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
-    }
   }
 };
 
@@ -847,10 +839,6 @@ bitex.app.MerchantApp.prototype.onOBNewOrder_ = function(e){
 
   if (side == '0') {
     goog.array.insertAt( this.bids_[symbol], [price, qty, username], index );
-
-    if (goog.isDefAndNotNull(this.value_to_receive_in_fiat_)){
-      this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
-    }
   }
 };
 
@@ -1039,6 +1027,21 @@ bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
  * @param {goog.events.Event} e
  * @private
  */
+bitex.app.MerchantApp.prototype.onReceiveRemainingAmount_ = function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  var remaining_amount = this.value_to_receive_in_fiat_ -  this.value_received_in_fiat_;
+  goog.dom.forms.setValue( goog.dom.getElement('id_display_receive'), remaining_amount/1e8  );
+
+  this.onEnterReceiveClick_(e);
+};
+
+/**
+ *
+ * @param {goog.events.Event} e
+ * @private
+ */
 bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   e.preventDefault();
   e.stopPropagation();
@@ -1046,6 +1049,7 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   var error_list = this.form_receive_.validate();
   if (error_list.length > 0) {
     this.value_to_receive_in_fiat_ = 0;
+    this.value_received_in_fiat_ = 0;
     goog.array.forEach(error_list, function (error_msg) {
 
       /**
@@ -1063,6 +1067,7 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   var value_to_receive = goog.string.toNumber(goog.dom.forms.getValue( goog.dom.getElement('id_display_receive'))) ;
   if (value_to_receive <= 0) {
     this.value_to_receive_in_fiat_ = 0;
+    this.value_received_in_fiat_ = 0;
     /**
       * @desc Put a value on merchant app balance-report form
       */
@@ -1071,59 +1076,84 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
     this.showNotification('danger', '', MSG_MERCHANT_APP_DISPLAY_MISSING_AMOUNT );
     return;
   }
-  goog.dom.forms.setValue(goog.dom.getElement('id_display_receive'), "");
+  goog.array.forEach(goog.dom.getElementsByClass('received-partial-payment'),
+                     function(el){ goog.style.showElement(el, false) });
 
+  goog.dom.forms.setValue(goog.dom.getElement('id_display_receive'), "0");
 
 
   this.value_to_receive_in_fiat_ =  parseInt(value_to_receive * 1e8, 10);
+  this.value_received_in_fiat_ = 0;
   this.market_to_sell_received_fiat_ = goog.dom.forms.getValue(goog.dom.getElement('id_receive_currency'));
 
   var handler = this.getHandler();
   var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(this.market_to_sell_received_fiat_);
-  this.deposit_request_id_= parseInt( 1e7 * Math.random() , 10 );
+  if (goog.isDefAndNotNull(this.deposit_request_id_)){
+    handler.unlisten( this.conn_,
+                      bitex.api.BitEx.EventType.EXECUTION_REPORT + '.' +this.deposit_request_id_ + '.L',
+                      this.onExecutionReportOfFirstDepositInstruction_);
+
+    handler.unlisten( this.conn_,
+                      bitex.api.BitEx.EventType.EXECUTION_REPORT + '.' +this.deposit_request_id_ + '.M',
+                      this.onExecutionReportOfSecondDepositInstruction_);
+  }
+
+  this.deposit_request_id_ = parseInt( 1e7 * Math.random() , 10 );
   this.quote_list_[this.deposit_request_id_] = [];
 
   handler.listenOnce( this.conn_, bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + this.deposit_request_id_,
                       this.onDepositResponse_);
+
+
   goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), '');
   goog.dom.removeChildren(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'));
 
-  this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ );
-  var amount = this.quote_list_[this.deposit_request_id_][0][0];
-  var price = this.quote_list_[this.deposit_request_id_][0][1];
 
-  var instructions = [ {
-    'Timeout': 240,  // 4 minutes to pay
-    'Msg': {
-      'MsgType': 'D',
-      'ClOrdID': '' + this.deposit_request_id_,
-      'Symbol': this.market_to_sell_received_fiat_,
-      'Side': '2', // Sell
-      'OrdType': '2', // Limited order
-      'Price': price,
-      'OrderQty': '{$PaidValue}',
-      'BrokerID': this.getModel().get('Broker')['BrokerID']
-    }
-  }, {
-    'Msg': {
-      'MsgType': 'D',
-      'ClOrdID': '' + this.deposit_request_id_,
-      'Symbol': this.market_to_sell_received_fiat_,
-      'Side': '2', // Sell
-      'OrdType': '1', // Market order
-      'OrderQty': '{$PaidValue}',
-      'BrokerID': this.getModel().get('Broker')['BrokerID']
-    }
-  }];
+  if (this.recalculateCryptoPayment( this.market_to_sell_received_fiat_, this.value_to_receive_in_fiat_ )) {
+    var amount = this.quote_list_[this.deposit_request_id_][0][0];
+    var price = this.quote_list_[this.deposit_request_id_][0][1];
 
-  this.conn_.requestDeposit( this.deposit_request_id_,
-                             undefined ,
-                             amount,
-                             undefined,
-                             crypto_currency_code,
-                             '' + this.deposit_request_id_,
-                             instructions );
+    var instructions = [ {
+      'Timeout': 240,  // 4 minutes to pay
+      'Filter': {'PaidValue': amount }, // this quote is valid only and if only the customer pay the exactly amount.
+      'Msg': {
+        'MsgType': 'D',
+        'ClOrdID': '' + this.deposit_request_id_ + '.L',
+        'Symbol': this.market_to_sell_received_fiat_,
+        'Side': '2', // Sell
+        'OrdType': '2', // Limited order
+        'Price': price,
+        'OrderQty': '{$PaidValue}',
+        'BrokerID': this.getModel().get('Broker')['BrokerID']
+      }
+    }, {
+      'Msg': {
+        'MsgType': 'D',
+        'ClOrdID': '' + this.deposit_request_id_ + '.M',
+        'Symbol': this.market_to_sell_received_fiat_,
+        'Side': '2', // Sell
+        'OrdType': '1', // Market order
+        'OrderQty': '{$PaidValue}',
+        'BrokerID': this.getModel().get('Broker')['BrokerID']
+      }
+    }];
 
+    handler.listen( this.conn_,
+                    bitex.api.BitEx.EventType.EXECUTION_REPORT + '.' +this.deposit_request_id_ + '.L',
+                    this.onExecutionReportOfFirstDepositInstruction_ );
+
+    handler.listen( this.conn_,
+                    bitex.api.BitEx.EventType.EXECUTION_REPORT + '.' +this.deposit_request_id_ + '.M',
+                    this.onExecutionReportOfSecondDepositInstruction_ );
+
+    this.conn_.requestDeposit( this.deposit_request_id_,
+                               undefined ,
+                               amount,
+                               undefined,
+                               crypto_currency_code,
+                               '' + this.deposit_request_id_,
+                               instructions );
+  }
 
   jQuery.mobile.changePage('#id_receive_crypto_payment');
 };
@@ -1140,9 +1170,50 @@ bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
   goog.dom.setTextContent(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'),
                           msg['Data']['InputAddress']);
 
-
   this.redrawQrCode_();
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onExecutionReportOfFirstDepositInstruction_ = function(e) {
+  var msg = e.data;
+  // TODO: Fill up the completion page
+  jQuery.mobile.changePage('#id_dialog_complete');
+};
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onExecutionReportOfSecondDepositInstruction_ = function(e) {
+  var msg = e.data;
+
+  if (msg['OrdStatus'] == '0') {
+    return; // Just the ACK
+  }
+
+  goog.array.forEach(goog.dom.getElementsByClass('received-partial-payment'),
+                     function(el){ goog.style.showElement(el, true) });
+  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'), false);
+  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), false);
+
+  this.value_received_in_fiat_ = msg['Volume'];
+
+  var qty_currency = this.conn_.getQtyCurrencyFromSymbol(msg['Symbol']);
+  var price_currency = this.conn_.getPriceCurrencyFromSymbol(msg['Symbol']);
+
+  var crypto_received = this.conn_.formatCurrency( msg['OrderQty'] / 1e8, qty_currency );
+  var fiat_received   = this.conn_.formatCurrency( msg['Volume'] / 1e8, price_currency );
+
+  goog.dom.setTextContent( goog.dom.getElement('id_received_amount'), crypto_received + ' (' + fiat_received + ')');
+
+  if (msg['Volume'] >= this.value_to_receive_in_fiat_ ) {
+    jQuery.mobile.changePage('#id_dialog_complete');
+  }
+};
+
 
 /**
  * @param {goog.events.Event} e
@@ -1158,109 +1229,17 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e){
   if (msg['ClOrdID'] != '' + this.deposit_request_id_ ) {
     return;
   }
-
-  /** @desc Title of deposit notification */
-  var MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_TITLE = goog.getMsg('Received');
-
-  /** @desc Content of deposit notification */
-  var MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_CONTENT = goog.getMsg('{$formattedAmount}', {
-    formattedAmount: this.conn_.formatCurrency( msg['PaidValue'], msg['Currency'] )
-  });
-
-  this.showNotification('success',
-                        MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_TITLE,
-                        MSG_MERCHANT_APP_NOTIFICATION_DEPOSITED_AMOUNT_CONTENT);
-
-
-  var paid_value = msg['PaidValue'];
-  if (goog.isDefAndNotNull(msg['Data']['ForwardFee']) ) {
-    paid_value += msg['Data']['ForwardFee'];
-  }
-
-  console.log( this.quote_list_[this.deposit_request_id_] );
-  console.log( 'PaidValue : ' + paid_value + ',' + new Date().getTime() );
-
-  var quote = goog.array.find( this.quote_list_[this.deposit_request_id_], function(user_quote) {
-    if (user_quote[0] === paid_value) {
-      return true;
-    }
-  }, this);
-
-  // let's consider the last quotation in case the user didn't pay any of the values we quoted previously.
-  if (!goog.isDefAndNotNull(quote)) {
-    this.quote_list_[this.deposit_request_id_].splice(1); // let's delete all previous quotes
-    quote = this.quote_list_[this.deposit_request_id_][0]; // and only consider the latest one
-  }
-
-  var now = new Date();
-  var quote_timestamp = quote[5];
-  var elapsed_time_ms = now.getTime() - quote_timestamp;
-
-  // is the elapsed time within 5 minutes?
-
-  console.log('elapsed_time_ms: '  + elapsed_time_ms + ' ms');
-
-  //[1565625, 64000000000, 2000000, 1002000000, "BTCUSD", 1406097247216]
-
-  // send limited sell order.
-  var symbol = quote[4];
-  var amount = quote[0];
-  var price  = quote[1];
-  //this.conn_.sendSellLimitedOrder(symbol, amount, price, undefined, undefined, this.deposit_request_id_);
-
-
-  // pay more ?
-
-  // pay less ?
-
-
-
-  console.log(quote);
-
-
-  jQuery.mobile.changePage('#dialog-complete');
-
-
-  /*
-  {
-    "Username": "rodrigo",
-    "DepositMethodName": "deposit_btc",
-    "Status": "4",
-    "DepositReqID": null,
-    "Data": {
-      "InputAddress": "mhmzxWPwwonu8uSfMqRYp5TzGjHDC5Ln89",
-      "InputTransactionHash": "976768430689ec360281640c13de151116f52b905c200e8382313d15f0d22710",
-      "Destination": "myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT",
-      "Confirmations": 0,
-      "TransactionHash": "4d9d221953f09752e92847ee43a69773ad253f349401e139a16f0e82c4c3a974"
-    },
-    "PaidValue": 3209353,
-    "Created": "2014-07-21 04:46:32",
-    "UserID": 90000000,
-    "DepositMethodID": null,
-    "Value": 0,
-    "ControlNumber": null,
-    "DepositID": "f9414d5164d04994a9a5ee2e2d37b58d",
-    "Currency": "BTC",
-    "Reason": null,
-    "ReasonID": null,
-    "BrokerID": 9000001,
-    "MsgType": "U23",
-    "PercentFee": 0,
-    "Type": "CRY",
-    "FixedFee": 0,
-    "AccountID": 90000000,
-    "ClOrdID": XXXXX,
-  }
-  */
-
-
 };
 
 /**
  * @private
  */
 bitex.app.MerchantApp.prototype.redrawQrCode_ = function(){
+  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'),
+                         goog.isDefAndNotNull(this.input_address_));
+  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'),
+                         goog.isDefAndNotNull(this.input_address_));
+
   if (! goog.isDefAndNotNull(this.input_address_)) {
     return;
   }
@@ -1328,7 +1307,7 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, tot
     if (goog.isArrayLike(this.quote_list_[this.deposit_request_id_])) {
       goog.array.insertAt( this.quote_list_[this.deposit_request_id_], quote_data , 0);
     } else {
-      this.quote_list_[this.deposit_request_id_] = [quote_data ] ;
+      this.quote_list_[this.deposit_request_id_] = [quote_data];
     }
 
     // amount to pay in crypto
@@ -1362,8 +1341,6 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, tot
     this.redrawQrCode_();
     return true;
   } else {
-    console.log('no liquidity' );
-
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), true);
     return false;

@@ -622,6 +622,9 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
           msg['Volume'] = 0;
         }
       }
+      if (goog.isDefAndNotNull(msg['ClOrdID'])) {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.EXECUTION_REPORT + '.' + msg['ClOrdID'], msg) );
+      }
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.EXECUTION_REPORT, msg) );
       break;
   }

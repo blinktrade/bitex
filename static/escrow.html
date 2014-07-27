@@ -450,6 +450,13 @@ Balance Report
             <tr>
                 <td colspan="3">&nbsp;</td>
             </tr>
+            <tr class="received-partial-payment">
+              <td colspan="2">Received:</td>
+              <td style="text-align: right; margin-right: 7px"><label id="id_received_amount"></label> </td>
+            </tr>
+            <tr class="received-partial-payment">
+              <td colspan="3"><input id="id_receive_remaining_amount" type="button" class="ui-btn" value="Receive remaining amount"/></td>
+            </tr>
         </table>
         <div id="id_receive_crypto_payment_no_liquidity_content" align="center" style="display: none">
             <br />
@@ -467,50 +474,55 @@ Balance Report
 Dialog transaction Complete
 *************************************************************************************
 -->
-<div data-role="page" data-dialog="true" id="dialog-complete">
+<div data-role="page" id="id_dialog_complete">
 
-    <div data-role="header">
-        <h1>Transaction Complete</h1>
-    </div>
+  <div data-role="header">
+    <h1>Transaction completed</h1>
+    <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+  </div>
+  <div data-role="navbar">
 
-    <div data-role="main" class="ui-content">
-        <table width="100%" border="0">
-            <tr>
-                <td colspan="2" rowspan="6"><img src="http://images.all-free-download.com/images/graphiclarge/tick_ok_sign_4190.jpg" width="50%"></td>
-                <td>&nbsp;</td>
-                <td>Bitcoin</td>
-                <td colspan="2" rowspan="6">&nbsp;</td>
-                <td>0</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td>Total</td>
-                <td>0</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td>Purchase Amount</td>
-                <td>0</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td>Fee( 0% )</td>
-                <td>0</td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td>Total</td>
-                <td>0</td>
-            </tr>
-        </table>
-    </div>
+  </div>
+  <div data-role="main" class="ui-content">
+    <table width="100%" border="0">
+        <tr>
+            <td colspan="2" rowspan="6"><img src="http://images.all-free-download.com/images/graphiclarge/tick_ok_sign_4190.jpg" width="50%"></td>
+            <td>&nbsp;</td>
+            <td>Bitcoin</td>
+            <td colspan="2" rowspan="6">&nbsp;</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Total</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Purchase Amount</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Fee( 0% )</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Total</td>
+            <td>0</td>
+        </tr>
+    </table>
+  </div>
 
 </div>
+
+
 
 </body>
 

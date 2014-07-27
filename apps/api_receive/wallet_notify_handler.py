@@ -100,7 +100,6 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
                                               transaction_hash,
                                               int(float(input_value) * 1e8),
                                               int(float(miners_fee) * 1e8),
-                                              int(float(fwd_value) * 1e8),
                                               signed_fwd_raw_transaction['hex'],
                                               json.dumps(payee_addresses) )
       self.application.db_session.add(fwd_transaction_record)

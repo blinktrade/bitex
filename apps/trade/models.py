@@ -1731,11 +1731,10 @@ class Deposit(Base):
 
         if 'Filter' in instruction:
           filter = instruction['Filter']
-          if 'Value' in filter:
-            if filter['Value'] != self.value:
-              continue
-            if filter['PaidValue'] != self.paid_value:
-              continue
+          if 'Value' in filter and filter['Value'] != self.value:
+            continue
+          if 'PaidValue' in filter and  filter['PaidValue'] != self.paid_value:
+            continue
 
               # check if the instruction is a valid instruction
         msg = instruction['Msg']
@@ -2621,8 +2620,8 @@ def db_bootstrap(session):
       [ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
       [ 'BRL' , 'R$'      , 'Real'     ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
       [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100 , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'       , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'   ],
-      [ 'XOF' , 'Fr'      , 'CFA Franc',  False, 100 , '{:,.8f}', u'Fr #,##0.00;(Fr #,##0.00)'         , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
-      [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  10000, '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)', '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)' ],
+      [ 'XOF' , 'Fr'      , 'CFA Franc',  False, 100 , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'         , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
+      [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  10000, '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)', '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)' ],
     ]
 
 

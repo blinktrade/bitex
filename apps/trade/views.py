@@ -476,7 +476,7 @@ def processRequestForOpenOrders(session, msg):
 
   order_list = []
   columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
-              'Symbol', 'Side', 'OrdType', 'OrderQty', 'Price', 'OrderDate', 'Volume' ]
+              'Symbol', 'Side', 'OrdType', 'OrderQty', 'Price', 'OrderDate', 'Volume', 'TimeInForce' ]
 
   for order in orders:
     order_total_value = order.average_price * order.cum_qty
@@ -497,7 +497,8 @@ def processRequestForOpenOrders(session, msg):
       order.order_qty,
       order.price,
       order.created,
-      order_total_value
+      order_total_value,
+      order.time_in_force
     ])
 
   open_orders_response_msg = {

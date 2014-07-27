@@ -16,7 +16,7 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
     if not secret:
       raise tornado.httpclient.HTTPError( 404 )
 
-    fee                     = int(self.get_argument("fee",                default=0, strip=False))
+    fee                     = int(self.get_argument("fwd_fee",            default=0, strip=False))
     value                   = int(self.get_argument("value",              default=0, strip=False))
     input_address           = self.get_argument("input_address",          default=None, strip=False)
     input_transaction_hash  = self.get_argument("input_transaction_hash", default=None, strip=False)
@@ -25,9 +25,6 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
 
     import random
     req_id = random.randrange(600000,900000)
-
-    if fee:
-      value += fee
 
     process_deposit_message = {
       'MsgType': 'B0',
