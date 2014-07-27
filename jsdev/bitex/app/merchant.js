@@ -1092,10 +1092,8 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
   var amount = this.quote_list_[this.deposit_request_id_][0][0];
   var price = this.quote_list_[this.deposit_request_id_][0][1];
 
-
-  var instructions = [{
+  var instructions = [ {
     'Timeout': 240,  // 4 minutes to pay
-    'Filter': { 'PaidValue' : amount },
     'Msg': {
       'MsgType': 'D',
       'ClOrdID': '' + this.deposit_request_id_,
@@ -1103,7 +1101,17 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
       'Side': '2', // Sell
       'OrdType': '2', // Limited order
       'Price': price,
-      'OrderQty': amount,
+      'OrderQty': '{$PaidValue}',
+      'BrokerID': this.getModel().get('Broker')['BrokerID']
+    }
+  }, {
+    'Msg': {
+      'MsgType': 'D',
+      'ClOrdID': '' + this.deposit_request_id_,
+      'Symbol': this.market_to_sell_received_fiat_,
+      'Side': '2', // Sell
+      'OrdType': '1', // Market order
+      'OrderQty': '{$PaidValue}',
       'BrokerID': this.getModel().get('Broker')['BrokerID']
     }
   }];
@@ -1315,6 +1323,8 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, tot
     var timestamp = new Date();
 
     var quote_data = [amount_to_pay, quote, fee, total_amount_to_receive_in_fiat, symbol, timestamp.getTime() ];
+    console.log(quote_data );
+
     if (goog.isArrayLike(this.quote_list_[this.deposit_request_id_])) {
       goog.array.insertAt( this.quote_list_[this.deposit_request_id_], quote_data , 0);
     } else {
@@ -1352,6 +1362,8 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, tot
     this.redrawQrCode_();
     return true;
   } else {
+    console.log('no liquidity' );
+
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), true);
     return false;

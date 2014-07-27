@@ -143,6 +143,9 @@ class MarketDataPublisher(object):
 
         entry_position = 0
         for order in orders:
+          if order.type == '1': # Hide the market orders
+            continue
+
           entry_position += 1
 
           entry_list.append( {
@@ -172,28 +175,28 @@ class MarketDataPublisher(object):
 
     return md
 
-'''
-      ### Trades now are sent on TradeHistory Message
 
-      elif entry_type == '2':
-        trades = Trade.get_last_trades(session, symbol, timestamp)
-        trade_list = []
-        for trade in  trades:
-          trade_list.append({
-            "MDEntryType": "2",  # Trade
-            "Symbol": trade.symbol,
-            "MDEntryPx": trade.price,
-            "MDEntrySize": trade.size,
-            "MDEntryDate": trade.created.date(),
-            "MDEntryTime": trade.created.time(),
-            "OrderID": trade.order_id,
-            "Side": trade.side,
-            "SecondaryOrderID": trade.counter_order_id,
-            "TradeID": trade.id,
-            "MDEntryBuyer": trade.buyer_username,
-            "MDEntrySeller": trade.seller_username,
-            })
-        for trade in reversed(trade_list):
-          entry_list.append(trade)
-'''
+#    ### Trades now are sent on TradeHistory Message
+#
+#    elif entry_type == '2':
+#      trades = Trade.get_last_trades(session, symbol, timestamp)
+#      trade_list = []
+#      for trade in  trades:
+#        trade_list.append({
+#          "MDEntryType": "2",  # Trade
+#          "Symbol": trade.symbol,
+#          "MDEntryPx": trade.price,
+#          "MDEntrySize": trade.size,
+#          "MDEntryDate": trade.created.date(),
+#          "MDEntryTime": trade.created.time(),
+#          "OrderID": trade.order_id,
+#          "Side": trade.side,
+#          "SecondaryOrderID": trade.counter_order_id,
+#          "TradeID": trade.id,
+#          "MDEntryBuyer": trade.buyer_username,
+#          "MDEntrySeller": trade.seller_username,
+#          })
+#      for trade in reversed(trade_list):
+#        entry_list.append(trade)
+
 

@@ -1740,13 +1740,17 @@ class Deposit(Base):
               # check if the instruction is a valid instruction
         msg = instruction['Msg']
 
-
         if msg['MsgType'] != 'D':
           continue  # invalid instruction
 
-        if msg['MsgType'] == 'D':
-          if msg['OrdType'] != '2':
-            continue  # only limited orders
+        # replace template variables
+        for field, value in msg.iteritems():
+          if value == '{$PaidValue}':
+            msg[field] = self.paid_value
+          if value == '{$Value}':
+            msg[field] = self.value
+          if value == '{$ClOrdID}':
+            msg[field] = self.client_order_id
 
         return msg
     except Exception,e:
