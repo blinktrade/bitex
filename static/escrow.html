@@ -9,17 +9,19 @@
 
     <meta name="author" content="BlinkTrade">
 
-    <title>Escrow</title>
+    <title>BlinkTrade Merchant App</title>
 
-    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
-    <!-- link href="css/jqueryMobile/jquery.mobile-1.4.3.min.css" -->
 
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
-    <link href="./css/default.uni-form.css" rel="stylesheet">
-    <link href="./css/escrow_style.css" rel="stylesheet">
+  <!-- jQueryMobileCSS - original without styling -->
+  <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css">
 
-    <script src="./js/bitex_app_merchant.compiled.en_US.js" type="text/javascript"></script> <!--  -->
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+
+<link href="./css/default.uni-form.css" rel="stylesheet">
+<link href="./css/escrow_style.css" rel="stylesheet">
+
+<script src="./js/bitex_app_merchant.compiled.en_US.js" type="text/javascript"></script> <!--  -->
 
 
 </head>
@@ -133,10 +135,6 @@ Login
 
     </div>
 
-    <div data-role="footer">
-        <h1></h1>
-    </div>
-
 </div>
 <!-- END LOGIN -->
 
@@ -148,7 +146,7 @@ Sign up
 *************************************************************************************
 -->
 
-<div data-role="page" id="signup">
+<div data-role="page" id="signup" >
     <form id="id_form_signup">
         <div data-role="header">
             <h1>Sign up</h1>
@@ -226,7 +224,7 @@ Menu
 *************************************************************************************
 -->
 
-<div data-role = "page" id="menu">
+<div data-role = "page" id="menu" >
 
     <div data-role="header">
         <h1>Menu</h1>
@@ -443,15 +441,15 @@ Balance Report
             <tr>
                 <td colspan="3">&nbsp;</td>
             </tr>
-            <tr>
+            <tr  class="receive-qr-code-state">
               <td colspan="3">
-                Expiring in <a href="#" id="id_receive_timeout" class="ui-btn ui-shadow ui-corner-all ui-icon-clock ui-btn-icon-left ui-btn-inline"></a>
+                Expires in <a href="#" id="id_receive_timeout" class="ui-btn ui-shadow ui-corner-all ui-icon-clock ui-btn-icon-left ui-btn-inline"></a>
               </td>
             </tr>
-            <tr>
+            <tr class="receive-qr-code-state">
                 <td colspan="3" id="id_receive_payment_crypto_currency_public_address_qr_code" style="text-align: center;"></td>
             </tr>
-            <tr>
+            <tr class="receive-qr-code-state">
                 <td colspan="3" id="id_receive_payment_crypto_currency_public_address" style="text-align: center; font-family: monospace; font-size: small;"></td>
             </tr>
             <tr class="received-partial-payment">
@@ -497,40 +495,11 @@ Dialog transaction Complete
 
   </div>
   <div data-role="main" class="ui-content">
-    <table width="100%" border="0">
-        <tr>
-            <td colspan="2" rowspan="6"><img src="http://images.all-free-download.com/images/graphiclarge/tick_ok_sign_4190.jpg" width="50%"></td>
-            <td>&nbsp;</td>
-            <td>Bitcoin</td>
-            <td colspan="2" rowspan="6">&nbsp;</td>
-            <td>0</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>Total</td>
-            <td>0</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>Purchase Amount</td>
-            <td>0</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>Fee( 0% )</td>
-            <td>0</td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>Total</td>
-            <td>0</td>
-        </tr>
-    </table>
+    <h3 style="text-align: center">RECEIVED</h3>
+    <h1 style="text-align: center"><span id="id_amount_paid_exchanged"></span></h1>
+    <h5 style="text-align: center"><span id="id_amount_paid"></span></h5>
+    <h6 style="text-align: center">Transaction ID: <span id="id_client_order_id"></span></h6>
+    <a href="#menu" class="ui-btn">Ok</a>
   </div>
 
 </div>

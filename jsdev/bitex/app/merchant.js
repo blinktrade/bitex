@@ -276,6 +276,9 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_REFRESH, this.onDepositRefresh_ );
+
+
+  handler.listen(goog.dom.getElement('id_receive_remaining_amount'),goog.events.EventType.CLICK, this.onReceiveRemainingAmount_ );
   handler.listen(goog.dom.getElement('id_receive_crypto_payment_back'),goog.events.EventType.CLICK, this.onExitCryptoPaymentView_  );
 
   handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
@@ -1258,15 +1261,15 @@ bitex.app.MerchantApp.prototype.onExecutionReportOfFirstDepositInstruction_ = fu
 
   var qty_currency = this.conn_.getQtyCurrencyFromSymbol(msg['Symbol']);
   var price_currency = this.conn_.getPriceCurrencyFromSymbol(msg['Symbol']);
-  var order_volume = msg['Price'] * msg['OrderQty'];
+  var order_volume = msg['Price'] * msg['OrderQty'] / 1e8;
 
   var crypto_received = this.conn_.formatCurrency( msg['OrderQty'] / 1e8, qty_currency );
   var fiat_received   = this.conn_.formatCurrency( order_volume / 1e8, price_currency );
 
-
-  // TODO: Fill up the completion page
+  goog.dom.setTextContent( goog.dom.getElement('id_amount_paid_exchanged') , fiat_received );
+  goog.dom.setTextContent( goog.dom.getElement('id_amount_paid') , crypto_received );
+  goog.dom.setTextContent( goog.dom.getElement('id_client_order_id') , msg['ClOrdID'] );
   this.showPaymentCompletion();
-
 };
 
 /**
@@ -1283,8 +1286,9 @@ bitex.app.MerchantApp.prototype.onExecutionReportOfSecondDepositInstruction_ = f
   this.receive_timeout_timer_.stop();
   goog.array.forEach(goog.dom.getElementsByClass('received-partial-payment'),
                      function(el){ goog.style.showElement(el, true)});
-  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'), false);
-  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), false);
+
+  goog.array.forEach(goog.dom.getElementsByClass('receive-qr-code-state'),
+                     function(el){ goog.style.showElement(el, false)});
 
   this.value_received_in_fiat_ = msg['Volume'];
 
@@ -1297,11 +1301,13 @@ bitex.app.MerchantApp.prototype.onExecutionReportOfSecondDepositInstruction_ = f
   goog.dom.setTextContent( goog.dom.getElement('id_received_amount'), crypto_received + ' (' + fiat_received + ')');
 
   if (msg['Volume'] >= this.value_to_receive_in_fiat_ ) {
+    goog.dom.setTextContent( goog.dom.getElement('id_amount_paid_exchanged') , fiat_received );
+    goog.dom.setTextContent( goog.dom.getElement('id_amount_paid') , crypto_received );
+    goog.dom.setTextContent( goog.dom.getElement('id_client_order_id') , msg['ClOrdID'] );
     this.showPaymentCompletion();
   } else {
     jQuery.mobile.changePage('#id_receive_crypto_payment');
   }
-
 };
 
 bitex.app.MerchantApp.prototype.showPaymentCompletion = function(){
@@ -1329,10 +1335,8 @@ bitex.app.MerchantApp.prototype.onDepositRefresh_ = function(e){
  * @private
  */
 bitex.app.MerchantApp.prototype.redrawQrCode_ = function(){
-  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'),
-                         goog.isDefAndNotNull(this.input_address_));
-  goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'),
-                         goog.isDefAndNotNull(this.input_address_));
+  goog.array.forEach(goog.dom.getElementsByClass('receive-qr-code-state'),
+                     function(el){ goog.style.showElement(el, goog.isDefAndNotNull(this.input_address_))}, this);
 
   if (! goog.isDefAndNotNull(this.input_address_)) {
     return;
