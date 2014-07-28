@@ -1907,7 +1907,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
         dlg.dispose();
       } else {
         var request_id = parseInt( 1e7 * Math.random() , 10 );
-        this.conn_.requestDeposit( request_id, deposit_method_id , amount);
+        this.conn_.requestDeposit( request_id, deposit_method_id , amount * 1e8);
 
         goog.soy.renderElement(deposit_form_el,
                                bitex.templates.WaitingForDepositResponseDialogContent);
