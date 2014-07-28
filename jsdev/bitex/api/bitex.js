@@ -660,19 +660,6 @@ bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor
 };
 
 
-bitex.api.BitEx.prototype.sendHearBeat = function(){
-  var reqId = parseInt(Math.random() * 1000000, 10);
-
-  var d = new Date();
-
-  var msg = {
-    'MsgType':'0',
-    'TestReqID': reqId,
-    'SendTime': d.getTime()
-  };
-
-  this.sendMessage(msg);
-};
 
 
 
@@ -1556,11 +1543,16 @@ bitex.api.BitEx.prototype.sendLimitedOrder = function( symbol, qty, price, side,
 
 /**
  * Send a test request message, to test the connection
+ * @param {number|string=} opt_requestId
  */
-bitex.api.BitEx.prototype.testRequest = function(){
+bitex.api.BitEx.prototype.testRequest = function(opt_requestId){
+  var d = new Date();
+  var requestId = opt_requestId || d.getTime();
+
   var msg = {
     'MsgType': '1',
-    'TestReqID': Math.random()
+    'TestReqID': requestId,
+    'SendTime': d.getTime()
   };
   this.sendMessage( msg );
 };

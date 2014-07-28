@@ -85,10 +85,12 @@ goog.require('uniform.Validators');         // Switch according to the test($MOD
 /**
  * @param {string=} opt_default_country
  * @param {number=} opt_default_broker_id
+ * @param {number=} opt_test_request_timer_in_ms. Defaults to 30 seconds
+ * @param {number=} opt_maximum_allowed_delay_in_ms. Defaults to 10 seconds
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id) {
+bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id, opt_test_request_timer_in_ms, opt_maximum_allowed_delay_in_ms) {
   goog.events.EventTarget.call(this);
 
   bootstrap.Dropdown.install();
@@ -115,8 +117,12 @@ bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id) {
     this.model_.set('DefaultBrokerID', opt_default_broker_id);
   }
 
-  this.currency_info_       = {};
-  this.all_markets_         = {};
+  this.maximum_allowed_delay_in_ms_ = opt_maximum_allowed_delay_in_ms || 10000;
+  this.test_request_delay_          = opt_test_request_timer_in_ms || 30000;
+  this.currency_info_               = {};
+  this.all_markets_                 = {};
+  this.test_request_timer_          = new goog.Timer(this.test_request_delay_);
+  this.test_request_timer_.start();
 };
 goog.inherits(bitex.app.BlinkTrade, goog.events.EventTarget);
 goog.addSingletonGetter(bitex.app.BlinkTrade);
@@ -150,7 +156,25 @@ bitex.app.BlinkTrade.prototype.conn_;
  * @type {goog.Timer}
  * @private
  */
-bitex.app.BlinkTrade.prototype.timer_;
+bitex.app.BlinkTrade.prototype.test_request_timer_;
+
+/**
+ * @type {goog.Timer}
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.test_request_deadline_timer_;
+
+/**
+ * @type {number}
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.maximum_allowed_delay_in_ms_;
+
+/**
+ * @type {goog.Timer}
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.test_request_delay_;
 
 
 /**
@@ -389,6 +413,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.profileView_ = profileView;
 
   var handler = this.getHandler();
+
+
   handler.listen( this.router_ , bitex.app.UrlRouter.EventType.SET_VIEW, this.onBeforeSetView_ );
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_ );
@@ -402,7 +428,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_OK, this.onUserLoginOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.LOGIN_ERROR, this.onUserLoginError_);
 
-  handler.listen( this.conn_ , bitex.api.BitEx.EventType.HEARTBEAT, this.onHearBeat_);
+  handler.listen( this.test_request_timer_, goog.Timer.TICK, this.onTestRequestTimer_ );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.HEARTBEAT, this.onHearbeat_);
 
   handler.listen(this.views_, bitex.view.View.EventType.CHANGE_PASSWORD, this.onUserChangePassword_ );
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.CHANGE_PASSWORD_RESPONSE, this.onChangePasswordResponse_);
@@ -2082,17 +2109,6 @@ bitex.app.BlinkTrade.prototype.onUserLoginOk_ = function(e) {
   }
 };
 
-bitex.app.BlinkTrade.prototype.onHearBeat_ = function(e) {
-
-  var msg = e.data;
-
-  var sent = new Date(msg['SendTime']);
-  var just_now = new Date(Date.now());
-
-  this.getModel().set('latency', just_now - sent );
-  this.getModel().set('LastReceivedTime', just_now.getTime());
-};
-
 /**
  * @param {bitex.api.BitExEvent} e
  */
@@ -2505,9 +2521,6 @@ bitex.app.BlinkTrade.prototype.onUserConnectBitEx_ = function(e){
  */
 bitex.app.BlinkTrade.prototype.onConnectionOpen_ = function(e){
   var just_now = new Date(Date.now());
-  this.getModel().set('LastReceivedTime', just_now.getTime());
-
-  this.getBitexConnection().sendHearBeat();
 
   goog.dom.classes.remove( document.body, 'ws-not-connected' );
   goog.dom.classes.add( document.body, 'ws-connected' );
@@ -2533,30 +2546,46 @@ bitex.app.BlinkTrade.prototype.onConnectionOpen_ = function(e){
     }
   }
 
-
-  var handler = this.getHandler();
-  this.timer_ = new goog.Timer(this.getHeartBtInt());
-  handler.listen( this.timer_, goog.Timer.TICK, this.onTimerHeartBeat_ );
-  this.timer_.start();
-  this.conn_.sendHearBeat();
+  this.conn_.testRequest();
 };
 
 /**
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.BlinkTrade.prototype.onTimerHeartBeat_ = function(e){
-
-  var just_now = new Date(Date.now());
-  var last_received = new Date(this.getModel().get('LastReceivedTime'));
-
-  if (( just_now - last_received ) >= (2*this.getHeartBtInt())) {
-    location.reload();
-    return;
+bitex.app.BlinkTrade.prototype.onTestRequestTimer_ = function(e){
+  if (goog.isDefAndNotNull(this.conn_) && this.conn_.isConnected()) {
+    this.getBitexConnection().testRequest();
   }
 
-  this.getBitexConnection().sendHearBeat();
+  this.test_request_deadline_timer_ = new goog.Timer(this.maximum_allowed_delay_in_ms_);
+  this.test_request_deadline_timer_.start();
+
+  this.getHandler().listenOnce(this.test_request_deadline_timer_, goog.Timer.TICK, function(e){
+    location.reload();
+  });
 };
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onHearbeat_ = function(e) {
+  var msg = e.data;
+  if (goog.isDefAndNotNull(this.test_request_deadline_timer_)) {
+    this.test_request_deadline_timer_.stop();
+    this.test_request_deadline_timer_ = null;
+  }
+
+  if (goog.isDefAndNotNull(msg['SendTime'])) {
+    var sent = new Date(msg['SendTime']);
+    var just_now = new Date(Date.now());
+
+    this.getModel().set('latency', just_now - sent );
+  }
+};
+
 
 /**
  * @param {goog.events.Event} e

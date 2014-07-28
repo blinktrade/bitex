@@ -125,8 +125,9 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
           });
 
           if (goog.isDefAndNotNull(crypto_currency_def)) {
+            var confirmation_info_array;
             if (goog.isDefAndNotNull(rowSet['PaidValue']) && rowSet['PaidValue'] > 0 ) {
-              var confirmation_info_array = goog.array.find( crypto_currency_def['Confirmations'], function(conf_info){
+              confirmation_info_array = goog.array.find( crypto_currency_def['Confirmations'], function(conf_info){
                 if ( rowSet['PaidValue'] >= conf_info[0]  &&  rowSet['PaidValue'] < conf_info[1] ) {
                   return true;
                 }

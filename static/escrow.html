@@ -56,7 +56,7 @@
         <h1></h1>
         <img src="./images/blinktrade.png" width="50%">
         <br />
-        <p> Your Account is not active</p>
+        <p>Your Account is not active.</p>
 
     </div>
 </div>
@@ -90,8 +90,7 @@
         <h1></h1>
         <img src="./images/blinktrade.png" width="50%">
         <br />
-        <p> Your password is wrong!</p>
-
+        <p>Wrong password!</p>
     </div>
 
 </div>
@@ -130,7 +129,6 @@ Login
             </table>
 
             <button id="id_login_btn_login" class="ui-btn">Login</button>
-            <span class="bitex-model" data-model-key="latency" style="display: none" ></span>
         </form>
 
     </div>
@@ -244,10 +242,10 @@ Menu
         <br />
 
         <a href="#receive" class="ui-btn" value="receive" > Receive </a>
-        <a id='id_my_transaction_menu'  href="#my_transaction" class="ui-btn" value="my_transaction" > My Transaction </a>
+        <a id='id_my_transaction_menu'  href="#my_transaction" class="ui-btn" value="my_transaction" > My Transactions </a>
         <a id='id_payout_menu' href="#request_payout" class="ui-btn" value="request_payout" > Request Payout </a>
 
-        <a href="#login" class="ui-btn ui-btn-corner-all" value="receive" > Logout</a>
+        <a href="#login" class="ui-btn ui-btn-corner-all" value="receive" > Logout </a>
     </div>
 
 </div>
@@ -265,7 +263,7 @@ Request Paymont
 <div data-role="page" data-dialog="true" id="id_withdraw_confirmation_dialog">
 
     <div data-role="header">
-        <h1>Confirmation</h1>
+        <h1>Confirm email</h1>
     </div>
 
     <div data-role="main" class="ui-content">
@@ -284,9 +282,7 @@ Request Paymont
         <div data-role="header">
             <h1>Payout</h1>
             <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
-            <div data-role="navbar">
-
-            </div>
+            <div data-role="navbar"></div>
         </div>
 
         <div role="main" class="ui-content">
@@ -320,7 +316,7 @@ Request Paymont
 
             <div id="id_withdraw_method_fields" class="ui-field-contain"> </div>
 
-            <input id="id_withdraw_method_submit" type="submit" value="Ok"></input>
+            <input id="id_withdraw_method_submit" type="submit" value="Ok"/>
         </div>
     </form>
 </div>
@@ -338,7 +334,7 @@ My Transaction
 <div data-role="page" id="my_transaction">
 
     <div data-role="header">
-        <h1>My Transaction</h1>
+        <h1>My Transactions</h1>
         <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
         <a id="id_transactions_refresh" href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext ui-btn-inline"></a>
     </div>
@@ -399,6 +395,12 @@ My Transaction
             <select id="id_receive_currency" uniform-validators="required;" name="market" ></select>
         </Li>
 
+        <div style="text-align: center">
+          <small>
+            Latency: <span class="bitex-model" data-model-key="latency">0</span> ms
+          </small>
+        </div>
+
     </div>
 
 </div>
@@ -413,7 +415,6 @@ Balance Report
     <div data-role="header">
         <h1>Receive</h1>
         <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
-        <a href="#dialog-complete" class="ui-btn ui-shadow ui-corner-all ui-icon-plus ui-btn-icon-notext">Add</a>
     </div>
     <div data-role="navbar">
 
@@ -440,6 +441,12 @@ Balance Report
             </tr>
             <tr>
                 <td colspan="3">&nbsp;</td>
+            </tr>
+            <tr>
+              <td colspan="3">
+                You have <a href="#" id="id_receive_timeout" class="ui-btn ui-shadow ui-corner-all ui-icon-clock ui-btn-icon-left ui-btn-inline"></a> to pay the amount.
+                <button id="id_receive_refresh" class="ui-btn ui-icon-recycle ui-shadow ui-corner-all ui-btn-icon-notext ui-btn-inline">refresh</button>
+              </td>
             </tr>
             <tr>
                 <td colspan="3" id="id_receive_payment_crypto_currency_public_address_qr_code" style="text-align: center;"></td>

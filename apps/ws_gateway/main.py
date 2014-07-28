@@ -155,14 +155,17 @@ class WebSocketHandler(websocket.WebSocketHandler):
             print 'in_message ,', self.trade_client.connection_id, ',', raw_message
 
 
-        if req_msg.isHeartbeat():
-
+        if req_msg.isTestRequest() or req_msg.isHeartbeat():
           response_msg = {
               'MsgType'           : '0',
               'TestReqID'         : req_msg.get('TestReqID'),
-              'SendTime'          : req_msg.get('SendTime'),
-              'TransactTime'      : calendar.timegm(time.gmtime())*1000
+              'ServerTimestamp'   : calendar.timegm(time.gmtime())*1000
           }
+
+          sendTime = req_msg.get('SendTime')
+          if sendTime:
+            response_msg['SendTime'] = sendTime
+
 
           self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
           return

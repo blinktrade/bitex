@@ -34,6 +34,10 @@ goog.require('uniform.Uniform');
 goog.require('uniform.Meta');               // Switch according to the test($MODULE_NAME$)
 goog.require('uniform.Validators');         // Switch according to the test($MODULE_NAME$)
 
+goog.require('goog.date.DateTime');
+goog.require('goog.i18n.DateTimeParse');
+goog.require('goog.i18n.DateTimeFormat');
+
 goog.require('bitex.ui.ListView');
 goog.require('bitex.ui.Merchant.templates');
 
@@ -62,6 +66,10 @@ bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
   this.all_markets_         = {};
   this.bids_                = {};
   this.quote_list_          = {};
+  this.receive_timeout_timer_ = new goog.Timer(1000);
+
+  this.testrequest_timer_   = new goog.Timer(15000);
+
 
   this.deposit_request_id_  = null;
 };
@@ -182,6 +190,19 @@ bitex.app.MerchantApp.prototype.input_address_;
 
 
 /**
+ * @type {goog.Timer}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.receive_timeout_timer_;
+
+/**
+ * @type {goog.Timer}
+ * @private
+ */
+bitex.app.MerchantApp.prototype.testrequest_timer_;
+
+
+/**
  * @param {string=} opt_url
  */
 bitex.app.MerchantApp.prototype.run = function(opt_url){
@@ -234,6 +255,10 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen(withdraw_submit_el, goog.events.EventType.CLICK, this.onWithdrawSubmitClick_);
 
+  handler.listen(this.receive_timeout_timer_, goog.Timer.TICK, this.onReceiveTimeoutTimerTick_);
+  handler.listen(this.testrequest_timer_, goog.Timer.TICK, this.onTestRequestTimer_ );
+
+
   handler.listen( this.conn_, bitex.api.BitEx.EventType.OPENED, this.onConnectionOpen_);
   handler.listen( this.conn_, bitex.api.BitEx.EventType.CLOSED, this.onConnectionClose_ );
   handler.listen( this.conn_, bitex.api.BitEx.EventType.ERROR, this.onConnectionError_);
@@ -250,18 +275,19 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.DEPOSIT_REFRESH, this.onDepositRefresh_ );
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_REFRESH, this.onDepositRefresh_ );
 
   handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
   handler.listen( goog.dom.getElement('id_signup_confirm'), goog.events.EventType.CLICK, this.onUserSignupButtonClick_ );
 
   handler.listen( goog.dom.getElement('id_enter_btn_receive'), goog.events.EventType.CLICK, this.onEnterReceiveClick_ );
+  handler.listen( goog.dom.getElement('id_receive_refresh'), goog.events.EventType.CLICK, this.onReceiveRefreshClick_ );
   handler.listen( goog.dom.getElement('id_transactions_refresh'), goog.events.EventType.CLICK, this.onTransactionsRefreshClick_ );
   handler.listen( goog.dom.getElement('id_withdraw_confirmation_dialog'), goog.events.EventType.CLICK, this.onWithdrawConfirmClick_);
   handler.listen( goog.dom.getElement('id_payout_amount'), goog.events.InputHandler.EventType.INPUT, this.onWithdrawPayoutAmountChange_);
 
-  handler.listen( goog.dom.getElement('id_receive_remaining_amount'), goog.events.EventType.CLICK, this.onReceiveRemainingAmount_);
+  handler.listen(  this.receive_timeout_timer_, goog.events.EventType.CLICK, this.onReceiveRemainingAmount_);
 
 
   var button_signup = new goog.ui.Button();
@@ -281,6 +307,8 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   } catch( e ) {
     this.showNotification( 'danger', 'Error', '' + e  );
   }
+  this.testrequest_timer_.start();
+
 };
 
 /**
@@ -330,11 +358,7 @@ bitex.app.MerchantApp.prototype.onConnectionOpen_ = function(e){
     this.conn_.requestBrokerList();
   }
 
-  var handler = this.getHandler();
-  this.timer_ = new goog.Timer(5000);
-  handler.listen( this.timer_, goog.Timer.TICK, this.onTimerHeartBeat_ );
-  this.timer_.start();
-  this.conn_.sendHearBeat();
+  this.conn_.testRequest();
 
   jQuery.mobile.changePage('#login')
 
@@ -369,8 +393,10 @@ bitex.app.MerchantApp.prototype.onConnectionErrorMessage_ = function(e) {
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.MerchantApp.prototype.onTimerHeartBeat_ = function(e){
-  this.conn_.sendHearBeat();
+bitex.app.MerchantApp.prototype.onTestRequestTimer_ = function(e){
+  if (goog.isDefAndNotNull(this.conn_) && this.conn_.isConnected() && this.conn_.isLogged() ) {
+    this.conn_.testRequest();
+  }
 };
 
 
@@ -379,13 +405,14 @@ bitex.app.MerchantApp.prototype.onTimerHeartBeat_ = function(e){
  * @protected
  */
 bitex.app.MerchantApp.prototype.onHearBeat_ = function(e) {
-
   var msg = e.data;
 
-  var sent = new Date(msg['SendTime']);
-  var just_now = new Date(Date.now());
+  if (goog.isDefAndNotNull(msg['SendTime'])) {
+    var sent = new Date(msg['SendTime']);
+    var just_now = new Date(Date.now());
 
-  this.getModel().set('latency', just_now - sent );
+    this.getModel().set('latency', just_now - sent );
+  }
 };
 
 
@@ -1023,7 +1050,6 @@ bitex.app.MerchantApp.prototype.onUserLogin_ = function(e) {
 };
 
 /**
- *
  * @param {goog.events.Event} e
  * @private
  */
@@ -1038,13 +1064,50 @@ bitex.app.MerchantApp.prototype.onReceiveRemainingAmount_ = function(e) {
 };
 
 /**
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onReceiveRefreshClick_ = function(){
+  goog.dom.forms.setValue( goog.dom.getElement('id_display_receive'), this.value_to_receive_in_fiat_/1e8  );
+  this.onEnterReceiveClick_();
+};
+
+/**
  *
  * @param {goog.events.Event} e
  * @private
  */
+bitex.app.MerchantApp.prototype.onReceiveTimeoutTimerTick_ = function(e) {
+  var timeout_el = goog.dom.getElement('id_receive_timeout');
+  var current_timeout =  goog.dom.getTextContent(timeout_el);
+
+  var dt = new goog.date.DateTime();
+  var parser = new goog.i18n.DateTimeParse('mm:ss');
+  parser.parse(current_timeout, dt);
+
+  dt.add(new goog.date.Interval(goog.date.Interval.SECONDS , -1));
+
+
+  if (dt.getMinutes() == 59) {
+    this.receive_timeout_timer_.stop();
+    this.onReceiveRefreshClick_();
+  } else {
+    var fmt = new goog.i18n.DateTimeFormat('mm:ss');
+    goog.dom.setTextContent(timeout_el, fmt.format(dt));
+  }
+};
+
+
+
+/**
+ *
+ * @param {goog.events.Event=} e
+ * @private
+ */
 bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
-  e.preventDefault();
-  e.stopPropagation();
+  if (goog.isDefAndNotNull(e)){
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
   var error_list = this.form_receive_.validate();
   if (error_list.length > 0) {
@@ -1153,6 +1216,9 @@ bitex.app.MerchantApp.prototype.onEnterReceiveClick_ = function(e){
                                crypto_currency_code,
                                '' + this.deposit_request_id_,
                                instructions );
+
+    goog.dom.setTextContent(goog.dom.getElement('id_receive_timeout'), '03:00');
+    this.receive_timeout_timer_.start();
   }
 
   jQuery.mobile.changePage('#id_receive_crypto_payment');
@@ -1179,8 +1245,18 @@ bitex.app.MerchantApp.prototype.onDepositResponse_ = function(e) {
  */
 bitex.app.MerchantApp.prototype.onExecutionReportOfFirstDepositInstruction_ = function(e) {
   var msg = e.data;
+
+  var qty_currency = this.conn_.getQtyCurrencyFromSymbol(msg['Symbol']);
+  var price_currency = this.conn_.getPriceCurrencyFromSymbol(msg['Symbol']);
+  var order_volume = msg['Price'] * msg['OrderQty'];
+
+  var crypto_received = this.conn_.formatCurrency( msg['OrderQty'] / 1e8, qty_currency );
+  var fiat_received   = this.conn_.formatCurrency( order_volume / 1e8, price_currency );
+
+
   // TODO: Fill up the completion page
-  jQuery.mobile.changePage('#id_dialog_complete');
+  this.showPaymentCompletion();
+
 };
 
 /**
@@ -1210,10 +1286,14 @@ bitex.app.MerchantApp.prototype.onExecutionReportOfSecondDepositInstruction_ = f
   goog.dom.setTextContent( goog.dom.getElement('id_received_amount'), crypto_received + ' (' + fiat_received + ')');
 
   if (msg['Volume'] >= this.value_to_receive_in_fiat_ ) {
-    jQuery.mobile.changePage('#id_dialog_complete');
+    this.showPaymentCompletion();
   }
 };
 
+bitex.app.MerchantApp.prototype.showPaymentCompletion = function(){
+  this.receive_timeout_timer_.stop();
+  jQuery.mobile.changePage('#id_dialog_complete');
+};
 
 /**
  * @param {goog.events.Event} e

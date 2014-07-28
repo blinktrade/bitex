@@ -227,7 +227,8 @@ bitex.view.DepositView.prototype.recreateComponents_ = function() {
 
   var broker = model.get('Broker');
   if (model.get('IsBroker') && (this.is_requests_from_customers_ ) ) {
-    this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], true, true );
+    var profile = model.get('Profile');
+    this.deposit_list_table_ =  new bitex.ui.DepositList(profile['CryptoCurrencies'], true, true );
   } else {
     this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], false, false );
   }
