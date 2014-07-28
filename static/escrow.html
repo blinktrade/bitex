@@ -414,7 +414,8 @@ Balance Report
 
     <div data-role="header">
         <h1>Receive</h1>
-        <a href="#menu" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+        <a id="id_receive_crypto_payment_back"  href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l ui-btn-icon-left">back</a>
+        <a id="id_receive_refresh" href="#" class="ui-btn ui-shadow ui-corner-all ui-icon-refresh ui-btn-icon-notext ui-btn-inline"></a>
     </div>
     <div data-role="navbar">
 
@@ -444,25 +445,30 @@ Balance Report
             </tr>
             <tr>
               <td colspan="3">
-                You have <a href="#" id="id_receive_timeout" class="ui-btn ui-shadow ui-corner-all ui-icon-clock ui-btn-icon-left ui-btn-inline"></a> to pay the amount.
-                <button id="id_receive_refresh" class="ui-btn ui-icon-recycle ui-shadow ui-corner-all ui-btn-icon-notext ui-btn-inline">refresh</button>
+                Expiring in <a href="#" id="id_receive_timeout" class="ui-btn ui-shadow ui-corner-all ui-icon-clock ui-btn-icon-left ui-btn-inline"></a>
               </td>
             </tr>
             <tr>
                 <td colspan="3" id="id_receive_payment_crypto_currency_public_address_qr_code" style="text-align: center;"></td>
             </tr>
             <tr>
-                <td colspan="3" id="id_receive_payment_crypto_currency_public_address"></td>
-            </tr>
-            <tr>
-                <td colspan="3">&nbsp;</td>
+                <td colspan="3" id="id_receive_payment_crypto_currency_public_address" style="text-align: center; font-family: monospace; font-size: small;"></td>
             </tr>
             <tr class="received-partial-payment">
               <td colspan="2">Received:</td>
               <td style="text-align: right; margin-right: 7px"><label id="id_received_amount"></label> </td>
             </tr>
             <tr class="received-partial-payment">
-              <td colspan="3"><input id="id_receive_remaining_amount" type="button" class="ui-btn" value="Receive remaining amount"/></td>
+              <td colspan="3"><input id="id_receive_remaining_amount" type="button" class="ui-btn" value="Receive more"/></td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                  <div style="text-align: center">
+                    <small>
+                      Latency: <span class="bitex-model" data-model-key="latency">0</span> ms
+                    </small>
+                  </div>
+                </td>
             </tr>
         </table>
         <div id="id_receive_crypto_payment_no_liquidity_content" align="center" style="display: none">

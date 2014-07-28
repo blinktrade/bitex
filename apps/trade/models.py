@@ -12,7 +12,7 @@ from bitex.errors import OrderNotFound
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.sql.expression import and_, or_, exists
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint
 from sqlalchemy.orm import  relationship, backref
@@ -201,17 +201,23 @@ class User(Base):
 
   @staticmethod
   def get_user( session, username=None, email=None, user_id=None ):
+    if username:
+      username = username.lower().strip()
+    if email:
+      email = email.lower().strip()
+
+
     if user_id:
       filter_obj = or_(User.id == user_id)
     elif username and email:
-      filter_obj = or_( User.username==username, User.email==email )
+      filter_obj = or_( func.lower(User.username)==username, func.lower(User.email)==email )
     elif username:
-      filter_obj = or_( User.username==username )
+      filter_obj = or_( func.lower(User.username)==username )
     elif email:
-      filter_obj = or_( User.email==email )
+      filter_obj = or_( func.lower(User.email)==email )
     else:
       return  None
-    user = session.query(User).filter( filter_obj  ).first()
+    user = session.query(User).filter(filter_obj).first()
     if user:
       return  user
     return None
@@ -251,8 +257,8 @@ class User(Base):
 
     # signup the user
     # create the user on Database
-    u = User( username            = username,
-              email               = email,
+    u = User( username            = username.strip(),
+              email               = email.strip(),
               password            = password,
               state               = state,
               country_code        = country_code,
@@ -275,8 +281,6 @@ class User(Base):
                         'id': u.id,
                         'broker_id': u.broker_id,
                         'broker_username': u.broker_username}))
-
-
     return u, broker
 
   @staticmethod

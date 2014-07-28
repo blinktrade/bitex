@@ -276,6 +276,7 @@ bitex.app.MerchantApp.prototype.run = function(opt_url){
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_REFRESH, this.onDepositRefresh_ );
+  handler.listen(goog.dom.getElement('id_receive_crypto_payment_back'),goog.events.EventType.CLICK, this.onExitCryptoPaymentView_  );
 
   handler.listen( goog.dom.getElement('id_my_transaction_menu'), goog.events.EventType.CLICK, this.onMyTransactionMenuClick_  );
   handler.listen( goog.dom.getElement('id_login_btn_login'), goog.events.EventType.CLICK, this.onUserLogin_ );
@@ -1086,17 +1087,26 @@ bitex.app.MerchantApp.prototype.onReceiveTimeoutTimerTick_ = function(e) {
 
   dt.add(new goog.date.Interval(goog.date.Interval.SECONDS , -1));
 
-
   if (dt.getMinutes() == 59) {
     this.receive_timeout_timer_.stop();
-    this.onReceiveRefreshClick_();
+    goog.dom.forms.setValue( goog.dom.getElement('id_display_receive'), this.value_to_receive_in_fiat_/1e8  );
+    jQuery.mobile.changePage('#receive');
   } else {
     var fmt = new goog.i18n.DateTimeFormat('mm:ss');
     goog.dom.setTextContent(timeout_el, fmt.format(dt));
   }
 };
 
-
+/**
+ *
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.MerchantApp.prototype.onExitCryptoPaymentView_ = function(e){
+  this.receive_timeout_timer_.stop();
+  goog.dom.forms.setValue( goog.dom.getElement('id_display_receive'), this.value_to_receive_in_fiat_/1e8  );
+  jQuery.mobile.changePage('#receive');
+};
 
 /**
  *
@@ -1270,8 +1280,9 @@ bitex.app.MerchantApp.prototype.onExecutionReportOfSecondDepositInstruction_ = f
     return; // Just the ACK
   }
 
+  this.receive_timeout_timer_.stop();
   goog.array.forEach(goog.dom.getElementsByClass('received-partial-payment'),
-                     function(el){ goog.style.showElement(el, true) });
+                     function(el){ goog.style.showElement(el, true)});
   goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address_qr_code'), false);
   goog.style.showElement(goog.dom.getElement('id_receive_payment_crypto_currency_public_address'), false);
 
@@ -1287,7 +1298,10 @@ bitex.app.MerchantApp.prototype.onExecutionReportOfSecondDepositInstruction_ = f
 
   if (msg['Volume'] >= this.value_to_receive_in_fiat_ ) {
     this.showPaymentCompletion();
+  } else {
+    jQuery.mobile.changePage('#id_receive_crypto_payment');
   }
+
 };
 
 bitex.app.MerchantApp.prototype.showPaymentCompletion = function(){
@@ -1324,7 +1338,7 @@ bitex.app.MerchantApp.prototype.redrawQrCode_ = function(){
     return;
   }
 
-  var img_src = 'https://chart.googleapis.com/chart?cht=qr&chs=320x320&chl=' + this.input_address_;
+  var img_src = 'https://chart.googleapis.com/chart?cht=qr&chs=240x240&chl=' + this.input_address_;
 
   var quote_data;
   if (goog.isDefAndNotNull(this.quote_list_[this.deposit_request_id_])) {
@@ -1423,6 +1437,7 @@ bitex.app.MerchantApp.prototype.recalculateCryptoPayment = function( symbol, tot
   } else {
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_has_liquidity_content'), false);
     goog.style.showElement(goog.dom.getElement('id_receive_crypto_payment_no_liquidity_content'), true);
+    this.receive_timeout_timer_.stop();
     return false;
   }
 };
