@@ -125,14 +125,18 @@ class BitstampArbitrator(object):
 def main():
   import getpass
   print "Enter BitEX credentials"
+  websocket_url = raw_input('Websocket api server: ')
   username = raw_input('Username:')
   password = getpass.getpass()
 
+  buy_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
+  sell_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
+
   arbitrator = BitstampArbitrator(username,
                                   password,
-                                  'wss://test.bitex.com.br/trade/',
-                                  0.01,  # 1% fee on bid
-                                  0.01)  # 1% fee on ask
+                                  websocket_url,
+                                  buy_fee,
+                                  sell_fee)
   arbitrator.run()
 
 main()
