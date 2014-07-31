@@ -239,9 +239,10 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
   var account_overview_header_el = goog.dom.getElement('account_overview_header_id');
   goog.soy.renderElement(account_overview_header_el,bitex.templates.AccountOverviewHeader, {msg_customer_detail: customer});
 
+  var profile = model.get('Profile');
 
   var broker = model.get('Broker');
-  this.deposit_list_table_ =  new bitex.ui.DepositList(broker['CryptoCurrencies'], true );
+  this.deposit_list_table_ =  new bitex.ui.DepositList(profile['CryptoCurrencies'], true );
 
   handler.listen(this.deposit_list_table_ ,
                  bitex.ui.DataGrid.EventType.REQUEST_DATA,
@@ -261,7 +262,8 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
 
 
   var currency_method_description_obj = {};
-  goog.object.forEach( broker['WithdrawStructure'], function(method_list, currency, obj){
+
+  goog.object.forEach( profile['WithdrawStructure'], function(method_list, currency, obj){
     currency_method_description_obj[ currency ] = {};
     goog.array.forEach(method_list, function(method) {
       currency_method_description_obj[ currency ][method['method'] ] = method['description'];
@@ -761,6 +763,9 @@ bitex.view.AccountOverview.prototype.onWithdrawListReponse_ = function(e) {
     return
   }
   var msg = e.data;
+
+  //console.log("WithdrawListGrp: ", msg['WithdrawListGrp'], ", Columns: ", msg['Columns']);
+
   this.withdraw_list_table_.setResultSet( msg['WithdrawListGrp'], msg['Columns'] );
 };
 
