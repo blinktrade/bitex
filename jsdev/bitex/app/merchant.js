@@ -1537,11 +1537,13 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
     }
   }, this);
 
+
   if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
     goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'),  '' + model.get('DefaultBrokerID') );
     this.onChangeBroker_();
   }
-
+  
+  repaint_broker();
 
   var last_country_code = "";
   var number_of_countries = 0;

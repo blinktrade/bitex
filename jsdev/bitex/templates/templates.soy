@@ -303,21 +303,33 @@
   * @param id
   */
 {template .GoogleAuthenticationCodeDialogContent}
-  {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg}
-  <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
+  <div class="ctrlHolder">
+    {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg}
+    <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
+  </div>
 {/template}
 
 /**
   * @param id
   */
 {template .WithdrawConfirmationDialogContent}
+  <form class="form-horizontal" data-deposit-status="prepare">
+  <fieldset>
+
   <p>
     {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
   </p>
-  <input id="{$id}" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+
+  <div class="ctrlHolder">
+  <label>Confirmation Code</label>
+  <input id="{$id}" uniform-validators="required" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+  </div>
   <p>
     <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
   </p>
+
+  </fieldset>
+  </form>
 {/template}
 
 

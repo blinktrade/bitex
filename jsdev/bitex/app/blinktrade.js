@@ -537,24 +537,44 @@ bitex.app.BlinkTrade.prototype.onBitexWithdrawConfirmationResponse_ = function(e
  * @private
  */
 bitex.app.BlinkTrade.prototype.onBitexWithdrawResponse_ = function(e) {
-  var dlg_content = bitex.templates.WithdrawConfirmationDialogContent({id: "id_withdraw_confirmation"}) ;
+  if ( this.getModel().get('Profile')['NeedWithdrawEmail'] ) {
+      var dlg_content = bitex.templates.WithdrawConfirmationDialogContent({id: "id_withdraw_confirmation"}) ;
 
-  /**
-   * @desc withdraw confirmation dialog title
-   */
-  var MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE = goog.getMsg('Confirm');
+      /**
+       * @desc withdraw confirmation dialog title
+       */
+      var MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE = goog.getMsg('Confirm');
 
-  var withdrawConfirmationDialog = this.showDialog(dlg_content,
-                                                   MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE,
-                                                   bootstrap.Dialog.ButtonSet.createOkCancel());
+      var withdrawConfirmationDialog = this.showDialog(dlg_content,
+                                                       MSG_WITHDRAW_CONFIRMATION_DIALOG_TITLE,
+                                                       bootstrap.Dialog.ButtonSet.createOkCancel());
 
+      var handler = this.getHandler();
+      handler.listen(withdrawConfirmationDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
+        if (e.key == 'ok') {
+          var form_element = goog.dom.getFirstElementChild(withdrawConfirmationDialog.getContentElement());
 
-  var handler = this.getHandler();
-  handler.listenOnce(withdrawConfirmationDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
-    if (e.key == 'ok') {
-      this.conn_.confirmWithdraw( goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") ) );
-    }
-  }, this);
+          var uf = new uniform.Uniform();
+          uf.decorate(  form_element ) ;
+          error_list = uf.validate();
+          if (error_list.length > 0) {
+            goog.array.forEach(error_list, function(error_msg) {
+              /**
+               * @desc Withdraw  form validation error
+               */
+              var MSG_CURRENCY_WITHDRAW_CONFIRMATION_ERROR_NOTIFICATION = goog.getMsg('Error: {$message}',{'message': error_msg} );
+
+              this.showNotification( 'error', MSG_CURRENCY_WITHDRAW_CONFIRMATION_ERROR_NOTIFICATION );
+            }, this );
+
+            e.stopPropagation();
+            e.preventDefault();
+          } else {
+            this.conn_.confirmWithdraw( goog.dom.forms.getValue( goog.dom.getElement("id_withdraw_confirmation") ) );
+          }
+        }
+      }, this);
+  }
 };
 
 

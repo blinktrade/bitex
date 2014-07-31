@@ -1133,21 +1133,26 @@ class Withdraw(Base):
                                fixed_fee          = fixed_fee,
                                client_order_id    = client_order_id,
                                data               = data )
+
+    if user.withdraw_email_validation:
+      formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
+
+      template_name       = broker.withdraw_confirmation_email.replace('{method}', withdraw_record.method.lower())
+      template_parameters =  withdraw_record.as_dict()
+      template_parameters['amount'] = formatted_amount
+
+      UserEmail.create( session = session,
+                        user_id = user.id,
+                        subject =  broker.withdraw_confirmation_email_subject.replace('{currency}', currency),
+                        template=template_name,
+                        language='ptBR',
+                        params  = json.dumps(template_parameters, cls=JsonEncoder))
+
+    else:
+      withdraw_record.status = '1'
+
     session.add(withdraw_record)
     session.flush()
-
-    formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
-
-    template_name       = broker.withdraw_confirmation_email.replace('{method}', withdraw_record.method.lower())
-    template_parameters =  withdraw_record.as_dict()
-    template_parameters['amount'] = formatted_amount
-
-    UserEmail.create( session = session,
-                      user_id = user.id,
-                      subject =  broker.withdraw_confirmation_email_subject.replace('{currency}', currency),
-                      template=template_name,
-                      language='ptBR',
-                      params  = json.dumps(template_parameters, cls=JsonEncoder))
 
     return withdraw_record
 
@@ -2137,26 +2142,12 @@ def db_bootstrap(session):
                              }
                          ],
                          'USD': [ {
-                                      'method':'paypal',
-                                      'description':'paypal',
-                                      'disclaimer':'You still might have to pay PayPal fees',
-                                      'percent_fee': 300, # 3 percent
-                                      'fixed_fee': 0,
-                                      'fields': [
-                                          {'side':'client',  'name': 'Email'          , 'validator':'validateEmail', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
-                                          {'side':'broker',  'name': 'TransactionID'  , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                          {'side':'broker',  'name': 'Link'           , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
-                                      ]
-                                  },{
                                       'method':'cash',
                                       'description':'Cash',
                                       'disclaimer':'Armored car will deliver the cash in hands',
                                       'percent_fee': 100, # 1%
                                       'fixed_fee': 0,
                                       'fields': [
-                                          {'side':'client',  'name': 'Hour'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Hour'          , 'placeholder':'' },
-                                          {'side':'broker',  'name': 'DeliveredTime' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Delivered Time', 'placeholder':'' },
-                                          {'side':'broker',  'name': 'DeliveredTo'   , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Delivered To'  , 'placeholder':'' },
                                       ]
                                   }, {
                                    'method':'ach',
@@ -2179,8 +2170,8 @@ def db_bootstrap(session):
                              "CurrencyDescription":"Bitcoin",
                              "Confirmations":[ [0, 1e8, 0], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                              "Wallets": [
-                                 { "type":"cold", "address":"myzyH6qpB4PhtCCkmp45q2ff1UQkoR3o1p", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
-                                 { "type":"hot", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
+                                 { "type":"cold", "address":"154J1nWscUNY959VxM8SaNpK8sfXUH7z2u", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
+                                 { "type":"hot", "address":"1Nk7JzvkmuTfMaUKKtRaK8K9PM2UfNcJP3", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
                                  ]
                          }
                      ]),

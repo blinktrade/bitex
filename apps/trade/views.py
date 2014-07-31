@@ -134,6 +134,7 @@ def processLogin(session, msg):
       'Verified'           : session.user.verified                ,
       'VerificationData'   : session.user.verification_data       ,
       'TwoFactorEnabled'   : session.user.two_factor_enabled      ,
+      'NeedWithdrawEmail'  : session.user.withdraw_email_validation,
       'BrokerID'           : session.profile.id                   ,
       'ShortName'          : session.profile.short_name           ,
       'BusinessName'       : session.profile.business_name        ,
@@ -170,6 +171,7 @@ def processLogin(session, msg):
       'Verified'           : session.profile.verified,
       'VerificationData'   : session.profile.verification_data,
       'TwoFactorEnabled'   : session.profile.two_factor_enabled,
+      'NeedWithdrawEmail'  : session.profile.withdraw_email_validation,
     }
 
   return json.dumps(login_response, cls=JsonEncoder)
