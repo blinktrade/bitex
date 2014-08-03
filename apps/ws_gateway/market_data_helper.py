@@ -33,7 +33,7 @@ class MarketDataSubscriber(object):
           cls._instance = cls()
         return cls._instance
 
-    def __init__(self, symbol = "ALL", db_session = None):
+    def __init__(self, symbol = "ALL", application = None):
         self.symbol = str(symbol)
         self.buy_side = []
         self.sell_side = []
@@ -46,7 +46,8 @@ class MarketDataSubscriber(object):
         self.ask = 0
         self.is_ready = False
         self.process_later = []
-        self.db_session = db_session
+        self.application = application
+        self.db_session = application.db_session
 
     def subscribe(self,zmq_context,trade_pub_connection_string,trade_client):
 
@@ -102,7 +103,7 @@ class MarketDataSubscriber(object):
         """" on_md_publish. """
         topic = publish_msg[0]
         raw_message = publish_msg[1]
-        print "on_md_publish", topic, raw_message
+        self.application.log('IN', 'TRADE_PUB', raw_message )
 
         msg = JsonMessage(raw_message)
 
@@ -170,7 +171,6 @@ class MarketDataSubscriber(object):
 
     def on_book_delete_orders_thru(self, msg):
         """" on_book_delete_orders_thru. """
-        print 'on_book_delete_orders_thru', msg
         index = msg.get('MDEntryPositionNo')
         side = msg.get('MDEntryType')
         if side == '0':
@@ -191,8 +191,6 @@ class MarketDataSubscriber(object):
 
     def on_book_delete_order(self, msg):
         """" on_book_delete_order. """
-        print 'on_book_delete_order', msg
-
         index = msg.get('MDEntryPositionNo') - 1
         side = msg.get('MDEntryType')
 
@@ -212,8 +210,6 @@ class MarketDataSubscriber(object):
 
     def on_book_new_order(self, msg):
         """" on_book_new_order. """
-        print 'on_book_new_order', msg
-
         index = msg.get('MDEntryPositionNo') - 1
         order = {
             'price': msg.get('MDEntryPx'),
@@ -238,8 +234,6 @@ class MarketDataSubscriber(object):
 
     def on_book_update_order(self, msg):
         """" on_book_new_order. """
-        print 'on_book_update_order', msg
-
         index = msg.get('MDEntryPositionNo') - 1
         order = {
             'price': msg.get('MDEntryPx'),
@@ -266,8 +260,6 @@ class MarketDataSubscriber(object):
             self.process_later.append(msg)
             return
 
-        """" on_trade. """
-        #print 'on_trade', msg
         trade = {
             "price": msg.get('MDEntryPx'),
             "symbol": msg.get('Symbol'),
