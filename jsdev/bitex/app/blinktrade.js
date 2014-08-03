@@ -2527,7 +2527,9 @@ bitex.app.BlinkTrade.prototype.onBrokerListResponse_ =  function(e){
   this.model_.set('BrokerList', broker_list);
 
   var current_view = location.pathname.replace('/', '');
-  this.router_.setView(current_view);
+  if ( current_view ) {
+    this.router_.setView(current_view);
+  }
 
 };
 
