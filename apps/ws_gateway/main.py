@@ -102,7 +102,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
             request.headers.get(
                 'X-Real-Ip',
                 request.remote_ip))
-        print 'remote_ip', self.remote_ip
+        application.log('INFO', 'CONNECTION_OPEN', self.remote_ip )
 
         self.trade_client = TradeClient(
             self.application.zmq_context,
@@ -121,6 +121,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.trade_client.connect()
             self.trade_client.on_trade_publish = self.on_trade_publish
             self.application.register_connection(self)
+
         except TradeClientException as e:
             self.write_message(
                 '{"MsgType":"ERROR", "Description":"Error establishing connection with trade", "Detail": "' +
@@ -130,8 +131,12 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.close()
 
     def write_message(self, message, binary=False):
-        print "out_message,", self.trade_client.connection_id, ',', message
+        self.application.log('OUT', self.trade_client.connection_id, message )
         super(WebSocketHandler, self).write_message(message, binary)
+
+    def close(self):
+      self.application.log('DEBUG', self.remote_ip, 'WebSocketHandler.close() invoked' )
+      super(WebSocketHandler, self).close()
 
     def on_message(self, raw_message):
         if not self.trade_client.isConnected():
@@ -149,26 +154,33 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.close()
             return
 
+
         if req_msg.isUserRequest():
-            print 'in_message ,', self.trade_client.connection_id, ' , ***LOGIN***'
+            if req_msg.has('Password'):
+                raw_message = raw_message.replace(req_msg.get('Password'), '*')
+            if req_msg.has('NewPassword'):
+                raw_message = raw_message.replace(req_msg.get('NewPassword'), '*')
+
+            self.application.log('IN', self.trade_client.connection_id ,raw_message )
         else:
-            print 'in_message ,', self.trade_client.connection_id, ',', raw_message
+            self.application.log('IN', self.trade_client.connection_id, raw_message )
 
 
         if req_msg.isTestRequest() or req_msg.isHeartbeat():
-          response_msg = {
-              'MsgType'           : '0',
-              'TestReqID'         : req_msg.get('TestReqID'),
-              'ServerTimestamp'   : calendar.timegm(time.gmtime())*1000
-          }
+            response_msg = {
+                'MsgType'           : '0',
+                'TestReqID'         : req_msg.get('TestReqID'),
+                'ServerTimestamp'   : calendar.timegm(time.gmtime())*1000
+            }
 
-          sendTime = req_msg.get('SendTime')
-          if sendTime:
-            response_msg['SendTime'] = sendTime
+            sendTime = req_msg.get('SendTime')
+            if sendTime:
+                response_msg['SendTime'] = sendTime
 
 
-          self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
-          return
+            self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
+            return
+
 
         if req_msg.isTradeHistoryRequest():  # Trade History request
             self.on_trade_history_request(req_msg)
@@ -178,6 +190,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.on_market_data_request(req_msg)
 
             if not self.trade_client.isConnected():
+                self.application.log('DEBUG', self.trade_client.connection_id, 'not self.trade_client.isConnected()' )
                 self.application.unregister_connection(self)
                 self.trade_client.close()
                 self.close()
@@ -240,6 +253,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 self.user_response = resp_message
 
             if not self.trade_client.isConnected():
+                self.application.log('DEBUG', self.trade_client.connection_id, 'not self.trade_client.isConnected()' )
                 self.application.unregister_connection(self)
                 self.trade_client.close()
                 self.close()
@@ -278,7 +292,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
                         return wallet['address']
 
     def on_close(self):
-        print 'on_close', self.trade_client.connection_id
+        self.application.log('DEBUG', self.trade_client.connection_id, 'WebSocketHandler.on_close' )
         self.application.unregister_connection(self)
         self.trade_client.close()
 
@@ -374,7 +388,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
     def on_send_json_msg_to_user(self, sender, json_msg):
         s = json.dumps(json_msg, cls=JsonEncoder)
-        print 'on_send_json_msg_to_user', s
         self.write_message(s)
 
 
@@ -393,6 +406,13 @@ class WebSocketGatewayApplication(tornado.web.Application):
             cookie_secret='cookie_secret'
         )
         tornado.web.Application.__init__(self, handlers, **settings)
+
+        self.replay_logger = logging.getLogger("REPLAY")
+        self.replay_logger.setLevel(logging.INFO)
+        self.replay_logger.addHandler(input_log_file_handler)
+        self.replay_logger.info('START')
+        self.log_start_data()
+
 
         from models import ENGINE, db_bootstrap
         self.db_session = scoped_session(sessionmaker(bind=ENGINE))
@@ -414,7 +434,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
         for instrument in instruments:
             symbol = instrument['Symbol']
-            self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol, self.db_session)
+            self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol, self)
             self.md_subscriber[symbol].subscribe(
                 self.zmq_context,
                 options.trade_pub,
@@ -461,6 +481,35 @@ class WebSocketGatewayApplication(tornado.web.Application):
             30000)
         self.heart_beat_timer.start()
 
+    def log_start_data(self):
+        self.log('PARAM','BEGIN')
+        self.log('PARAM','callback_url'         ,options.callback_url)
+        self.log('PARAM','port'                 ,options.port)
+        self.log('PARAM','trade_in'             ,options.trade_in)
+        self.log('PARAM','trade_pub'            ,options.trade_pub)
+        self.log('PARAM','url_payment_processor',options.url_payment_processor)
+        self.log('PARAM','session_timeout_limit',options.session_timeout_limit)
+        self.log('PARAM','db_echo'              ,options.db_echo)
+        self.log('PARAM','db_engine'            ,options.db_engine)
+        self.log('PARAM','END')
+
+
+    def log(self, command, key, value=None):
+        log_msg = command + ',' + key
+        if value:
+            try:
+                log_msg += ',' + value
+            except Exception,e :
+                try:
+                    log_msg += ',' + str(value)
+                except Exception,e :
+                    try:
+                        log_msg += ',' + unicode(value)
+                    except Exception,e :
+                        log_msg += ', [object]'
+
+        self.replay_logger.info(  log_msg )
+
     def send_heartbeat_to_trade(self):
         try:
             self.application_trade_client.sendJSON({'MsgType': '1', 'TestReqID': '0'})
@@ -468,12 +517,14 @@ class WebSocketGatewayApplication(tornado.web.Application):
             pass
 
     def register_connection(self, ws_client):
+        self.log('INFO', 'REGISTER_CONNECTION',  {'remote_ip': ws_client.remote_ip, 'trade.connection_id':  ws_client.trade_client.connection_id  }  )
         if ws_client.trade_client.connection_id in self.connections:
             return False
         self.connections[ws_client.trade_client.connection_id] = ws_client
         return True
 
     def unregister_connection(self, ws_client):
+        self.log('INFO', 'UNREGISTER_CONNECTION',  {'remote_ip': ws_client.remote_ip, 'trade.connection_id':  ws_client.trade_client.connection_id  }  )
         if ws_client.trade_client.connection_id in self.connections:
             del self.connections[ws_client.trade_client.connection_id]
             return True
@@ -489,18 +540,12 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 
 def main():
-
-    print 'callback_url', options.callback_url
-    print 'url_payment_processor', options.url_payment_processor
-    print 'port', options.port
-    print 'trade_in', options.trade_in
-    print 'trade_pub', options.trade_pub
-    print 'session_timeout_limit', options.session_timeout_limit
-
     from zmq.eventloop import ioloop
     ioloop.install()
 
     application = WebSocketGatewayApplication(options)
+
+
 
     server = tornado.httpserver.HTTPServer(application)
     server.listen(options.port)
