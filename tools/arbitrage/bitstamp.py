@@ -13,7 +13,7 @@ from order_book_processor import OrderBookProcessor
 
 
 class BitstampArbitrator(object):
-  def __init__(self, bitex_username, bitex_password,  bitex_ws_url='wss://www.bitex.com.br/trade/', bid_fee=0, ask_fee=0):
+  def __init__(self, bitex_username, bitex_password,  bitex_ws_url='wss://api.blinktrade.com/trade/', bid_fee=0, ask_fee=0):
     self.pusher = pusherclient.Pusher(key= 'de504dc5763aeef9ff52', log_level=logging.ERROR)
     self.order_book_bid_processor = OrderBookProcessor('1', 'BTCUSD')
     self.order_book_ask_processor = OrderBookProcessor('2', 'BTCUSD')
@@ -51,6 +51,7 @@ class BitstampArbitrator(object):
         self.btc_balance = msg[str(self.bitex_broker['BrokerID'])]['BTC']
 
   def on_bitex_connected(self, sender, msg):
+    print 'on_bitex_connected'
     self.bitex_broker = msg['Broker']
     self.bitex_profile = msg['Profile']
 
@@ -70,10 +71,12 @@ class BitstampArbitrator(object):
     self.ws.sendMsg(msg)
 
   def on_bitstamp_connect_handler(self, data):
+    print 'on_bitstamp_connect_handler'
     channel = self.pusher.subscribe('order_book')
     channel.bind('data', self.on_bitstamp_order_book_handler )
 
   def on_bitstamp_order_book_handler(self, data):
+    print 'on_bitstamp_order_book_handler'
     data = json.loads(data)
     bid_list = [  [  int(float(usd)*1e8 * (1. - self.bid_fee) ), int(float(btc) * 1e8) ]  for usd,btc in data['bids'] ]
     ask_list = [  [  int(float(usd)*1e8 * (1. + self.ask_fee) ), int(float(btc) * 1e8) ]  for usd,btc in data['asks'] ]
@@ -91,11 +94,13 @@ class BitstampArbitrator(object):
         if is_total_vol:
           if total_vol_usd > balance:
             available_volume = balance - previous_total_vol_usd
-            funded_entries.append([ price_usd, int( (float (available_volume) / float (price_usd)) * 1.e8) ])
+            if available_volume:
+              funded_entries.append([ price_usd, int( (float (available_volume) / float (price_usd)) * 1.e8) ])
             break
         else:
           if total_vol_btc > balance:
-            funded_entries.append([ price_usd, balance-previous_total_vol_btc ])
+            if balance-previous_total_vol_btc:
+              funded_entries.append([ price_usd, balance-previous_total_vol_btc ])
             break
         funded_entries.append([ price_usd, size_btc ])
       return funded_entries
@@ -119,6 +124,7 @@ class BitstampArbitrator(object):
     except Exception, e:
       self.ws.send(json.dumps({'MsgType':'F'}))  # Cancel all open orders for this user
       self.ws.close()
+      pass
 
 
 
@@ -130,7 +136,8 @@ def main():
   password = getpass.getpass()
 
   buy_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
-  sell_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
+  sell_fee =  float(raw_input('sell fee [0 - 100]: ')) / 100
+
 
   arbitrator = BitstampArbitrator(username,
                                   password,

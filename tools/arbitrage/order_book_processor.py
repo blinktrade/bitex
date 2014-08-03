@@ -36,15 +36,18 @@ class OrderBookProcessor():
 
     self.orders_list_ordered_by_timestamp.append( order )
 
-    self.send_new_order_signal( self,{
+    order_message = {
       'MsgType': 'D',
       'Symbol' : self.symbol,
       'OrdType':'2',
       'Price': price,
-      'OrderQty':volume,
+      'OrderQty': volume,
       'ClOrdID': str(order_id),
       'Side': self.side,
-      })
+    }
+    print order_message
+
+    self.send_new_order_signal( self, order_message)
 
     return order_id
 
