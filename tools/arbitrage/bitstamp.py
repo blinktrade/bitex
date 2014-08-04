@@ -10,20 +10,21 @@ from bitex.client import BitExThreadedClient
 import pusherclient
 import json
 from order_book_processor import OrderBookProcessor
+from util import get_funded_entries
 
 import datetime
 import hmac
 import hashlib
 
 class BitstampArbitrator(object):
-  def __init__(self, bitex_username, bitex_password,  bitex_ws_url='wss://api.blinktrade.com/trade/', bid_fee=0, ask_fee=0, bitstamp_api_key=None, bitstamp_api_secret=None):
+  def __init__(self, bitex_username, bitex_password,  bitex_ws_url='wss://api.blinktrade.com/trade/', bid_fee=0, ask_fee=0, api_key=None, api_secret=None):
     self.pusher = pusherclient.Pusher(key= 'de504dc5763aeef9ff52', log_level=logging.ERROR)
     self.order_book_bid_processor = OrderBookProcessor('1', 'BTCUSD')
     self.order_book_ask_processor = OrderBookProcessor('2', 'BTCUSD')
     self.bid_fee = bid_fee
     self.ask_fee = ask_fee
-    self.bitstamp_api_key = bitstamp_api_key
-    self.bitstamp_api_secret = bitstamp_api_secret
+    self.api_key = api_key
+    self.api_secret = api_secret
 
     self.ws = BitExThreadedClient( bitex_ws_url )
     self.bitex_username = bitex_username
@@ -46,17 +47,12 @@ class BitstampArbitrator(object):
 
     print datetime.datetime.now(), msg
 
-    #    key - API key
-    #    signature - signature
-    #    nonce - nonce
-    #    amount - amount
-    #    price - price
     nonce = datetime.datetime.now().strftime('%s')
-    message = str(nonce) + '.blinktrade.' + str(self.bitstamp_api_key)
-    signature = hmac.new(self.bitstamp_api_secret, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
+    message = str(nonce) + '.blinktrade.' + str(self.api_key)
+    signature = hmac.new(self.api_secret, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
 
     post_params = {
-      'key': self.bitstamp_api_key,
+      'key': self.api_key,
       'signature': signature,
       'nonce': nonce,
       'amount': float(msg['LastShares']/1.e8),
@@ -107,33 +103,8 @@ class BitstampArbitrator(object):
     data = json.loads(data)
     bid_list = [  [  int(float(usd)*1e8 * (1. - self.bid_fee) ), int(float(btc) * 1e8) ]  for usd,btc in data['bids'] ]
     ask_list = [  [  int(float(usd)*1e8 * (1. + self.ask_fee) ), int(float(btc) * 1e8) ]  for usd,btc in data['asks'] ]
-
-    def get_funded_entries(orders, balance, is_total_vol):
-      total_vol_usd = 0
-      total_vol_btc = 0
-      funded_entries = []
-      for price_usd, size_btc in orders:
-        vol_usd = (price_usd * size_btc) / 1e8
-        previous_total_vol_btc = total_vol_btc
-        previous_total_vol_usd = total_vol_usd
-        total_vol_usd += vol_usd
-        total_vol_btc += size_btc
-        if is_total_vol:
-          if total_vol_usd > balance:
-            available_volume = balance - previous_total_vol_usd
-            if available_volume:
-              funded_entries.append([ price_usd, int( (float (available_volume) / float (price_usd)) * 1.e8) ])
-            break
-        else:
-          if total_vol_btc > balance:
-            if balance-previous_total_vol_btc:
-              funded_entries.append([ price_usd, int(balance-previous_total_vol_btc) ])
-            break
-        funded_entries.append([ price_usd, size_btc ])
-      return funded_entries
     bid_list = get_funded_entries(bid_list, self.usd_balance, True)
     ask_list = get_funded_entries(ask_list, self.btc_balance, False)
-
     self.order_book_bid_processor.process_order_list(bid_list)
     self.order_book_ask_processor.process_order_list(ask_list)
 
@@ -157,9 +128,9 @@ class BitstampArbitrator(object):
 
 def main():
   import getpass
-  print "Enter BitEX credentials"
-  websocket_url = raw_input('Websocket api server: ')
-  username = raw_input('Username:')
+  print "BlinkTrade <-> Bitstamp arbitrator"
+  websocket_url = raw_input('BlinkTrade Websocket api server: ')
+  username = raw_input('Username: ')
   password = getpass.getpass()
 
   buy_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
