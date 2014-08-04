@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #!/usr/bin/env python
 import urllib2
 from time import sleep
@@ -24,8 +22,8 @@ def send_order_to_b2u(sender, order):
     'key': B2U_API_KEY,
     'signature': signature,
     'nonce': nonce,
-    'amount': float(msg['OrderQty']/1.e8),
-    'price': float( msg['Price'] / 1.e8)
+    'amount': float(order['OrderQty']/1.e8),
+    'price': float(order['Price'] / 1.e8)
   }
 
   if msg['Side'] == '1':
