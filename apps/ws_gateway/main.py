@@ -133,6 +133,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
     def write_message(self, message, binary=False):
         self.application.log('OUT', self.trade_client.connection_id, message )
         super(WebSocketHandler, self).write_message(message, binary)
+        self.application.log('DEBUG SENT', self.trade_client.connection_id, message )
 
     def close(self):
       self.application.log('DEBUG', self.remote_ip, 'WebSocketHandler.close() invoked' )
