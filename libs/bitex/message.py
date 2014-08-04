@@ -46,7 +46,7 @@ class BaseMessage(object):
 
 
 class JsonMessage(BaseMessage):
-  MAX_MESSAGE_LENGTH = 40096
+  MAX_MESSAGE_LENGTH = 40096*10
   def raise_exception_if_required_tag_is_missing(self, tag):
     if tag not in self.message:
       raise InvalidMessageMissingTagException(self.raw_message, self.message, tag)
