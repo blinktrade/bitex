@@ -10,19 +10,19 @@ import hmac
 import hashlib
 
 
-BASEBIT_API_KEY = 'XXXX'
-BASEBIT_API_SECRET = 'YYYY'
+MB_API_KEY = 'XXXX'
+MB_API_SECRET = 'YYYY'
 
-def send_order_to_basebit(sender, order):
+def send_order_to_MB(sender, order):
   nonce = datetime.datetime.now().strftime('%s')
-  message = 'sendorder' + str(BASEBIT_API_KEY) + str(nonce)
-  signature = hmac.new(BASEBIT_API_SECRET, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
+  message = 'sendorder' + str(MB_API_KEY) + str(nonce)
+  signature = hmac.new(MB_API_SECRET, msg=message, digestmod=hashlib.sha256).hexdigest().upper()
 
   post_params = {
-    'key': BASEBIT_API_KEY,
+    'key': MB_API_KEY,
     'sign': signature,
-    'pair': order['Symbol'],
-    'quantity': float(order['OrderQty']/1.e8),
+    'pair': 'btc_brl',
+    'volume': float(order['OrderQty']/1.e8),
     'price': float( order['Price'] / 1.e8)
   }
 
@@ -31,11 +31,11 @@ def send_order_to_basebit(sender, order):
   elif msg['Side'] == '2':
     post_params['type'] = 'sell'
 
-  print datetime.datetime.now(), 'POST https://www.basebit.com.br/secure/tapi/' + message, str(post_params)
+  print datetime.datetime.now(), 'POST https://www.mercadobitcoin.com.br/tapi/' + message, str(post_params)
 
 def main():
   import getpass
-  print "BlinkTrade <-> Basebit arbitrator"
+  print "BlinkTrade <-> MercadoBitcoin arbitrator"
   websocket_url = raw_input('BlinkTrade Websocket api server: ')
   username = raw_input('Username: ')
   password = getpass.getpass()
@@ -46,12 +46,12 @@ def main():
 
   arbitrator.connect_to_blinktrade()
 
-  arbitrator.signal_order.connect(send_order_to_basebit)
+  arbitrator.signal_order.connect(send_order_to_MB)
 
   while True:
     try:
-      sleep(5)
-      raw_data = urllib2.urlopen('http://www.basebit.com.br/book-BTC_BRL').read()
+      sleep(15)
+      raw_data = urllib2.urlopen('https://www.mercadobitcoin.com.br/api/orderbook/').read()
       bids_asks = []
       try:
         bids_asks = json.loads(raw_data)
@@ -59,8 +59,8 @@ def main():
         pass
 
       if bids_asks:
-        ask_list = [ [  int(float(o['price']) * 1e8 * (1. + ask_fee) ) , int(o['quantity'] * 1e8) ] for o in bids_asks['result']['asks'] ]
-        bid_list = [ [  int(float(o['price']) * 1e8 * (1. + bid_fee) ) , int(o['quantity'] * 1e8) ] for o in bids_asks['result']['bids'] ]
+        ask_list = [ [  int(float(o[0]) * 1e8 * (1. + ask_fee) ) , int(o[1] * 1e8) ] for o in bids_asks['asks'] ]
+        bid_list = [ [  int(float(o[0]) * 1e8 * (1. + bid_fee) ) , int(o[1] * 1e8) ] for o in bids_asks['bids'] ]
         arbitrator.process_ask_list(ask_list)
         arbitrator.process_bid_list(bid_list)
     except urllib2.URLError as e:
