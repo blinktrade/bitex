@@ -52,12 +52,17 @@ def main():
   while True:
     try:
       sleep(15)
+      arbitrator.send_testRequest()
 
-      # something wrong with urllib2 or bitinvest servers.
-      #raw_data = urllib2.urlopen('https://api.bitinvest.com.br/exchange/orderbook?subscription-key=' + subscription_api_key).read()
+      try:
+        # something wrong with urllib2 or bitinvest servers.
+        #raw_data = urllib2.urlopen('https://api.bitinvest.com.br/exchange/orderbook?subscription-key=' + subscription_api_key).read()
 
-      # curl works. I know, this is ugly, but it works
-      raw_data = subprocess.check_output( ['curl', 'https://api.bitinvest.com.br/exchange/orderbook?subscription-key=' + subscription_api_key] )
+        # curl works. I know, this is ugly, but it works
+        raw_data = subprocess.check_output( ['curl', 'https://api.bitinvest.com.br/exchange/orderbook?subscription-key=' + subscription_api_key] )
+      except Exception:
+        print 'ERROR RETRIEVING ORDER BOOK'
+        continue
 
       bids_asks = []
       try:
@@ -75,6 +80,8 @@ def main():
 
     except KeyboardInterrupt:
       arbitrator.cancel_all_orders()
+      print 'wait....'
+      sleep(5)
       arbitrator.close()
       break
 

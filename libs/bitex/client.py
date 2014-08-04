@@ -11,6 +11,7 @@ if __name__ == '__main__':
 
 from ws4py.client.threadedclient import WebSocketClient
 import json
+import time
 
 from signals import Signal
 
@@ -41,8 +42,13 @@ class BitExThreadedClient(WebSocketClient):
   signal_trade                    = Signal()
 
   signal_recv                     = Signal()
+  signal_send                     = Signal()
 
   is_logged = False
+
+  def send(self, payload, binary=False):
+    self.signal_send(self, payload)
+    super(BitExThreadedClient, self).send(payload, binary)
 
   def login(self, user, password):
     loginMsg = {
@@ -54,8 +60,11 @@ class BitExThreadedClient(WebSocketClient):
     }
     self.send(json.dumps(loginMsg))
 
-  def testRequest(self):
-    self.send(json.dumps({'MsgType': '1', 'TestReqID':'1'}))
+  def testRequest(self, request_id=None):
+    if request_id:
+      self.send(json.dumps({'MsgType': '1', 'TestReqID': request_id }))
+    else:
+      self.send(json.dumps({'MsgType': '1', 'TestReqID': int(time.time()*1000)}))
 
   def requestBalances(self, request_id = None, client_id = None):
     if not request_id:
@@ -180,8 +189,8 @@ class BitExThreadedClient(WebSocketClient):
 
 
 if __name__ == '__main__':
+  ws = BitExThreadedClient('wss://localhost:8449/trade')
   try:
-    ws = BitExThreadedClient('wss://localhost:8449/trade')
     def on_login(sender, msg):
       ws.testRequest()
       ws.requestMarketData( 'md', ['BTCBRL'], ['0','1', '2'] )

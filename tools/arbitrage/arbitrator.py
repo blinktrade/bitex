@@ -11,11 +11,18 @@ from bitex.signals import Signal
 from bitex.client import BitExThreadedClient
 import json
 import datetime
+import time
 
 class BlinkTradeArbitrator(object):
   def __init__(self, blinktrade_username, blinktrade_password,  blinktrade_ws_url='wss://api.blinktrade.com/trade/', symbol='BTCUSD'):
     self.order_book_bid_processor = OrderBookProcessor('1', symbol)
     self.order_book_ask_processor = OrderBookProcessor('2', symbol)
+
+    self.fiat_currency = symbol[3:]
+    self.crypto_currency = symbol[:3]
+    self.fiat_balance = 0
+    self.crypto_balance = 0
+    self.latency = 0
 
     self.ws = BitExThreadedClient( blinktrade_ws_url )
     self.blinktrade_username = blinktrade_username
@@ -26,23 +33,28 @@ class BlinkTradeArbitrator(object):
     self.order_book_bid_processor.cancel_order_signal.connect(self.on_send_cancel_order)
     self.order_book_ask_processor.cancel_order_signal.connect(self.on_send_cancel_order)
 
+    self.ws.signal_heartbeat.connect(self.on_blinktrade_heartbeat)
     self.ws.signal_logged.connect(self.on_blinktrade_connected)
     self.ws.signal_balance.connect(self.on_blinktrade_balance )
     self.ws.signal_execution_report.connect(self.on_blinktrade_execution_report)
 
-    self.blr_balance = 0
-    self.btc_balance = 0
+    self.ws.signal_send.connect(self.on_blinktrade_send)
+    self.ws.signal_recv.connect(self.on_blinktrade_recv)
+
     self.blinktrade_broker = None
     self.blinktrade_profile = None
 
     self.signal_order  = Signal()
 
+  def on_blinktrade_send(self, sender, msg):
+    print datetime.datetime.now(), 'SEND', msg
+
+  def on_blinktrade_recv(self, sender, msg):
+    print datetime.datetime.now(), 'RECV', msg
+
   def on_blinktrade_execution_report(self, sender, msg):
     if msg['ExecType'] == '0' or msg['ExecType'] == '4': # cancel
       return
-
-    print datetime.datetime.now(), msg
-
     self.signal_order(self,  {
       'MsgType'   : 'D',
       'Symbol'    : msg['Symbol'],
@@ -54,10 +66,10 @@ class BlinkTradeArbitrator(object):
 
   def on_blinktrade_balance(self, sender, msg):
     if str(self.blinktrade_broker['BrokerID']) in msg:
-      if 'BRL' in msg[str(self.blinktrade_broker['BrokerID'])]:
-        self.blr_balance = msg[str(self.blinktrade_broker['BrokerID'])]['BRL']
-      if 'BTC' in msg[str(self.blinktrade_broker['BrokerID'])]:
-        self.btc_balance = msg[str(self.blinktrade_broker['BrokerID'])]['BTC']
+      if self.fiat_currency in msg[str(self.blinktrade_broker['BrokerID'])]:
+        self.fiat_balance = msg[str(self.blinktrade_broker['BrokerID'])][self.fiat_currency]
+      if self.crypto_currency in msg[str(self.blinktrade_broker['BrokerID'])]:
+        self.crypto_balance = msg[str(self.blinktrade_broker['BrokerID'])][self.crypto_currency]
 
   def on_blinktrade_connected(self, sender, msg):
     print 'connected to blinktrade'
@@ -68,31 +80,35 @@ class BlinkTradeArbitrator(object):
 
 
   def on_send_buy_new_order(self,sender, msg):
-    print datetime.datetime.now(), msg
     self.ws.sendMsg(msg)
 
   def on_send_sell_new_order(self,sender, msg):
-    print datetime.datetime.now(), msg
     self.ws.sendMsg(msg)
 
   def on_send_cancel_order(self,sender, msg):
-    print datetime.datetime.now(), msg
     self.ws.sendMsg(msg)
 
   def process_bid_list(self, bid_list ):
-    bid_list = get_funded_entries(bid_list, self.blr_balance, True)
+    bid_list = get_funded_entries(bid_list, self.fiat_balance, True)
     bid_list = aggregate_orders(bid_list)
     self.order_book_bid_processor.process_order_list(bid_list)
 
   def process_ask_list(self, ask_list):
-    ask_list = get_funded_entries(ask_list, self.btc_balance, False)
+    ask_list = get_funded_entries(ask_list, self.crypto_balance, False)
     ask_list = aggregate_orders(ask_list)
     self.order_book_ask_processor.process_order_list(ask_list)
 
+  def on_blinktrade_heartbeat(self, msg):
+    received_timestamp = int(time.time()*1000)
+    sent_timestamp = msg['TestReqID']
+    self.latency = received_timestamp - sent_timestamp
 
   def connect_to_blinktrade(self):
     self.ws.connect()
     self.ws.login(self.blinktrade_username, self.blinktrade_password )
+
+  def send_testRequest(self):
+    self.ws.testRequest( int(time.time()*1000) )
 
   def run(self):
     self.ws.run_forever()

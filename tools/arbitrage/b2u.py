@@ -55,8 +55,16 @@ def main():
 
   while True:
     try:
-      sleep(5)
-      raw_data = urllib2.urlopen('http://www.bitcointoyou.com/API/orderbook.aspx').read()
+      sleep(10)
+      arbitrator.send_testRequest()
+
+      try:
+        raw_data = urllib2.urlopen('http://www.bitcointoyou.com/API/orderbook.aspx').read()
+      except Exception:
+        print 'ERROR RETRIEVING ORDER BOOK'
+        continue
+
+
       bids_asks = []
       try:
         bids_asks = json.loads(raw_data)
@@ -90,6 +98,8 @@ def main():
 
     except KeyboardInterrupt:
       arbitrator.cancel_all_orders()
+      print 'wait....'
+      sleep(5)
       arbitrator.close()
       break
 

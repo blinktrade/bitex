@@ -50,8 +50,15 @@ def main():
 
   while True:
     try:
-      sleep(15)
-      raw_data = urllib2.urlopen('https://www.mercadobitcoin.com.br/api/orderbook/').read()
+      sleep(5)
+      arbitrator.send_testRequest()
+
+      try:
+        raw_data = urllib2.urlopen('https://www.mercadobitcoin.com.br/api/orderbook/').read()
+      except Exception:
+        print 'ERROR RETRIEVING ORDER BOOK'
+        continue
+
       bids_asks = []
       try:
         bids_asks = json.loads(raw_data)
@@ -63,11 +70,14 @@ def main():
         bid_list = [ [  int(float(o[0]) * 1e8 * (1. + bid_fee) ) , int(o[1] * 1e8) ] for o in bids_asks['bids'] ]
         arbitrator.process_ask_list(ask_list)
         arbitrator.process_bid_list(bid_list)
+
     except urllib2.URLError as e:
       print datetime.datetime.now(), e
 
     except KeyboardInterrupt:
       arbitrator.cancel_all_orders()
+      print 'wait....'
+      sleep(5)
       arbitrator.close()
       break
 
