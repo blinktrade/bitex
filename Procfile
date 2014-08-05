@@ -1,3 +1,2 @@
-engine: python apps/trade/main.py
-gateway: python apps/ws_gateway/main.py
-mailer: python apps/mailer/main.py
+engine: python2.7 apps/trade/main.py --config=/opt/bitex/config/trade.conf
+gateway: python2.7 apps/ws_gateway/main.py --config=/opt/bitex/config/ws_gateway.conf

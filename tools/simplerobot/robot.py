@@ -119,9 +119,6 @@ class BitexBot(object):
       self.best_bid.pop()
 
 
-    pass
-
-
   def on_tick(self):
     if len(self.best_bid) > 0 and len(self.best_ask) > 0:
 
