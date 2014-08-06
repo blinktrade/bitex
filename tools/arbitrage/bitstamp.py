@@ -2,6 +2,7 @@
 import os
 import sys
 import logging
+import ConfigParser
 
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
@@ -14,6 +15,7 @@ import hmac
 import hashlib
 from arbitrator import BlinkTradeArbitrator
 from time import sleep
+from ws4py.exc import HandshakeError
 
 
 class BitStampClient(object):
@@ -27,64 +29,56 @@ class BitStampClient(object):
     self.password = password
     self.websocket_url = websocket_url
 
-
-  def reconnect(self):
-    print 'reconnecting....'
-    self.disconnect()
-    self.connect()
-    print 'done.'
-
-  def connect(self):
-    print 'connecting....'
-    self.arbitrator = BlinkTradeArbitrator(self.username,self.password,self.websocket_url, 'BTCUSD')
-    self.arbitrator.signal_order.connect(self.on_send_order_to_bitstamp)
-    self.arbitrator.connect_to_blinktrade()
-
     self.pusher = pusherclient.Pusher(key= 'de504dc5763aeef9ff52', log_level=logging.ERROR)
     self.pusher.connection.bind('pusher:connection_established', self.on_bitstamp_connect_handler)
     self.pusher.connection.bind('pusher:connection_failed', self.on_bitstamp_connect_failed_handler)
-    self.pusher.connect()
-    print 'done.'
 
-  def disconnect(self):
-    print 'disconnecting....'
-    try:
-      if self.pusher:
-        try:
-          self.pusher.disconnect()
-        except:
-          pass
-        del self.pusher
-    except:
-      pass
+    self.arbitrator = BlinkTradeArbitrator(self.username,self.password,self.websocket_url, 'BTCUSD')
+    self.arbitrator.signal_order.connect(self.on_send_order_to_bitstamp)
+    self.arbitrator.signal_logged.connect(self.on_blinktrade_logged)
+    self.arbitrator.signal_disconnected.connect(self.on_blinktrade_discconnected)
+    self.arbitrator.signal_connected.connect(self.on_blinktrade_connected)
 
-    try:
-      if self.arbitrator:
-        try:
-          self.arbitrator.cancel_all_orders()
-          self.arbitrator.close()
-        except:
-          pass
-        del self.arbitrator
-    except:
-      pass
-    print 'done.'
 
-  def keep_alive(self):
-    self.arbitrator.send_testRequest()
+  def on_blinktrade_discconnected(self, sender, code_reason):
+    print datetime.datetime.now(), 'CLOSED', 'websocket closed.  code:', code_reason[0], 'reason', code_reason[1]
 
-  def on_bitstamp_connect_failed_handler(self, data):
+  def on_blinktrade_logged(self, sender, data):
+    print 'logged to blinktrade'
     self.arbitrator.cancel_all_orders()
 
+  def on_blinktrade_connected(self, sender, data):
+    print 'Connected to blinktrade'
+    self.arbitrator.send_testRequest()
+
+  def connect(self):
+    print 'connecting....'
+    self.arbitrator.connect()
+    self.pusher.connect()
+
+  def cancel_all_orders(self):
+    if self.arbitrator.is_logged():
+      self.arbitrator.cancel_all_orders()
+
+  def keep_alive(self):
+    if self.arbitrator.is_connected():
+      self.arbitrator.send_testRequest()
+
+  def on_bitstamp_connect_failed_handler(self, data):
+    print 'Disconnected from bitstamp. Trying to reconnect within 10 minutes'
+    if self.arbitrator.is_connected():
+      self.arbitrator.cancel_all_orders()
+      self.pusher.connect() # reconnect to pusher
 
   def on_bitstamp_connect_handler(self, data):
     print 'connected to bitstamp'
     channel = self.pusher.subscribe('order_book')
     channel.bind('data', self.on_bitstamp_order_book_handler )
 
+
   def on_bitstamp_order_book_handler(self, data):
-    print data
-    self.arbitrator.send_testRequest()
+    if not self.arbitrator.is_logged():
+      return
 
     data = json.loads(data)
     bid_list = [  [  int(float(usd)*1e8 * (1. - self.bid_fee) ), int(float(btc) * 1e8) ]  for usd,btc in data['bids'] ]
@@ -113,40 +107,57 @@ class BitStampClient(object):
 
 
 def main():
-  import getpass
-  print "BlinkTrade <-> Bitstamp arbitrator"
-  websocket_url = raw_input('BlinkTrade Websocket api server: ')
-  username = raw_input('Username: ')
-  password = getpass.getpass()
-  buy_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
-  sell_fee =  float(raw_input('sell fee [0 - 100]: ')) / 100
-
-  #websocket_url = 'wss://127.0.0.1/trade/'
-  #username = 'bitstamp'
-  #password = 'abc12345'
-  #buy_fee = 0
-  #sell_fee = 0
+  candidates = ['arbitrage.ini', 'bitstamp.ini' ]
+  if len(sys.argv) > 1:
+    candidates.append(sys.argv[1])
 
 
-  bitstamp_blinktrade_arbitrator = BitStampClient(username,password,websocket_url,buy_fee,sell_fee,'XXXX','YYYY')
+  config = ConfigParser.SafeConfigParser({
+    'websocket_url': 'wss://127.0.0.1/trade/',
+    'username': '',
+    'password': '',
+    'buy_fee': 0,
+    'sell_fee': 0,
+    'api_key': 'KEY',
+    'api_secret': 'SECRET'
+    })
+  config.read( candidates )
+
+  websocket_url = config.get('bitstamp', 'websocket_url')
+  username      = config.get('bitstamp', 'username')
+  password      = config.get('bitstamp', 'password')
+  buy_fee       = int(config.get('bitstamp', 'buy_fee'))
+  sell_fee      = int(config.get('bitstamp', 'sell_fee'))
+  api_key       = config.get('bitstamp', 'api_key')
+  api_secret    = config.get('bitstamp', 'api_secret')
+
+  print 'websocket_url:', websocket_url
+  print 'username:', username
+  print 'buy_fee:', buy_fee
+  print 'sell_fee:', sell_fee
+
+  bitstamp_blinktrade_arbitrator = BitStampClient(username,password,websocket_url,buy_fee,sell_fee,api_key,api_secret)
   bitstamp_blinktrade_arbitrator.connect()
 
   while True:
     try:
       sleep(5)
-      bitstamp_blinktrade_arbitrator.keep_alive()
+
+      if bitstamp_blinktrade_arbitrator.arbitrator.is_connected():
+        bitstamp_blinktrade_arbitrator.keep_alive()
+      else:
+        try:
+          bitstamp_blinktrade_arbitrator.arbitrator.reconnect()
+        except HandshakeError,e:
+          continue
+
     except KeyboardInterrupt:
-      bitstamp_blinktrade_arbitrator.disconnect()
       break
     except Exception,e:
-      if e.message == 'Cannot send on a terminated websocket':
-        bitstamp_blinktrade_arbitrator.reconnect()
-        sleep(10)
-        continue
       print e
       break
 
-  bitstamp_blinktrade_arbitrator.disconnect()
+  bitstamp_blinktrade_arbitrator.cancel_all_orders()
 
 main()
 

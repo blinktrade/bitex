@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import urllib2
 from time import sleep
 import json
@@ -8,6 +9,8 @@ from arbitrator import BlinkTradeArbitrator
 import datetime
 import hmac
 import hashlib
+import ConfigParser
+from ws4py.exc import HandshakeError
 
 
 B2U_API_KEY = 'XXXX'
@@ -33,30 +36,50 @@ def send_order_to_b2u(sender, order):
 
 
 def main():
-  import getpass
-  print "BlinkTrade <-> BitcoinToYou arbitrator"
-  websocket_url = raw_input('BlinkTrade Websocket api server: ')
-  username = raw_input('Username: ')
-  password = getpass.getpass()
-  bid_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
-  ask_fee =  float(raw_input('sell fee [0 - 100]: ')) / 100
+  candidates = ['arbitrage.ini', 'b2u.ini' ]
+  if len(sys.argv) > 1:
+    candidates.append(sys.argv[1])
 
-  #websocket_url = 'wss://127.0.0.1/trade/'
-  #username = 'b2u'
-  #password = 'senha123'
-  #bid_fee = 0
-  #ask_fee = 0
+
+  config = ConfigParser.SafeConfigParser({
+    'websocket_url': 'wss://127.0.0.1/trade/',
+    'username': '',
+    'password': '',
+    'buy_fee': 0,
+    'sell_fee': 0,
+    'api_key': 'KEY',
+    'api_secret': 'SECRET'
+  })
+  config.read( candidates )
+
+  websocket_url = config.get('b2u', 'websocket_url')
+  username      = config.get('b2u', 'username')
+  password      = config.get('b2u', 'password')
+  buy_fee       = int(config.get('b2u', 'buy_fee'))
+  sell_fee      = int(config.get('b2u', 'sell_fee'))
+  api_key       = config.get('b2u', 'api_key')
+  api_secret    = config.get('b2u', 'api_secret')
+
+  print 'websocket_url:', websocket_url
+  print 'username:', username
+  print 'buy_fee:', buy_fee
+  print 'sell_fee:', sell_fee
 
   arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCBRL')
-
-  arbitrator.connect_to_blinktrade()
+  arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order_to_b2u)
 
   while True:
     try:
       sleep(10)
-      arbitrator.send_testRequest()
+      if arbitrator.is_connected():
+        arbitrator.send_testRequest()
+      else:
+        try:
+          arbitrator.reconnect()
+        except HandshakeError,e:
+          continue
 
       try:
         raw_data = urllib2.urlopen('http://www.bitcointoyou.com/API/orderbook.aspx').read()
@@ -76,8 +99,8 @@ def main():
         pass
 
       if bids_asks:
-        ask_list = [  [  int(float(fiat)*1e8 * (1. + ask_fee) ), int(float(btc) * 1e8) ]  for fiat,btc in reversed(bids_asks['asks']) ]
-        bid_list = [  [  int(float(fiat)*1e8 * (1. - bid_fee) ), int(float(btc) * 1e8) ]  for fiat,btc in bids_asks['bids'] ]
+        ask_list = [  [  int(float(fiat)*1e8 * (1. + sell_fee) ), int(float(btc) * 1e8) ]  for fiat,btc in reversed(bids_asks['asks']) ]
+        bid_list = [  [  int(float(fiat)*1e8 * (1. - buy_fee) ), int(float(btc) * 1e8) ]  for fiat,btc in bids_asks['bids'] ]
 
         number_of_asks_to_remove_due_a_weird_bug = 0
         for ask_price, ask_size in ask_list:

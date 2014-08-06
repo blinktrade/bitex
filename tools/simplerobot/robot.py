@@ -58,8 +58,8 @@ class BitexBot(object):
 
   def on_bitex_connected(self, sender, msg):
     print 'connected to blinktrade'
-    self.bitex_broker = msg['Broker']
-    self.bitex_profile = msg['Profile']
+    self.bitex_broker   = msg['Broker']
+    self.bitex_profile  = msg['Profile']
 
     self.ws.send(json.dumps({ 'MsgType':'F'}))  # Cancel all open orders for this user
     self.ws.requestBalances()

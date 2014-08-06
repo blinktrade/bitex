@@ -15,36 +15,72 @@ import time
 
 class BlinkTradeArbitrator(object):
   def __init__(self, blinktrade_username, blinktrade_password,  blinktrade_ws_url='wss://api.blinktrade.com/trade/', symbol='BTCUSD'):
-    self.order_book_bid_processor = OrderBookProcessor('1', symbol)
-    self.order_book_ask_processor = OrderBookProcessor('2', symbol)
-
     self.fiat_currency = symbol[3:]
     self.crypto_currency = symbol[:3]
     self.fiat_balance = 0
     self.crypto_balance = 0
     self.latency = 0
-
-    self.ws = BitExThreadedClient( blinktrade_ws_url )
+    self.blinktrade_ws_url = blinktrade_ws_url
     self.blinktrade_username = blinktrade_username
     self.blinktrade_password = blinktrade_password
+    self.blinktrade_broker = None
+    self.blinktrade_profile = None
 
+    self.order_book_bid_processor = OrderBookProcessor('1', symbol)
+    self.order_book_ask_processor = OrderBookProcessor('2', symbol)
     self.order_book_bid_processor.send_new_order_signal.connect(self.on_send_buy_new_order)
     self.order_book_ask_processor.send_new_order_signal.connect(self.on_send_sell_new_order)
     self.order_book_bid_processor.cancel_order_signal.connect(self.on_send_cancel_order)
     self.order_book_ask_processor.cancel_order_signal.connect(self.on_send_cancel_order)
 
+    #Signals
+    self.signal_connected     = Signal()
+    self.signal_disconnected  = Signal()
+    self.signal_logged        = Signal()
+    self.signal_order         = Signal()
+
+
+    self.create_websocket()
+
+  def create_websocket(self):
+    self.ws = BitExThreadedClient( self.blinktrade_ws_url )
+    self.ws.signal_connection_open.connect(self.on_ws_open)
+    self.ws.signal_connection_closed.connect(self.on_ws_closed)
     self.ws.signal_heartbeat.connect(self.on_blinktrade_heartbeat)
     self.ws.signal_logged.connect(self.on_blinktrade_connected)
     self.ws.signal_balance.connect(self.on_blinktrade_balance )
     self.ws.signal_execution_report.connect(self.on_blinktrade_execution_report)
-
     self.ws.signal_send.connect(self.on_blinktrade_send)
     self.ws.signal_recv.connect(self.on_blinktrade_recv)
 
-    self.blinktrade_broker = None
-    self.blinktrade_profile = None
+  def is_connected(self):
+    return self.ws.is_connected
 
-    self.signal_order  = Signal()
+  def is_logged(self):
+    return self.ws.is_logged
+
+  def on_ws_open(self, sender, msg):
+    self.signal_connected(self)
+    self.ws.login(self.blinktrade_username, self.blinktrade_password )
+
+  def on_ws_closed(self, sender, code_reason):
+    self.signal_disconnected(self, code_reason)
+
+  def reconnect(self):
+    del self.ws
+    self.create_websocket()
+    self.connect()
+
+  def connect(self):
+    from ws4py.exc import HandshakeError
+    try:
+      self.ws.connect()
+    except HandshakeError, e:
+      print datetime.datetime.now(), 'ERROR', 'connection error: ', e
+      raise
+
+  def close(self):
+    self.ws.close()
 
   def on_blinktrade_send(self, sender, msg):
     print datetime.datetime.now(), 'SEND', msg
@@ -72,6 +108,7 @@ class BlinkTradeArbitrator(object):
         self.crypto_balance = msg[str(self.blinktrade_broker['BrokerID'])][self.crypto_currency]
 
   def on_blinktrade_connected(self, sender, msg):
+    self.signal_logged(sender, msg)
     print 'connected to blinktrade'
     self.blinktrade_broker = msg['Broker']
     self.blinktrade_profile = msg['Profile']
@@ -103,9 +140,6 @@ class BlinkTradeArbitrator(object):
     sent_timestamp = msg['TestReqID']
     self.latency = received_timestamp - sent_timestamp
 
-  def connect_to_blinktrade(self):
-    self.ws.connect()
-    self.ws.login(self.blinktrade_username, self.blinktrade_password )
 
   def send_testRequest(self):
     self.ws.testRequest( int(time.time()*1000) )
@@ -115,6 +149,4 @@ class BlinkTradeArbitrator(object):
 
   def cancel_all_orders(self):
     self.ws.send(json.dumps({'MsgType':'F'}))  # Cancel all open orders for this user
-  def close(self):
-    self.ws.close()
 

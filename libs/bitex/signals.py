@@ -42,7 +42,7 @@ class Signal():
       else:
         self._functions.add(slot)
 
-  def __call__(self, sender, data, error_signal_on_error=True):
+  def __call__(self, sender, data=None, error_signal_on_error=True):
     with self._lock:
       sent = False
       errors = []

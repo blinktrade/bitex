@@ -112,7 +112,11 @@ class OrderBookProcessor():
       # get the order using the price
       order = self._get_order_by_price(order_price)
       if order:
-        self._send_cancel_replace_order( order['id'], order_volume )
+        if not order_volume:
+          self._cancel_order(order['id'])
+        else:
+          self._send_cancel_replace_order( order['id'], order_volume )
       else:
-        self._send_new_order(order_price, order_volume)
+        if order_price and order_volume:
+          self._send_new_order(order_price, order_volume)
     self._cancel_all_orders_prior_timestamp(bid_timestamp)

@@ -25,7 +25,8 @@ class BitExThreadedClient(WebSocketClient):
   signal_news                     = Signal()  # B
   signal_error                    = Signal()  #ERROR
 
-
+  signal_connection_open          = Signal()
+  signal_connection_closed        = Signal()
 
   signal_book_bid_clear           = Signal()
   signal_book_bid_new_order       = Signal()
@@ -45,12 +46,28 @@ class BitExThreadedClient(WebSocketClient):
   signal_send                     = Signal()
 
   is_logged = False
+  is_connected = False
+
+  def closed(self, code, reason):
+    print 'BitExThreadedClient::closed'
+    self.is_connected = False
+    self.is_logged = False
+    self.signal_connection_closed(self, (code, reason))
+
+  def opened(self):
+    self.is_connected = True
+    self.is_logged = False
+    self.signal_connection_open(self)
 
   def send(self, payload, binary=False):
-    self.signal_send(self, payload)
-    super(BitExThreadedClient, self).send(payload, binary)
+    if self.is_connected:
+      self.signal_send(self, payload)
+      super(BitExThreadedClient, self).send(payload, binary)
 
   def login(self, user, password):
+    if not user or not password:
+      raise ValueError('Invalid parameters')
+
     loginMsg = {
       'UserReqID': 'initial',
       'MsgType' : 'BE',
@@ -77,9 +94,10 @@ class BitExThreadedClient(WebSocketClient):
       msg['ClientID'] = client_id
     self.send(json.dumps(msg))
 
-
-
   def requestMarketData(self,  request_id,  symbols, entry_types, subscription_type='1', market_depth=0 ,update_type = '1'):
+    if not symbols or not entry_types:
+      raise ValueError('Invalid parameters')
+
     subscribe_msg = {
       'MsgType' : 'V',
       'MDReqID': request_id,
@@ -92,6 +110,12 @@ class BitExThreadedClient(WebSocketClient):
     self.send(json.dumps(subscribe_msg))
 
   def sendLimitedBuyOrder(self, symbol, qty, price, clientOrderId ):
+    if not symbol or not qty or  not qty or not price or not clientOrderId:
+      raise ValueError('Invalid parameters')
+
+    if qty <= 0 or price <= 0:
+      raise ValueError('Invalid qty or price')
+
     msg = {
       'MsgType': 'D',
       'ClOrdID': str(clientOrderId),
@@ -104,6 +128,12 @@ class BitExThreadedClient(WebSocketClient):
     self.send(json.dumps(msg))
 
   def sendLimitedSellOrder(self, symbol, qty, price, clientOrderId ):
+    if not symbol or not qty or  not qty or not price or not clientOrderId:
+      raise ValueError('Invalid parameters')
+
+    if qty <= 0 or price <= 0:
+      raise ValueError('Invalid qty or price')
+
     msg = {
       'MsgType': 'D',
       'ClOrdID': str(clientOrderId),

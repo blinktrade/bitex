@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import urllib2
 from time import sleep
 import json
@@ -8,6 +9,8 @@ from arbitrator import BlinkTradeArbitrator
 import datetime
 import hmac
 import hashlib
+import ConfigParser
+from ws4py.exc import HandshakeError
 
 
 BASEBIT_API_KEY = 'XXXX'
@@ -34,24 +37,51 @@ def send_order_to_basebit(sender, order):
   print datetime.datetime.now(), 'POST https://www.basebit.com.br/secure/tapi/' + message, str(post_params)
 
 def main():
-  import getpass
-  print "BlinkTrade <-> Basebit arbitrator"
-  websocket_url = raw_input('BlinkTrade Websocket api server: ')
-  username = raw_input('Username: ')
-  password = getpass.getpass()
-  bid_fee =  float(raw_input('buy fee [0 - 100]: ')) / 100
-  ask_fee =  float(raw_input('sell fee [0 - 100]: ')) / 100
+  candidates = ['arbitrage.ini', 'basebit.ini' ]
+  if len(sys.argv) > 1:
+    candidates.append(sys.argv[1])
+
+
+  config = ConfigParser.SafeConfigParser({
+    'websocket_url': 'wss://127.0.0.1/trade/',
+    'username': '',
+    'password': '',
+    'buy_fee': 0,
+    'sell_fee': 0,
+    'api_key': 'KEY',
+    'api_secret': 'SECRET'
+  })
+  config.read( candidates )
+
+  websocket_url = config.get('basebit', 'websocket_url')
+  username      = config.get('basebit', 'username')
+  password      = config.get('basebit', 'password')
+  buy_fee       = int(config.get('basebit', 'buy_fee'))
+  sell_fee      = int(config.get('basebit', 'sell_fee'))
+  api_key       = config.get('basebit', 'api_key')
+  api_secret    = config.get('basebit', 'api_secret')
+
+  print 'websocket_url:', websocket_url
+  print 'username:', username
+  print 'buy_fee:', buy_fee
+  print 'sell_fee:', sell_fee
 
   arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCBRL')
-
-  arbitrator.connect_to_blinktrade()
+  arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order_to_basebit)
 
   while True:
     try:
       sleep(10)
-      arbitrator.send_testRequest()
+
+      if arbitrator.is_connected():
+        arbitrator.send_testRequest()
+      else:
+        try:
+          arbitrator.reconnect()
+        except HandshakeError,e:
+          continue
 
       try:
         raw_data = urllib2.urlopen('http://www.basebit.com.br/book-BTC_BRL').read()
@@ -66,8 +96,8 @@ def main():
         pass
 
       if bids_asks:
-        ask_list = [ [  int(float(o['price']) * 1e8 * (1. + ask_fee) ) , int(o['quantity'] * 1e8) ] for o in bids_asks['result']['asks'] ]
-        bid_list = [ [  int(float(o['price']) * 1e8 * (1. + bid_fee) ) , int(o['quantity'] * 1e8) ] for o in bids_asks['result']['bids'] ]
+        ask_list = [ [  int(float(o['price']) * 1e8 * (1. + sell_fee) ) , int(o['quantity'] * 1e8) ] for o in bids_asks['result']['asks'] ]
+        bid_list = [ [  int(float(o['price']) * 1e8 * (1. + buy_fee) ) , int(o['quantity'] * 1e8) ] for o in bids_asks['result']['bids'] ]
         arbitrator.process_ask_list(ask_list)
         arbitrator.process_bid_list(bid_list)
     except urllib2.URLError as e:
