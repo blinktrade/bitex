@@ -163,8 +163,8 @@ class User(Base):
   two_factor_enabled  = Column(Boolean, nullable=False, default=False)
   two_factor_secret   = Column(String(50), nullable=True, index=False)
 
-  transaction_fee_buy   = Column(Integer, nullable=True, default=0)
-  transaction_fee_sell  = Column(Integer, nullable=True, default=0)
+  transaction_fee_buy   = Column(Integer, nullable=True, default=None)
+  transaction_fee_sell  = Column(Integer, nullable=True, default=None)
 
   withdraw_email_validation  = Column(Boolean, nullable=False, default=True)
 
