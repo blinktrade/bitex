@@ -26,16 +26,23 @@ class InstrumentStatusHelper(object):
         self.volume_size -= trade['size']
 
         if self.max_price == trade['price']:
-            self.max_price = max(self.last_trades, key=lambda x:x['price'])
+            if self.last_trades:
+                max_price_record = max(self.last_trades, key=lambda x:x['price'])
+                if max_price_record:
+                    self.max_price = max_price_record['price']
+                else:
+                    self.max_price = 0
+            else:
+                self.max_price = 0
 
         if self.min_price == trade['price']:
-            self.min_price = min(self.last_trades, key=lambda x:x['price'])
+            if self.last_trades:
+                min_price = min(self.last_trades, key=lambda x:x['price'])
+                if min_price:
+                    self.min_price = min_price['price']
 
     def _add_trade(self, trade):
-        volume_price = int(
-            trade['price'] *
-            trade['size'] /
-            1.e8)
+        volume_price = int( trade['price'] * trade['size'] / 1.e8)
         self.volume_price += volume_price
         self.volume_size += trade['size']
 

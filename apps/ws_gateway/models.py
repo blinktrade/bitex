@@ -47,6 +47,10 @@ class Trade(BASE):
         return None
 
     @staticmethod
+    def get_all_trades(session):
+      return session.query(Trade)
+
+    @staticmethod
     def get_trades(session, symbol, since):
 
         trades = session.query(Trade).filter(

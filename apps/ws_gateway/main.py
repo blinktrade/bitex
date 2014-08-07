@@ -471,6 +471,15 @@ class WebSocketGatewayApplication(tornado.web.Application):
             msg['counter_order_id'] = trade[9]
             Trade.create( self.db_session, msg)
 
+        all_trades = Trade.get_all_trades(self.db_session)
+        for t in all_trades:
+          trade_info = dict()
+          trade_info['price'] = t.price
+          trade_info['size'] = t.size
+          trade_info['trade_date'] = t.created.strftime('%Y-%m-%d')
+          trade_info['trade_time'] = t.created.strftime('%H:%M:%S')
+          self.md_subscriber[ t.symbol ].inst_status.push_trade(trade_info)
+
         for symbol, subscriber in self.md_subscriber.iteritems():
             subscriber.ready()
 
