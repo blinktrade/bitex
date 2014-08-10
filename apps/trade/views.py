@@ -3,7 +3,7 @@
 import datetime
 from bitex.message import JsonMessage
 from bitex.json_encoder import  JsonEncoder
-
+from copy import deepcopy
 
 import json
 
@@ -59,8 +59,62 @@ def processChangePassword(session, msg):
   }
   return json.dumps(login_response, cls=JsonEncoder)
 
-def processLogin(session, msg):
+def getProfileMessage(user, profile=None):
+  if not profile:
+    if user.is_broker:
+      profile = Broker.get_broker( application.db_session,user.id)
+    else:
+      profile = user
 
+  if user.is_broker:
+    profile_message = {
+      'Type'               : 'BROKER',
+      'Username'           : user.username                ,
+      'Verified'           : user.verified                ,
+      'VerificationData'   : user.verification_data       ,
+      'TwoFactorEnabled'   : user.two_factor_enabled      ,
+      'NeedWithdrawEmail'  : user.withdraw_email_validation,
+      'BrokerID'           : profile.id                   ,
+      'ShortName'          : profile.short_name           ,
+      'BusinessName'       : profile.business_name        ,
+      'Address'            : profile.address              ,
+      'ZipCode'            : profile.zip_code             ,
+      'City'               : profile.city                 ,
+      'State'              : profile.state                ,
+      'Country'            : profile.country              ,
+      'PhoneNumber1'       : profile.phone_number_1       ,
+      'PhoneNumber2'       : profile.phone_number_2       ,
+      'Skype'              : profile.skype                ,
+      'Email'              : profile.email                ,
+      'Currencies'         : profile.currencies           ,
+      'VerificationForm'   : profile.verification_jotform ,
+      'UploadForm'         : profile.upload_jotform       ,
+      'TosUrl'             : profile.tos_url              ,
+      'FeeStructure'       : json.loads(profile.fee_structure),
+      'WithdrawStructure'  : json.loads(profile.withdraw_structure),
+      'TransactionFeeBuy'  : profile.transaction_fee_buy  ,
+      'TransactionFeeSell' : profile.transaction_fee_sell ,
+      'Status'             : profile.status               ,
+      'Ranking'            : profile.ranking              ,
+      'SupportURL'         : profile.support_url          ,
+      'CryptoCurrencies'   : json.loads(profile.crypto_currencies)
+    }
+  else:
+    profile_message = {
+      'Type'               : 'USER',
+      'UserID'             : user.id,
+      'Username'           : user.username,
+      'Email'              : profile.email,
+      'State'              : profile.state,
+      'Country'            : profile.country_code,
+      'Verified'           : profile.verified,
+      'VerificationData'   : profile.verification_data,
+      'TwoFactorEnabled'   : profile.two_factor_enabled,
+      'NeedWithdrawEmail'  : profile.withdraw_email_validation,
+      }
+  return profile_message
+
+def processLogin(session, msg):
   # Authenticate the user
   need_second_factor = False
   try:
@@ -124,56 +178,9 @@ def processLogin(session, msg):
         'ranking'            : session.broker.ranking              ,
         'SupportURL'         : session.broker.support_url          ,
         'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
-    }
+    },
+    'Profile': getProfileMessage(session.user, session.profile)
   }
-
-  if session.user.is_broker:
-    login_response['Profile'] = {
-      'Type'               : 'BROKER',
-      'Username'           : session.user.username                ,
-      'Verified'           : session.user.verified                ,
-      'VerificationData'   : session.user.verification_data       ,
-      'TwoFactorEnabled'   : session.user.two_factor_enabled      ,
-      'NeedWithdrawEmail'  : session.user.withdraw_email_validation,
-      'BrokerID'           : session.profile.id                   ,
-      'ShortName'          : session.profile.short_name           ,
-      'BusinessName'       : session.profile.business_name        ,
-      'Address'            : session.profile.address              ,
-      'ZipCode'            : session.profile.zip_code             ,
-      'City'               : session.profile.city                 ,
-      'State'              : session.profile.state                ,
-      'Country'            : session.profile.country              ,
-      'PhoneNumber1'       : session.profile.phone_number_1       ,
-      'PhoneNumber2'       : session.profile.phone_number_2       ,
-      'Skype'              : session.profile.skype                ,
-      'Email'              : session.profile.email                ,
-      'Currencies'         : session.profile.currencies           ,
-      'VerificationForm'   : session.profile.verification_jotform ,
-      'UploadForm'         : session.profile.upload_jotform       ,
-      'TosUrl'             : session.profile.tos_url              ,
-      'FeeStructure'       : json.loads(session.profile.fee_structure),
-      'WithdrawStructure'  : json.loads(session.profile.withdraw_structure),
-      'TransactionFeeBuy'  : session.profile.transaction_fee_buy  ,
-      'TransactionFeeSell' : session.profile.transaction_fee_sell ,
-      'Status'             : session.profile.status               ,
-      'ranking'            : session.profile.ranking              ,
-      'SupportURL'         : session.profile.support_url          ,
-      'CryptoCurrencies'   : json.loads(session.profile.crypto_currencies)
-    }
-  else:
-    login_response['Profile'] = {
-      'Type'               : 'USER',
-      'UserID'             : session.user.id,
-      'Username'           : session.user.username,
-      'Email'              : session.profile.email,
-      'State'              : session.profile.state,
-      'Country'            : session.profile.country_code,
-      'Verified'           : session.profile.verified,
-      'VerificationData'   : session.profile.verification_data,
-      'TwoFactorEnabled'   : session.profile.two_factor_enabled,
-      'NeedWithdrawEmail'  : session.profile.withdraw_email_validation,
-    }
-
   return json.dumps(login_response, cls=JsonEncoder)
 
 @login_required
@@ -316,17 +323,108 @@ def processCancelOrderRequest(session, msg):
 
   return ""
 
+
+def convertCamelCase2Underscore(name):
+  import re
+  s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+  return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
 @login_required
 def processUpdateUserProfile(session, msg):
-  user = User.get_user(application.db_session, None, None, msg.get('UserId'))
-  if user:
-    user.update(msg.get('Fields'))
-    application.db_session.commit()
+  fields  = msg.get('Fields',[])
+  user_id = msg.get('UserID', session.user.id )
+  user = User.get_user(application.db_session,  user_id=user_id)
 
-  return json.dumps({
+  is_updating_his_own_profile = True
+  is_updating_his_customer_profile = False
+
+  if not user:
+    raise NotAuthorizedError()
+
+  if user_id != session.user.id:
+    if not session.user.is_broker:
+      raise NotAuthorizedError()
+    if user.broker_id != session.user.id:
+      raise NotAuthorizedError()
+    is_updating_his_own_profile = False
+    is_updating_his_customer_profile = True
+
+
+  user_model_fields_writable = []
+  broker_model_fields_writable = []
+
+  if is_updating_his_customer_profile:
+    user_model_fields_writable = ['TransactionFeeBuy','TransactionFeeSell','WithdrawEmailValidation','VerificationData']
+
+  broker_profile = None
+  if user.is_broker:
+    broker_profile = Broker.get_broker(application.db_session, user_id)
+    if is_updating_his_own_profile:
+      broker_model_fields_writable = [ 'PhoneNumber1','PhoneNumber2','Skype','Email',
+                                       'VerificationJotform','UploadJotform','TosUrl','SupportUrl',
+                                       'WithdrawConfirmationEmail',
+                                       'WithdrawStructure','FeeStructure',
+                                       'TransactionFeeBuy','TransactionFeeSell',
+                                       'AcceptCustomersFrom']
+    elif is_updating_his_customer_profile:
+      broker_model_fields_writable = [ 'BusinessName','SignupLabel','Status',
+                                       'Address', 'City','State','ZipCode','CountryCode','Country',
+                                       'PhoneNumber1','PhoneNumber2','Skype','Email',
+                                       'VerificationJotform','UploadJotform','TosUrl','SupportUrl',
+                                       'WithdrawConfirmationEmail',
+                                       'WithdrawStructure','FeeStructure',
+                                       'TransactionFeeBuy','TransactionFeeSell',
+                                       'AcceptCustomersFrom']
+
+  user_model_update_fields = {}
+  broker_model_update_fields = {}
+  for field, field_value in fields.iteritems():
+    if broker_profile:
+      if field not in broker_model_fields_writable  and field not in user_model_fields_writable:
+        raise  NotAuthorizedError
+    else:
+      if field not in user_model_fields_writable:
+        raise  NotAuthorizedError
+
+    model_field =  convertCamelCase2Underscore(field)
+
+    # JSON fields
+    if field in ('WithdrawStructure', 'CryptoCurrencies', 'Currencies', 'AcceptCustomersFrom'):
+      field_value = json.dumps(field_value)
+
+    if field in user_model_fields_writable:
+      user_model_update_fields[model_field] = field_value
+    elif field in broker_model_fields_writable:
+      if broker_profile:
+        broker_model_update_fields[model_field] = field_value
+      else:
+        raise  NotAuthorizedError
+    else:
+      raise  NotAuthorizedError
+
+
+  if user_model_update_fields:
+    user.update(user_model_update_fields)
+
+  if broker_model_update_fields:
+    broker_profile.update(broker_model_update_fields)
+
+  application.db_session.commit()
+
+  response_msg = {
     "MsgType":"U39",
-    "UpdateReqID": msg.get("UpdateReqID")
-  }, cls=JsonEncoder)
+    "UpdateReqID": msg.get("UpdateReqID"),
+    "Profile": getProfileMessage(user, broker_profile)
+  }
+
+  profile_refresh_msg = deepcopy(response_msg )
+  profile_refresh_msg['MsgType'] = 'U40'
+  del profile_refresh_msg['UpdateReqID']
+  application.publish(user_id, profile_refresh_msg )
+
+
+  return json.dumps(response_msg, cls=JsonEncoder)
 
 def processTradersRankRequest(session, msg):
   page            = msg.get('Page', 0)

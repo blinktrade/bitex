@@ -101,6 +101,10 @@ bitex.api.BitEx.EventType = {
   PASSWORD_CHANGED_OK: 'pwd_changed_ok',
   PASSWORD_CHANGED_ERROR: 'pwd_changed_error',
 
+  /* Profile */
+  UPDATE_PROFILE_RESPONSE: 'update_profile_response',
+  PROFILE_REFRESH: 'profile_refresh',
+
   /* Deposits */
   DEPOSIT_METHODS_RESPONSE:'deposit_methods_response',
   DEPOSIT_RESPONSE : 'deposit_response',
@@ -500,7 +504,16 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TRADERS_RANK_RESPONSE, msg ) );
       break;
 
-    case 'B1': // Process Deposit Reponse
+    case 'U39': // Update Profile Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.UPDATE_PROFILE_RESPONSE + '.' + msg['UpdateReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.UPDATE_PROFILE_RESPONSE, msg ) );
+      break;
+
+    case 'U40': // Profile Refresh
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROFILE_REFRESH, msg ) );
+      break;
+
+    case 'B1': // Process Deposit Response
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_DEPOSIT_RESPONSE + '.' + msg['ProcessDepositReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROCESS_DEPOSIT_RESPONSE, msg ) );
       break;
@@ -800,15 +813,27 @@ bitex.api.BitEx.prototype.requestWithdrawList = function(opt_requestId, opt_page
   return requestId;
 };
 
-bitex.api.BitEx.prototype.updateUserProfile = function(userId, fields, opt_requestId){
+/**
+ *
+ * @param {Object} fields
+ * @param {number=} opt_userId
+ * @param {number=} opt_requestId
+ * @return {number} requestId
+ */
+bitex.api.BitEx.prototype.updateUserProfile = function(fields, opt_userId, opt_requestId){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var msg = {
     'MsgType': 'U38',
     'UpdateReqID': requestId,
-    'UserId': userId,
     'Fields': fields
   };
+  if (goog.isDefAndNotNull(opt_userId)) {
+    msg['UserID'] = opt_userId;
+  }
+
   this.sendMessage(msg);
+
+  return requestId;
 };
 
 /**

@@ -105,7 +105,7 @@ class Session(object):
     elif msg.type == 'U36': # Ledger List Request
       return  processTradersRankRequest(self, msg)
 
-    elif msg.type == 'U38': # Ledger List Request
+    elif msg.type == 'U38': # Update User Profile
       return  processUpdateUserProfile(self, msg)
 
     elif msg.type == 'B0':  # Deposit Payment Confirmation

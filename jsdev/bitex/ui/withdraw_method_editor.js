@@ -52,6 +52,63 @@ bitex.ui.WithdrawMethodEditor.prototype.enterDocument = function() {
 };
 
 /**
+ * @return {Object}
+ */
+bitex.ui.WithdrawMethodEditor.prototype.getWithdrawMethodJSON = function() {
+  /*
+  {
+     description: "paypal"
+     disclaimer: "You still might have to pay PayPal fees"
+     fields: [
+         {                             {                         {
+           label: "Email"               label: "TransactionID"    label: "Link"
+           name: "Email"                name: "TransactionID"     name: "Link"
+           placeholder: ""              placeholder: ""           placeholder: ""
+           side: "client"               side: "broker"            side: "broker"
+           type: "text"                 type: "text"              type: "text"
+           validator: "validateEmail"   validator: ""             validator: ""
+           value: ""                    value: ""                 value: ""
+         },                            },                        }
+      ]
+     fixed_fee: "0"
+     method: "paypal"
+     percent_fee: "3"
+  }
+  */
+
+  var result = {};
+  result['method']      = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_name')) );
+  result['description'] = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_description')) );
+  result['disclaimer']  = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_placeholder')) );
+  result['percent_fee'] = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_percent_fee')) );
+  result['fixed_fee']   = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_fixed_fee')) );
+
+  var fields_table_tbody_element = goog.dom.getNextElementSibling(
+      goog.dom.getFirstElementChild(
+            goog.dom.getElement( this.makeId('form_table') ))) ;
+
+  result['fields'] = [];
+  var field_row = goog.dom.getFirstElementChild(fields_table_tbody_element);
+  var row_number = 0;
+  while ( goog.isDefAndNotNull(field_row) ) {
+    var field_record = {
+      'side'       : goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-side', field_row)  ),
+      'name'       : goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-name', field_row) ),
+      'label'      : goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-label', field_row) ),
+      'placeholder': goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-placeholder', field_row) ),
+      'type'       : goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-type', field_row) ),
+      'validator'  : goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-validator', field_row) ),
+      'value'      : goog.dom.forms.getValue( goog.dom.getElementByClass('withdraw-method-editor-field-value', field_row) )
+    };
+    result['fields'].push( field_record );
+
+    row_number++;
+    field_row = goog.dom.getNextElementSibling(field_row);
+  }
+  return result;
+};
+
+/**
  * @param {goog.events.Event} e
  * @private
  */

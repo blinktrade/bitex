@@ -164,8 +164,9 @@ class JsonMessage(BaseMessage):
       'U36': 'TradersRankRequest',
       'U37': 'TradersRankResponse',
 
-      'U38': 'UpdateUserProfile',
-      'U39': 'UpdateUserProfileResponse',
+      'U38': 'UpdateProfile',
+      'U39': 'UpdateProfileResponse',
+      'U40': 'ProfileRefresh',
 
       # Broker messages
       'B0':  'ProcessDeposit',
@@ -446,6 +447,23 @@ class JsonMessage(BaseMessage):
     elif self.type == 'U35': # LedgerList Response
       self.raise_exception_if_required_tag_is_missing('LedgerListReqID')
       self.raise_exception_if_empty('LedgerListReqID')
+
+
+    elif self.type == 'U38': # Update User Profile Request
+      self.raise_exception_if_required_tag_is_missing('UpdateReqID')
+      self.raise_exception_if_empty('UpdateReqID')
+
+    elif self.type == 'U39': # Update User Profile Response
+      self.raise_exception_if_required_tag_is_missing('UpdateReqID')
+      self.raise_exception_if_empty('UpdateReqID')
+
+      self.raise_exception_if_required_tag_is_missing('Profile')
+      self.raise_exception_if_empty('Profile')
+
+    elif self.type == 'U40': # Profile Refresh
+      self.raise_exception_if_required_tag_is_missing('Profile')
+      self.raise_exception_if_empty('Profile')
+
 
     elif self.type == 'B0': # Deposit Payment Confirmation
       self.raise_exception_if_required_tag_is_missing('ProcessDepositReqID')

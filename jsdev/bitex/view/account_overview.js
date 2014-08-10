@@ -497,7 +497,7 @@ bitex.view.AccountOverview.prototype.onBtnUserFeesClick_ = function(e) {
       var fee_sell = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_sell_fee" ) );
       var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
       var conn = this.getApplication().getBitexConnection();
-      conn.updateUserProfile(selectedCustomer['ID'], { 'transaction_fee_buy': fee_buy, 'transaction_fee_sell': fee_sell });
+      conn.updateUserProfile({ 'TransactionFeeBuy': fee_buy, 'TransactionFeeSell': fee_sell }, selectedCustomer['ID']);
 
       selectedCustomer['TransactionFeeBuy'] = fee_buy;
       selectedCustomer['TransactionFeeSell'] = fee_sell;

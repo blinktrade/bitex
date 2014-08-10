@@ -8,31 +8,31 @@
 {template .WithdrawMethodFieldLineEditor}
   <tr id="{$id}_field_{$idx}">
     <td>
-        <select id="{$id}_field_{$idx}_side" class="withdraw-method-editor-field-side">
+        <select id="{$id}_field_side_{$idx}" class="withdraw-method-editor-field-side">
             <option value="client" {if $data['side'] == 'client'}selected{/if}>{msg desc="Client option on side select"}Client{/msg}</option>
             <option value="broker" {if $data['side'] == 'broker'}selected{/if}>{msg desc="Broker option on side select"}Broker{/msg}</option>
         </select>
     </td>
-    <td><input id="{$id}_field_{$idx}_name" type="text" class="input-block-level withdraw-method-editor-field-name" pattern="\w+" placeholder="" required value="{$data['name']}"></td>
-    <td><input id="{$id}_field_{$idx}_label" type="text" class="input-block-level withdraw-method-editor-field-label" pattern="\w+ *" placeholder="" required value="{$data['label']}"></td>
-    <td><input id="{$id}_field_{$idx}_placeholder" type="text" class="input-block-level withdraw-method-editor-field-placeholder" placeholder="" value="{$data['placeholder']}"></td>
+    <td><input id="{$id}_field_name_{$idx}" type="text" class="input-block-level withdraw-method-editor-field-name" pattern="\w+" placeholder="" required value="{$data['name']}"></td>
+    <td><input id="{$id}_field_label_{$idx}" type="text" class="input-block-level withdraw-method-editor-field-label" pattern="\w+ *" placeholder="" required value="{$data['label']}"></td>
+    <td><input id="{$id}_field_placeholder_{$idx}" type="text" class="input-block-level withdraw-method-editor-field-placeholder" placeholder="" value="{$data['placeholder']}"></td>
 
     <td>
-        <select id="{$id}_field_{$idx}_type" class="withdraw-method-editor-field-type">
+        <select id="{$id}_field_type_{$idx}" class="withdraw-method-editor-field-type">
             <option value="client" {if $data['type'] == 'text'}selected{/if}>{msg desc="Text option on type select"}Text{/msg}</option>
         </select>
     </td>
 
     <td>
-        <select id="{$id}_field_{$idx}_validator" class="withdraw-method-editor-field-validator">
+        <select id="{$id}_field_validator_{$idx}" class="withdraw-method-editor-field-validator">
             <option value="required" {if $data['validator'] == 'required'}selected{/if} >Required</option>
             <option value="email" {if $data['validator'] == 'validateEmail'}selected{/if} >Email</option>
             <option value="btc_address" {if $data['validator'] == 'validateAddress'}selected{/if}  >BTC Address</option>
         </select>
     </td>
 
-    <td><input id="{$id}_field_{$idx}_value" type="text" class="input-block-level withdraw-method-editor-field-value" placeholder="" value="{$data['value']}"></td>
-    <td><button id="{$id}_field_{$idx}_delete" data-index="{$idx}" class="btn btn-mini btn-danger withdraw-method-editor-field-action-delete withdraw-method-editor-field-action">{msg desc="Field delete action"}delete{/msg}</button></td>
+    <td><input id="{$id}_field_value_{$idx}" type="text" class="input-block-level withdraw-method-editor-field-value" placeholder="" value="{$data['value']}"></td>
+    <td><button id="{$id}_field_delete_{$idx}" data-index="{$idx}" class="btn btn-mini btn-danger withdraw-method-editor-field-action-delete withdraw-method-editor-field-action">{msg desc="Field delete action"}delete{/msg}</button></td>
   </tr>
 {/template}
 

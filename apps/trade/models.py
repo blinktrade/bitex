@@ -304,9 +304,8 @@ class User(Base):
 
   def update(self, fields):
     for field, field_value in fields.iteritems():
-      if field in  ['transaction_fee_buy', 'transaction_fee_sell', 'withdraw_email_validation']:
-        if hasattr(self, field):
-          setattr(self, field, field_value)
+      if hasattr(self, field):
+        setattr(self, field, field_value)
 
   def enable_two_factor(self, enable, secret, second_factor):
     if enable:
@@ -780,6 +779,10 @@ class Broker(Base):
       query = query.offset(offset)
     return query
 
+  def update(self, fields):
+    for field, field_value in fields.iteritems():
+      if hasattr(self, field):
+        setattr(self, field, field_value)
 
   def __repr__(self):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
