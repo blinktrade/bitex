@@ -937,7 +937,7 @@ class Withdraw(Base):
 
   client_order_id = Column(String(30), index=True)
 
-  percent_fee     = Column(Integer,    nullable=False, default=0)
+  percent_fee     = Column(Numeric,    nullable=False, default=0)
   fixed_fee       = Column(Integer,    nullable=False, default=0)
   paid_amount     = Column(Integer,    nullable=False, default=0, index=True)
 
@@ -960,14 +960,14 @@ class Withdraw(Base):
 
     return  withdraw_data
 
-  def set_in_progress(self, session, percent_fee=0, fixed_fee=0):
+  def set_in_progress(self, session, percent_fee=0., fixed_fee=0):
     if self.status != '1':
       return
 
     self.percent_fee = percent_fee
     self.fixed_fee = fixed_fee
 
-    total_percent_fee_value = ((self.amount - self.fixed_fee) * (self.percent_fee/10000.0))
+    total_percent_fee_value = ((self.amount - self.fixed_fee) * (float(self.percent_fee)/100.0))
     total_fees = total_percent_fee_value + self.fixed_fee
     self.paid_amount = self.amount + total_fees
 
@@ -1010,7 +1010,7 @@ class Withdraw(Base):
 
     self.status = '4' # COMPLETE
 
-    total_percent_fee_value = ((self.amount - self.fixed_fee) * (self.percent_fee/10000.0))
+    total_percent_fee_value = ((self.amount - self.fixed_fee) * (float(self.percent_fee)/100.0))
     total_fees = total_percent_fee_value + self.fixed_fee
 
     if total_fees:
@@ -1113,7 +1113,7 @@ class Withdraw(Base):
     import uuid
     confirmation_token = uuid.uuid4().hex
 
-    percent_fee = 0
+    percent_fee = 0.
     fixed_fee = 0
 
     withdraw_structure = json.loads(broker.withdraw_structure)
@@ -1463,7 +1463,7 @@ class Deposit(Base):
 
   client_order_id         = Column(String(30), index=True)
 
-  percent_fee             = Column(Integer,    nullable=False, default=0)
+  percent_fee             = Column(Numeric,    nullable=False, default=0)
   fixed_fee               = Column(Integer,    nullable=False, default=0)
 
   reason_id               = Column(Integer)
@@ -1495,7 +1495,7 @@ class Deposit(Base):
         type                    = 'CRY',
         currency                = currency,
         secret                  = secret,
-        percent_fee             = 0,
+        percent_fee             = 0.,
         fixed_fee               = 0,
         data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } ),
       )
@@ -1611,7 +1611,7 @@ class Deposit(Base):
     session.flush()
 
 
-  def process_confirmation(self, session, amount, percent_fee=0, fixed_fee=0, data=None ):
+  def process_confirmation(self, session, amount, percent_fee=0., fixed_fee=0, data=None ):
     should_update = False
     new_data = {}
     new_data.update(json.loads(self.data))
@@ -1666,7 +1666,7 @@ class Deposit(Base):
       should_update = True
 
     if should_adjust_ledger:
-      total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (self.percent_fee/10000.0))
+      total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (float(self.percent_fee)/100.0))
       total_fees = total_percent_fee_value + self.fixed_fee
 
       Ledger.transfer(session,
@@ -1778,7 +1778,7 @@ class DepositMethods(Base):
   type                      = Column(String(3),  nullable=False)
   broker_deposit_ctrl_num   = Column(Integer,    nullable=False)
   currency                  = Column(String(3),  nullable=False)
-  percent_fee               = Column(Integer,    nullable=False, default=0)
+  percent_fee               = Column(Numeric,    nullable=False, default=0)
   fixed_fee                 = Column(Integer,    nullable=False, default=0)
   parameters                = Column(Text,       nullable=False)
 
@@ -1984,7 +1984,7 @@ def db_bootstrap(session):
                      'method':'bitcoin',
                      'description':'Bitcoin withdraw',
                      'disclaimer': 'All withdraws are processed at 23:00 GMT.',
-                     'percent_fee':0,
+                     'percent_fee':0.,
                      'fixed_fee':0,
                      'fields': [
                          {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2039,7 +2039,7 @@ def db_bootstrap(session):
                              'method':'bitcoin',
                              'description':'Bitcoin withdrawal',
                              'disclaimer': '',
-                             'percent_fee':0,
+                             'percent_fee':0.,
                              'fixed_fee':0,
                              'fields': [
                                  {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2052,7 +2052,7 @@ def db_bootstrap(session):
                                   'method':'mercantil_transfer',
                                   'description':'Transferencia banco Mercantil',
                                   'disclaimer':'',
-                                  'percent_fee': 165, # 1.65 percent
+                                  'percent_fee': 1.65,
                                   'fixed_fee': 0,
                                   'fields': [
                                       {'side':'client', 'name': 'AccountType'  , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
@@ -2065,7 +2065,7 @@ def db_bootstrap(session):
                                   'method':'bank_transfer',
                                   'description':'Transferencia electronica',
                                   'disclaimer':'',
-                                  'percent_fee': 295, # 2.95 percent
+                                  'percent_fee': 2.95,
                                   'fixed_fee': 0,
                                   'fields': [
                                       {'side':'client', 'name': 'BankName'     ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
@@ -2135,7 +2135,7 @@ def db_bootstrap(session):
                                  'method':'bitcoin',
                                  'description':'Bitcoin withdrawal',
                                  'disclaimer': '',
-                                 'percent_fee':0,
+                                 'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
                                      {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2148,7 +2148,7 @@ def db_bootstrap(session):
                                       'method':'cash',
                                       'description':'Cash',
                                       'disclaimer':'Armored car will deliver the cash in hands',
-                                      'percent_fee': 100, # 1%
+                                      'percent_fee': 1.,
                                       'fixed_fee': 0,
                                       'fields': [
                                       ]
@@ -2156,7 +2156,7 @@ def db_bootstrap(session):
                                    'method':'ach',
                                    'description':'ACH',
                                    'disclaimer':'1 business day',
-                                   'percent_fee': 100, # 1% percent
+                                   'percent_fee': 1.,
                                    'fixed_fee': int(.3 * 1e8), # $0.30
                                    'fields': [
                                        {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
@@ -2227,7 +2227,7 @@ def db_bootstrap(session):
                                  'method':'bitcoin',
                                  'description':'Saque em Bitcoins',
                                  'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
-                                 'percent_fee':0,
+                                 'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
                                      {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2241,7 +2241,7 @@ def db_bootstrap(session):
                                  'method':'ted-doc',
                                  'description':'Saque para conta bancária no Brasil',
                                  'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
-                                 'percent_fee': 165, # 1.65 percent
+                                 'percent_fee': 1.65,
                                  'fixed_fee': 0,
                                  'fields': [
                                      {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
@@ -2310,7 +2310,7 @@ def db_bootstrap(session):
                                  'method':'bitcoin',
                                  'description':'Saque em Bitcoins',
                                  'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
-                                 'percent_fee':0,
+                                 'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
                                      {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2324,7 +2324,7 @@ def db_bootstrap(session):
                                  'method':'ted-doc',
                                  'description':'Saque para conta bancária no Brasil',
                                  'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
-                                 'percent_fee': 135, # 1.35 percent
+                                 'percent_fee': 1.35,
                                  'fixed_fee': 0,
                                  'fields': [
                                      {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
@@ -2339,7 +2339,7 @@ def db_bootstrap(session):
                                  'method':'swift',
                                  'description':'Saque para conta bancária no Exterior',
                                  'disclaimer':'84 horas, Taxa de 1,35% + R$ 80,00  Apenas para usuários verificados',
-                                 'percent_fee': 135, # 1.35 percent
+                                 'percent_fee': 1.35,
                                  'fixed_fee': int(80 * 1e8), # R$ 80,00
                                  'fields': [
                                      {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
@@ -2410,7 +2410,7 @@ def db_bootstrap(session):
                                  'method':'bitcoin',
                                  'description':'Saque em Bitcoins',
                                  'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
-                                 'percent_fee':0,
+                                 'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
                                      {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2424,7 +2424,7 @@ def db_bootstrap(session):
                                  'method':'ted-doc',
                                  'description':'Saque para conta bancária no Brasil',
                                  'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
-                                 'percent_fee': 50, # 0.5% percent
+                                 'percent_fee': .5,
                                  'fixed_fee': 0,
                                  'fields': [
                                      {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
@@ -2493,7 +2493,7 @@ def db_bootstrap(session):
                                  'method':'bitcoin',
                                  'description':'Saque em Bitcoins',
                                  'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
-                                 'percent_fee':0,
+                                 'percent_fee': 0.,
                                  'fixed_fee':0,
                                  'fields': [
                                      {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
@@ -2507,7 +2507,7 @@ def db_bootstrap(session):
                                  'method':'swift',
                                  'description':'International Transfer',
                                  'disclaimer':'84 hours, 1.5%  fee + Fr 35000,00',
-                                 'percent_fee': 150, # 1.50 percent
+                                 'percent_fee': 1.5,
                                  'fixed_fee': int(35000 * 1e8), # Fr 35000,00
                                  'fields': [
                                      {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
@@ -2521,7 +2521,7 @@ def db_bootstrap(session):
                                  'method':'scgen_xof_transfer',
                                  'description':u'Société Générale CFA Transfer',
                                  'disclaimer':'24 hours, 1.5%  fee + Fr 1000,00',
-                                 'percent_fee': 150, # 1.50 percent
+                                 'percent_fee': 1.5,
                                  'fixed_fee': int(1000 * 1e8), # Fr 1000,00
                                  'fields': [
                                      {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
@@ -2532,7 +2532,7 @@ def db_bootstrap(session):
                                  'method':'paypal',
                                  'description':'Paypal',
                                  'disclaimer':'Paypal might charge you additional fees',
-                                 'percent_fee': 150, # 1.5 percent
+                                 'percent_fee': 1.5,
                                  'fixed_fee': 0,
                                  'fields': [
                                      {'side':'client',  'name': 'Email'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
@@ -2543,7 +2543,7 @@ def db_bootstrap(session):
                                  'method':'mtn',
                                  'description':'MTN Mobile Money Online',
                                  'disclaimer':'',
-                                 'percent_fee': 150,  # 1.5 percent
+                                 'percent_fee': 1.5,
                                  'fixed_fee': int(3500 * 1e8), # Fr 3500,00
                                  'fields': [
                                      {'side':'client',  'name': 'Email'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
@@ -2687,7 +2687,7 @@ def db_bootstrap(session):
                           description=u'Check',
                           disclaimer=u'3 dias habiles.',
                           type='BTI',
-                          percent_fee=300, #3%
+                          percent_fee=3.,
                           fixed_fee=0,
                           broker_deposit_ctrl_num=90001,
                           currency='VEF',
@@ -2713,7 +2713,7 @@ def db_bootstrap(session):
                           description=u'Trasferencia Bancaria',
                           disclaimer=u'3 dias habiles',
                           type='BTI',
-                          percent_fee=135,  # 1.35
+                          percent_fee=1.35,
                           fixed_fee=0,
                           broker_deposit_ctrl_num=290001,
                           currency='VEF',
@@ -2745,7 +2745,7 @@ def db_bootstrap(session):
                          description=u'Wire transfer',
                          disclaimer=u'1 business day.',
                          type='BTI',
-                         percent_fee=30,  # 0.3
+                         percent_fee=.3,
                          fixed_fee=0,
                          broker_deposit_ctrl_num=90001,
                          currency='USD',
@@ -2773,7 +2773,7 @@ def db_bootstrap(session):
                           description=u'USPS Money Order',
                           disclaimer=u'1 business day.',
                           type='BTI',
-                          percent_fee=0,
+                          percent_fee=0.,
                           fixed_fee=int(5 * 1e8),
                           broker_deposit_ctrl_num=90001,
                           currency='USD',
@@ -2800,7 +2800,7 @@ def db_bootstrap(session):
                           description=u'Check',
                           disclaimer=u'3 business days.',
                           type='BTI',
-                          percent_fee=100, #1%
+                          percent_fee=1., #1%
                           fixed_fee=0,
                           broker_deposit_ctrl_num=90001,
                           currency='USD',
@@ -2828,7 +2828,7 @@ def db_bootstrap(session):
                           disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                           type='BBS',
                           broker_deposit_ctrl_num=50034,
-                          percent_fee=165,  # 1.65
+                          percent_fee=1.65,
                           fixed_fee=int(2.9 * 1e8),  # 2.90
                           currency='BRL',
                           parameters= json.dumps( {
@@ -2884,7 +2884,7 @@ def db_bootstrap(session):
                           description=u'Depósito Bancário - Banco Itaú',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                           type='BTI',
-                          percent_fee=165,  # 1.65
+                          percent_fee=1.65,
                           fixed_fee=0,
                           broker_deposit_ctrl_num=90001,
                           currency='BRL',
@@ -2913,7 +2913,7 @@ def db_bootstrap(session):
                           description=u'Depósito Bancário - Banco Bradesco',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                           type='BTI',
-                          percent_fee=165,  # 1.65
+                          percent_fee=1.65,
                           fixed_fee=0,
                           broker_deposit_ctrl_num=90001,
                           currency='BRL',
@@ -2945,7 +2945,7 @@ def db_bootstrap(session):
                           disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                           type='BBS',
                           broker_deposit_ctrl_num=50034,
-                          percent_fee=135,  # 1.35
+                          percent_fee=1.35,
                           fixed_fee=int(2.9 * 1e8),  # 2.90
                           currency='BRL',
                           parameters= json.dumps( {
@@ -2999,7 +2999,7 @@ def db_bootstrap(session):
                           description=u'Depósito Bancário - Banco Bradesco',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                           type='BTI',
-                          percent_fee=135,  # 1.35
+                          percent_fee=1.35,
                           fixed_fee=0,
                           broker_deposit_ctrl_num=90001,
                           currency='BRL',
@@ -3033,7 +3033,7 @@ def db_bootstrap(session):
                           disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                           type='BBS',
                           broker_deposit_ctrl_num=50034,
-                          percent_fee=135,  # 1.35
+                          percent_fee=1.35,
                           fixed_fee=int(2.9 * 1e8),  # 2.90
                           currency='BRL',
                           parameters= json.dumps( {
@@ -3087,7 +3087,7 @@ def db_bootstrap(session):
                           description=u'Depósito Bancário - Banco Bradesco',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
                           type='BTI',
-                          percent_fee=135,  # 1.35
+                          percent_fee=1.35,
                           fixed_fee=0,
                           broker_deposit_ctrl_num=90001,
                           currency='BRL',

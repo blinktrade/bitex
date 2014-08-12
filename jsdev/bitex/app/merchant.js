@@ -603,12 +603,14 @@ bitex.app.MerchantApp.prototype.onSecurityList_ =   function(e) {
 bitex.app.MerchantApp.prototype.adjustBrokerData_ = function(broker_info) {
   var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_structure = broker_info['WithdrawStructure'];
+  /*
   goog.object.forEach(withdraw_structure,  function(withdraw_methods) {
     goog.array.forEach( withdraw_methods, function(method) {
       method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
       method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
     });
   });
+  */
 
   broker_info['Currencies'] = broker_info['Currencies'].split(',');
   if (broker_info['Currencies'].length === 1 && goog.string.isEmpty(broker_info['Currencies'][0])) {

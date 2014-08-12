@@ -524,13 +524,13 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
     var handler = this.getHandler();
 
+    var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
     switch( data_action ) {
       case 'SET_WITHDRAW_EMAIL':
 
-        var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
 
         this.client_id_ =  selectedCustomer['ID'];
-        this.verification_data_ = {'withdraw_email_validation': !selectedCustomer['NeedWithdrawEmail'] };
+        this.verification_data_ = {'WithdrawEmailValidation': !selectedCustomer['NeedWithdrawEmail'] };
 
         this.dispatchEvent(bitex.view.View.EventType.SET_WITHDRAW_EMAIL);
 
@@ -549,7 +549,6 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
         break;
       case 'SET_VERIFIED':
-        var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
         /** @desc Verification Data Dialog content title */
         var MSG_VERIFICATION_DATA_DIALOG_TITLE = goog.getMsg('Enter verification data');
 

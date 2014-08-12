@@ -81,11 +81,14 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
       input_value = vout['value']
       fwd_value = vout['value'] - miners_fee
 
-
-      fwd_raw_transaction = self.application.bitcoind.createrawtransaction(
-        [{"txid" : txid, "vout" : vout_index}],
-        { destination_address: float(fwd_value) }
-      )
+      try:
+        fwd_raw_transaction = self.application.bitcoind.createrawtransaction(
+          [{"txid" : txid, "vout" : vout_index}],
+          { destination_address: float(fwd_value) }
+        )
+      except Exception,e:
+        print str(e)
+        raise
 
       signed_fwd_raw_transaction = self.application.bitcoind.signrawtransaction (fwd_raw_transaction,[{
           "txid" : txid,

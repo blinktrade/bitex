@@ -472,6 +472,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U21': // Request Deposit Options Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE + '.' + msg['DepositMethodReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, msg ) );
       break;
 
@@ -728,7 +729,6 @@ bitex.api.BitEx.prototype.requestBalances = function(opt_clientID) {
   if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID))  {
     msg['ClientID'] = opt_clientID;
   }
-
 
   this.sendMessage(msg);
 };

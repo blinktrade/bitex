@@ -19,15 +19,15 @@
 
     <td>
         <select id="{$id}_field_type_{$idx}" class="withdraw-method-editor-field-type">
-            <option value="client" {if $data['type'] == 'text'}selected{/if}>{msg desc="Text option on type select"}Text{/msg}</option>
+            <option value="text" {if $data['type'] == 'text'}selected{/if}>{msg desc="Text option on type select"}Text{/msg}</option>
         </select>
     </td>
 
     <td>
         <select id="{$id}_field_validator_{$idx}" class="withdraw-method-editor-field-validator">
             <option value="required" {if $data['validator'] == 'required'}selected{/if} >Required</option>
-            <option value="email" {if $data['validator'] == 'validateEmail'}selected{/if} >Email</option>
-            <option value="btc_address" {if $data['validator'] == 'validateAddress'}selected{/if}  >BTC Address</option>
+            <option value="validateEmail" {if $data['validator'] == 'validateEmail'}selected{/if} >Email</option>
+            <option value="validateAddress" {if $data['validator'] == 'validateAddress'}selected{/if}  >BTC Address</option>
         </select>
     </td>
 

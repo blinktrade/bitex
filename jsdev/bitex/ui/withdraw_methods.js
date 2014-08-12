@@ -73,7 +73,6 @@ bitex.ui.WithdrawMethods.prototype.getCssClass = function() {
  */
 bitex.ui.WithdrawMethods.prototype.getMethodsArray_ = function(){
   var methods_array =  [];
-  var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
 
   goog.object.forEach( this.getModel()['withdraw_methods'], function( withdraw_methods, currency) {
     goog.array.forEach(withdraw_methods, function(withdraw_method) {
@@ -83,11 +82,9 @@ bitex.ui.WithdrawMethods.prototype.getMethodsArray_ = function(){
       };
       goog.object.extend(obj, withdraw_method);
 
-      var pos = [0];
-      var fixed_fee = valueFormatter.parse(obj['fixed_fee'], pos);
-
-      obj['has_fixed_fee'] = !(pos[0] != obj['fixed_fee'].length || isNaN(fixed_fee) || fixed_fee <= 0 );
-      obj['formatted_fixed_fee'] =  this.currency_formatter_function_(fixed_fee, currency, true );
+      var fixed_fee = obj['fixed_fee'];
+      obj['has_fixed_fee'] = !(isNaN(fixed_fee) || fixed_fee <= 0 );
+      obj['formatted_fixed_fee'] =  this.currency_formatter_function_(fixed_fee/1e8, currency, true );
 
       methods_array.push(obj);
     }, this);
@@ -203,7 +200,10 @@ bitex.ui.WithdrawMethods.prototype.onActionEdit_ = function(){
   }, this);
 
   var withdraw_method_editor = new  bitex.ui.WithdrawMethodEditor();
-  withdraw_method_editor.setModel(this.getModel()['withdraw_methods'][this.selected_currency_][idx]);
+  var withdraw_method_editor_model = goog.object.unsafeClone(this.getModel()['withdraw_methods'][this.selected_currency_][idx]);
+
+  withdraw_method_editor_model['fixed_fee'] = withdraw_method_editor_model['fixed_fee'] / 1e8;
+  withdraw_method_editor.setModel(withdraw_method_editor_model);
 
   /**
    * @desc Edit Method dialog title

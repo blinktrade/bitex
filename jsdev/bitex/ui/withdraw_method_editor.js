@@ -83,6 +83,16 @@ bitex.ui.WithdrawMethodEditor.prototype.getWithdrawMethodJSON = function() {
   result['percent_fee'] = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_percent_fee')) );
   result['fixed_fee']   = goog.dom.forms.getValue( goog.dom.getElement(this.makeId('form_fixed_fee')) );
 
+  if ( goog.string.isEmpty(result['percent_fee'])  ) {
+    result['percent_fee'] = 0;
+  }
+  if ( goog.string.isEmpty(result['fixed_fee'])  ) {
+    result['fixed_fee'] = 0;
+  }
+
+  result['percent_fee'] = parseFloat(result['percent_fee']);
+  result['fixed_fee'] = parseInt(result['fixed_fee'] * 1e8, 10 );
+
   var fields_table_tbody_element = goog.dom.getNextElementSibling(
       goog.dom.getFirstElementChild(
             goog.dom.getElement( this.makeId('form_table') ))) ;

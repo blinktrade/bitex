@@ -742,7 +742,7 @@ bitex.app.BlinkTrade.prototype.onUserChangeMarket_ = function(e) {
 bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
   var msg = e.data;
 
-  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
   var deposit_methods = [];
   goog.array.forEach( msg['DepositMethodGrp'], function(deposit_method) {
     var deposit_method_id = deposit_method['DepositMethodID'];
@@ -750,8 +750,8 @@ bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
     var disclaimer = deposit_method['Disclaimer'];
     var type = deposit_method['Type'];
     var currency = deposit_method['Currency'];
-    var percent_fee = fmt.format(deposit_method['PercentFee']/100.0);
-    var fixed_fee = fmt.format(deposit_method['FixedFee']/1e8);
+    var percent_fee = deposit_method['PercentFee'];
+    var fixed_fee = deposit_method['FixedFee'];
 
     deposit_methods.push( { id:deposit_method_id,
                            description:description,
@@ -1027,6 +1027,7 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
       currency,
       goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
       goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+      true,
       true);
 
   var handler = this.getHandler();
@@ -1038,6 +1039,7 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
         currency,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+        true,
         true);
   }, this);
 
@@ -1049,6 +1051,7 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
         currency,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+        true,
         true);
   }, this);
 
@@ -1105,8 +1108,7 @@ bitex.app.BlinkTrade.prototype.onUserConfirmWithdraw_ = function(e){
 bitex.app.BlinkTrade.prototype.onBrokerSetWithdrawEmailConfirmation_ = function(e){
   var client_id = e.target.getClientID();
   var verification_data = e.target.getVerificationData();
-
-  this.conn_.updateUserProfile(client_id, verification_data);
+  this.conn_.updateUserProfile(verification_data, client_id);
 };
 
 /**
@@ -1201,7 +1203,7 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
        totalFeesID: total_fees_element_id,
        netValueID: net_value_element_id,
        fixedFee: valueFormatter.format(withdraw_data['FixedFee']/1e8),
-       percentFee: valueFormatter.format(withdraw_data['PercentFee']/100.0)
+       percentFee: valueFormatter.format(withdraw_data['PercentFee'])
     });
 
     /**
@@ -1222,7 +1224,8 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
                            withdraw_data['Currency'],
                            total_fees_element_id,
                            net_value_element_id,
-                           true );
+                           true,
+                           false);
 
     handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),
                     goog.events.InputHandler.EventType.INPUT,
@@ -1233,7 +1236,8 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
                               withdraw_data['Currency'],
                               total_fees_element_id,
                               net_value_element_id,
-                              true));
+                              true,
+                              false));
 
     handler.listen( new goog.events.InputHandler(goog.dom.getElement(percent_fee_element_id)),
                     goog.events.InputHandler.EventType.INPUT,
@@ -1244,7 +1248,8 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
                               withdraw_data['Currency'],
                               total_fees_element_id,
                               net_value_element_id,
-                              true));
+                              true,
+                              false));
 
     handler.listen( new goog.events.InputHandler(goog.dom.getElement(fixed_fee_element_id)),
                     goog.events.InputHandler.EventType.INPUT,
@@ -1255,7 +1260,8 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
                               withdraw_data['Currency'],
                               total_fees_element_id,
                               net_value_element_id,
-                              true));
+                              true,
+                              false));
 
 
     handler.listen(feeDlg, goog.ui.Dialog.EventType.SELECT, function(e) {
@@ -1274,7 +1280,7 @@ bitex.app.BlinkTrade.prototype.onBrokerProcessWithdraw_ = function(e){
           e.preventDefault();
           return;
         }
-        percent_fee_value = percent_fee_value * 100;
+        //percent_fee_value = percent_fee_value * 100;
 
 
         var fixed_fee = form_data['FixedFee'];
@@ -1503,21 +1509,27 @@ bitex.app.BlinkTrade.prototype.onUserUploadReceipt_ = function(e){
  * @param {string} fixed_fee_element_id
  * @param {string} percent_fee_element_id
  * @param {string} currency
- * @param {string} opt_fee_value_element_id
- * @param {string} opt_net_amount_element_id
- * @param {boolean} opt_add_fees.  Default for true
+ * @param {string=} opt_fee_value_element_id
+ * @param {string=} opt_net_amount_element_id
+ * @param {boolean=} opt_add_fees.  Default to true
+ * @param {booelan=} opt_is_fixed_fee_in_satoshis. Default to true
  * @private
  */
 bitex.app.BlinkTrade.prototype.doCalculateFees_ = function(amount_element_id,
-                                                              fixed_fee_element_id,
-                                                              percent_fee_element_id,
-                                                              currency,
-                                                              opt_fee_value_element_id,
-                                                              opt_net_amount_element_id,
-                                                              opt_add_fees){
+                                                           fixed_fee_element_id,
+                                                           percent_fee_element_id,
+                                                           currency,
+                                                           opt_fee_value_element_id,
+                                                           opt_net_amount_element_id,
+                                                           opt_add_fees,
+                                                           opt_is_fixed_fee_in_satoshis ){
   var add_fees = true;
   if (opt_add_fees === false) {
     add_fees = opt_add_fees;
+  }
+  var is_fixed_fee_in_satoshis = true;
+  if (opt_is_fixed_fee_in_satoshis === false) {
+    is_fixed_fee_in_satoshis = opt_is_fixed_fee_in_satoshis;
   }
 
   var valueFormatter = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
@@ -1535,7 +1547,7 @@ bitex.app.BlinkTrade.prototype.doCalculateFees_ = function(amount_element_id,
   pos = [0];
   var percent_fee_value = valueFormatter.parse(percent_fee, pos);
   if (isNaN(percent_fee_value)) {
-    percent_fee_value = 0;
+    percent_fee_value = 0.;
   }
 
 
@@ -1545,7 +1557,9 @@ bitex.app.BlinkTrade.prototype.doCalculateFees_ = function(amount_element_id,
   if (isNaN(fixed_fee_value)) {
     fixed_fee_value = 0;
   }
-  fixed_fee_value = fixed_fee_value * 1e8;
+  if (!is_fixed_fee_in_satoshis) {
+    fixed_fee_value = fixed_fee_value * 1e8;
+  }
 
   var total_percent_fee_value = ((amount - fixed_fee_value) * (percent_fee_value/100.0));
   var total_fixed_fee_value = fixed_fee_value;
@@ -1655,7 +1669,7 @@ bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
       controlNumber:control_number ,
       currencySign:this.getCurrencySign(deposit_data['Currency']),
       value: valueFormatter.format(deposit_data['Value']/1e8),
-      percentFee: valueFormatter.format(deposit_data['PercentFee']/100.0),
+      percentFee: valueFormatter.format(deposit_data['PercentFee']),
       fixedFee: valueFormatter.format(deposit_data['FixedFee']/1e8)
     });
 
@@ -1675,6 +1689,7 @@ bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
                            deposit_data['Currency'],
                            total_fees_element_id,
                            net_value_element_id,
+                           false,
                            false);
 
     handler.listen( new goog.events.InputHandler(goog.dom.getElement(paid_value_element_id) ),
@@ -1686,6 +1701,7 @@ bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
                   deposit_data['Currency'],
                   total_fees_element_id,
                   net_value_element_id,
+                  false,
                   false));
 
     handler.listen( new goog.events.InputHandler(goog.dom.getElement(percent_fee_element_id) ),
@@ -1697,6 +1713,7 @@ bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
                   deposit_data['Currency'],
                   total_fees_element_id,
                   net_value_element_id,
+                  false,
                   false));
 
     handler.listen( new goog.events.InputHandler(goog.dom.getElement(fixed_fee_element_id) ),
@@ -1708,6 +1725,7 @@ bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
                   deposit_data['Currency'],
                   total_fees_element_id,
                   net_value_element_id,
+                  false,
                   false));
 
     handler.listen(confirmDepositDlg, goog.ui.Dialog.EventType.SELECT, function(e) {
@@ -1737,7 +1755,7 @@ bitex.app.BlinkTrade.prototype.onProcessDeposit_ = function(e){
           goog.dom.getElement(percent_fee_element_id).focus();
           return;
         }
-        percent_fee_value = percent_fee_value * 100;
+        //percent_fee_value = percent_fee_value * 100;
 
 
         var fixed_fee = goog.dom.forms.getValue( goog.dom.getElement(fixed_fee_element_id) );
@@ -1827,7 +1845,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
     return;
   }
 
-
+  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var deposit_methods = [];
   goog.array.forEach(this.getModel().get('DepositMethods'), function(deposit_method){
     if (deposit_method.currency == currency) {
@@ -1835,8 +1853,8 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
                               'method': deposit_method.id,
                               'description': deposit_method.description,
                               'disclaimer': deposit_method.disclaimer,
-                              'percent_fee': deposit_method.percent_fee,
-                              'fixed_fee': deposit_method.fixed_fee,
+                              'percent_fee': fmt.format(deposit_method.percent_fee),
+                              'fixed_fee': fmt.format(deposit_method.fixed_fee/1e8),
                               'fields': []
                             });
     }
@@ -1877,6 +1895,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
       currency,
       goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
       goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+      false,
       false);
 
 
@@ -1888,8 +1907,9 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
         currency,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
         goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+        false,
         false);
-  });
+  }, this);
 
   handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,
     function(e) {
@@ -1900,11 +1920,9 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
           currency,
           goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
           goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+          false,
           false);
-    });
-
-
-
+    }, this);
 
 
   handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
@@ -1945,9 +1963,6 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
     }
   });
 };
-
-
-
 
 /**
  * @param {goog.events.Event} e
@@ -2436,12 +2451,14 @@ bitex.app.BlinkTrade.prototype.onSecurityList_ =   function(e) {
 bitex.app.BlinkTrade.prototype.adjustBrokerData_ = function(broker_info) {
   var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_structure = broker_info['WithdrawStructure'];
+  /*
   goog.object.forEach(withdraw_structure,  function(withdraw_methods) {
     goog.array.forEach( withdraw_methods, function(method) {
       method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
       method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
     });
   });
+  */
 
   broker_info['Currencies'] = broker_info['Currencies'].split(',');
   if (broker_info['Currencies'].length === 1 && goog.string.isEmpty(broker_info['Currencies'][0])) {

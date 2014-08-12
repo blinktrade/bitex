@@ -1151,8 +1151,8 @@ def processProcessWithdraw(session, msg):
 
     withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
-    percent_fee = msg.get('PercentFee',0)
-    fixed_fee   = msg.get('FixedFee',0)
+    percent_fee = msg.get('PercentFee',0.)
+    fixed_fee   = msg.get('FixedFee',0.)
 
     if percent_fee > withdraw.percent_fee:
       raise NotAuthorizedError() # Broker tried to raise their fees manually
@@ -1218,7 +1218,7 @@ def processProcessDeposit(session, msg):
   elif msg.get('Action') == 'COMPLETE':
     amount          = int(msg.get('Amount'))
     data            = msg.get('Data')
-    percent_fee     = msg.get('PercentFee', 0)
+    percent_fee     = msg.get('PercentFee', 0.)
     fixed_fee       = msg.get('FixedFee', 0)
 
     if percent_fee > deposit.percent_fee:
