@@ -343,18 +343,31 @@
   <form class="form-horizontal">
 
     <div class="control-group">
-      <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Buy fee{/msg}</label>
+
+      <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Buy fee %{/msg}</label>
       <div class="controls">
-        <input id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
+        <input id="{$id}_buy_fee_percent"  style="text-align: right;" value="{$buy_fee}"/>
       </div>
+
+      <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Fixed buy fee{/msg}</label>
+      <div class="controls">
+        <input id="{$id}_buy_fee_fixed"  style="text-align: right;" value="{$buy_fee}"/>
+      </div>
+
     </div>
 
 
     <div class="control-group">
-      <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Sell fee{/msg}</label>
+      <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Sell fee%{/msg}</label>
       <div class="controls">
-        <input id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
+        <input id="{$id}_sell_fee_percent"  style="text-align: right;" value="{$sell_fee}"/>
       </div>
+
+      <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Fixed Sell fee{/msg}</label>
+      <div class="controls">
+        <input id="{$id}_sell_fee_fixed"  style="text-align: right;" value="{$sell_fee}"/>
+      </div>
+
     </div>
 
   </form>

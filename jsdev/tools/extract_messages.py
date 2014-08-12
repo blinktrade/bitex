@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import glob
-from subprocess import call
+import subprocess
 
 bitex_files = glob.glob('../bitex/*.js') + \
               glob.glob('../bitex/*/*.js')
@@ -22,7 +22,9 @@ print '<translationbundle lang="pt_BR">'
 
 for name in all_files: 
   print '<!-- ' + name + ' -->'
-  call(['java', '-jar', './closure-extract-messages.jar', 'bitex', name ])
+  p = subprocess.Popen(['java', '-jar', './closure-extract-messages.jar', 'bitex', name ], stdout=subprocess.PIPE)
+  out, err = p.communicate()
+  print out
 
 print '</translationbundle>'
 
