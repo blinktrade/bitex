@@ -114,7 +114,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --compiler_flags="--formatting=PRINT_INPUT_DELIMITER" \
   --compiler_flags="--externs=./externs/facebook_javascript_sdk.js" \
   --compiler_flags="--translations_project='bitex'" \
-  --compiler_flags="--translations_file=./translations/en_US.xtb.xml" \
+  --compiler_flags="--translations_file=./translations/en.xtb.xml" \
    > ../static/js/bitex_app_blink_trade.compiled.en_US.js
 
 #  --compiler_flags="--debug=TRUE" \
