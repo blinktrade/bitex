@@ -1,2 +1,2 @@
-engine: python2.7 apps/trade/main.py --config=/Users/clebson/devel/bitex/config/trade.conf
-gateway: python2.7 apps/ws_gateway/main.py --config=/Users/clebson/devel/bitex/config/ws_gateway.conf
+engine: python2.7 apps/trade/main.py --config=/opt/surbitcoin/config/trade.conf
+ateway: python2.7 apps/ws_gateway/main.py --config=/opt/surbitcoin/config/ws_gateway.conf
