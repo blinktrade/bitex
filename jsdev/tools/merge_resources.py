@@ -57,7 +57,7 @@ def main(argv):
             if match:
                 id = match.group(1)
                 if id in to_tokens:
-                    print '<translation id=%s>%s<translation>' % ( id, to_tokens[id] )
+                    print '<translation id="%s">%s<translation>' % ( id, to_tokens[id] )
                     continue
 
             print line
