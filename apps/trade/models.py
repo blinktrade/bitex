@@ -1860,90 +1860,125 @@ def db_bootstrap(session):
 
 
   import  json
-  if not User.get_user(session, 'bitex'):
-    e = User(id=-1, username='bitex', email='bitex@bitex.com.br',  broker_id=None, broker_username=None, password=base64.b32encode(os.urandom(10)),
-             country_code='BR', state='SP',
-             verified=2, is_staff=False, is_system=False, is_broker=True)
+  if not User.get_user(session, 'root'):
+    e = User(id=-1, username='root',
+             email='root@blinktrade.com',
+             broker_id=None,
+             broker_username=None,
+             password=base64.b32encode(os.urandom(10)),
+             country_code='US', state='NY',
+             verified=2,
+             is_staff=True,
+             is_system=True,
+             is_broker=True)
     session.add(e)
     session.commit()
 
-  if not User.get_user(session, 'bitex_broker'):
-    e = User(id=0, username='bitex_broker', email='bitex.broker@bitex.com.br',  broker_id=None, broker_username=None, password='abc12345',
-             country_code='BR', state='SP',
-             verified=2, is_staff=True, is_system=False, is_broker=True)
+  if not User.get_user(session, 'blinktrade'):
+    e = User(id=0,
+             username='blinktrade',
+             email='admin@blinktrade.com',
+             broker_id=None,
+             broker_username=None,
+             password=base64.b32encode(os.urandom(10)),
+             country_code='US',
+             state='NY',
+             verified=2,
+             is_staff=True,
+             is_system=False,
+             is_broker=True)
     session.add(e)
     session.commit()
+
+  if not User.get_user(session, 'surbitcoin'):
+    e = User(id=9000000,
+             username='surbitcoin',
+             email='admin@surbitcoin.com',
+             broker_id=0,
+             broker_username='blinktrade',
+             password=base64.b32encode(os.urandom(10)),
+             country_code='VE',
+             transaction_fee_buy=60,
+             transaction_fee_sell=60,
+             verified=2,
+             is_staff=False,
+             is_system=False,
+             is_broker=True)
+    session.add(e)
+    session.commit()
+
 
   if options.test_mode:
-    if not User.get_user(session, 'kevin'):
-      e = User(id=89999999, username='kevin', email='bitexvenezuela@gmail.com',  broker_id=0, broker_username='kevin', password='abc12345',
-               country_code='VE',
-               transaction_fee_buy=20,
-               transaction_fee_sell=20,
-               verified=2, is_staff=False, is_system=False, is_broker=True)
-      session.add(e)
-      session.commit()
-
-    if not User.get_user(session, 'nybitcoincenter'):
-      e = User(id=9000001, username='nybitcoincenter', email='admin@nybitcoincenter.com',  broker_id=0, broker_username='bitex', password='abc12345',
-               country_code='US', state='NY',
-               transaction_fee_buy=20,
-               transaction_fee_sell=20,
-               verified=2, is_staff=False, is_system=False, is_broker=True)
+    if not User.get_user(session, 'cryptos'):
+      e = User(id=9000001,
+               username='cryptos',
+               email='admin@cryptos.com',
+               broker_id=0,
+               broker_username='blinktrade',
+               password='abc12345',
+               country_code='US',
+               state='NY',
+               transaction_fee_buy=60,
+               transaction_fee_sell=60,
+               verified=2,
+               is_staff=False,
+               is_system=False,
+               is_broker=True)
       session.add(e)
       session.commit()
 
     if not User.get_user(session, 'bitcointoyou'):
-      e = User(id=9000002, username='bitcointoyou', email='andre@bitcointoyou.com',  broker_id=0, broker_username='bitcointoyou', password='abc12345',
-               country_code='BR', state='MG',
+      e = User(id=9000002,
+               username='bitcointoyou',
+               email='andre@bitcointoyou.com',
+               broker_id=0,
+               broker_username='blinktrade',
+               password='abc12345',
+               country_code='BR',
+               state='MG',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
-               verified=2, is_staff=False, is_system=False, is_broker=True)
-      session.add(e)
-      session.commit()
-
-
-    if not User.get_user(session, 'thiagostruck'):
-      e = User(id=9000003, username='thiagostruck', email='tiagostruck@dors.com.br',  broker_id=0, broker_username='thiagostruck', password='abc12345',
-               country_code='BR', state='SC',
-               transaction_fee_buy=60,
-               transaction_fee_sell=60,
-               verified=2, is_staff=False, is_system=False, is_broker=True)
-      session.add(e)
-      session.commit()
-
-
-    if not User.get_user(session, 'rafaelffdias'):
-      e = User(id=9000004, username='rafaelffdias', email='rafaelffdias@gmail.com',  broker_id=0, broker_username='rafaelffdias', password='abc12345',
-               country_code='BR', state='SC',
-               transaction_fee_buy=60,
-               transaction_fee_sell=60,
-               verified=2, is_staff=False, is_system=False, is_broker=True)
+               verified=2,
+               is_staff=False,
+               is_system=False,
+               is_broker=True)
       session.add(e)
       session.commit()
 
     if not User.get_user(session, 'ubuntubitx'):
-      e = User(id=9000045, username='ubuntubitx', email='wilfriedsare@gmail.com',  broker_id=0, broker_username='ubuntubitx', password='abc12345',
-               country_code='BJ', state='',
-               transaction_fee_buy=100,
-               transaction_fee_sell=100,
-               verified=2, is_staff=False, is_system=False, is_broker=True)
+      e = User(id=9000003,
+               username='ubuntubitx',
+               email='admin@ubuntubitx.com',
+               broker_id=0,
+               broker_username='blinktrade',
+               password='abc12345',
+               country_code='BJ',
+               state='',
+               transaction_fee_buy=60,
+               transaction_fee_sell=60,
+               verified=2,
+               is_staff=False,
+               is_system=False,
+               is_broker=True)
       session.add(e)
       session.commit()
 
 
   if not Broker.get_broker(session, -1):
     e = Broker(id=-1,
-               short_name=u'BitEx Waiting for a broker',
-               business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
-               address=u'Praça Dom José Gaspar, 76 - sl 81',
+               short_name=u'root',
+               business_name=u'Blinktrade Inc',
+               address=u'40 Broad St',
                signup_label='{MSG_NOTIFY_NEW_BROKER}',
                state=u'SP',
-               zip_code=u'01047-010',
-               city=u'São Paulo',
-               country='Brazil',
-               country_code='BR',
-               phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
+               zip_code=u'10004',
+               city=u'New York',
+               country='United States',
+               country_code='US',
+               phone_number_1='+1 (646) 480-0222',
+               phone_number_2=None,
+               skype='blinktrade',
+               email='support@blinktrade.com',
                verification_jotform= user_verification_jotform +'?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
                upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='',
@@ -1965,16 +2000,19 @@ def db_bootstrap(session):
 
   if not Broker.get_broker(session, 0):
     e = Broker(id=0,
-               short_name=u'BitEX',
-               business_name=u'BitEX - Bolsa Brasileira de Moedas Criptografadas LTDA - ME',
-               address=u'Praça Dom José Gaspar, 76 - sl 81',
+               short_name=u'blinktrade',
+               business_name=u'Blinktrade, Inc.',
+               address=u'40 Broad St',
                signup_label='{MSG_BROKER_APPLY}',
-               state=u'SP',
-               zip_code=u'01047-010',
-               city=u'São Paulo',
-               country='Brazil',
-               country_code='BR',
-               phone_number_1='+55 (11) 2061-3325', phone_number_2=None, skype='blinktrade', email='support@bitex.com.br',
+               state=u'NY',
+               zip_code=u'10004',
+               city=u'New York',
+               country='United States',
+               country_code='US',
+               phone_number_1='+1 (646) 480-0222',
+               phone_number_2=None,
+               skype='blinktrade',
+               email='support@blinktrade.com',
                verification_jotform=broker_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
                upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='',
@@ -1997,18 +2035,18 @@ def db_bootstrap(session):
                  {
                    "CurrencyCode": "BTC",
                    "CurrencyDescription":"Bitcoin",
-                   "Confirmations":[ [0, 21000000e8, 6 ] ],
+                   "Confirmations":[ [0, 21000000e8, 3 ] ],
                    "Wallets": [
-                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
-                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
+                       { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"Blinktrade" },
+                       { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Blinktrade" },
                    ]
                  }
                ]),
                accept_customers_from=json.dumps([['*'],[]]),
                is_broker_hub=True,
-               support_url='https://www.facebook.com/groups/bitex.support/',
+               support_url='https://www.facebook.com/groups/blinktrade.support/',
                withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               withdraw_confirmation_email_subject='[BlinkTrade] Confirm {currency} withdraw operation.',
                tos_url=u'/tos.html',
                fee_structure="[]",
                transaction_fee_buy=0,
@@ -2018,19 +2056,22 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
-  if options.test_mode:
-      e = Broker(id=89999999,
-                 short_name=u'BitcoinEX',
-                 business_name=u'BitcoinEX Venezuela',
-                 address=u'Avenida Paseo Cabriales, Torre MovilNet',
-                 signup_label='BitcoinEX Venezuela',
+    if not Broker.get_broker(session, 9000000):
+      e = Broker(id=9000000,
+                 short_name=u'surbitcoin',
+                 business_name=u'Inversiones V&K C.A.',
+                 address=u'Avenida Paseo Cabriales, Torre MovilNet. Local 5 y 6',
+                 signup_label='Sur Bitcoin',
                  city='Valencia',
                  state='Carabobo',
                  zip_code='2001',
                  country_code='VE',
                  country='Venezuela',
-                 phone_number_1='+1 (347) 636-5925', phone_number_2='+1 (347) 593-9527', skype='N/A', email='bitexvenezuela@gmail.com',
-                 verification_jotform= 'https://secure.jotform.us/form/41846537446968?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=58',
+                 phone_number_1='+1 (347) 636-5925',
+                 phone_number_2='+1 (347) 593-9527',
+                 skype='N/A',
+                 email='support@surbitcoin.zendesk.com',
+                 verification_jotform= 'https://secure.jotform.us/form/41846537446968?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=58&&address[country]=Venezuela',
                  upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                  currencies='VEF',
                  withdraw_structure=json.dumps( {
@@ -2094,7 +2135,7 @@ def db_bootstrap(session):
                      [ "CU", "SO", "SD",  "NG", "IR", "KP" ], # Cuba, Somalia, Sudam, Nigeria, Iran, North Korea
                  ]) ,
                  is_broker_hub=False,
-                 support_url='https://bitcoinex.zendesk.com',
+                 support_url='https://surbitcoin.zendesk.com',
                  withdraw_confirmation_email = 'withdraw-confirmation-{method}',
                  withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                  tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
@@ -2109,11 +2150,11 @@ def db_bootstrap(session):
                  transaction_fee_sell=20, # 0.2%
                  status='1',
                  ranking=5)
-      if not Broker.get_broker(session, 89999999):
-          session.add(e)
-          session.commit()
+    if not Broker.get_broker(session, 89999999):
+        session.add(e)
+        session.commit()
 
-
+    if options.test_mode:
       if not Broker.get_broker(session, 9000001):
           e = Broker(id=9000001,
                      short_name=u'NyBitcoinCenter',
