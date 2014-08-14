@@ -2680,12 +2680,12 @@ def db_bootstrap(session):
     session.commit()
 
   instruments = [
-    ['BTCUSD', 'USD', "BTC / USD" ],
+    #['BTCUSD', 'USD', "BTC / USD" ],
     #['BTCEUR', 'EUR', "BTC / EUR" ],
     #['BTCCNY', 'CNY', "BTC / CNY" ],
     #['BTCARS', 'ARS', "BTC / ARS" ],
     #['BTCGBP', 'GBP', "BTC / GBP" ],
-    ['BTCBRL', 'BRL', "BTC / BRL" ],
+    #['BTCBRL', 'BRL', "BTC / BRL" ],
     #['BTCJPY', 'JPY', "BTC / JPY" ],
     #['BTCRUB', 'RUB', "BTC / RUB" ],
     #['BTCRUB', 'INR', "BTC / INR" ],
@@ -2696,7 +2696,7 @@ def db_bootstrap(session):
     #['BTCILS', 'ILS', "BTC / ILS" ],
     #['BTCMXN', 'MXN', "BTC / MXN" ],
     ['BTCVEF', 'VEF', "BTC / VEF" ],
-    ['BTCXOF', 'XOF', "BTC / CFA Franc" ],
+    #['BTCXOF', 'XOF', "BTC / CFA Franc" ],
   ]
   for inst in instruments:
     if Instrument.get_instrument(session, inst[0]):
