@@ -41,6 +41,7 @@ def processChangePassword(session, msg):
   if user is None:
     login_response = {
       'MsgType':          'BF',
+      'UserReqID':        msg.get('UserReqID'),
       'Username':         '',
       'UserStatus':       3,
       'UserReqTyp':       3,
@@ -52,7 +53,8 @@ def processChangePassword(session, msg):
   user.set_password(msg.get('NewPassword'))
 
   login_response = {
-      'MsgType': 'BF',
+      'MsgType':          'BF',
+      'UserReqID':        msg.get('UserReqID'),
       'UserStatus':       3,
       'UserReqTyp':       3,
       'UserStatusText': u'Senha alterada com sucesso!'
@@ -130,6 +132,7 @@ def processLogin(session, msg):
   if not session.user:
     login_response = {
       'MsgType':          'BF',
+      'UserReqID':        msg.get('UserReqID'),
       'Username':         '',
       'UserStatus':       3,
       'NeedSecondFactor': need_second_factor,
@@ -144,7 +147,8 @@ def processLogin(session, msg):
 
   # Send the login response
   login_response = {
-    'MsgType'            :'BF',
+    'MsgType'            : 'BF',
+    'UserReqID'          : msg.get('UserReqID'),
     'UserID'             : session.user.id,
     'Username'           : session.user.username,
     'TwoFactorEnabled'   : session.user.two_factor_enabled,
@@ -497,6 +501,7 @@ def processSignup(session, msg):
   except BrokerDoesNotExistsException:
     login_response = {
       'MsgType': 'BF',
+      'UserReqID': msg.get('UserReqID'),
       'Username': '',
       'UserStatus': 3,
       'UserStatusText': u'Invalid broker!'
@@ -506,6 +511,7 @@ def processSignup(session, msg):
   except UserAlreadyExistsException:
     login_response = {
       'MsgType': 'BF',
+      'UserReqID': msg.get('UserReqID'),
       'Username': '',
       'UserStatus': 3,
       'UserStatusText': u'Username or email already taken!'
@@ -515,6 +521,7 @@ def processSignup(session, msg):
   except Exception, e:
     login_response = {
       'MsgType': 'BF',
+      'UserReqID': msg.get('UserReqID'),
       'Username': '',
       'UserStatus': 3,
       'UserStatusText': str(e)
@@ -554,7 +561,11 @@ def processRequestForBalances(session, msg):
 
 
   balances = Balance.get_balances_by_account( application.db_session, user.account_id )
-  response = { 'MsgType': 'U3', 'ClientID': user.id, 'BalanceReqID': msg.get('BalanceReqID')  }
+  response = {
+    'MsgType': 'U3',
+    'ClientID': user.id,
+    'BalanceReqID': msg.get('BalanceReqID')
+  }
   for balance in balances:
     if balance.broker_id in response:
       response[balance.broker_id][balance.currency ] = balance.balance
@@ -621,6 +632,7 @@ def processRequestPasswordRequest(session, msg):
 
   response = {
     'MsgType': 'U11',
+    'ForgotPasswordReqID': msg.get('ForgotPasswordReqID'),
     'Success': success
   }
   return json.dumps(response, cls=JsonEncoder)
@@ -630,7 +642,8 @@ def processPasswordRequest(session, msg):
     response = {
       'MsgType': 'U13',
       'UserStatus': 1,
-      'UserStatusText': u'Senha alterada com sucesso!'
+      'ResetPasswordReqID': msg.get('ResetPasswordReqID'),
+      'UserStatusText': 'Password changed'
     }
 
     application.db_session.commit()
@@ -639,7 +652,8 @@ def processPasswordRequest(session, msg):
     response = {
       'MsgType': 'U13',
       'UserStatus': 3,
-      'UserStatusText': u'Código de segurança inválido!'
+      'ResetPasswordReqID': msg.get('ResetPasswordReqID'),
+      'UserStatusText': 'Invalid security code'
     }
     return json.dumps(response, cls=JsonEncoder)
 
@@ -669,6 +683,7 @@ def processEnableDisableTwoFactorAuth(session, msg):
   application.db_session.commit()
 
   response = {'MsgType'         : 'U17',
+              'EnableTwoFactorReqID': msg.get('EnableTwoFactorReqID'),
               'TwoFactorEnabled': user.two_factor_enabled,
               'TwoFactorSecret' : two_factor_secret }
   return json.dumps(response, cls=JsonEncoder)

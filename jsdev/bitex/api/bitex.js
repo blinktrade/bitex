@@ -398,22 +398,26 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
     case 'BF': // Login response:
 
       if (msg['UserReqTyp'] == 3 ) {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CHANGE_PASSWORD_RESPONSE + '.' + msg['UserReqID'], msg) );
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.CHANGE_PASSWORD_RESPONSE, msg ) );
         break;
       }
 
       if (msg['UserStatus'] == 1 ) {
         this.logged_ = true;
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_OK + '.' + msg['UserReqID'], msg) );
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_OK, msg ) );
 
       } else {
         this.logged_ = false;
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_ERROR + '.' + msg['UserReqID'], msg) );
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.LOGIN_ERROR, msg ) );
       }
       break;
 
     case 'y': // Security List
       this.onSecurityList_(msg);
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_LIST + '.' + msg['SecurityReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SECURITY_LIST, msg));
       break;
 
@@ -424,8 +428,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U13': // Password change response
       if (msg['UserStatus'] == 1 ) {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK + '.' + msg['ResetPasswordReqID'], msg) );
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK, msg ) );
       } else {
+        this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR + '.' + msg['ResetPasswordReqID'], msg) );
         this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, msg ) );
       }
       break;
@@ -447,7 +453,6 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U7': // Withdraw Response
-
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE + '.' + msg['WithdrawReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, msg ) );
       break;
@@ -459,6 +464,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U3': // Balance Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BALANCE_RESPONSE + '.' + msg['BalanceReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BALANCE_RESPONSE, msg ) );
       break;
 
@@ -468,6 +474,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U17': // Enable Two Factor Secret Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TWO_FACTOR_SECRET + '.' + msg['EnableTwoFactorReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.TWO_FACTOR_SECRET, msg ) );
       break;
 
@@ -482,6 +489,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U29': // Broker List Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE + '.' + msg['BrokerListReqID'], msg) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.BROKER_LIST_RESPONSE, msg ) );
       break;
 
@@ -525,6 +533,7 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'B5': // Customer Detail Response
+      this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_DETAIL_RESPONSE + '.' + msg['CustomerReqID'] , msg) );
       this.dispatchEvent( new bitex.api.BitExEvent(bitex.api.BitEx.EventType.CUSTOMER_DETAIL_RESPONSE, msg) );
       break;
 
@@ -658,11 +667,13 @@ bitex.api.BitEx.prototype.close = function(){
  * @param {string} username
  * @param {string} password
  * @param {string=} opt_second_factor
+ * @param {number=} opt_request_id
  */
-bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor ){
+bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor,opt_request_id ){
+  var reqId = opt_request_id || parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'BE',
-    'UserReqID': '1',
+    'UserReqID': reqId,
     'Username': username,
     'Password': password,
     'UserReqTyp': '1'
@@ -682,10 +693,13 @@ bitex.api.BitEx.prototype.login = function(username, password, opt_second_factor
  * @param {string=} opt_secret
  * @param {string=} opt_code
  * @param {number=} opt_clientID
+ * @param {number=} opt_request_id
  */
-bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_code, opt_clientID){
+bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_code, opt_clientID, opt_request_id){
+  var reqId = opt_request_id || parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U16',
+    'EnableTwoFactorReqID': reqId,
     'Enable': enable
   };
   if (goog.isDefAndNotNull(opt_secret) && !goog.string.isEmpty(opt_secret) ) {
@@ -706,10 +720,13 @@ bitex.api.BitEx.prototype.enableTwoFactor = function(enable, opt_secret, opt_cod
 
 /**
  * @param {string} email
+ * @param {number} opt_request_id
  */
-bitex.api.BitEx.prototype.forgotPassword = function(email){
+bitex.api.BitEx.prototype.forgotPassword = function(email, opt_request_id){
+  var reqId = opt_request_id || parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U10',
+    'ForgotPasswordReqID': reqId,
     'Email': email
   };
   this.sendMessage(msg);
@@ -717,10 +734,10 @@ bitex.api.BitEx.prototype.forgotPassword = function(email){
 
 /**
  * @param {number=} opt_clientID
+ * @param {number} opt_request_id
  */
-bitex.api.BitEx.prototype.requestBalances = function(opt_clientID) {
-  var reqId = parseInt(Math.random() * 1000000, 10);
-
+bitex.api.BitEx.prototype.requestBalances = function(opt_clientID, opt_request_id) {
+  var reqId = opt_request_id || parseInt(Math.random() * 1000000, 10);
   var msg = {
     'MsgType': 'U2',
     'BalanceReqID': reqId
@@ -1194,10 +1211,13 @@ bitex.api.BitEx.prototype.processDeposit = function(opt_requestId, action, opt_s
 /**
  * @param {string} token
  * @param {string} new_password
+ * @param {number=} opt_requestId. Defaults to random generated number
  */
-bitex.api.BitEx.prototype.resetPassword = function(token, new_password){
+bitex.api.BitEx.prototype.resetPassword = function(token, new_password, opt_requestId ){
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var msg = {
     'MsgType': 'U12',
+    'ResetPasswordReqID': requestId,
     'Token': token,
     'NewPassword': new_password
   };
@@ -1209,7 +1229,7 @@ bitex.api.BitEx.prototype.resetPassword = function(token, new_password){
  * @param {string} username
  * @param {string} password
  * @param {string} new_password
- * @param {string} opt_requestId. Defaults to random generated number
+ * @param {number=} opt_requestId. Defaults to random generated number
  */
 bitex.api.BitEx.prototype.changePassword = function(username, password, new_password, opt_second_factor, opt_requestId ){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
@@ -1324,10 +1344,13 @@ bitex.api.BitEx.prototype.requestSecurityList = function(opt_requestId){
  * @param {string} state
  * @param {string} country_code
  * @param {number} broker
+ * @param {number=} opt_requestId. Defaults to random generated number
  */
-bitex.api.BitEx.prototype.signUp = function(username, password, email, state, country_code, broker) {
+bitex.api.BitEx.prototype.signUp = function(username, password, email, state, country_code, broker, opt_requestId) {
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var msg = {
     'MsgType': 'U0',
+    'UserReqID': requestId,
     'Username': username,
     'Password': password,
     'Email': email,

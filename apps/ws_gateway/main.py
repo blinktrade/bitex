@@ -48,6 +48,8 @@ from bitex.message import JsonMessage, InvalidMessageException
 from bitex.zmq_client import TradeClient, TradeClientException
 
 import calendar, time
+from time import mktime
+import datetime
 
 
 from zmq.eventloop.zmqstream import ZMQStream
@@ -167,10 +169,11 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
 
         if req_msg.isTestRequest() or req_msg.isHeartbeat():
+            dt = datetime.datetime.now()
             response_msg = {
                 'MsgType'           : '0',
                 'TestReqID'         : req_msg.get('TestReqID'),
-                'ServerTimestamp'   : calendar.timegm(time.gmtime())*1000
+                'ServerTimestamp'   : int(mktime(dt.timetuple()) + dt.microsecond/1000.0 )
             }
 
             sendTime = req_msg.get('SendTime')
@@ -442,18 +445,6 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
         last_trade_id = Trade.get_last_trade_id()
         trade_list = self.application_trade_client.getLastTrades(last_trade_id)
-
-        #trade_list.append([
-        #  trade.id,
-        #  trade.symbol,
-        #  trade.side,
-        #  trade.price,
-        #  trade.size,
-        #  trade.buyer_username,
-        #  trade.seller_username,
-        #  trade.created,
-        #  trade.order_id,
-        #  trade.counter_order_id
 
         for trade in trade_list:
             msg = dict()

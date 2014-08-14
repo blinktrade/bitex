@@ -2030,7 +2030,7 @@ def db_bootstrap(session):
                  country_code='VE',
                  country='Venezuela',
                  phone_number_1='+1 (347) 636-5925', phone_number_2='+1 (347) 593-9527', skype='N/A', email='bitexvenezuela@gmail.com',
-                 verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+                 verification_jotform= 'https://secure.jotform.us/form/41846537446968?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=58',
                  upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                  currencies='VEF',
                  withdraw_structure=json.dumps( {
