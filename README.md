@@ -9,6 +9,8 @@ BitEx - Crypto Currency Exchange Platform
 ```
 easy_install pyzmq
 easy_install tornado
+easy_install crypto
+easy_install sqlalchemy
 
 $ cd ./jsdev
 $ ./build_release.sh  # Or ./build_release.bat [Windows]
