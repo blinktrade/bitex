@@ -2083,9 +2083,9 @@ def db_bootstrap(session):
                              'percent_fee':0.,
                              'fixed_fee':0,
                              'fields': [
-                                 {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                 {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                 {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                 {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                 {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                 {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                  ]
                          }
                      ],
@@ -2096,11 +2096,11 @@ def db_bootstrap(session):
                                   'percent_fee': 1.65,
                                   'fixed_fee': 0,
                                   'fields': [
-                                      {'side':'client', 'name': 'AccountType'  , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
-                                      {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
-                                      {'side':'client', 'name': 'VenezuelanID' , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
-                                      {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                      {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                      {'side':'client', 'name': 'AccountType'  , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                                      {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                                      {'side':'client', 'name': 'VenezuelanID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                                      {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                      {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                   ]
                               }, {
                                   'method':'bank_transfer',
@@ -2109,12 +2109,12 @@ def db_bootstrap(session):
                                   'percent_fee': 2.95,
                                   'fixed_fee': 0,
                                   'fields': [
-                                      {'side':'client', 'name': 'BankName'     ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
-                                      {'side':'client', 'name': 'AccountType'  ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
-                                      {'side':'client', 'name': 'AccountNumber',  'validator':'', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
-                                      {'side':'client', 'name': 'VenezuelanID' ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
-                                      {'side':'broker', 'name': 'TransactionID',  'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                      {'side':'broker', 'name': 'Link'         ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                      {'side':'client', 'name': 'BankName'     ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
+                                      {'side':'client', 'name': 'AccountType'  ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                                      {'side':'client', 'name': 'AccountNumber',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                                      {'side':'client', 'name': 'VenezuelanID' ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                                      {'side':'broker', 'name': 'TransactionID',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                      {'side':'broker', 'name': 'Link'         ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                   ]
                               }
                      ]
@@ -2271,9 +2271,9 @@ def db_bootstrap(session):
                                  'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
                              }
                          ],
@@ -2285,13 +2285,13 @@ def db_bootstrap(session):
                                  'percent_fee': 1.65,
                                  'fixed_fee': 0,
                                  'fields': [
-                                     {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
-                                     {'side':'client', 'name': 'AccountBranch', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
-                                     {'side':'client', 'name': 'CPF_CNPJ'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                     {'side':'client', 'name': 'BankNumber'   , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                                     {'side':'client', 'name': 'BankName'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                                     {'side':'client', 'name': 'AccountBranch', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                                     {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                                     {'side':'client', 'name': 'CPF_CNPJ'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
+                                     {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                  ]
                              }
                          ]

@@ -295,28 +295,29 @@ bitex.view.TradingView.prototype.orderFormatter_ = function(value, rowSet) {
   var cumQty = this.getApplication().formatCurrency( rowSet['CumQty']/1e8, qtyCurrency, true);
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_BUYING = goog.getMsg('Buying {$orderQty}', { 'orderQty': orderQty } );
+  var MSG_ORDER_MANAGER_DESC_BUYING = goog.getMsg('Buying {$buyQty}', {buyQty: orderQty } );
+
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_SELLING = goog.getMsg('Selling {$orderQty}', { 'orderQty': orderQty } );
+  var MSG_ORDER_MANAGER_DESC_SELLING = goog.getMsg('Selling {$sellQty}', {sellQty: orderQty } );
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_PARTIAL_BOUGHT = goog.getMsg('Bought {$cumQty} of {$orderQty}', { 'cumQty':cumQty, 'orderQty': orderQty } );
+  var MSG_ORDER_MANAGER_DESC_PARTIAL_BOUGHT = goog.getMsg('Bought {$cumBoughtQty} of {$boughtQty}', {cumBoughtQty:cumQty, boughtQty: orderQty } );
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_PARTIAL_SOLD = goog.getMsg('Sold {$cumQty} of {$orderQty}', { 'cumQty':cumQty, 'orderQty': orderQty } );
+  var MSG_ORDER_MANAGER_DESC_PARTIAL_SOLD = goog.getMsg('Sold {$cumSoldQty} of {$soldQty}', { cumSoldQty:cumQty, soldQty: orderQty } );
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_BOUGHT = goog.getMsg('Bought {$cumQty}', { 'cumQty':cumQty } );
+  var MSG_ORDER_MANAGER_DESC_BOUGHT = goog.getMsg('Bought {$boughtCumQty}', { boughtCumQty:cumQty } );
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_SOLD = goog.getMsg('Sold {$cumQty}', { 'cumQty':cumQty } );
+  var MSG_ORDER_MANAGER_DESC_SOLD = goog.getMsg('Sold {$souldCumQty}', { souldCumQty:cumQty } );
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_BUYING_CANCELLED = goog.getMsg('Cancelled order to buy {$orderQty}', { 'orderQty':orderQty } );
+  var MSG_ORDER_MANAGER_DESC_BUYING_CANCELLED = goog.getMsg('Cancelled order to buy {$cancelledBuyOrderQty}', { cancelledBuyOrderQty:orderQty } );
 
   /** @desc Order Status message on Simple Order Manager */
-  var MSG_ORDER_MANAGER_DESC_SELLING_CANCELLED = goog.getMsg('Cancelled order to sell {$orderQty}', { 'orderQty':orderQty } );
+  var MSG_ORDER_MANAGER_DESC_SELLING_CANCELLED = goog.getMsg('Cancelled order to sell {$cancelledSellOrderQty}', { cancelledSellOrderQty:orderQty } );
 
 
   switch (rowSet['OrdStatus']) {
