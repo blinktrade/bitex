@@ -272,7 +272,7 @@ class User(Base):
                       user_id = u.id,
                       subject = 'W',
                       template= "welcome",
-                      language= 'ptBR',
+                      language= options.global_email_language,
                       params=  json.dumps({
                         'username': u.username,
                         'email': u.email,
@@ -349,7 +349,7 @@ class User(Base):
                           user_id = self.broker_id,
                           subject = "VS",
                           template= "customer-verification-submit",
-                          language= 'ptBR',
+                          language= options.global_email_language,
                           params=  json.dumps({
                             'username': self.username,
                             'email': self.email,
@@ -365,7 +365,7 @@ class User(Base):
                           user_id = self.id,
                           subject = u"AV",
                           template= "your-account-has-been-verified",
-                          language= 'ptBR',
+                          language= options.global_email_language,
                           params=  json.dumps({
                             'username': self.username,
                             'email': self.email,
@@ -749,6 +749,8 @@ class Broker(Base):
   accept_customers_from = Column(Text,   nullable=False)
   is_broker_hub         = Column(Boolean, nullable=False, default=False)
 
+  lang                  = Column(String(5),   nullable=False)
+
   mem_cache   = {}
 
   @staticmethod
@@ -846,7 +848,7 @@ class UserPasswordReset(Base):
                       user_id = user_id,
                       subject = "RP",
                       template= "password-reset",
-                      language= 'ptBR',
+                      language= options.global_email_language,
                       params=  json.dumps({'token':token, 'username':req.user.username } ))
 
 class UserEmail(Base):
@@ -1066,7 +1068,7 @@ class Withdraw(Base):
                       user_id = self.user_id ,
                       subject = "WC",
                       template=template_name,
-                      language='ptBR',
+                      language=options.global_email_language,
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
     return self
 
@@ -1143,7 +1145,7 @@ class Withdraw(Base):
                         user_id  = user.id,
                         subject  = "CW",
                         template = template_name,
-                        language = 'ptBR',
+                        language = options.global_email_language,
                         params   = json.dumps(template_parameters, cls=JsonEncoder))
 
     else:
@@ -1877,6 +1879,7 @@ def db_bootstrap(session):
              broker_username=None,
              password=base64.b32encode(os.urandom(10)),
              country_code='US',
+             lang='en-US',
              state='NY',
              verified=2,
              is_staff=True,
@@ -1893,6 +1896,7 @@ def db_bootstrap(session):
              broker_username='blinktrade',
              password=base64.b32encode(os.urandom(10)),
              country_code='VE',
+             lang='es',
              transaction_fee_buy=60,
              transaction_fee_sell=60,
              verified=2,
@@ -1910,6 +1914,7 @@ def db_bootstrap(session):
              broker_username='blinktrade',
              password=base64.b32encode(os.urandom(10)),
              country_code='BJ',
+             lang='fr',
              state='',
              transaction_fee_buy=60,
              transaction_fee_sell=60,
@@ -1930,6 +1935,7 @@ def db_bootstrap(session):
                broker_username='blinktrade',
                password=base64.b32encode(os.urandom(10)),
                country_code='US',
+               lang='en-US',
                state='NY',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
@@ -1949,6 +1955,7 @@ def db_bootstrap(session):
                password=base64.b32encode(os.urandom(10)),
                country_code='BR',
                state='MG',
+               lang='en-US',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
                verified=2,
@@ -1966,6 +1973,7 @@ def db_bootstrap(session):
                address=u'40 Broad St',
                signup_label='{MSG_NOTIFY_NEW_BROKER}',
                state=u'SP',
+               lang='en-US',
                zip_code=u'10004',
                city=u'New York',
                country='United States',
@@ -2000,6 +2008,7 @@ def db_bootstrap(session):
                state=u'NY',
                zip_code=u'10004',
                city=u'New York',
+               lang='en-US',
                country='United States',
                country_code='US',
                phone_number_1='+1 (646) 480-0222',
@@ -2018,9 +2027,9 @@ def db_bootstrap(session):
                      'percent_fee':0.,
                      'fixed_fee':0,
                      'fields': [
-                         {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                         {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                         {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                         {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                         {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                         {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                      ]
                    }
                ]}),
@@ -2057,6 +2066,7 @@ def db_bootstrap(session):
                state='Carabobo',
                zip_code='2001',
                country_code='VE',
+               lang='es',
                country='Venezuela',
                phone_number_1='',
                phone_number_2='',
@@ -2151,6 +2161,7 @@ def db_bootstrap(session):
                      state='NY',
                      zip_code='10004',
                      country_code='US',
+                     lang='en-US',
                      country='United States',
                      phone_number_1=None, phone_number_2=None, skype=None, email='admin@cryptos.com',
                      verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=1',

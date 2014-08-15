@@ -12,6 +12,7 @@ from trade_application import application
 
 from market_data_publisher import MarketDataPublisher
 
+from tornado.options import  options
 
 matcher_dict  = {}
 
@@ -258,7 +259,7 @@ class OrderMatcher(object):
                           user_id = order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
-                          language= 'ptBR',
+                          language= options.global_email_language,
                           params  = email_data[2])
 
         email_data = generate_email_subject_and_body(session, counter_order, trade)
@@ -266,7 +267,7 @@ class OrderMatcher(object):
                           user_id = counter_order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
-                          language= 'ptBR',
+                          language= options.global_email_language,
                           params  = email_data[2])
 
 
