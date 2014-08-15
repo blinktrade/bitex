@@ -72,7 +72,13 @@ bitex.view.ProfileView.prototype.enterView = function() {
     customer['ID'] = model.get('Profile')['UserID'];
     customer['Username'] = model.get('Profile')['Username'];
     customer['Email'] = model.get('Profile')['Email'];
-    customer['State'] = model.get('Profile')['State'];
+
+    var state = model.get('Profile')['State'];
+    if (!goog.isDefAndNotNull(state) ) {
+        state = model.get('Broker')['State'];;
+    }
+
+    customer['State'] = state;
     customer['CountryCode'] = model.get('Profile')['Country'];
     customer['Verified'] = model.get('Profile')['Verified'];
 
