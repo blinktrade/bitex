@@ -2127,8 +2127,8 @@ def db_bootstrap(session):
                        "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                        "Wallets": [
                            { "type":"cold", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
-                           #{ "type":"cold", "address":"3Mpiabr6Vxnwe1sp4CZPfYe2Sc9AcBb4jk", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
-                           { "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":False,"signatures":[], "managed_by":"SurBitcoin" },
+                           { "type":"cold", "address":"3Mpiabr6Vxnwe1sp4CZPfYe2Sc9AcBb4jk", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
+                           #{ "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":False,"signatures":[], "managed_by":"SurBitcoin" },
                        ]
                    }
                ]),
