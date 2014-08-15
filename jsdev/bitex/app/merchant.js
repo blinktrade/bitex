@@ -1544,8 +1544,8 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
     goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'),  '' + model.get('DefaultBrokerID') );
     this.onChangeBroker_();
   }
-  
-  repaint_broker();
+
+//  repaint_broker();
 
   var last_country_code = "";
   var number_of_countries = 0;

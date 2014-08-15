@@ -19,10 +19,10 @@ class RestApiHandler(tornado.web.RequestHandler):
        asks = []
 
        for order in md_subscriber.buy_side:
-           asks.append([order['price']/1e8, order['qty']/1e8])
+           bids.append([order['price']/1e8, order['qty']/1e8])
 
        for order in md_subscriber.sell_side:
-           bids.append([order['price']/1e8, order['qty']/1e8])
+           asks.append([order['price']/1e8, order['qty']/1e8])
 
        self.write(
             {

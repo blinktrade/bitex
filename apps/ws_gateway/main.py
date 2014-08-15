@@ -545,8 +545,6 @@ def main():
 
     application = WebSocketGatewayApplication(options)
 
-
-
     server = tornado.httpserver.HTTPServer(application)
     server.listen(options.port)
 
