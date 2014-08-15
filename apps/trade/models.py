@@ -2074,9 +2074,9 @@ def db_bootstrap(session):
                            'percent_fee':0.,
                            'fixed_fee':0,
                            'fields': [
-                               {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                               {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                               {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                               {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress',  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                               {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                               {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                ]
                        }
                    ],
@@ -2087,11 +2087,11 @@ def db_bootstrap(session):
                                 'percent_fee': 1.65,
                                 'fixed_fee': 0,
                                 'fields': [
-                                    {'side':'client', 'name': 'AccountType'  , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
-                                    {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
-                                    {'side':'client', 'name': 'VenezuelanID' , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
-                                    {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                    {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                    {'side':'client', 'name': 'AccountType'  , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                                    {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                                    {'side':'client', 'name': 'VenezuelanID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                                    {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                    {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                 ]
                             }, {
                                 'method':'bank-transfer',
@@ -2100,12 +2100,12 @@ def db_bootstrap(session):
                                 'percent_fee': 2.95,
                                 'fixed_fee': 0,
                                 'fields': [
-                                    {'side':'client', 'name': 'BankName'     ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
-                                    {'side':'client', 'name': 'AccountType'  ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
-                                    {'side':'client', 'name': 'AccountNumber',  'validator':'', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
-                                    {'side':'client', 'name': 'VenezuelanID' ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
-                                    {'side':'broker', 'name': 'TransactionID',  'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                    {'side':'broker', 'name': 'Link'         ,  'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                    {'side':'client', 'name': 'BankName'     ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
+                                    {'side':'client', 'name': 'AccountType'  ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                                    {'side':'client', 'name': 'AccountNumber',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                                    {'side':'client', 'name': 'VenezuelanID' ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                                    {'side':'broker', 'name': 'TransactionID',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                    {'side':'broker', 'name': 'Link'         ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                 ]
                             }
                    ]
@@ -2116,7 +2116,8 @@ def db_bootstrap(session):
                        "CurrencyDescription":"Bitcoin",
                        "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                        "Wallets": [
-                           { "type":"cold", "address":"3Mpiabr6Vxnwe1sp4CZPfYe2Sc9AcBb4jk", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
+                           { "type":"cold", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
+                           #{ "type":"cold", "address":"3Mpiabr6Vxnwe1sp4CZPfYe2Sc9AcBb4jk", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
                            { "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":False,"signatures":[], "managed_by":"SurBitcoin" },
                        ]
                    }
@@ -2127,13 +2128,13 @@ def db_bootstrap(session):
                ]) ,
                is_broker_hub=False,
                support_url='https://surbitcoin.zendesk.com',
-               tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
+               tos_url='/surbitcoin_tos.html',
                fee_structure=json.dumps([
                    { "Operation" : "Transferencia electronica",      "Fee":"2.95%"            , "Terms":u"Hecho al final del día" },
                    { "Operation" : "Transferencia Banco Mercantil",  "Fee":"1.65%"            , "Terms":u"Hecho al final del día" },
                    ]),
-               transaction_fee_buy=20, # 0.2%
-               transaction_fee_sell=20, # 0.2%
+               transaction_fee_buy=60, # 0.6%
+               transaction_fee_sell=60, # 0.6%
                status='1',
                ranking=5)
     session.add(e)
@@ -2164,9 +2165,9 @@ def db_bootstrap(session):
                                  'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress',  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
                              }
                          ],
@@ -2185,10 +2186,10 @@ def db_bootstrap(session):
                                    'percent_fee': 1.,
                                    'fixed_fee': int(.3 * 1e8), # $0.30
                                    'fields': [
-                                       {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
-                                       {'side':'client', 'name': 'RoutingNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
-                                       {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 888888' },
-                                       {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                       {'side':'client', 'name': 'BankName'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                                       {'side':'client', 'name': 'RoutingNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                                       {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 888888' },
+                                       {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
                                    ]
                                  }
                          ]
@@ -2254,9 +2255,9 @@ def db_bootstrap(session):
                                  'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
                              }
                          ],
@@ -2268,13 +2269,13 @@ def db_bootstrap(session):
                                  'percent_fee': 1.65,
                                  'fixed_fee': 0,
                                  'fields': [
-                                     {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
-                                     {'side':'client', 'name': 'AccountBranch', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
-                                     {'side':'client', 'name': 'CPF_CNPJ'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                     {'side':'client', 'name': 'BankNumber'   , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
+                                     {'side':'client', 'name': 'BankName'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
+                                     {'side':'client', 'name': 'AccountBranch', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
+                                     {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
+                                     {'side':'client', 'name': 'CPF_CNPJ'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
+                                     {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                  ]
                              }
                          ]
@@ -2335,9 +2336,9 @@ def db_bootstrap(session):
                                  'percent_fee': 0.,
                                  'fixed_fee':0,
                                  'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
                              }
                          ],
@@ -2349,12 +2350,12 @@ def db_bootstrap(session):
                                  'percent_fee': 1.5,
                                  'fixed_fee': int(35000 * 1e8), # Fr 35000,00
                                  'fields': [
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
-                                     {'side':'client', 'name': 'BankSwift'    , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
-                                     {'side':'client', 'name': 'RoutingNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                     {'side':'client', 'name': 'BankName'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                                     {'side':'client', 'name': 'BankSwift'    , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
+                                     {'side':'client', 'name': 'RoutingNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                                     {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                                     {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                  ]
                              },{
                                  'method':'scgen_xof_transfer',
@@ -2363,9 +2364,9 @@ def db_bootstrap(session):
                                  'percent_fee': 1.5,
                                  'fixed_fee': int(1000 * 1e8), # Fr 1000,00
                                  'fields': [
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                     {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                                     {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                  ]
                              },{
                                  'method':'paypal',
@@ -2385,7 +2386,7 @@ def db_bootstrap(session):
                                  'percent_fee': 1.5,
                                  'fixed_fee': int(3500 * 1e8), # Fr 3500,00
                                  'fields': [
-                                     {'side':'client',  'name': 'Email'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
+                                     {'side':'client',  'name': 'PhoneNumber'    , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Phone Number' , 'placeholder':'' },
                                      {'side':'broker',  'name': 'TransactionID'  , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
                                      {'side':'broker',  'name': 'Link'           , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
@@ -2476,12 +2477,12 @@ def db_bootstrap(session):
     session.commit()
 
   instruments = [
-    ['BTCUSD', 'USD', "BTC / USD" ],
+    #['BTCUSD', 'USD', "BTC / USD" ],
     #['BTCEUR', 'EUR', "BTC / EUR" ],
     #['BTCCNY', 'CNY', "BTC / CNY" ],
     #['BTCARS', 'ARS', "BTC / ARS" ],
     #['BTCGBP', 'GBP', "BTC / GBP" ],
-    ['BTCBRL', 'BRL', "BTC / BRL" ],
+    #['BTCBRL', 'BRL', "BTC / BRL" ],
     #['BTCJPY', 'JPY', "BTC / JPY" ],
     #['BTCRUB', 'RUB', "BTC / RUB" ],
     #['BTCRUB', 'INR', "BTC / INR" ],
@@ -2492,7 +2493,7 @@ def db_bootstrap(session):
     #['BTCILS', 'ILS', "BTC / ILS" ],
     #['BTCMXN', 'MXN', "BTC / MXN" ],
     ['BTCVEF', 'VEF', "BTC / VEF" ],
-    ['BTCXOF', 'XOF', "BTC / CFA Franc" ],
+    #['BTCXOF', 'XOF', "BTC / CFA Franc" ],
   ]
   for inst in instruments:
     if Instrument.get_instrument(session, inst[0]):

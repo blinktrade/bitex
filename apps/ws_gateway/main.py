@@ -209,14 +209,14 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 currency = req_msg.get('Currency')
 
                 secret = uuid.uuid4().hex
-                hot_wallet = self.get_broker_wallet('hot', currency)
+                cold_wallet = self.get_broker_wallet('cold', currency)
                 callback_url = options.callback_url + secret
-                if not hot_wallet:
+                if not cold_wallet:
                     return
 
                 parameters = urllib.urlencode({
                     'method': 'create',
-                    'address': hot_wallet,
+                    'address': cold_wallet,
                     'callback': callback_url,
                     'currency': currency
                 })

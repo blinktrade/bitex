@@ -118,8 +118,12 @@
         <strong>{$msg_broker['BusinessName']}</strong><br/>
         {$msg_broker['Address']}<br/>
         {$msg_broker['City']}, {$msg_broker['State']} {$msg_broker['ZipCode']} - {$msg_broker['Country']}<br/>
-        <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, {$msg_broker['PhoneNumber2']}{/if}<br/>
-        Skype: {$msg_broker['Skype']}<br/>
+        {if $msg_broker['PhoneNumber1']}
+          <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, {$msg_broker['PhoneNumber2']}{/if}<br/>
+        {/if}
+        {if $msg_broker['Skype']}
+          Skype: {$msg_broker['Skype']}<br/>
+        {/if}
         <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
       </address>
 
@@ -714,6 +718,11 @@
     {/if}
 
     <div class="withdraw-methods">
+     {if length($methods) == 0 }
+        <div class="alert alert-danger text-center">
+          {msg desc="Error message when the brokers doesn't have deposit methods"}We are not accepting deposits at this moment. We sorry for the inconvenience.{/msg}
+        </div>
+     {/if}
      {foreach $method in $methods }
         {if $force_method}
           {if $method['method'] == $force_method}
@@ -722,7 +731,7 @@
                 <div class="control-group">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
+                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
                   </div>
                 </div>
               {/if}

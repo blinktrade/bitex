@@ -1436,7 +1436,7 @@ bitex.app.BlinkTrade.prototype.onShowReceipt_ = function(e){
    * @desc Crypto Currency Withdraw deposit title
    */
   var MSG_SHOW_DEPOSIT_RECEIPT_DIALOG_TITLE =
-      goog.getMsg('Submission {$submissionID}', {submissionID : receiptData['SubmissionID'] });
+      goog.getMsg("Submission {$submissionid}", { submissionid : receiptData['SubmissionID'] });
 
 
   var dlg =  this.showDialog(bitex.templates.DepositReceiptDialogContent({depositReceiptList:receiptData['DepositReceipt']}),

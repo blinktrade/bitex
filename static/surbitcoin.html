@@ -4,21 +4,21 @@
       xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
   <meta charset="utf-8">
-  <title>SurBitcoin - Lo primero mercado de bitcoin en Venezuela.</title>
+  <title>SurBitcoin – El primer mercado de bitcoin de Venezuela.</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Buy and sell Crypto currencies.">
+  <meta name="description" content="Compra y Vende Bitcoins.">
 
   <meta name="keywords" content="bitcoin, bitcoin exchange, bitcoin decentralized exchange">
 
   <meta name="author" content="SurBitcoin">
 
-  <meta property="og:title" content="SurBitcoin - Decentralized bitcoin exchange">
+  <meta property="og:title" content="SurBitcoin –  Mercado de Bitcoin descentralizado">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://surbitcoin.com/">
-  <meta property="og:image" content="https://surbitcoin.com/images/surbitcoin_logo.png">
-  <meta property="og:description" content="Trade Bitcoins safely with a SurBitcoin Bitcoin broker.
+  <meta property="og:image" content="https://surbitcoin.com/images/surbitcoinbeta2.png">
+  <meta property="og:description" content=" Compre y venda  bitcoins de manera segura a traves de  SurBitcoin.
   The SurBitcoin community allows anyone to start their own brokerage in their home country and enforces
-  transparency and security among all of it's members.">
+La comunidad de SurBitcoin permite a cualquiera empezar su propia plataforma de compra y venta de bitcoins en su propia ciudad manteniendo la transparencia y seguridad para todos sus miembros.">
 
   <link rel="shortcut icon" href="./images/favicon.ico">
 
@@ -46,12 +46,9 @@
 
   <!-- bitex application -->
   <script src="./js/bitex_app_blink_trade.compiled.es.js" type="text/javascript"></script> <!--  -->
-  <!-- <script src="./js/bitex_app_blink_trade.compiled.pt_BR.js" type="text/javascript"></script>  <!--  -->
 
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <script src="https://code.highcharts.com/modules/exporting.js"></script>
-
-
 
 </head>
 
@@ -59,15 +56,15 @@
 <div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
-      <a class="brand" href="/start"><img src="/images/surbitcoin.png" style="
+      <a class="brand" href="/start"><img src="/images/surbitcoinbeta.png" style="
             height: 55px;
             margin-top: -10px;
             margin-bottom: -41px;
         "></a>
-      
+
       <ul class="nav navbar-nav pull-right">
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Mercado</a></li>
-        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Ingresa</a></li>
+        <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Ingresar</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Registrarse</a></li>
         <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn-link" style="padding: 6px 15px 10px;" >connect <i class="icon-white icon-repeat"></i></button></li>
       </ul>
@@ -85,8 +82,8 @@
 <!-- landing page-->
 <div id="start" class="page  row-fluid bitex-view">
   <header class="jumbotron">
-    <img src="/images/surbitcoin_logo.png" style="">
-    <p class="lead bitex-view-title bitex-view-title">Lo primero mercado de bitcoin en Venezuela.</p>
+    <img src="/images/surbitcoinbeta2.png" style="">
+    <p class="lead bitex-view-title bitex-view-title">El primer Mercado de Bitcoin de Venezuela.</p>
 
   </header>
 
@@ -94,12 +91,26 @@
   <div class="bitex-view-content">
     <div class="row bitex-hide-if-logged bitex-view-content" style="text-align: center;">
       <form action="" class="form-inline">
-        <label for="id_landing_username">Nombre de usuario:</label>
-        <input class="focus" id="id_landing_username" placeholder="" size="30" type="text">
-        <label for="id_landing_password">Contraseña:</label>
-        <input id="id_landing_password" placeholder="" size="30" type="password">
-        <button id="id_landing_signin" class="btn btn-success">Ingresa</button>
+        <div class="row-fluid">
+          <span>
+            <label for="id_landing_username">Nombre de usuario:</label>
+            <input class="focus" id="id_landing_username" placeholder="" size="30" type="text">
+          </span>
+          <span>
+            <label for="id_landing_password">Contraseña:</label>
+            <input id="id_landing_password" placeholder="" size="30" type="password">
+          </span>
+          <button id="id_landing_signin" class="btn btn-primary">Ingresar</button>
+
+        </div>
+        <div class="clearfix" style="height: 20px"></div>
+        <div class="row-fluid">
+          <span class="text-center">
+            <a href="" class="btn btn-success btn-large" data-switch-view="signup">Registrarse</a>
+          </span>
+        </div>
       </form>
+    </div>
     </div>
   </div>
 </div>
@@ -115,37 +126,37 @@
   <div class="bitex-view-content">
     <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
       <div class="control-group">
-        <label class="control-label">Username</label>
+        <label class="control-label">Nombre de usuario</label>
         <div class="controls">
           <input id="id_signup_username" name="Username" size="30" type="text" placeholder="">
-          <p class="help-block">Your username will be public available to everybody.</p>
+          <p class="help-block">Tu nombre de usuario sera publico a todos los miembros.</p>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">Email address</label>
+        <label class="control-label">Email</label>
         <div class="controls">
           <input id="id_signup_email" name="Email" size="30" type="text" placeholder="eg.: joe@doe.com">
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">Password</label>
+        <label class="control-label">contraseña</label>
         <div class="controls">
           <input id="id_signup_password" name="Password" size="30" type="password">
-          <p class="help-block">At least 8 characters</p>
+          <p class="help-block">Por lo menos 8 caracteres</p>
         </div>
       </div>
 
       <div class="control-group">
-        <label class="control-label">Confirm your password</label>
+        <label class="control-label">Confirme su contraseña</label>
         <div class="controls">
           <input id="id_signup_password2" name="Password2" size="30" type="password">
         </div>
       </div>
 
       <div class="control-group" style="">
-        <label class="control-label">Country</label>
+        <label class="control-label">Pais</label>
         <div class="controls">
           <select id="id_signup_country" name="country"></select>
         </div>
@@ -158,7 +169,7 @@
         </div>
       </div>
 
-      <div class="control-group" style="">
+      <div class="control-group" style="display: none">
         <label class="control-label">Broker</label>
         <div class="controls">
           <select id="id_signup_broker" name="broker"></select>
@@ -172,11 +183,11 @@
       </div>
 
       <div class="control-group">
-        <label class="control-label">Terms of service</label>
+        <label class="control-label">terminos del servicio</label>
         <div class="controls">
           <label class="checkbox">
             <input id="user_agreed_tos" name="" type="checkbox" checked>
-            I agree with <a href="#" data-switch-view="tos">terms terms of service</a>.
+            I agree with <a href="#" data-switch-view="tos">Terminos de servicio</a>.
           </label>
         </div>
       </div>
@@ -195,18 +206,18 @@
   <div class="page-header">
     <h1 class="bitex-view-title">Ingresar a SurBitcoin</h1>
   </div>
-  <p>Si todavía no te has registrado? <a href="#" data-switch-view="signup">Regístrate ahora</a></p>
+  <p>Si todavía no te has registrado <a href="#" data-switch-view="signup">Regístrate ahora</a></p>
   <div class="bitex-view-content">
       <form accept-charset="UTF-8" action="" method="post">
         <div class="clearfix">
-          <label for="id_username">Username</label>
+          <label for="id_username">Nombre de usuario</label>
           <div class="input"><input autocapitalize="off" autocorrect="off" id="id_username" name="username" type="text" placeholder=""></div>
         </div>
         <div class="clearfix">
-          <label for="id_password">Password</label>
+          <label for="id_password">contraseña</label>
           <div class="input"><input id="id_password"  placeholder="" name="password" type="password"></div>
         </div>
-        <p><a href="#" data-switch-view="forgot_password">Forgot your password?</a></p>
+        <p><a href="#" data-switch-view="forgot_password">olvidaste tu contraseña?</a></p>
         <div class="actions">
           <input id="id_btn_login"  class="btn btn-primary" name="commit" type="submit" value="Login">
         </div>
@@ -216,7 +227,7 @@
 
 <div id="forgot_password" class="page row bitex-view">
   <div class="page-header">
-    <h1 class="bitex-view-title">Password recovery</h1>
+    <h1 class="bitex-view-title">Recuperar contraseña</h1>
   </div>
    <div class="bitex-view-content">
       <form accept-charset="UTF-8" action="" method="post">
@@ -268,10 +279,10 @@
     }</script>
   </div>
 </div>
-  
+
 <div id="set_new_password" class="page  row bitex-view">
   <div class="page-header">
-    <h1 class="bitex-view-title">Set new password</h1>
+    <h1 class="bitex-view-title">escriba nueva contraseña</h1>
   </div>
   <div class="bitex-view-content">
     <form accept-charset="UTF-8" class="form-horizontal" id="redefine_new_password_form" method="post">
@@ -280,21 +291,21 @@
       <label class="control-label">Security code</label>
       <div class="controls">
         <input id="id_set_new_password_token" name="Email" size="30" type="text" placeholder="">
-        <p class="help-block">We just sent a security code to your email.</p>
+        <p class="help-block"> Uncodigo de seguridad fue enviado a su correo electronico.</p>
       </div>
 
     </div>
 
     <div class="control-group">
-      <label class="control-label">New password</label>
+      <label class="control-label">Nueva contraseña</label>
       <div class="controls">
         <input id="id_set_new_password_password" name="Password" size="30" type="password">
-        <p class="help-block">At least 8 characters</p>
+        <p class="help-block">Debe contener al menos 8 caracteres</p>
       </div>
     </div>
 
     <div class="control-group">
-      <label class="control-label">Confirm your password</label>
+      <label class="control-label">Confirme su contraseña</label>
       <div class="controls">
         <input id="id_set_new_password_password2" name="Password2" size="30" type="password">
       </div>
@@ -321,7 +332,7 @@
   </div>
 
   <div class="section-title">
-    <h3 class="bitex-view-title">Enable or Disable Two steps authentication</h3>
+    <h3 class="bitex-view-title">Activar o desactivar verificacion de dos pasos </h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -343,7 +354,7 @@
         </div>
 
         <div class="control-group">
-          <label class="control-label">Authentication code</label>
+          <label class="control-label">Codigo de verificacion </label>
           <div class="controls">
             <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
           </div>
@@ -406,7 +417,7 @@
 
 <div id="enable_two_factor" class="bitex-view">
   <div class="section-title">
-    <h3 class="bitex-view-title">Enable or Disable Two steps authentication</h3>
+    <h3 class="bitex-view-title">Activar o Desactivar los metodos de verificacion</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -428,7 +439,7 @@
         </div>
 
         <div class="control-group">
-          <label class="control-label">Authentication code</label>
+          <label class="control-label">codigo de verificacion</label>
           <div class="controls">
             <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
           </div>
@@ -436,8 +447,8 @@
 
       </form>
 
-      <button id="id_btn_enable_two_factor" class="btn btn-primary">Enable</button>
-      <button id="id_btn_disable_two_factor" class="btn btn-danger">Disable</button>
+      <button id="id_btn_enable_two_factor" class="btn btn-primary">Activar</button>
+      <button id="id_btn_disable_two_factor" class="btn btn-danger">Desactivar</button>
 
     </div>
 
@@ -453,7 +464,7 @@
 
 <div id="account_overview" class="bitex-view">
   <div class="section-title">
-    <h3 class="bitex-view-title">Account overview</h3>
+    <h3 class="bitex-view-title">Estado general de la cuenta</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -476,7 +487,7 @@
 
 <div id="withdraw">
   <div class="section-title">
-    <h3 class="bitex-view-title">Withdrawals</h3>
+    <h3 class="bitex-view-title">Retiro</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -488,7 +499,7 @@
 
 <div id="withdraw_requests">
   <div class="section-title">
-    <h3 class="bitex-view-title">Withdrawals requests</h3>
+    <h3 class="bitex-view-title">Solicitud de retiro</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -498,7 +509,7 @@
 
 <div id="deposit">
   <div class="section-title">
-    <h3 class="bitex-view-title">Deposits</h3>
+    <h3 class="bitex-view-title">Depositos</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -510,7 +521,7 @@
 
 <div id="deposit_requests">
   <div class="section-title">
-    <h3 class="bitex-view-title">Deposit requests</h3>
+    <h3 class="bitex-view-title">solicitud de deposito</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -520,7 +531,7 @@
 
 <div id="ledger">
   <div class="section-title">
-    <h3 class="bitex-view-title">Ledger</h3>
+    <h3 class="bitex-view-title">Libro de cuentas</h3>
   </div>
 
   <div class="content bitex-view-content">
@@ -539,7 +550,7 @@
 
 <div id="verification" class="bitex-view">
   <div class="section-title">
-    <h3 class="bitex-view-title">Verify your account</h3>
+    <h3 class="bitex-view-title">verifique su cuenta</h3>
   </div>
 
   <div class="bitex-view-content">
@@ -616,13 +627,13 @@
         <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
 -->
 
-        <li style="" class=""><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verify your account</a></li>
+        <li style="" class=""><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> verifique su cuente/a></li>
 <!--
-        <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Secure your account</a></li>
+        <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Asegure su cuenta</a></li>
 -->
         <li style="">
             <a href="" class="bitex-support-link" target="_blank" >
-                <i class="icon-envelope"></i> Suggestions & Support</a>
+                <i class="icon-envelope"></i> Soporte y sugerencias</a>
         </li>
         <li><a href="javascript:location.reload()"><i class="icon-signout"></i> Logout</a></li>
       </ul>
@@ -643,14 +654,14 @@
 
 <div id="tos" class="page row bitex-view">
   <div class="page-header">
-    <h1 class="bitex-view-title">Terms of service</h1>
+    <h1 class="bitex-view-title">Terminos del servicio</h1>
   </div>
   <div class="bitex-view-content well"></div>
 </div>
 
 <div id="ranking" class="page row bitex-view">
   <div class="page-header">
-    <h1 class="bitex-view-title">Best Bitcoin Traders</h1>
+    <h1 class="bitex-view-title">Mejores corredores de bitcoin </h1>
   </div>
   <div class="bitex-view-content well"></div>
 </div>
@@ -668,7 +679,7 @@
 </footer>
 
 <script>
-  var app = new BlinkTradeApp('VE', 89999999);
+  var app = new BlinkTradeApp('VE', 1);
   app.run();
 </script>
 
