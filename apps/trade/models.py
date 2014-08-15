@@ -361,6 +361,22 @@ class User(Base):
                             'verification_data': verification_data,
                             'broker_username': self.broker_username}))
       elif self.verified > 1:
+        # First 200 verified users of SurBitcoin will be awarded with 200 Bolivares Fuertes ( Aprox $500 ) to buy Bitcoins
+        Ledger.transfer(session,
+                        self.broker_id,            # from_account_id
+                        self.broker_username,      # from_account_name
+                        self.broker_id,            # from_broker_id
+                        self.broker_username,      # from_broker_name
+                        self.id,                   # to_account_id
+                        self.username,             # to_account_name
+                        self.broker_id,            # to_broker_id
+                        self.broker_username,      # to_broker_name
+                        'VEF',                     # currency
+                        200e8,                     # amount
+                        str(self.id),              # reference
+                        'B'                        # descriptions
+        )
+
         UserEmail.create( session = session,
                           user_id = self.id,
                           subject = u"AV",
@@ -2126,9 +2142,9 @@ def db_bootstrap(session):
                        "CurrencyDescription":"Bitcoin",
                        "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                        "Wallets": [
-                           { "type":"cold", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
+                           #{ "type":"cold", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
                            { "type":"cold", "address":"3Mpiabr6Vxnwe1sp4CZPfYe2Sc9AcBb4jk", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
-                           #{ "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":False,"signatures":[], "managed_by":"SurBitcoin" },
+                           { "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":False,"signatures":[], "managed_by":"SurBitcoin" },
                        ]
                    }
                ]),
