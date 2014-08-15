@@ -4,6 +4,7 @@ __author__ = 'rodrigo'
 
 import bisect
 
+import json
 import datetime
 from models import Trade, UserEmail
 
@@ -239,7 +240,7 @@ class OrderMatcher(object):
 
           formatted_total_price = Currency.format_number( session, price_currency, order.order_qty/1.e8 * order.price / 1.e8 )
 
-          email_subject =  u"Sua oferta número #%s de %s à %s foi executada!" % (order.id, formatted_qty, formatted_price)
+          email_subject =  'E'
           email_template = "order-execution"
           email_params = {
             'username': order.user.username,
