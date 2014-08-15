@@ -17,7 +17,7 @@ define("db_engine",  help="SQLAlchemy database engine string")
 define("test_mode", default=False, help="Test mode")
 define("satoshi_mode", default=False, help="Satoshi mode")
 define("dev_mode", default=False, help="Dev mode")
-define("global_email_language", default="ptBR", help="template email language")
+define("global_email_language", help="template email language")
 define("config", help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 from trade_application import application
@@ -27,6 +27,7 @@ def main():
   if not options.trade_in or \
      not options.trade_pub or \
      not options.trade_log or \
+     not options.global_email_language or \
      not options.db_engine:
     tornado.options.print_help()
     return
