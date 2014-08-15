@@ -25,7 +25,7 @@
     <translation id="8079786437184763749">Operacion</translation>
     <translation id="8927317210830853911">Descripcion</translation>
     <translation id="6437712364178588987">Cuenta</translation>
-    <translation id="1764424020363726678">Beneficiario</translation>
+    <translation id="1764424020363726678">Contraparte</translation>
     <translation id="7491030838264972358">Deposito</translation>
     <translation id="6371917383301427141">Retiro</translation>
     <translation id="4512252037284577414">Comision por deposito</translation>
@@ -181,8 +181,8 @@
     <translation id="1197921766103282777">para un total de</translation>
     <translation id="2999468557463542173">Fee</translation>
     <translation id="2224639673609998547">Precio por <ph name="cryptoCurrencyDescription"/>:</translation>
-    <translation id="4412003609716883584">quiero comprar</translation>
-    <translation id="2256231961966604601">Quiero comprar</translation>
+    <translation id="4412003609716883584">Quiero comprar</translation>
+    <translation id="2256231961966604601">Quiero vender</translation>
     <translation id="8282725871353943578">COMPRAR</translation>
     <translation id="798662724377115710">VENDER</translation>
     <!-- ../bitex/ui/simple_chart.soy.js -->
@@ -241,7 +241,7 @@
     <!-- ../bitex/app/url_router.js -->
     <!-- ../bitex/app/blinktrade.js -->
     <translation id="478409038932398772"><ph name="c"/> es requerido</translation>
-    <translation id="3379403690216515090"><ph name="c"/> no es una direccion de bitcoin valida</translation>
+    <translation id="3379403690216515090"><ph name="c"/> no es una dirección de bitcoin valida</translation>
     <translation id="1719443865812389312">senal de confirmacion invalida!</translation>
     <translation id="7066533100449529853">Confirmar</translation>
     <translation id="6832416610745317605">Error: <ph name="message"/></translation>
@@ -380,7 +380,7 @@
     <translation id="4950767338180077661">Cartera</translation>
     <translation id="7751382040323701583">Moneda</translation>
     <translation id="4805351876988617474">Tipo</translation>
-    <translation id="7533851232395619919">Direccion</translation>
+    <translation id="7533851232395619919">Dirección</translation>
     <translation id="8542947810217885061">Multi signature</translation>
     <translation id="1036654803205130460">Operado por</translation>
     <translation id="7780938860376937874">Si</translation>
@@ -416,7 +416,7 @@
     <translation id="3913856106384869212">Procesando su solicitud de retiro...</translation>
     <translation id="7216165792886101576">Powered by</translation>
     <translation id="4275766412235812418">IMPORTANTE!</translation>
-    <translation id="2269158700527633822">Le sera generado una direccion<ph name="currencydescription"/> unica que sera valida
+    <translation id="2269158700527633822">Le sera generado una dirección <ph name="currencydescription"/> unica que sera valida
         solo para esta trasaccion.
     </translation>
     <translation id="6765495350112825099">Entendio?</translation>
