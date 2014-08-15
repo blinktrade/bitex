@@ -382,6 +382,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.views_.decorate(document.body);
 
 
+  this.router_.addView( '(account_overview)/(\\w+)/$'   , accountOverviewView );
   this.router_.addView( '(start)'                       , startView           );
   this.router_.addView( '(set_new_password)'            , setNewPasswordView  );
   this.router_.addView( '(signin)'                      , loginView           );
@@ -396,7 +397,6 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.router_.addView( '(withdraw)'                    , withdrawView        );
 //  this.router_.addView( '(account_activity)'            , accountActivityView );
   this.router_.addView( '(customers)'                   , customersView       );
-  this.router_.addView( '(account_overview)/(\\w+)/$'   , accountOverviewView );
   this.router_.addView( '(verification)'                , verificationView    );
 //  this.router_.addView( '(enable_two_factor)'           , enableTwoFactorView );
   this.router_.addView( '(my_broker)'                   , brokerView          );
