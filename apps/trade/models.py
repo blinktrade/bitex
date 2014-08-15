@@ -270,7 +270,7 @@ class User(Base):
 
     UserEmail.create( session = session,
                       user_id = u.id,
-                      subject = u"Welcome to BitEX",
+                      subject = 'W',
                       template= "welcome",
                       language= 'ptBR',
                       params=  json.dumps({
@@ -347,7 +347,7 @@ class User(Base):
       if self.verified == 1:
         UserEmail.create( session = session,
                           user_id = self.broker_id,
-                          subject = u"Customer has submitted his data",
+                          subject = "VS",
                           template= "customer-verification-submit",
                           language= 'ptBR',
                           params=  json.dumps({
@@ -363,7 +363,7 @@ class User(Base):
       elif self.verified > 1:
         UserEmail.create( session = session,
                           user_id = self.id,
-                          subject = u"Your account has been verified",
+                          subject = u"AV",
                           template= "your-account-has-been-verified",
                           language= 'ptBR',
                           params=  json.dumps({
@@ -724,18 +724,13 @@ class Broker(Base):
   zip_code              = Column(String(12),    nullable=False)
   country_code          = Column(String(2),     nullable=False)
   country               = Column(String(20),    nullable=False)
-  phone_number_1        = Column(String(15),    nullable=False)
+  phone_number_1        = Column(String(15))
   phone_number_2        = Column(String(15))
-  skype                 = Column(String(30),    nullable=False)
+  skype                 = Column(String(30))
   email                 = Column(String(15))
 
   verification_jotform  = Column(String(255),    nullable=False)
   upload_jotform        = Column(String(255),    nullable=False)
-
-  # emails
-  withdraw_confirmation_email           = Column(String(255),    nullable=False)
-  withdraw_confirmation_email_subject   = Column(String(255),    nullable=False)
-
 
   withdraw_structure    = Column(Text,          nullable=False)
 
@@ -788,13 +783,13 @@ class Broker(Base):
     return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
            u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
-           u"fee_structure=%r, withdraw_structure=%r, withdraw_confirmation_email=%r,withdraw_confirmation_email_subject=%r , " \
+           u"fee_structure=%r, withdraw_structure=%r, " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r, support_url=%r, is_broker_hub=%r ,accept_customers_from=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
-      self.fee_structure , self.withdraw_structure, self.withdraw_confirmation_email, self.withdraw_confirmation_email_subject,
+      self.fee_structure , self.withdraw_structure,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from )
 
@@ -849,7 +844,7 @@ class UserPasswordReset(Base):
 
     UserEmail.create( session = session,
                       user_id = user_id,
-                      subject = u"Reset your password.",
+                      subject = "RP",
                       template= "password-reset",
                       language= 'ptBR',
                       params=  json.dumps({'token':token, 'username':req.user.username } ))
@@ -1069,7 +1064,7 @@ class Withdraw(Base):
 
     UserEmail.create( session = session,
                       user_id = self.user_id ,
-                      subject = u"Withdraw cancelled.",
+                      subject = "WC",
                       template=template_name,
                       language='ptBR',
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
@@ -1140,16 +1135,16 @@ class Withdraw(Base):
     if user.withdraw_email_validation:
       formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
 
-      template_name       = broker.withdraw_confirmation_email.replace('{method}', withdraw_record.method.lower())
-      template_parameters =  withdraw_record.as_dict()
+      template_name       = 'withdraw-confirmation-' + withdraw_record.method.lower()
+      template_parameters = withdraw_record.as_dict()
       template_parameters['amount'] = formatted_amount
 
-      UserEmail.create( session = session,
-                        user_id = user.id,
-                        subject =  broker.withdraw_confirmation_email_subject.replace('{currency}', currency),
-                        template=template_name,
-                        language='ptBR',
-                        params  = json.dumps(template_parameters, cls=JsonEncoder))
+      UserEmail.create( session  = session,
+                        user_id  = user.id,
+                        subject  = "CW",
+                        template = template_name,
+                        language = 'ptBR',
+                        params   = json.dumps(template_parameters, cls=JsonEncoder))
 
     else:
       withdraw_record.status = '1'
@@ -1875,7 +1870,7 @@ def db_bootstrap(session):
     session.commit()
 
   if not User.get_user(session, 'blinktrade'):
-    e = User(id=0,
+    e = User(id=8999999,
              username='blinktrade',
              email='admin@blinktrade.com',
              broker_id=None,
@@ -1891,10 +1886,10 @@ def db_bootstrap(session):
     session.commit()
 
   if not User.get_user(session, 'surbitcoin'):
-    e = User(id=9000000,
+    e = User(id=1,
              username='surbitcoin',
              email='admin@surbitcoin.com',
-             broker_id=0,
+             broker_id=8999999,
              broker_username='blinktrade',
              password=base64.b32encode(os.urandom(10)),
              country_code='VE',
@@ -1907,15 +1902,33 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
+  if not User.get_user(session, 'ubuntubitx'):
+    e = User(id=2,
+             username='ubuntubitx',
+             email='admin@ubuntubitx.com',
+             broker_id=8999999,
+             broker_username='blinktrade',
+             password=base64.b32encode(os.urandom(10)),
+             country_code='BJ',
+             state='',
+             transaction_fee_buy=60,
+             transaction_fee_sell=60,
+             verified=2,
+             is_staff=False,
+             is_system=False,
+             is_broker=True)
+    session.add(e)
+    session.commit()
+
 
   if options.test_mode:
     if not User.get_user(session, 'cryptos'):
-      e = User(id=9000001,
+      e = User(id=3,
                username='cryptos',
                email='admin@cryptos.com',
-               broker_id=0,
+               broker_id=8999999,
                broker_username='blinktrade',
-               password='abc12345',
+               password=base64.b32encode(os.urandom(10)),
                country_code='US',
                state='NY',
                transaction_fee_buy=60,
@@ -1928,32 +1941,14 @@ def db_bootstrap(session):
       session.commit()
 
     if not User.get_user(session, 'bitcointoyou'):
-      e = User(id=9000002,
+      e = User(id=4,
                username='bitcointoyou',
                email='andre@bitcointoyou.com',
-               broker_id=0,
+               broker_id=8999999,
                broker_username='blinktrade',
-               password='abc12345',
+               password=base64.b32encode(os.urandom(10)),
                country_code='BR',
                state='MG',
-               transaction_fee_buy=60,
-               transaction_fee_sell=60,
-               verified=2,
-               is_staff=False,
-               is_system=False,
-               is_broker=True)
-      session.add(e)
-      session.commit()
-
-    if not User.get_user(session, 'ubuntubitx'):
-      e = User(id=9000003,
-               username='ubuntubitx',
-               email='admin@ubuntubitx.com',
-               broker_id=0,
-               broker_username='blinktrade',
-               password='abc12345',
-               country_code='BJ',
-               state='',
                transaction_fee_buy=60,
                transaction_fee_sell=60,
                verified=2,
@@ -1979,16 +1974,14 @@ def db_bootstrap(session):
                phone_number_2=None,
                skype='blinktrade',
                email='support@blinktrade.com',
-               verification_jotform= user_verification_jotform +'?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+               verification_jotform=user_verification_jotform +'?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+               upload_jotform=upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='',
                withdraw_structure=json.dumps({}),
                crypto_currencies=json.dumps([]),
                accept_customers_from=json.dumps([['*'],[]]),
                is_broker_hub=True,
-               support_url='https://www.facebook.com/groups/bitex.support/',
-               withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-               withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+               support_url='https://www.facebook.com/groups/blinktrade.support/',
                tos_url=u'/tos.html',
                fee_structure="[]",
                transaction_fee_buy=0,
@@ -1998,8 +1991,8 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
-  if not Broker.get_broker(session, 0):
-    e = Broker(id=0,
+  if not Broker.get_broker(session, 8999999):
+    e = Broker(id=8999999,
                short_name=u'blinktrade',
                business_name=u'Blinktrade, Inc.',
                address=u'40 Broad St',
@@ -2045,8 +2038,6 @@ def db_bootstrap(session):
                accept_customers_from=json.dumps([['*'],[]]),
                is_broker_hub=True,
                support_url='https://www.facebook.com/groups/blinktrade.support/',
-               withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-               withdraw_confirmation_email_subject='[BlinkTrade] Confirm {currency} withdraw operation.',
                tos_url=u'/tos.html',
                fee_structure="[]",
                transaction_fee_buy=0,
@@ -2056,118 +2047,113 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
-    if not Broker.get_broker(session, 9000000):
-      e = Broker(id=9000000,
-                 short_name=u'surbitcoin',
-                 business_name=u'Inversiones V&K C.A.',
-                 address=u'Avenida Paseo Cabriales, Torre MovilNet. Local 5 y 6',
-                 signup_label='Sur Bitcoin',
-                 city='Valencia',
-                 state='Carabobo',
-                 zip_code='2001',
-                 country_code='VE',
-                 country='Venezuela',
-                 phone_number_1='+1 (347) 636-5925',
-                 phone_number_2='+1 (347) 593-9527',
-                 skype='N/A',
-                 email='support@surbitcoin.zendesk.com',
-                 verification_jotform= 'https://secure.jotform.us/form/41846537446968?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=58&&address[country]=Venezuela',
-                 upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
-                 currencies='VEF',
-                 withdraw_structure=json.dumps( {
-                     'BTC': [
-                         {
-                             'method':'bitcoin',
-                             'description':'Bitcoin withdrawal',
-                             'disclaimer': '',
-                             'percent_fee':0.,
-                             'fixed_fee':0,
-                             'fields': [
-                                 {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                 {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                 {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
-                                 ]
-                         }
-                     ],
-                     'VEF': [ {
-                                  'method':'mercantil_transfer',
-                                  'description':'Transferencia banco Mercantil',
-                                  'disclaimer':'',
-                                  'percent_fee': 1.65,
-                                  'fixed_fee': 0,
-                                  'fields': [
-                                      {'side':'client', 'name': 'AccountType'  , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
-                                      {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
-                                      {'side':'client', 'name': 'VenezuelanID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
-                                      {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                      {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
-                                  ]
-                              }, {
-                                  'method':'bank_transfer',
-                                  'description':'Transferencia electronica',
-                                  'disclaimer':'',
-                                  'percent_fee': 2.95,
-                                  'fixed_fee': 0,
-                                  'fields': [
-                                      {'side':'client', 'name': 'BankName'     ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
-                                      {'side':'client', 'name': 'AccountType'  ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
-                                      {'side':'client', 'name': 'AccountNumber',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
-                                      {'side':'client', 'name': 'VenezuelanID' ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
-                                      {'side':'broker', 'name': 'TransactionID',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                      {'side':'broker', 'name': 'Link'         ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
-                                  ]
-                              }
-                     ]
-                 }),
-                 crypto_currencies=json.dumps([
-                     {
-                         "CurrencyCode": "BTC",
-                         "CurrencyDescription":"Bitcoin",
-                         "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
-                         "Wallets": [
-                             { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":False,"signatures":[], "managed_by":"BitEx" },
-                             { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"BitEx" },
-                             ]
-                     }
-                 ]),
-                 accept_customers_from=json.dumps([
-                     [ "*", 'US'],  # everywhere, including US_NY
-                     [ "CU", "SO", "SD",  "NG", "IR", "KP" ], # Cuba, Somalia, Sudam, Nigeria, Iran, North Korea
-                 ]) ,
-                 is_broker_hub=False,
-                 support_url='https://surbitcoin.zendesk.com',
-                 withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-                 withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
-                 tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
-                 fee_structure=json.dumps([
-                     { "Operation" : "USPS Money Order deposit",       "Fee":"$5"               , "Terms":"30 minutes." },
-                     { "Operation" : "Check deposit",                  "Fee":"1%"               , "Terms":"3 business days" },
-                     { "Operation" : "Wire transfer deposit",          "Fee":"0.3%"             , "Terms":"Next business day" },
-                     { "Operation" : "Wire transfer withdraw",         "Fee":"0.3%"             , "Terms":"Next business day" },
-                     { "Operation" : "PayPal withdrawal",              "Fee":"0%"               , "Terms":"Instant" },
-                     ]),
-                 transaction_fee_buy=20, # 0.2%
-                 transaction_fee_sell=20, # 0.2%
-                 status='1',
-                 ranking=5)
-    if not Broker.get_broker(session, 89999999):
-        session.add(e)
-        session.commit()
+  if not Broker.get_broker(session, 1):
+    e = Broker(id=1,
+               short_name='surbitcoin',
+               business_name='Inversiones V&K C.A.',
+               address='Avenida Paseo Cabriales, Torre MovilNet. Local 5 y 6',
+               signup_label='SurBitcoin',
+               city='Valencia',
+               state='Carabobo',
+               zip_code='2001',
+               country_code='VE',
+               country='Venezuela',
+               phone_number_1='',
+               phone_number_2='',
+               skype='surbitcoin',
+               email='support@surbitcoin.zendesk.com',
+               verification_jotform= 'https://secure.jotform.us/form/41846537446968?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=58&address[country]=Venezuela',
+               upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+               currencies='VEF',
+               withdraw_structure=json.dumps( {
+                   'BTC': [
+                       {
+                           'method':'bitcoin',
+                           'description':'Bitcoin withdrawal',
+                           'disclaimer': '',
+                           'percent_fee':0.,
+                           'fixed_fee':0,
+                           'fields': [
+                               {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress',  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                               {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                               {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                               ]
+                       }
+                   ],
+                   'VEF': [ {
+                                'method':'mercantil-transfer',
+                                'description':'Transferencia Banco Mercantil',
+                                'disclaimer':'',
+                                'percent_fee': 1.65,
+                                'fixed_fee': 0,
+                                'fields': [
+                                    {'side':'client', 'name': 'AccountType'  , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                                    {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                                    {'side':'client', 'name': 'VenezuelanID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                                    {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                    {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                ]
+                            }, {
+                                'method':'bank-transfer',
+                                'description':'Transferencia electronica',
+                                'disclaimer':'',
+                                'percent_fee': 2.95,
+                                'fixed_fee': 0,
+                                'fields': [
+                                    {'side':'client', 'name': 'BankName'     ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Nombre del banco', 'placeholder': '' },
+                                    {'side':'client', 'name': 'AccountType'  ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Tipo de cuenta', 'placeholder':'' },
+                                    {'side':'client', 'name': 'AccountNumber',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Número de cuenta', 'placeholder':'8888 8888 8888 8888 8888' },
+                                    {'side':'client', 'name': 'VenezuelanID' ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Documento de identificación', 'placeholder':'ex. 888.888.888-88'},
+                                    {'side':'broker', 'name': 'TransactionID',  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                    {'side':'broker', 'name': 'Link'         ,  'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                ]
+                            }
+                   ]
+               }),
+               crypto_currencies=json.dumps([
+                   {
+                       "CurrencyCode": "BTC",
+                       "CurrencyDescription":"Bitcoin",
+                       "Confirmations":[ [0, 3e8, 1], [ 3e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                       "Wallets": [
+                           { "type":"cold", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
+                           #{ "type":"cold", "address":"3Mpiabr6Vxnwe1sp4CZPfYe2Sc9AcBb4jk", "multisig":True,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
+                           { "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":False,"signatures":[], "managed_by":"SurBitcoin" },
+                       ]
+                   }
+               ]),
+               accept_customers_from=json.dumps([
+                   [ "*", 'US'],  # everywhere, including US_NY
+                   [ "CU", "SO", "SD",  "NG", "IR", "KP" ], # Cuba, Somalia, Sudam, Nigeria, Iran, North Korea
+               ]) ,
+               is_broker_hub=False,
+               support_url='https://surbitcoin.zendesk.com',
+               tos_url='/surbitcoin_tos.html',
+               fee_structure=json.dumps([
+                   { "Operation" : "Transferencia electronica",      "Fee":"2.95%"            , "Terms":u"Hecho al final del día" },
+                   { "Operation" : "Transferencia Banco Mercantil",  "Fee":"1.65%"            , "Terms":u"Hecho al final del día" },
+                   ]),
+               transaction_fee_buy=60, # 0.6%
+               transaction_fee_sell=60, # 0.6%
+               status='1',
+               ranking=5)
+    session.add(e)
+    session.commit()
 
     if options.test_mode:
-      if not Broker.get_broker(session, 9000001):
-          e = Broker(id=9000001,
-                     short_name=u'NyBitcoinCenter',
-                     business_name=u'Bitcoin Center NYC',
+      if not Broker.get_broker(session, 3):
+          e = Broker(id=3,
+                     short_name=u'cryptos',
+                     business_name=u'Cryptos Ltd',
                      address=u'40 Broad Street',
-                     signup_label='New York Bitcoin Center Broker',
+                     signup_label='Cryptos Ltd',
                      city='New York',
                      state='NY',
                      zip_code='10004',
                      country_code='US',
                      country='United States',
-                     phone_number_1='+1 (646) 879-5357', phone_number_2=None, skype='XXXXX', email='NYCBitcoinCenter@gmail.com',
-                     verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+                     phone_number_1=None, phone_number_2=None, skype=None, email='admin@cryptos.com',
+                     verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=1',
                      upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                      currencies='USD',
                      withdraw_structure=json.dumps( {
@@ -2179,9 +2165,9 @@ def db_bootstrap(session):
                                  'percent_fee':0.,
                                  'fixed_fee':0,
                                  'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress',  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
                              }
                          ],
@@ -2200,10 +2186,10 @@ def db_bootstrap(session):
                                    'percent_fee': 1.,
                                    'fixed_fee': int(.3 * 1e8), # $0.30
                                    'fields': [
-                                       {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
-                                       {'side':'client', 'name': 'RoutingNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
-                                       {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 888888' },
-                                       {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                       {'side':'client', 'name': 'BankName'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                                       {'side':'client', 'name': 'RoutingNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                                       {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 888888' },
+                                       {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
                                    ]
                                  }
                          ]
@@ -2229,9 +2215,7 @@ def db_bootstrap(session):
                            "US_SD","US_TN","US_TX","US_UT","US_VE","US_VA","US_WA","US_WV","US_WI","US_WY"]
                      ]) ,
                      is_broker_hub=False,
-                     support_url='https://www.facebook.com/groups/bitex.support/',
-                     withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-                     withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
+                     support_url='https://www.facebook.com/groups/',
                      tos_url='https://dl.dropboxusercontent.com/u/29731093/cryptsy_tos.html',
                      fee_structure=json.dumps([
                          { "Operation" : "USPS Money Order deposit",       "Fee":"$5"               , "Terms":"30 minutes." },
@@ -2247,8 +2231,8 @@ def db_bootstrap(session):
           session.add(e)
           session.commit()
 
-      if not Broker.get_broker(session, 9000002):
-          e = Broker(id=9000002,
+      if not Broker.get_broker(session, 4):
+          e = Broker(id=4,
                      short_name=u'bitcointoyou',
                      business_name=u'Bitcoin to you - VIVAR TECNOLOGIA DA INFORMAÇÃO LTDA',
                      address=u'Rua João Pinheiro, 22 – Sala 104',
@@ -2313,8 +2297,6 @@ def db_bootstrap(session):
                      ]) ,
                      is_broker_hub=False,
                      support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
-                     withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-                     withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                      tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
                      fee_structure=json.dumps([
                          { "Operation" : u"Depósito em Reais",           "Fee":"1,65%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
@@ -2330,191 +2312,8 @@ def db_bootstrap(session):
           session.commit()
 
 
-      if not Broker.get_broker(session, 9000003):
-          e = Broker(id=9000003,
-                     short_name=u'tiagostruck',
-                     business_name=u'Tiago Struck.',
-                     address=u'Rua Barão do Rio Branco, XX Centro',
-                     signup_label=u'Tiago Struck - CPF 099.255.999-99',
-                     city=u'Jaraguá do Sul',
-                     state='SC',
-                     zip_code='89251-400',
-                     country_code='BR',
-                     country='Brazil',
-                     phone_number_1='+55 (47) 9914-0725', phone_number_2='+55 (47) 3055-9232', skype='tiagostruck', email='tiagostruck@dors.com.br',
-                     verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-                     upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
-                     currencies='BRL',
-                     withdraw_structure=json.dumps( {
-                         'BTC': [
-                             {
-                                 'method':'bitcoin',
-                                 'description':'Saque em Bitcoins',
-                                 'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
-                                 'percent_fee':0.,
-                                 'fixed_fee':0,
-                                 'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
-                                     ]
-                             }
-                         ],
-                         'BRL': [
-                             {
-                                 'method':'ted-doc',
-                                 'description':'Saque para conta bancária no Brasil',
-                                 'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
-                                 'percent_fee': 1.35,
-                                 'fixed_fee': 0,
-                                 'fields': [
-                                     {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
-                                     {'side':'client', 'name': 'AccountBranch', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
-                                     {'side':'client', 'name': 'CPF_CNPJ'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
-                                 ]
-                             },{
-                                 'method':'swift',
-                                 'description':'Saque para conta bancária no Exterior',
-                                 'disclaimer':'84 horas, Taxa de 1,35% + R$ 80,00  Apenas para usuários verificados',
-                                 'percent_fee': 1.35,
-                                 'fixed_fee': int(80 * 1e8), # R$ 80,00
-                                 'fields': [
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
-                                     {'side':'client', 'name': 'BankSwift'    , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
-                                     {'side':'client', 'name': 'RoutingNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
-                                 ]
-                             },
-                             ]
-                     }),
-                     crypto_currencies=json.dumps([
-                         {
-                             "CurrencyCode": "BTC",
-                             "CurrencyDescription":"Bitcoin",
-                             "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
-                             "Wallets": [
-                                 { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":True,"signatures":[], "managed_by":"Thiago Struck, BitEX" },
-                                 { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Thiago Struck" },
-                                 ]
-                         }
-                     ]),
-                     accept_customers_from=json.dumps([
-                         ["*"],  # The whole world
-                         [ ""]
-                     ]) ,
-                     is_broker_hub=False,
-                     support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
-                     withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-                     withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
-                     tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
-                     fee_structure=json.dumps([
-                         { "Operation" : u"Depósito em Reais no Brasil", "Fee":"1,35%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
-                         { "Operation" : u"Depósito em Reais via Swift", "Fee":"1,35%"            , "Terms":u"Até 84 horas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
-                         { "Operation" : u"Depósito em Bitcoin",         "Fee":"0%"               , "Terms":u"10 minutos após a confirmação de número 6 da rede Bitcoin" },
-                         { "Operation" : u"Saque em Bitcoin",            "Fee":"0%"               , "Terms":u"Automático e imediato ao utilizar autenticação em 2 passos para contas verificadas e feito manual com prazo de até 24 horas para contas não verificadas." },
-                         { "Operation" : u"Saque em Reais no Brasil",    "Fee":"1,35%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
-                         { "Operation" : u"Saque em Reais via Swift",    "Fee":"1,35% + R$ 80,00" , "Terms":u"Até 84 horas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
-                         ]),
-                     transaction_fee_buy=20, # 0.2%
-                     transaction_fee_sell=20, # 0.2%
-                     status='1',
-                     ranking=3)
-          session.add(e)
-          session.commit()
-
-
-
-      if not Broker.get_broker(session, 9000004):
-          e = Broker(id=9000004,
-                     short_name=u'rafaelffdias',
-                     business_name=u'Rafael Ferreira Felício Dias.',
-                     address=u'Rua dos Tamoios, Centro',
-                     signup_label='Rafael Dias - CPF 063.245.443-99',
-                     city='Belo Horizonte',
-                     state='MG',
-                     zip_code='30120-050',
-                     country_code='BR',
-                     country='Brazil',
-                     phone_number_1='+55 (31) 8742-1062', phone_number_2='+55 (31) 9243-2071', skype='rrafilsk', email='rafaelffdias@gmail.com',
-                     verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-                     upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
-                     currencies='BRL',
-                     withdraw_structure=json.dumps( {
-                         'BTC': [
-                             {
-                                 'method':'bitcoin',
-                                 'description':'Saque em Bitcoins',
-                                 'disclaimer': 'Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.',
-                                 'percent_fee':0.,
-                                 'fixed_fee':0,
-                                 'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
-                                     ]
-                             }
-                         ],
-                         'BRL': [
-                             {
-                                 'method':'ted-doc',
-                                 'description':'Saque para conta bancária no Brasil',
-                                 'disclaimer':'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
-                                 'percent_fee': .5,
-                                 'fixed_fee': 0,
-                                 'fields': [
-                                     {'side':'client', 'name': 'BankNumber'   , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número do banco', 'placeholder':'ex. 341' },
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Nome do banco', 'placeholder': 'ex. Banco Itaú' },
-                                     {'side':'client', 'name': 'AccountBranch', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Agência', 'placeholder':'ex. 8888' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Número da conta', 'placeholder':'ex. 88888-8' },
-                                     {'side':'client', 'name': 'CPF_CNPJ'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'CPF ou CNPJ', 'placeholder':'ex. 888.888.888-88'},
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
-                                 ]
-                             }
-                         ]
-                     }),
-                     crypto_currencies=json.dumps([
-                         {
-                             "CurrencyCode": "BTC",
-                             "CurrencyDescription":"Bitcoin",
-                             "Confirmations":[ [0, 1e8, 2], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
-                             "Wallets": [
-                                 { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":True,"signatures":[], "managed_by":"Thiago Struck, BitEX" },
-                                 { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":False,"signatures":[], "managed_by":"Thiago Struck" },
-                                 ]
-                         }
-                     ]),
-                     accept_customers_from=json.dumps([
-                         ["BR"],  # Only Brazil
-                         [ "*"]
-                     ]),
-                     is_broker_hub=False,
-                     support_url='https://bitcointoyou.zendesk.com/hc/pt-br',
-                     withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-                     withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
-                     tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
-                     fee_structure=json.dumps([
-                         { "Operation" : u"Depósito em Reais no Brasil", "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
-                         { "Operation" : u"Depósito em Bitcoin",         "Fee":"0%"              , "Terms":u"10 minutos após a confirmação de número 6 da rede Bitcoin" },
-                         { "Operation" : u"Saque em Bitcoin",            "Fee":"0%"              , "Terms":u"Automático e imediato ao utilizar autenticação em 2 passos para contas verificadas e feito manual com prazo de até 24 horas para contas não verificadas." },
-                         { "Operation" : u"Saque em Reais no Brasil",    "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." }
-                     ]),
-                     transaction_fee_buy=20, # 0.2%
-                     transaction_fee_sell=20, # 0.2%
-                     status='1',
-                     ranking=2)
-          session.add(e)
-          session.commit()
-
-          #
-      if not Broker.get_broker(session, 9000045):
-          e = Broker(id=9000045,
+      if not Broker.get_broker(session, 2):
+          e = Broker(id=2,
                      short_name=u'ubuntubitx',
                      business_name=u'U฿untu BitX',
                      address=u'1 Rue Du Succes Cotonou 01',
@@ -2537,9 +2336,9 @@ def db_bootstrap(session):
                                  'percent_fee': 0.,
                                  'fixed_fee':0,
                                  'fields': [
-                                     {'side':'client', 'name': 'Wallet'        , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
-                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress', 'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
                              }
                          ],
@@ -2551,12 +2350,12 @@ def db_bootstrap(session):
                                  'percent_fee': 1.5,
                                  'fixed_fee': int(35000 * 1e8), # Fr 35000,00
                                  'fields': [
-                                     {'side':'client', 'name': 'BankName'     , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
-                                     {'side':'client', 'name': 'BankSwift'    , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
-                                     {'side':'client', 'name': 'RoutingNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                     {'side':'client', 'name': 'BankName'     , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Banco name', 'placeholder': 'ex. JPMORGAN CHASE BANK, N.A' },
+                                     {'side':'client', 'name': 'BankSwift'    , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Swift code', 'placeholder': 'ex. CHASUS33' },
+                                     {'side':'client', 'name': 'RoutingNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Routing Number', 'placeholder':'ex. 021000021' },
+                                     {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                                     {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                  ]
                              },{
                                  'method':'scgen_xof_transfer',
@@ -2565,9 +2364,9 @@ def db_bootstrap(session):
                                  'percent_fee': 1.5,
                                  'fixed_fee': int(1000 * 1e8), # Fr 1000,00
                                  'fields': [
-                                     {'side':'client', 'name': 'AccountNumber', 'validator':'', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
-                                     {'side':'broker', 'name': 'TransactionID', 'validator':'', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
-                                     {'side':'broker', 'name': 'Link'         , 'validator':'', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
+                                     {'side':'client', 'name': 'AccountNumber', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Account Number', 'placeholder':'ex. 88888-8' },
+                                     {'side':'broker', 'name': 'TransactionID', 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'         , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""  , 'label':'Link', 'placeholder':'' }
                                  ]
                              },{
                                  'method':'paypal',
@@ -2587,7 +2386,7 @@ def db_bootstrap(session):
                                  'percent_fee': 1.5,
                                  'fixed_fee': int(3500 * 1e8), # Fr 3500,00
                                  'fields': [
-                                     {'side':'client',  'name': 'Email'          , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Email'        , 'placeholder':'' },
+                                     {'side':'client',  'name': 'PhoneNumber'    , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Phone Number' , 'placeholder':'' },
                                      {'side':'broker',  'name': 'TransactionID'  , 'validator':'', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
                                      {'side':'broker',  'name': 'Link'           , 'validator':'', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
                                      ]
@@ -2611,8 +2410,6 @@ def db_bootstrap(session):
                      ]),
                      is_broker_hub=False,
                      support_url='https://ubuntubitx.zendesk.com',
-                     withdraw_confirmation_email = 'withdraw-confirmation-{method}',
-                     withdraw_confirmation_email_subject='[BitEx] Confirm {currency} withdraw operation.',
                      tos_url='https://dl.dropboxusercontent.com/u/29731093/bitex/b2u.html',
                      fee_structure=json.dumps([
                          { "Operation" : u"Depósito em Reais no Brasil", "Fee":"0,5%"            , "Terms":u"Até 24 horas, geralmente em 15 minutos para contas verificadas.  NÃO DISPONÍVEL PARA CONTAS NÃO VERIFICADAS." },
@@ -2706,24 +2503,10 @@ def db_bootstrap(session):
     session.commit()
 
 
-  # create 1000 test users for the NYC Bitcoin Center - Satoshi square
-  #for x in xrange(2, 2000):
-  #  if not User.get_user(session, str(x)):
-  #    e = User(id=x, username=str(x), email= str(x) + '@nybitcoincenter.com',  broker_id=9000001, broker_username='nybitcoincenter', password='password' + str(x),
-  #             country_code='US', state='NY',
-  #             verified=1, is_staff=False, is_system=False, is_broker=False)
-  #    session.add(e)
-  #
-  #    # credit each user with 100 BTC, 100k USD and 200k BRL
-  #    Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'BTC', 100e8   , 'BONUS' )
-  #    Ledger.deposit(session, x, str(x), x, str(x), 9000001, 'nybitcoincenter', 9000001, 'nybitcoincenter', 'USD', 100000e8, 'BONUS' )
-  #    session.commit()
-
   if options.test_mode:
-
-    if not DepositMethods.get_deposit_method(session, 90000009 ):
-      bo = DepositMethods(id=90000009,
-                          broker_id=89999999,
+    if not DepositMethods.get_deposit_method(session, 101 ):
+      bo = DepositMethods(id=101,
+                          broker_id=1,
                           name="la_check",
                           description=u'Check',
                           disclaimer=u'3 dias habiles.',
@@ -2743,13 +2526,13 @@ def db_bootstrap(session):
                             'address_line_1': 'Valencia, Carabobo',
                             'address_line_2': 'Avenida Paseo Cabriales , Torre Movilnet oficina international warrioirs c.a.',
                             'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
-                            } ) )
+                          } ) )
       session.add(bo)
       session.commit()
 
-    if not DepositMethods.get_deposit_method(session, 90000008 ):
-      bo = DepositMethods(id=90000008,
-                          broker_id=89999999,
+    if not DepositMethods.get_deposit_method(session, 102 ):
+      bo = DepositMethods(id=102,
+                          broker_id=1,
                           name="wire_transfer_la",
                           description=u'Trasferencia Bancaria',
                           disclaimer=u'3 dias habiles',
@@ -2773,15 +2556,15 @@ def db_bootstrap(session):
                             'additional_line_2': 'Email: bitexvenezuela@gmail.com',
                             'disclaimer': u"Cuando usted reliza un pago a traves de nuestro banco asociado "
                                           u"(Banco Mercantil) su dinero es reflejado con mayor rapidez que si usted"
-                                          u" realiza un pago a traves de un tercer banco",
+                                          u" realiza un pago atraves de un tercer banco",
                             } ) )
       session.add(bo)
       session.commit()
 
 
-    if not DepositMethods.get_deposit_method(session, 90000010 ):
-      bo = DepositMethods(id=90000010,
-                         broker_id=9000001,
+    if not DepositMethods.get_deposit_method(session, 301 ):
+      bo = DepositMethods(id=301,
+                         broker_id=3,
                          name="wire_transfer_usa",
                          description=u'Wire transfer',
                          disclaimer=u'1 business day.',
@@ -2807,9 +2590,9 @@ def db_bootstrap(session):
       session.add(bo)
       session.commit()
 
-    if not DepositMethods.get_deposit_method(session, 90000011 ):
-      bo = DepositMethods(id=90000011,
-                          broker_id=9000001,
+    if not DepositMethods.get_deposit_method(session, 302 ):
+      bo = DepositMethods(id=302,
+                          broker_id=3,
                           name="usps_money_order",
                           description=u'USPS Money Order',
                           disclaimer=u'1 business day.',
@@ -2834,9 +2617,9 @@ def db_bootstrap(session):
       session.commit()
 
 
-    if not DepositMethods.get_deposit_method(session, 90000012 ):
-      bo = DepositMethods(id=90000012,
-                          broker_id=9000001,
+    if not DepositMethods.get_deposit_method(session, 303 ):
+      bo = DepositMethods(id=303,
+                          broker_id=3,
                           name="usa_check",
                           description=u'Check',
                           disclaimer=u'3 business days.',
@@ -2861,10 +2644,10 @@ def db_bootstrap(session):
       session.commit()
 
 
-    if not DepositMethods.get_deposit_method(session, 90000020 ):
-      bo = DepositMethods(id=90000020,
+    if not DepositMethods.get_deposit_method(session, 401 ):
+      bo = DepositMethods(id=401,
                           name="boleto_itau",
-                          broker_id=9000002,
+                          broker_id=4,
                           description=u'Boleto Bancário - Banco Itau',
                           disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                           type='BBS',
@@ -2918,9 +2701,9 @@ def db_bootstrap(session):
 
 
 
-      if not DepositMethods.get_deposit_method(session, 90000021 ):
-        bo = DepositMethods(id=90000021,
-                          broker_id=9000002,
+      if not DepositMethods.get_deposit_method(session, 402 ):
+        bo = DepositMethods(id=402,
+                          broker_id=4,
                           name="deposito_itau",
                           description=u'Depósito Bancário - Banco Itaú',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
@@ -2947,9 +2730,9 @@ def db_bootstrap(session):
       session.add(bo)
       session.commit()
 
-    if not DepositMethods.get_deposit_method(session, 90000022 ):
-      bo = DepositMethods(id=90000022,
-                          broker_id=9000002,
+    if not DepositMethods.get_deposit_method(session, 403 ):
+      bo = DepositMethods(id=403,
+                          broker_id=4,
                           name="deposito_bradesco",
                           description=u'Depósito Bancário - Banco Bradesco',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
@@ -2978,10 +2761,10 @@ def db_bootstrap(session):
 
 
 
-    if not DepositMethods.get_deposit_method(session, 90000030 ):
-      bo = DepositMethods(id=90000030,
+    if not DepositMethods.get_deposit_method(session, 404 ):
+      bo = DepositMethods(id=404,
                           name="boleto_itau",
-                          broker_id=9000003,
+                          broker_id=4,
                           description=u'Boleto Bancário - Banco Itau',
                           disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                           type='BBS',
@@ -3033,9 +2816,9 @@ def db_bootstrap(session):
       session.add(bo)
       session.commit()
 
-    if not DepositMethods.get_deposit_method(session, 90000031 ):
-      bo = DepositMethods(id=90000031,
-                          broker_id=9000003,
+    if not DepositMethods.get_deposit_method(session, 405 ):
+      bo = DepositMethods(id=405,
+                          broker_id=4,
                           name="deposito_bradesco",
                           description=u'Depósito Bancário - Banco Bradesco',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
@@ -3066,10 +2849,10 @@ def db_bootstrap(session):
 
 
 
-    if not DepositMethods.get_deposit_method(session, 90000040 ):
-      bo = DepositMethods(id=90000040,
+    if not DepositMethods.get_deposit_method(session, 406 ):
+      bo = DepositMethods(id=406,
                           name="boleto_itau",
-                          broker_id=9000004,
+                          broker_id=4,
                           description=u'Boleto Bancário - Banco Itau',
                           disclaimer=u'Pagável em qualquer banco, lotérica ou agência dos correiros. Confirmação em 1 dia útil caso você pague em uma agência Itaú, caso contrário 4 dias úteis. ',
                           type='BBS',
@@ -3121,9 +2904,9 @@ def db_bootstrap(session):
       session.add(bo)
       session.commit()
 
-    if not DepositMethods.get_deposit_method(session, 90000041 ):
-      bo = DepositMethods(id=90000041,
-                          broker_id=9000004,
+    if not DepositMethods.get_deposit_method(session, 407 ):
+      bo = DepositMethods(id=407,
+                          broker_id=4,
                           name="deposito_bradesco",
                           description=u'Depósito Bancário - Banco Bradesco',
                           disclaimer=u'Até 24 horas, geralmente em 15 minutos. Taxa de 1,65%.  Apenas para usuários verificados',
