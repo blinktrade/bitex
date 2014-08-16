@@ -25,6 +25,7 @@ bitex.view.AccountOverview = function(app, opt_domHelper) {
   this.deposit_data_ = null;
   this.qr_data_ = null;
   this.qr_data_verb_ = null;
+  this.verification_data_ = null;
 };
 goog.inherits(bitex.view.AccountOverview, bitex.view.View);
 
@@ -335,6 +336,33 @@ bitex.view.AccountOverview.prototype.recreateComponents_ = function(customer) {
                  this.onVerifyCustomerResponse_);
 
   this.getApplication().getBitexConnection().requestBalances( customer['ID'] );
+
+
+  this.recreateUserFeeComponents_(customer);
+};
+
+/**
+ * @param {Object} customer
+ * @private
+ */
+bitex.view.AccountOverview.prototype.recreateUserFeeComponents_ = function(customer) {
+  var buy_fee = customer['TransactionFeeBuy'];
+  var sell_fee = customer['TransactionFeeSell'];
+
+  if (!goog.isDefAndNotNull(buy_fee) ) {
+    buy_fee = 'None';
+  }
+
+  if (!goog.isDefAndNotNull(sell_fee) ) {
+    sell_fee = 'None';
+  }
+
+  var account_overview_fees_balances_el = goog.dom.getElement('account_overview_fees_balances_id');
+
+  goog.soy.renderElement(account_overview_fees_balances_el,bitex.templates.YourFeesBalances, {
+      buy_fee: buy_fee,
+      sell_fee: sell_fee
+  });
 };
 
 
@@ -468,7 +496,6 @@ bitex.view.AccountOverview.prototype.onVerifyCustomerResponse_ = function(e) {
 
   var verified_data_el = goog.dom.getElementByClass('account-overview-verified',
                                                  goog.dom.getElement('account_overview_header_id') );
-
   goog.dom.removeChildren(verified_data_el);
   goog.dom.appendChild(verified_data_el, new_verified_data_el);
 };
@@ -478,7 +505,11 @@ bitex.view.AccountOverview.prototype.onVerifyCustomerResponse_ = function(e) {
  */
 bitex.view.AccountOverview.prototype.onBtnUserFeesClick_ = function(e) {
   var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
-  var dlg_content = bitex.templates.UserFeesDialogContent({id: "id_user_fees", buy_fee:selectedCustomer['TransactionFeeBuy'], sell_fee:selectedCustomer['TransactionFeeSell']}) ;
+
+  var buy_fee = selectedCustomer['TransactionFeeBuy'];
+  var sell_fee = selectedCustomer['TransactionFeeSell']
+
+  var dlg_content = bitex.templates.UserFeesDialogContent({id: "id_user_fees", buy_fee:buy_fee, sell_fee:sell_fee}) ;
 
   /**
    * @desc user custom fees
@@ -489,21 +520,92 @@ bitex.view.AccountOverview.prototype.onBtnUserFeesClick_ = function(e) {
                                                    MSG_USER_FEES_DIALOG_TITLE,
                                                    bootstrap.Dialog.ButtonSet.createOkCancel());
 
+  if (goog.isDefAndNotNull(buy_fee)) {
+    goog.dom.getElement('id_user_fees_buy_fee').disabled = false;
+    goog.dom.getElement('id_user_fees_broker_buy_fee').checked = false;
+    goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_buy_fee'), buy_fee );
+  }
+  else {
+    goog.dom.getElement('id_user_fees_buy_fee').disabled = true;
+    goog.dom.getElement('id_user_fees_broker_buy_fee').checked = true;
+    goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_buy_fee'), 'None' );
+  }
+
+  if (goog.isDefAndNotNull(sell_fee)) {
+    goog.dom.getElement('id_user_fees_sell_fee').disabled = false;
+    goog.dom.getElement('id_user_fees_broker_sell_fee').checked = false;
+    goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_sell_fee'), sell_fee );
+  }
+  else {
+    goog.dom.getElement('id_user_fees_sell_fee').disabled = true;
+    goog.dom.getElement('id_user_fees_broker_sell_fee').checked = true;
+    goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_sell_fee'), 'None' );
+  }
 
   var handler = this.getHandler();
+
+  handler.listen(goog.dom.getElement("id_user_fees_broker_buy_fee" ), goog.events.EventType.CLICK, function(e) {
+
+        if (e.target.checked) {
+            goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_buy_fee'), 'None' );
+            goog.dom.getElement('id_user_fees_buy_fee').disabled = true;
+        }
+        else {
+            if (goog.isDefAndNotNull(buy_fee)) {
+                goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_buy_fee'), buy_fee );
+            }
+            else {
+              goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_buy_fee'), '0' );
+            }
+            goog.dom.getElement('id_user_fees_buy_fee').disabled = false;
+        }
+
+  });
+
+  handler.listen(goog.dom.getElement("id_user_fees_broker_sell_fee" ), goog.events.EventType.CLICK, function(e) {
+
+        if (e.target.checked) {
+            goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_sell_fee'), 'None' );
+            goog.dom.getElement('id_user_fees_sell_fee').disabled = true;
+        }
+        else {
+            if (goog.isDefAndNotNull(sell_fee)) {
+                goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_sell_fee'), sell_fee );
+            }
+            else {
+              goog.dom.forms.setValue( goog.dom.getElement('id_user_fees_sell_fee'), '0' );
+            }
+            goog.dom.getElement('id_user_fees_sell_fee').disabled = false;
+        }
+
+  });
+
   handler.listenOnce(userFeesDialog, goog.ui.Dialog.EventType.SELECT, function(e) {
     if (e.key == 'ok') {
-      var fee_buy = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_buy_fee" ) );
-      var fee_sell = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_sell_fee" ) );
-      var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
-      var conn = this.getApplication().getBitexConnection();
-      conn.updateUserProfile({ 'TransactionFeeBuy': fee_buy, 'TransactionFeeSell': fee_sell }, selectedCustomer['ID']);
 
-      selectedCustomer['TransactionFeeBuy'] = fee_buy;
-      selectedCustomer['TransactionFeeSell'] = fee_sell;
+      var new_fee_buy = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_buy_fee" ) );
+      var new_fee_sell = goog.dom.forms.getValue( goog.dom.getElement("id_user_fees_sell_fee" ) );
+
+      var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+
+      var conn = this.getApplication().getBitexConnection();
+
+      if ( new_fee_buy == 'None' ) {
+        new_fee_buy = null;
+      }
+
+      if ( new_fee_sell == 'None' ) {
+        new_fee_sell = null;
+      }
+
+      conn.updateUserProfile({ 'TransactionFeeBuy': new_fee_buy, 'TransactionFeeSell': new_fee_sell }, selectedCustomer['ID']);
+
+      selectedCustomer['TransactionFeeBuy'] = new_fee_buy;
+      selectedCustomer['TransactionFeeSell'] = new_fee_sell;
 
       this.getApplication().getModel().set('SelectedCustomer', selectedCustomer);
 
+      this.recreateUserFeeComponents_(selectedCustomer);
     }
   }, this);
 
@@ -548,6 +650,12 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
 
         break;
+      case 'SET_NOT_VERIFIED':
+
+        this.client_id_ =  goog.string.toNumber(selectedCustomer['ID']);
+        this.dispatchEvent(bitex.view.View.EventType.SET_NOT_VERIFIED);
+        break;
+
       case 'SET_VERIFIED':
         /** @desc Verification Data Dialog content title */
         var MSG_VERIFICATION_DATA_DIALOG_TITLE = goog.getMsg('Enter verification data');
@@ -567,14 +675,16 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
             if ( goog.isDefAndNotNull(verification_data['VerificationData']) &&
                 !goog.string.isEmpty(verification_data['VerificationData']) ) {
+
               this.client_id_ =  goog.string.toNumber(verification_data['ClientID']);
               this.verification_data_ = verification_data['VerificationData'];
+
               this.dispatchEvent(bitex.view.View.EventType.SET_VERIFIED);
 
               dlg.dispose();
             }
           }
-        });
+        }, this);
 
 
         break;

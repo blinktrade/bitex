@@ -499,6 +499,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
   handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_);
+  handler.listen(this.views_, bitex.view.View.EventType.SET_NOT_VERIFIED, this.onBrokerSetUserNotVerified_);
   handler.listen(this.views_, bitex.view.View.EventType.SET_WITHDRAW_EMAIL, this.onBrokerSetWithdrawEmailConfirmation_);
 
   this.connectBitEx();
@@ -1110,6 +1111,23 @@ bitex.app.BlinkTrade.prototype.onBrokerSetWithdrawEmailConfirmation_ = function(
   var verification_data = e.target.getVerificationData();
   this.conn_.updateUserProfile(verification_data, client_id);
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onBrokerSetUserNotVerified_ = function(e){
+  var request_id = e.target.getRequestId();
+  var client_id = e.target.getClientID();
+
+  /**
+   * @desc set as not verified by the broker ß
+   */
+  var MSG_USER_NOT_VERIFIED = goog.getMsg('Set as Not verified by the broker');
+
+  this.conn_.verifyCustomer(request_id, client_id, 0, MSG_USER_NOT_VERIFIED);
+};
+
 
 /**
  * @param {goog.events.Event} e
@@ -2544,7 +2562,7 @@ bitex.app.BlinkTrade.prototype.onBrokerListResponse_ =  function(e){
   this.model_.set('BrokerList', broker_list);
 
   var current_view = location.pathname.replace('/', '');
-  if ( current_view ) {
+  if ( current_view && current_view.indexOf('.html') == '-1' ) {
     this.router_.setView(current_view);
   }
 
