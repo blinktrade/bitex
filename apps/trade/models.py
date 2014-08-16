@@ -1938,10 +1938,8 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
-
-  if options.test_mode:
-    if not User.get_user(session, 'cryptos'):
-      e = User(id=3,
+  if not User.get_user(session, 'cryptos'):
+    e = User(id=3,
                username='cryptos',
                email='admin@cryptos.com',
                broker_id=8999999,
@@ -1955,9 +1953,10 @@ def db_bootstrap(session):
                is_staff=False,
                is_system=False,
                is_broker=True)
-      session.add(e)
-      session.commit()
+    session.add(e)
+    session.commit()
 
+  if options.test_mode:
     if not User.get_user(session, 'bitcointoyou'):
       e = User(id=4,
                username='bitcointoyou',
@@ -2161,8 +2160,7 @@ def db_bootstrap(session):
     session.add(e)
     session.commit()
 
-    if options.test_mode:
-      if not Broker.get_broker(session, 3):
+    if not Broker.get_broker(session, 3):
           e = Broker(id=3,
                      short_name=u'cryptos',
                      business_name=u'Cryptos Ltd',
@@ -2253,6 +2251,7 @@ def db_bootstrap(session):
           session.add(e)
           session.commit()
 
+    if options.test_mode:
       if not Broker.get_broker(session, 4):
           e = Broker(id=4,
                      short_name=u'bitcointoyou',

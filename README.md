@@ -11,6 +11,7 @@ $ easy_install pyzmq
 $ easy_install tornado
 $ easy_install crypto
 $ easy_install sqlalchemy
+$ easy_install requests
 
 $ cd ./jsdev
 $ ./build_release.sh  # Or ./build_release.bat [Windows]
