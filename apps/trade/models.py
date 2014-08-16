@@ -1076,9 +1076,16 @@ class Withdraw(Base):
 
     formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
 
+    balance =  Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
+    formatted_balance = Currency.format_number( session, self.currency, balance  / 1.e8 )
+
     template_name       = "withdraw-cancelled"
     template_parameters = self.as_dict()
     template_parameters['amount'] = formatted_amount
+    template_parameters['reason_id'] = reason_id
+    template_parameters['reason'] = reason
+    template_parameters['balance'] = formatted_balance
+
 
     UserEmail.create( session = session,
                       user_id = self.user_id ,
