@@ -350,7 +350,7 @@
 
       <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Buy fee {/msg}</label>
       <div class="controls">
-        <input id="{$id}_buy_fee_percent"  style="text-align: right;" value="{$buy_fee}"/>
+        <input id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
         <div class="checkbox">
           <label>
             <input type="checkbox"> Use Broker Fee
@@ -362,7 +362,7 @@
     <div class="control-group">
       <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Sell fee{/msg}</label>
       <div class="controls">
-        <input id="{$id}_sell_fee_percent"  style="text-align: right;" value="{$sell_fee}"/>
+        <input id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
           <div class="checkbox">
             <label>
               <input type="checkbox"> Use Broker Fee
@@ -857,11 +857,12 @@
   */
 {template .AccountOverviewHeaderVerifiedData}
  {if $msg_customer_detail['Verified'] == 2 }
-    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span> {$msg_customer_detail['VerificationData']}
+    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
+    {$msg_customer_detail['VerificationData']}
  {else}
     {if $msg_customer_detail['Verified'] == 1 }
-      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span> <a
-        href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a> {$msg_customer_detail['VerificationData']}
+      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span>
+      <a href="#" class="btn btn-primary btn-mini" data-action="SET_NOT_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as NOT verified{/msg}<i class="icon-white icon-remove"></i></a>
     {else}
       <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span> <a
         href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>

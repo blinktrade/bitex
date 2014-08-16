@@ -1111,7 +1111,7 @@ bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, ver
     'VerifyCustomerReqID': requestId,
     'ClientID': clientId,
     'Verify':  verify,
-    'VerificationData': verificationData
+    'VerificationData': "-"
   };
   this.sendMessage(msg);
   return requestId;

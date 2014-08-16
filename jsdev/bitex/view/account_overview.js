@@ -25,6 +25,7 @@ bitex.view.AccountOverview = function(app, opt_domHelper) {
   this.deposit_data_ = null;
   this.qr_data_ = null;
   this.qr_data_verb_ = null;
+  this.verification_data_ = null;
 };
 goog.inherits(bitex.view.AccountOverview, bitex.view.View);
 
@@ -395,6 +396,7 @@ bitex.view.AccountOverview.prototype.getClientID = function() {
  * @return {String}
  */
 bitex.view.AccountOverview.prototype.getVerificationData = function() {
+  console.log('yo:', this);
   return this.verification_data_;
 };
 
@@ -468,7 +470,6 @@ bitex.view.AccountOverview.prototype.onVerifyCustomerResponse_ = function(e) {
 
   var verified_data_el = goog.dom.getElementByClass('account-overview-verified',
                                                  goog.dom.getElement('account_overview_header_id') );
-
   goog.dom.removeChildren(verified_data_el);
   goog.dom.appendChild(verified_data_el, new_verified_data_el);
 };
@@ -548,6 +549,12 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
 
         break;
+      case 'SET_NOT_VERIFIED':
+
+        this.client_id_ =  goog.string.toNumber(selectedCustomer['ID']);
+        this.dispatchEvent(bitex.view.View.EventType.SET_NOT_VERIFIED);
+        break;
+
       case 'SET_VERIFIED':
         /** @desc Verification Data Dialog content title */
         var MSG_VERIFICATION_DATA_DIALOG_TITLE = goog.getMsg('Enter verification data');
@@ -564,17 +571,23 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
             var verification_data = bitex.util.getFormAsJSON(goog.dom.getFirstElementChild(dlg.getContentElement()));
             //console.log(goog.debug.deepExpose(verification_data));
+            console.log(verification_data);
+            console.log(this.verification_data_);
 
             if ( goog.isDefAndNotNull(verification_data['VerificationData']) &&
                 !goog.string.isEmpty(verification_data['VerificationData']) ) {
+
               this.client_id_ =  goog.string.toNumber(verification_data['ClientID']);
               this.verification_data_ = verification_data['VerificationData'];
+
+              console.log('again:', this);
+
               this.dispatchEvent(bitex.view.View.EventType.SET_VERIFIED);
 
               dlg.dispose();
             }
           }
-        });
+        }, this);
 
 
         break;
