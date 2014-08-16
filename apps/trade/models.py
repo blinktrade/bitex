@@ -2032,8 +2032,8 @@ def db_bootstrap(session):
                phone_number_2=None,
                skype='blinktrade',
                email='support@blinktrade.com',
-               verification_jotform=broker_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
-               upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+               verification_jotform='http://form.jotform.co/form/42275925807866?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
+               upload_jotform= 'http://form.jotform.co/form/42276525292861?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
                currencies='',
                withdraw_structure=json.dumps({
                'BTC': [
