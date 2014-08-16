@@ -1120,7 +1120,12 @@ bitex.app.BlinkTrade.prototype.onBrokerSetUserNotVerified_ = function(e){
   var request_id = e.target.getRequestId();
   var client_id = e.target.getClientID();
 
-  this.conn_.verifyCustomer(request_id, client_id, 0);
+  /**
+   * @desc set as not verified by the broker ß
+   */
+  var MSG_USER_NOT_VERIFIED = goog.getMsg('Set as Not verified by the broker');
+
+  this.conn_.verifyCustomer(request_id, client_id, 0, MSG_USER_NOT_VERIFIED);
 };
 
 

@@ -1141,7 +1141,12 @@ def processVerifyCustomer(session, msg):
 
   verified = client.verified
   if not verified:
-      verified = client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
+      client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
+      verified  = 2
+
+  if verify == 0:
+      verified = 0;
+      client.verified = 0;
 
   application.db_session.commit()
 

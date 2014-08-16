@@ -353,7 +353,7 @@
         <input id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
         <div class="checkbox">
           <label>
-            <input type="checkbox"> Use Broker Fee
+            <input type="checkbox" id="{$id}_broker_buy_fee"> Use Broker Fee
           </label>
         </div>
       </div>
@@ -365,7 +365,7 @@
         <input id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
           <div class="checkbox">
             <label>
-              <input type="checkbox"> Use Broker Fee
+              <input type="checkbox" id="{$id}_broker_sell_fee"> Use Broker Fee
             </label>
           </div>
       </div>
@@ -827,6 +827,42 @@
     </fieldset>
 
   </form>
+{/template}
+
+
+/**
+  * @param buy_fee
+  * @param sell_fee
+  */
+{template .YourFeesBalances}
+  <table class="table table-striped">
+    <tbody>
+
+
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for user buy fee"}Buy Fee{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model">{$buy_fee}</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for user sell fee"}Sell Fee{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model">{$sell_fee}</span>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
 {/template}
 
 
