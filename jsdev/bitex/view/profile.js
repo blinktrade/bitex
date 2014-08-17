@@ -28,14 +28,6 @@ goog.inherits(bitex.view.ProfileView, bitex.view.View);
 bitex.view.ProfileView.prototype.change_password_;
 
 
-/**
- * The events fired
- * @enum {string} The event types
- */
-bitex.view.ProfileView.EventType = {
-  ENABLE_TWOFACTOR: 'two_factor_enable',
-  DISABLE_TWOFACTOR: 'two_factor_disable'
-};
 
 
 bitex.view.ProfileView.prototype.enterView = function() {
@@ -165,6 +157,8 @@ bitex.view.ProfileView.prototype.exitView = function() {
 
 /** @override */
 bitex.view.ProfileView.prototype.enterDocument = function() {
+  goog.base(this, 'enterDocument');
+
   var handler = this.getHandler();
   var model = this.getApplication().getModel();
 
@@ -172,15 +166,17 @@ bitex.view.ProfileView.prototype.enterDocument = function() {
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.SAVE, this.onSaveWithdrawStructure_);
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.CANCEL, this.onCancelWithdrawStructure_);
 
+
   handler.listen( this.getApplication().getModel(),  bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
     var secret = e.data;
     var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
 
     if (has_secret) {
+      var issuer = 'BlinkTrade - ' + model.get('Broker')['ShortName'];
 
       var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' +
-        encodeURIComponent('otpauth://totp/'  + model.get('Username') + '?secret=')  +secret +
-        encodeURIComponent('&issuer=BlinkTrade');
+        encodeURIComponent('otpauth://totp/' + model.get('Username') + ' ' + model.get('Profile')['Email'] + '?secret=')  + secret +
+        encodeURIComponent('&issuer=' + issuer);
 
       goog.dom.getElement('id_secret_qr').setAttribute('src', qr_code);
     }
@@ -201,13 +197,13 @@ bitex.view.ProfileView.prototype.enterDocument = function() {
     goog.style.showElement( divEl , has_secret);
   }, this);
 
-  handler.listen(goog.dom.getElement('id_btn_enable_two_factor'), 'click', function(e){
-    this.dispatchEvent(bitex.view.ProfileView.EventType.ENABLE_TWOFACTOR);
+  handler.listen(goog.dom.getElement('id_btn_enable_two_factor'), goog.events.EventType.CLICK, function(e){
+    this.dispatchEvent(bitex.view.View.EventType.ENABLE_TWOFACTOR);
   }, this);
 
 
-  handler.listen( goog.dom.getElement('id_btn_disable_two_factor'), 'click', function(e){
-    this.dispatchEvent(bitex.view.ProfileView.EventType.DISABLE_TWOFACTOR);
+  handler.listen( goog.dom.getElement('id_btn_disable_two_factor'),  goog.events.EventType.CLICK , function(e){
+    this.dispatchEvent(bitex.view.View.EventType.DISABLE_TWOFACTOR);
   }, this);
 
 };

@@ -46,7 +46,7 @@ def processChangePassword(session, msg):
       'UserStatus':       3,
       'UserReqTyp':       3,
       'NeedSecondFactor': need_second_factor,
-      'UserStatusText':   u'A senha informada está incorreta.' if not need_second_factor else u'Segundo fator de autenticação inválido'
+      'UserStatusText':   'MSG_LOGIN_ERROR_INVALID_PASSWORD' if not need_second_factor else 'MSG_LOGIN_ERROR_INVALID_SECOND_STEP'
     }
     return json.dumps(login_response, cls=JsonEncoder)
 
@@ -57,7 +57,7 @@ def processChangePassword(session, msg):
       'UserReqID':        msg.get('UserReqID'),
       'UserStatus':       3,
       'UserReqTyp':       3,
-      'UserStatusText': u'Senha alterada com sucesso!'
+      'UserStatusText':  'MSG_SUCCESS_PASSWORD_CHANGE'
   }
   return json.dumps(login_response, cls=JsonEncoder)
 
@@ -136,7 +136,7 @@ def processLogin(session, msg):
       'Username':         '',
       'UserStatus':       3,
       'NeedSecondFactor': need_second_factor,
-      'UserStatusText':   u'Nome de usuário ou senha inválidos' if not need_second_factor else u'Segundo fator de autenticação inválido'
+      'UserStatusText':   'MSG_LOGIN_ERROR_INVALID_USERNAME_OR_PASSWORD' if not need_second_factor else 'MSG_LOGIN_ERROR_INVALID_SECOND_STEP'
     }
     application.db_session.rollback()
     session.should_end = True
@@ -504,7 +504,7 @@ def processSignup(session, msg):
       'UserReqID': msg.get('UserReqID'),
       'Username': '',
       'UserStatus': 3,
-      'UserStatusText': u'Invalid broker!'
+      'UserStatusText': 'MSG_LOGIN_ERROR_INVALID_BROKER'
     }
     application.db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
@@ -514,7 +514,7 @@ def processSignup(session, msg):
       'UserReqID': msg.get('UserReqID'),
       'Username': '',
       'UserStatus': 3,
-      'UserStatusText': u'Username or email already taken!'
+      'UserStatusText': 'MSG_LOGIN_ERROR_USERNAME_ALREADY_TAKEN'
     }
     application.db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
@@ -643,7 +643,7 @@ def processPasswordRequest(session, msg):
       'MsgType': 'U13',
       'UserStatus': 1,
       'ResetPasswordReqID': msg.get('ResetPasswordReqID'),
-      'UserStatusText': 'Password changed'
+      'UserStatusText': 'MSG_SUCCESS_PASSWORD_CHANGE'
     }
 
     application.db_session.commit()
@@ -653,7 +653,7 @@ def processPasswordRequest(session, msg):
       'MsgType': 'U13',
       'UserStatus': 3,
       'ResetPasswordReqID': msg.get('ResetPasswordReqID'),
-      'UserStatusText': 'Invalid security code'
+      'UserStatusText': 'MSG_CHANGE_PASSWORD_INVALID_SECURITY_CODE'
     }
     return json.dumps(response, cls=JsonEncoder)
 
