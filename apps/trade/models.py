@@ -2353,6 +2353,7 @@ def db_bootstrap(session):
                      country_code='BJ',
                      lang='fr',
                      country='Benin',
+                     lang='fr',
                      phone_number_1='+229 (66) 36 11 24', phone_number_2='+225 (60) 03 94 98', skype='ubuntubitx', email='wilfriedsare@gmail.com',
                      verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
                      upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
