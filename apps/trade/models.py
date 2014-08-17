@@ -2071,9 +2071,9 @@ def db_bootstrap(session):
   if not Broker.get_broker(session, 1):
     e = Broker(id=1,
                short_name='surbitcoin',
-               business_name='Inversiones V&K C.A.',
+               business_name='Inversiones V&K C.A. RIF Nro. J-400221706',
                address='Avenida Paseo Cabriales, Torre MovilNet. Local 5 y 6',
-               signup_label='SurBitcoin',
+               signup_label='SurBitcoin (RIF Nro. J-400221706)',
                city='Valencia',
                state='Carabobo',
                zip_code='2001',
