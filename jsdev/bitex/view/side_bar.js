@@ -53,7 +53,6 @@ bitex.view.SideBarView.prototype.onSelectedBroker_ = function(e){
 };
 
 bitex.view.SideBarView.prototype.enterDocument = function() {
-
   goog.base(this, 'enterDocument');
   var handler = this.getHandler();
   var model = this.getApplication().getModel();

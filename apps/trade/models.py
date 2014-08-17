@@ -33,6 +33,8 @@ from tornado import template
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
+import onetimepass
+
 class AlchemyJSONEncoder(json.JSONEncoder):
   def default(self, obj):
     if isinstance(obj.__class__, DeclarativeMeta):
@@ -52,17 +54,6 @@ class AlchemyJSONEncoder(json.JSONEncoder):
 
 def generate_two_factor_secret():
   return base64.b32encode(os.urandom(10))
-
-def get_hotp_token(secret, intervals_no):
-  key = base64.b32decode(secret, True)
-  msg = struct.pack(">Q", intervals_no)
-  h = hmac.new(key, msg, hashlib.sha1).digest()
-  o = ord(h[19]) & 15
-  h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
-  return h
-
-def get_totp_token(secret):
-  return get_hotp_token(secret, intervals_no=int(time.time())//30)
 
 def get_hexdigest(algorithm, salt, raw_password):
   """
@@ -293,7 +284,10 @@ class User(Base):
     if user and user.check_password(password):
 
       if user.two_factor_enabled:
-        if second_factor is None or second_factor == '' or int(second_factor) != get_totp_token(user.two_factor_secret):
+        if second_factor is None or second_factor == '':
+          raise NeedSecondFactorException
+
+        if not onetimepass.valid_totp(token=int(second_factor), secret=user.two_factor_secret):
           raise NeedSecondFactorException
 
       # update the last login
@@ -309,7 +303,8 @@ class User(Base):
 
   def enable_two_factor(self, enable, secret, second_factor):
     if enable:
-      if secret and second_factor is not None and second_factor.isdigit() and  int(second_factor) == get_totp_token(secret):
+      if secret and second_factor is not None and second_factor.isdigit() and \
+         onetimepass.valid_totp(token=int(second_factor), secret=secret):
         self.two_factor_enabled = True
         self.two_factor_secret = secret
         return self.two_factor_secret
@@ -2353,7 +2348,6 @@ def db_bootstrap(session):
                      country_code='BJ',
                      lang='fr',
                      country='Benin',
-                     lang='fr',
                      phone_number_1='+229 (66) 36 11 24', phone_number_2='+225 (60) 03 94 98', skype='ubuntubitx', email='wilfriedsare@gmail.com',
                      verification_jotform= user_verification_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}',
                      upload_jotform= upload_jotform + '?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
@@ -2465,8 +2459,8 @@ def db_bootstrap(session):
     [ 'RUB' , u'\u20bd' , 'Ruble'    ,  False, 100000000  , '{:,.8f}', u'\u20bd #,##0.00000000;(\u20bd #,##0.00000000)' , '{:,.2f}', u'\u20bd #,##0.00;(\u20bd #,##0.00)'  ],
     [ 'JPY' , u'\u00a5' , 'Yen'      ,  False, 1000000    , '{:,.6f}', u'\u00a4 #,##0.000000;(\u00a4 #,##0.000000)'  , '{:,.0f}', u'\u00a4 #,##0;(\u00a4 #,##0)'],
     [ 'CNY' , u'\u00a5' , 'Yuan'     ,  False, 100000000  , '{:,.8f}', u'\u00a5 #,##0.00000000;(\u00a5 #,##0.00000000)', '{:,.2f}', u'\u00a5 #,##0.00;(\u00a5 #,##0.00)' ],
-    [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
-    [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100000000  , '{:,.8f}', u'BsF #,##0.00000000;(BsF #,##0.00000000)' , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'   ],
+    [ 'ARS' , '$'       , 'Peso'     ,  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)' ],
+    [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100000000  , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)' , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)' ],
     [ 'AOA' , 'Kz'      , 'kwanza'   ,  False, 100000000  , '{:,.8f}', u'Kz #,##0.00000000;(Kz #,##0.00000000)' , '{:,.2f}', u'Kz #,##0.00;(Kz #,##0.00)' ],
     [ 'AUD' , '$'       , 'Australian Dollar',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
     [ 'BSD' , '$'       , 'Bahamian dollar',  False, 100000000  , '{:,.8f}', u'$ #,##0.00000000;($ #,##0.00000000)' , '{:,.2f}', u'$ #,##0.00;($ #,##0.00)'   ],
@@ -2486,7 +2480,7 @@ def db_bootstrap(session):
     currencies = [
       [ 'USD' , '$'       , 'Dollar'   ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
       [ 'BRL' , 'R$'      , 'Real'     ,  False, 100 , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)' , '{:,.2f}', u'\u00a4 #,##0.00;(\u00a4 #,##0.00)'   ],
-      [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100 , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'       , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)'   ],
+      [ 'VEF' , 'BsF'     ,u'Bolívares',  False, 100 , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)' , '{:,.2f}', u'BsF #,##0.00;(BsF #,##0.00)' ],
       [ 'XOF' , 'Fr'      , 'CFA Franc',  False, 100 , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'         , '{:,.2f}', u'Fr #,##0.00;(Fr #,##0.00)'   ],
       [ 'BTC' , u'\u0e3f' , 'Bitcoin'  ,  True,  10000, '{:,.8f}', u'\u0e3f #,##0.00000000;(\u0e3f #,##0.00000000)', '{:,.4f}', u'\u0e3f #,##0.0000;(\u0e3f #,##0.0000)' ],
     ]

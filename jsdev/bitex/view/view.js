@@ -59,7 +59,10 @@ bitex.view.View.EventType = {
 
   SET_VERIFIED: 'set_verified',
   SET_NOT_VERIFIED: 'set_not_verified',
-  SET_WITHDRAW_EMAIL: 'set_withdraw_email'
+  SET_WITHDRAW_EMAIL: 'set_withdraw_email',
+
+  ENABLE_TWOFACTOR: 'two_factor_enable',
+  DISABLE_TWOFACTOR: 'two_factor_disable'
 };
 
 

@@ -4,7 +4,7 @@
  * @param id
  * @param currency_symbol
  * @param crypto_currency_symbol
- * @param crypto_currency_description
+ * @param cryptocurrencydescription
  * @param side
  * @param formatted_fee
  */
@@ -37,7 +37,7 @@
       <div class="row-fluid">
         <small>
           {msg desc="Fee label on simple order entry"}Fee{/msg} ( {$formatted_fee} ) : <span id="{$id}_fee"></span>,
-          {msg desc="Price per crypto currency label on simple order entry"}Price per {$crypto_currency_description} :{/msg}
+          {msg desc="Price per crypto currency label on simple order entry"}Price per {$cryptocurrencydescription} :{/msg}
                     <strong><span id="{$id}_avg_price"></span></strong>
           </strong>
         </small>

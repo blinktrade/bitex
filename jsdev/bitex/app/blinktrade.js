@@ -58,7 +58,6 @@ goog.require('goog.debug');
 goog.require('bitex.view.NullView');
 goog.require('bitex.view.SignupView');
 goog.require('bitex.view.LoginView');
-//goog.require('bitex.view.TwoFactorView');
 goog.require('bitex.view.ForgotPasswordView');
 goog.require('bitex.view.SetNewPasswordView');
 goog.require('bitex.view.VerificationView');
@@ -80,6 +79,12 @@ goog.require('bitex.view.RankingView');
 goog.require('uniform.Uniform');
 goog.require('uniform.Meta');               // Switch according to the test($MODULE_NAME$)
 goog.require('uniform.Validators');         // Switch according to the test($MODULE_NAME$)
+
+
+/**
+ * @desc Password changed message
+ */
+var MSG_SUCCESS_PASSWORD_CHANGE = goog.getMsg('Password changed!');
 
 
 /**
@@ -310,7 +315,6 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   var depositView         = new bitex.view.DepositView(this, false);
   var depositRequestsView = new bitex.view.DepositView(this, true);
   var verificationView    = new bitex.view.VerificationView(this);
-//  var enableTwoFactorView = new bitex.view.TwoFactorView(this);
   var offerBookView       = new bitex.view.OfferBookView(this);
 //  var accountActivityView = new bitex.view.AccountActivityView(this);
   var withdrawView        = new bitex.view.WithdrawView(this, false);
@@ -345,12 +349,11 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   this.views_.addChild( customersView       );
   this.views_.addChild( accountOverviewView );
   this.views_.addChild( verificationView    );
-//  this.views_.addChild( enableTwoFactorView );
   this.views_.addChild( brokerView          );
   this.views_.addChild( marketView          );
   this.views_.addChild( rankingView         );
   this.views_.addChild( ledgerView          );
-  this.views_.addChild( profileView         );
+  this.views_.addChild( profileView          , false);
   this.views_.addChild( brokerApplicationView);
 
   startView.decorate(goog.dom.getElement('start'));
@@ -369,7 +372,6 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   customersView.decorate(goog.dom.getElement('customers'));
   accountOverviewView.decorate(goog.dom.getElement('account_overview'));
   verificationView.decorate(goog.dom.getElement('verification'));
-//  enableTwoFactorView.decorate(goog.dom.getElement('enable_two_factor'));
   sideBarView.decorate(goog.dom.getElement('id_sidebar'));
   toolBarView.decorate(goog.dom.getElement('id_toolbar') );
   brokerView.decorate(goog.dom.getElement('my_broker'));
@@ -398,7 +400,6 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 //  this.router_.addView( '(account_activity)'            , accountActivityView );
   this.router_.addView( '(customers)'                   , customersView       );
   this.router_.addView( '(verification)'                , verificationView    );
-//  this.router_.addView( '(enable_two_factor)'           , enableTwoFactorView );
   this.router_.addView( '(my_broker)'                   , brokerView          );
   this.router_.addView( '(market)'                      , marketView          );
   this.router_.addView( '(ranking)'                     , rankingView         );
@@ -461,11 +462,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(signUpView, bitex.view.SignupView.EventType.SIGNUP, this.onUserSignupButton_ );
   handler.listen(loginView, bitex.view.LoginView.EventType.LOGIN, this.onUserLoginButtonClick_) ;
 
-//  handler.listen(enableTwoFactorView, bitex.view.TwoFactorView.EventType.ENABLE, this.onUserEnableTwoFactor_);
-//  handler.listen(enableTwoFactorView, bitex.view.TwoFactorView.EventType.DISABLE, this.onUserDisableTwoFactor_);
-
-  handler.listen(profileView, bitex.view.ProfileView.EventType.ENABLE_TWOFACTOR, this.onUserEnableTwoFactor_);
-  handler.listen(profileView, bitex.view.ProfileView.EventType.DISABLE_TWOFACTOR, this.onUserDisableTwoFactor_);
+  handler.listen(profileView, bitex.view.View.EventType.ENABLE_TWOFACTOR, this.onUserEnableTwoFactor_);
+  handler.listen(profileView, bitex.view.View.EventType.DISABLE_TWOFACTOR, this.onUserDisableTwoFactor_);
 
   handler.listen(forgotPasswordView, bitex.view.ForgotPasswordView.EventType.RECOVER_PASSWORD, this.onUserForgotPassword_);
   handler.listen(setNewPasswordView, bitex.view.SetNewPasswordView.EventType.SET_NEW_PASSWORD, this.onUserSetNewPassword_);
@@ -701,9 +699,13 @@ bitex.app.BlinkTrade.prototype.onChangePasswordResponse_ = function(e) {
     });
 
   } else {
-    this.showDialog( msg['UserStatusText'] );
-  }
 
+    if (msg['UserStatusText'] == 'MSG_SUCCESS_PASSWORD_CHANGE') {
+      this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE );
+    } else {
+      this.showDialog( msg['UserStatusText'] );
+    }
+  }
 };
 
 
@@ -772,18 +774,18 @@ bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
  * @private
  */
 bitex.app.BlinkTrade.prototype.onBitexPasswordChangedOk_ = function(e) {
+  var msg = e.data;
+
   /**
    * @desc Password Chanced with success dialog title
    */
   var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
 
-
-  /**
-   * @desc Password Chanced with success dialog content
-   */
-  var MSG_BITEX_PASSWORD_CHANGED_OK_CONTENT = goog.getMsg('Password Changed');
-
-  this.showDialog( MSG_BITEX_PASSWORD_CHANGED_OK_CONTENT, MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
+  if (msg['UserStatusText'] == 'MSG_SUCCESS_PASSWORD_CHANGE') {
+    this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE, MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
+  } else {
+    this.showDialog( msg['UserStatusText'], MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
+  }
 
   this.router_.setView('signin');
 };
@@ -798,13 +800,23 @@ bitex.app.BlinkTrade.prototype.onBitexPasswordChangedError_ = function(e) {
    */
   var MSG_BITEX_PASSWORD_CHANGED_ERROR_TITLE = goog.getMsg('Error');
 
-
   /**
    * @desc Password Chanced with success dialog content
    */
   var MSG_BITEX_PASSWORD_CHANGED_ERROR_CONTENT = goog.getMsg('There was an error changing the password');
 
-  this.showDialog( MSG_BITEX_PASSWORD_CHANGED_ERROR_CONTENT, MSG_BITEX_PASSWORD_CHANGED_ERROR_TITLE );
+  var msg = e.data;
+  if (msg['UserStatusText'] == 'MSG_CHANGE_PASSWORD_INVALID_SECURITY_CODE') {
+    /**
+     * @desc Password changed message
+     */
+    var MSG_CHANGE_PASSWORD_INVALID_SECURITY_CODE = goog.getMsg('Invalid security code.');
+
+    this.showDialog( MSG_CHANGE_PASSWORD_INVALID_SECURITY_CODE , MSG_BITEX_PASSWORD_CHANGED_ERROR_TITLE );
+  } else {
+
+    this.showDialog( MSG_BITEX_PASSWORD_CHANGED_ERROR_CONTENT, MSG_BITEX_PASSWORD_CHANGED_ERROR_TITLE );
+  }
 
 };
 
@@ -2012,7 +2024,24 @@ bitex.app.BlinkTrade.prototype.onUserEnableTwoFactor_ = function(e){
   if (has_code) {
     secret = this.getModel().get('TwoFactorSecret');
   }
-  this.conn_.enableTwoFactor( true, secret, code );
+
+  var req_id = parseInt(Math.random() * 1000000, 10);
+  this.conn_.enableTwoFactor( true, secret, code, undefined, req_id );
+
+  var handler = this.getHandler();
+  handler.listenOnce(this.conn_, bitex.api.BitEx.EventType.TWO_FACTOR_SECRET + '.' +  req_id, function(e){
+    var msg = e.data;
+    if (has_code && !msg['TwoFactorEnabled']) {
+
+      /**
+       * @desc Error message when user missed the google authentication code
+       */
+      var MSG_ERROR_SETTING_TWO_FACTOR = goog.getMsg('Wrong authentication code. ' +
+         'Please, make sure that you are using Google Authenticator and your cellphone time is exact synched with google servers.');
+
+      this.showDialog(MSG_ERROR_SETTING_TWO_FACTOR);
+    }
+  }, this);
 };
 
 /**
@@ -2176,11 +2205,13 @@ bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
   this.model_.set('UserID', '');
   this.model_.set('Username', '');
 
+
+  /**
+   * @desc google authentication dialog title
+   */
+  var MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE = goog.getMsg('2 steps authentication');
+
   if (msg['NeedSecondFactor']) {
-    /**
-     * @desc google authentication dialog title
-     */
-    var MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE = goog.getMsg('2 steps authentication');
 
     var dlg_ = this.showDialog(MSG_TWO_STEPS_AUTHENTICATION_DIALOG_TITLE,
                                "",
@@ -2202,7 +2233,52 @@ bitex.app.BlinkTrade.prototype.onUserLoginError_ = function(e) {
     });
 
   } else {
-    this.showDialog( msg['UserStatusText'] );
+
+    /**
+     * @desc Invalid Password error
+     */
+    var MSG_LOGIN_ERROR_INVALID_PASSWORD = goog.getMsg('Invalid password');
+
+    /**
+     * @desc Invalid Password error
+     */
+    var MSG_LOGIN_ERROR_INVALID_USERNAME_OR_PASSWORD = goog.getMsg('Invalid username or password');
+
+    /**
+     * @desc Invalid second step auth error
+     */
+    var MSG_LOGIN_ERROR_INVALID_SECOND_STEP = goog.getMsg('Invalid second step authentication code');
+
+    /**
+     * @desc Invalid second step auth error
+     */
+    var MSG_LOGIN_ERROR_INVALID_BROKER = goog.getMsg('Invalid Broker');
+
+    /**
+     * @desc Invalid second step auth error
+     */
+    var MSG_LOGIN_ERROR_USERNAME_ALREADY_TAKEN = goog.getMsg('Username or email already taken');
+
+    var user_status_text = msg['UserStatusText'];
+    switch(msg['UserStatusText']) {
+      case 'MSG_LOGIN_ERROR_INVALID_PASSWORD':
+        user_status_text = MSG_LOGIN_ERROR_INVALID_PASSWORD;
+        break;
+      case 'MSG_LOGIN_ERROR_INVALID_USERNAME_OR_PASSWORD':
+        user_status_text = MSG_LOGIN_ERROR_INVALID_USERNAME_OR_PASSWORD;
+        break;
+      case 'MSG_LOGIN_ERROR_INVALID_SECOND_STEP':
+        user_status_text = MSG_LOGIN_ERROR_INVALID_SECOND_STEP;
+        break;
+      case 'MSG_LOGIN_ERROR_INVALID_BROKER':
+        user_status_text = MSG_LOGIN_ERROR_INVALID_BROKER;
+        break;
+      case 'MSG_LOGIN_ERROR_USERNAME_ALREADY_TAKEN':
+        user_status_text = MSG_LOGIN_ERROR_USERNAME_ALREADY_TAKEN;
+        break;
+    }
+
+    this.showDialog( user_status_text );
   }
 };
 

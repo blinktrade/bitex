@@ -174,6 +174,7 @@ bitex.view.DepositView.prototype.enterDocument = function() {
 
   handler.listen( this.getElement(), goog.events.EventType.CLICK, function(e){
     if (e.target.getAttribute('data-action') === 'deposit' ) {
+      console.log('deposit request click');
       this.currency_ = e.target.getAttribute('data-currency');
       this.dispatchEvent(bitex.view.View.EventType.DEPOSIT_REQUEST);
     }

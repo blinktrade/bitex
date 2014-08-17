@@ -164,6 +164,7 @@ bitex.ui.OrderBook.prototype.decorateInternal = function(element) {
 
 /** @override */
 bitex.ui.OrderBook.prototype.enterDocument = function() {
+  goog.base(this, 'enterDocument');
   this.getHandler().listen( this.getElement(), goog.events.EventType.CLICK, this.onClick_ );
 };
 

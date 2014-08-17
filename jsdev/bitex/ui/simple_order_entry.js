@@ -106,7 +106,7 @@ bitex.ui.SimpleOrderEntry.prototype.createDom = function() {
     id: this.makeId('order_entry'),
     symbol:this.getModel().symbol,
     crypto_currency_symbol:this.getModel().crypto_currency_symbol,
-    crypto_currency_description:this.getModel().crypto_currency_description,
+    cryptocurrencydescription:this.getModel().crypto_currency_description,
     currency_symbol:this.getModel().currency_symbol,
     currency_description:this.getModel().currency_description,
     side:this.getModel().side,

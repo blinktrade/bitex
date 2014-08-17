@@ -723,8 +723,8 @@ bitex.app.MerchantApp.prototype.onUserLoginOk_ = function(e) {
       var crypto_currency_code = this.conn_.getQtyCurrencyFromSymbol(symbol);
 
       /** @desc options for the merchant to accept  */
-      var MSG_MERCHANT_APP_SELECT_SYMBOL = goog.getMsg('He pays in {$cryptoCurrency}, you get {$currency}',{
-        currency: this.conn_.getCurrencyDescription(currency_code), cryptoCurrency:this.conn_.getCurrencyDescription(crypto_currency_code)});
+      var MSG_MERCHANT_APP_SELECT_SYMBOL = goog.getMsg('He pays in {$cryptocurrency}, you get {$currency}',{
+        currency: this.conn_.getCurrencyDescription(currency_code), cryptocurrency:this.conn_.getCurrencyDescription(crypto_currency_code)});
 
       var currency_el = goog.dom.createDom('option', {'value': symbol}, MSG_MERCHANT_APP_SELECT_SYMBOL);
 

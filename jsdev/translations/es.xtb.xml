@@ -1,8 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE translationbundle SYSTEM "translationbundle.dtd">
 <translationbundle lang="pt_BR">
+    <!-- ../closure-library/closure/goog/date/date.js -->
+    <translation id="9186990843077356651">{$monthname} {$ynum}</translation>
+    <translation id="5529289046275100369">am</translation>
+    <translation id="5059724359049322390">pm</translation>
+
+    <!-- ../closure-library/closure/goog/date/relative.js -->
+    <translation id="255903265337952585">Hoy</translation>
+    <translation id="353304103865310482">Ayer</translation>
+    <translation id="8418664850843292267">hace <ph name="num"/> minute</translation>
+    <translation id="4542333509153189824">hace <ph name="num"/> minutes</translation>
+    <translation id="5521867011454282127">en <ph name="num"/> minuto</translation>
+    <translation id="7703706792267614625">en <ph name="num"/> minutos</translation>
+    <translation id="3437437874841265174">hace <ph name="num"/> hora</translation>
+    <translation id="4017799931295898544">hace <ph name="num"/> horas</translation>
+    <translation id="8232558888805699670">en <ph name="num"/> hora</translation>
+    <translation id="7191293254299876468">en <ph name="num"/> horas</translation>
+    <translation id="6027991513310378336">hace <ph name="num"/> día</translation>
+    <translation id="7047354884040614182">hace <ph name="num"/> diás</translation>
+    <translation id="8307503468237457411">en <ph name="num"/> día</translation>
+    <translation id="7137264922699703093">en <ph name="num"/> días</translation>
+
+    <translation id="1376815783903699681">Añadir un color</translation>
+    <translation id="2703733953415351578">Input custom color, i.e. pink, #F00, #D015FF or rgb(100, 50, 25)</translation>
+    <translation id="2114060719281635969">ERROR: "<ph name="color"/>" no es un color válido.</translation>
+
+
+
+    <!-- ../closure-library/closure/goog/ui/datepicker.js -->
+    <translation id="5630393202019863663">Hoy</translation>
+    <translation id="4899906074301144129">Nulo</translation>
+
+    <!-- ../closure-library/closure/goog/ui/dialog.js -->
+    <translation id="3733051018336189348">OK</translation>
+    <translation id="8852494777942794571">Cancelar</translation>
+    <translation id="7225444469953367438">Sí</translation>
+    <translation id="6658754707007800161">No</translation>
+    <translation id="1361108124475454295">Guardar</translation>
+    <translation id="2722476206788619398">Continuar</translation>
+
+    <!-- ../closure-library/closure/goog/ui/dragdropdetector.js -->
+    <translation id="3091743712207379007">No es posible arrastrar y soltar archivos de imágenes en este momento.
+                 Por favor, arrastrar una imagen desde el navegador web</translation>
+    <translation id="1682009755735913490">La imagen que está tratando de arrastrar ha sido bloqueado por el sitio de alojamiento.</translation>
+
+    <!-- ../closure-library/closure/goog/ui/prompt.js -->
+    <translation id="6085967011846617710">OK</translation>
+    <translation id="1701242885102268352">Cancelar</translation>
+
+    <!-- ../closure-library/closure/goog/ui/selectionmenubutton.js -->
+    <translation id="2093924030017064517">Todos</translation>
+    <translation id="6134427337907437738">Nada</translation>
+
+
     <!-- ../bitex/soyutils_usegoog.js -->
+
     <!-- ../bitex/soyutils.js -->
+
+    <!-- ../bitex/app/blinktrade.js -->
+    <translation id="3752105577441549065">Contraseña cambiada!</translation>
+    <translation id="478409038932398772"><ph name="c"/> es requerido</translation>
+    <translation id="3379403690216515090"><ph name="c"/> no es una dirección de bitcoin valida</translation>
+    <translation id="1719443865812389312">Código de confirmación inválido!</translation>
+    <translation id="7066533100449529853">Confirmar</translation>
+    <translation id="6832416610745317605">Error: <ph name="message"/></translation>
+    <translation id="2094326426099786397">Error al conectar con el servidor. Su navegador debe ser compatible con WebSockets.</translation>
+    <translation id="6029550376660471565">Verificación de dos pasos</translation>
+    <translation id="7401795103172520504">Success</translation>
+    <translation id="262244445152484550">Error</translation>
+    <translation id="2649556667424514677">Hubo un error al cambiar la contraseña</translation>
+    <translation id="3501694711288153360">Retiro solicitado [<ph name="id"/>]</translation>
+    <translation id="3167326230895336305">Retiro [<ph name="id"/>] confirmado</translation>
+    <translation id="6573246536224963032">Retiro [<ph name="id"/>] en progreso</translation>
+    <translation id="6275384017488502741">Retiro [<ph name="id"/>] completado</translation>
+    <translation id="6650837625726858217">Retiro [<ph name="id"/>] cancelado</translation>
+    <translation id="1382774979814565227">Verificación:</translation>
+    <translation id="196439397497834635">Enviar al corredor.</translation>
+    <translation id="3816191956186411674">Su cuenta ha sido verificada. Nivel- <ph name="level"/></translation>
+    <translation id="2324161280363044347">Orden <ph name="id"/></translation>
+    <translation id="7839352478681394987">Parcialmente completado</translation>
+    <translation id="675110957935221663">completado</translation>
+    <translation id="7542104892805677705">cancelado</translation>
+    <translation id="6692650782191524255">Retirada <ph name="currency"/></translation>
+    <translation id="2086764853673285415">Error: <ph name="message"/></translation>
+    <translation id="175524194750824187">Cancelar retiro</translation>
+    <translation id="4503251500769434841">Ajustar <ph name="currency"/> retiro como 'en curso'</translation>
+    <translation id="79148657961618635">Confirmar <ph name="currency"/> retiro</translation>
+    <translation id="7025131795753512211">Enviando orden...</translation>
+    <translation id="1662386308403814527">COMPRAR</translation>
+    <translation id="1585949643466364093">VENDER</translation>
+    <translation id="2663523040351663387"><ph name="side"/> <ph name="amount"/> <ph name="symbol"/> @ <ph name="price"/></translation>
+    <translation id="3509294057647878073">Cancelando orden...</translation>
+    <translation id="3772510421440638316">Presentación <ph name="submissionID"/></translation>
+    <translation id="3160671120235097661"><ph name="currency"/> depositar</translation>
+    <translation id="4030996601042264112"><ph name="currency"/> Retirar</translation>
+    <translation id="1384742915082292408">Cancelar deposito</translation>
+    <translation id="7345616341057280227">Confirmar deposito</translation>
+    <translation id="5236179900100603778"><ph name="currency"/> deposito</translation>
+    <translation id="3932335418542380957">verificacion de dos pasos</translation>
+    <translation id="9083475110158074150">Aplique para ser un corredor</translation>
+    <translation id="5620345469453784320">Notificame cuando un nuevo corredor llegue a mi region</translation>
+    <translation id="4720573603271120453">Error</translation>
+    <translation id="3199807622499658204">Dectectado con la conexion.</translation>
+    <translation id="890527683253359951">Message from server:</translation>
+    <translation id="4580764630041215479">Error</translation>
+
+
     <!-- ../bitex/fsm/fsm.js -->
     <!-- ../bitex/model/model.js -->
     <!-- ../bitex/ui/trade_history.js -->
@@ -17,7 +121,7 @@
     <translation id="5213602312487816796">Vender</translation>
     <translation id="1757449898703971522">Ultimas transacciones</translation>
     <!-- ../bitex/ui/ledger_activity.js -->
-    <translation id="1585081072702721655">Identificacion</translation>
+    <translation id="1585081072702721655">Identificación</translation>
     <translation id="4036352431936422565">Fecha/Hora</translation>
     <translation id="1986398634167090180">Moneda</translation>
     <translation id="7706535402133574921">Cantidad</translation>
@@ -47,7 +151,7 @@
     <translation id="5452666288528466452"><ph name="cryptoCurrencyDescription"/> to receive</translation>
     <translation id="938693257965054226"><ph name="currencyDescription"/> to receive</translation>
     <!-- ../bitex/ui/customers.js -->
-    <translation id="8760059298648880498">Identificacion</translation>
+    <translation id="8760059298648880498">Identificación</translation>
     <translation id="4133367714099977955">Nombre de usuario</translation>
     <translation id="1729488863170893175">Verificado</translation>
     <translation id="3491186699363788719">Si</translation>
@@ -64,7 +168,7 @@
     <translation id="932735387409563024">Nombre de Usuario y correo electronico...</translation>
     <!-- ../bitex/ui/simple_chart.js -->
     <!-- ../bitex/ui/withdraw_list.js -->
-    <translation id="6762041175470619352">Identificacion</translation>
+    <translation id="6762041175470619352">Identificación</translation>
     <translation id="909806336906094688">Estado</translation>
     <translation id="7242207185635924083">Pendiente</translation>
     <translation id="7735261519688663855">Sin confirmar</translation>
@@ -106,7 +210,7 @@
     <translation id="2357589092543507459">Retiro</translation>
     <translation id="6379592045370432077">Busqueda...</translation>
     <!-- ../bitex/ui/order_manager.js -->
-    <translation id="4074349737120839915">Identificacion</translation>
+    <translation id="4074349737120839915">Identificación</translation>
     <translation id="184338653577089844">Descripcion</translation>
     <translation id="6178399923739131757">Estado</translation>
     <translation id="2183547009519815142">Lado</translation>
@@ -180,7 +284,7 @@
     <!-- ../bitex/ui/simple_order_entry.soy.js -->
     <translation id="1197921766103282777">para un total de</translation>
     <translation id="2999468557463542173">Fee</translation>
-    <translation id="2224639673609998547">Precio por <ph name="cryptoCurrencyDescription"/>:</translation>
+    <translation id="1784908204503101322">Precio per <ph name="cryptocurrencydescription"/> :</translation>
     <translation id="4412003609716883584">Quiero comprar</translation>
     <translation id="2256231961966604601">Quiero vender</translation>
     <translation id="8282725871353943578">COMPRAR</translation>
@@ -204,7 +308,7 @@
     <translation id="159067789700857238">Cantidad</translation>
     <translation id="866909570315155404">Precio</translation>
     <!-- ../bitex/ui/account_activity.js -->
-    <translation id="6843864912009919805">Identificacion</translation>
+    <translation id="6843864912009919805">Identificación</translation>
     <translation id="1159462222642106601">Lado</translation>
     <translation id="3584342616551132388">Fecha/tiempo</translation>
     <translation id="2145987329723512251">Precio</translation>
@@ -212,12 +316,12 @@
     <translation id="8516168426198762290">Precio promedio</translation>
     <translation id="9144502694009394125">Total</translation>
     <!-- ../bitex/ui/deposit_list.js -->
-    <translation id="3247429058658143016">Identificacion</translation>
+    <translation id="3247429058658143016">Identificación</translation>
     <translation id="2275475817412574729">Estado</translation>
     <translation id="4543621457073911872">Moneda</translation>
     <translation id="44464766536304077">Valor</translation>
     <translation id="9178685175361105009">Volumen pagado</translation>
-    <translation id="1665580572794659093">Numero de cotrol</translation>
+    <translation id="1665580572794659093">Número de control</translation>
     <translation id="3517778386433005569">Fecha/Hora</translation>
     <translation id="1375361399014237995">Acciones</translation>
     <translation id="2938861513797761752">Detalles</translation>
@@ -227,66 +331,19 @@
     <translation id="6176285210774044206">En progreso...</translation>
     <translation id="6026792161832164223">Completado</translation>
     <translation id="7036397632746968289">Cancelado</translation>
-    <translation id="3913641214492359043"><ph name="confirmations"/> de<ph name="necessaryconfirmations"/> confirmacion</translation>
+    <translation id="3913641214492359043"><ph name="confirmations"/> de <ph name="necessaryconfirmations"/> confirmaciónes</translation>
     <translation id="2759149318636625432">ver</translation>
     <translation id="422360602904317893">qr</translation>
-    <translation id="2104385034599419334">cadena de bloques</translation>
-    <translation id="2749775595145403182">cancel</translation>
+    <translation id="2104385034599419334">blockchain</translation>
+    <translation id="2749775595145403182">cancelar</translation>
     <translation id="988922196815109977">enviar recibo</translation>
-    <translation id="5394440554501370401">Ajuste en progreso</translation>
-    <translation id="6705472919416538814">Ajuste como completado</translation>
-    <translation id="375746394788561917">Donde estan mis Bitcoin?</translation>
-    <translation id="3389792921392396519">Deposito</translation>
-    <translation id="2416953711317405731">Busqueda ...</translation>
+    <translation id="5394440554501370401">Definir como "en curso"</translation>
+    <translation id="6705472919416538814">Definir como "completado"</translation>
+    <translation id="375746394788561917">Donde estan mis Bitcoins?</translation>
+    <translation id="3389792921392396519">Depósito</translation>
+    <translation id="2416953711317405731">Búsqueda ...</translation>
     <!-- ../bitex/app/url_router.js -->
-    <!-- ../bitex/app/blinktrade.js -->
-    <translation id="478409038932398772"><ph name="c"/> es requerido</translation>
-    <translation id="3379403690216515090"><ph name="c"/> no es una dirección de bitcoin valida</translation>
-    <translation id="1719443865812389312">senal de confirmacion invalida!</translation>
-    <translation id="7066533100449529853">Confirmar</translation>
-    <translation id="6832416610745317605">Error: <ph name="message"/></translation>
-    <translation id="2094326426099786397">Error connecting to the server. Your browser MUST SUPPORT WebSockets.
-    </translation>
-    <translation id="6029550376660471565">Verificacion de dos pasos</translation>
-    <translation id="7401795103172520504">Success</translation>
-    <translation id="4256847089568016605">Contrasena cambiada</translation>
-    <translation id="262244445152484550">Error</translation>
-    <translation id="2649556667424514677">Hubo un error al cambiar la contrasena</translation>
-    <translation id="3501694711288153360">Retiro solicitado [<ph name="id"/>]</translation>
-    <translation id="3167326230895336305">Retiro [<ph name="id"/>] confirmado</translation>
-    <translation id="6573246536224963032">Retiro [<ph name="id"/>] en progreso</translation>
-    <translation id="6275384017488502741">Retiro [<ph name="id"/>] completado</translation>
-    <translation id="6650837625726858217">Retiro [<ph name="id"/>] cancelado</translation>
-    <translation id="1382774979814565227">Verificacion:</translation>
-    <translation id="196439397497834635">Enviar al corredor.</translation>
-    <translation id="3816191956186411674">Su cuenta ha sido verificada. Nivel- <ph name="level"/></translation>
-    <translation id="2324161280363044347">Orden <ph name="id"/></translation>
-    <translation id="7839352478681394987">Parcialmente completado</translation>
-    <translation id="675110957935221663">completado</translation>
-    <translation id="7542104892805677705">cancelado</translation>
-    <translation id="6692650782191524255"><ph name="currency"/> Retidol</translation>
-    <translation id="2086764853673285415">Error: <ph name="message"/></translation>
-    <translation id="175524194750824187">Cancelar retiro</translation>
-    <translation id="4503251500769434841">ajustar<ph name="currency"/> Retiro en progreso</translation>
-    <translation id="79148657961618635">Confirmar <ph name="currency"/> retiro</translation>
-    <translation id="7025131795753512211">Enviando orden...</translation>
-    <translation id="1662386308403814527">COMPRAR</translation>
-    <translation id="1585949643466364093">VENDER</translation>
-    <translation id="2663523040351663387"><ph name="side"/> <ph name="amount"/> <ph name="symbol"/> @ <ph name="price"/></translation>
-    <translation id="3509294057647878073">Cancelando orden...</translation>
-    <translation id="3772510421440638316">Presentacion <ph name="submissionID"/></translation>
-    <translation id="3160671120235097661"><ph name="currency"/> depositar</translation>
-    <translation id="4030996601042264112"><ph name="currency"/> Retirar</translation>
-    <translation id="1384742915082292408">Cancelar deposito</translation>
-    <translation id="7345616341057280227">Confirmar deposito</translation>
-    <translation id="5236179900100603778"><ph name="currency"/> deposito</translation>
-    <translation id="3932335418542380957">verificacion de dos pasos</translation>
-    <translation id="9083475110158074150">Aplique para ser un corredor</translation>
-    <translation id="5620345469453784320">Notificame cuando un nuevo corredor llegue a mi region</translation>
-    <translation id="4720573603271120453">Error</translation>
-    <translation id="3199807622499658204">Dectectado con la conexion.</translation>
-    <translation id="890527683253359951">Message from server:</translation>
-    <translation id="4580764630041215479">Error</translation>
+
     <!-- ../bitex/app/merchant.js -->
     <translation id="4156107177373728298">Notificame cuando un nuevo corredor llegue a mi region</translation>
     <translation id="1719443865812389312">Senal de confirmacion invalida!</translation>
@@ -310,14 +367,14 @@
     <translation id="4970940983930735928">La contrasena debe tener al menos 8 caracteres</translation>
     <translation id="376556933125593961">La contrasena no coincide</translation>
     <!-- ../bitex/view/trading.js -->
-    <translation id="3691851637664720214">Comprando <ph name="orderQty"/></translation>
-    <translation id="1064892249849926257">Vendiendo<ph name="orderQty"/></translation>
-    <translation id="8050349829925924892">Comprando <ph name="cumQty"/> of <ph name="orderQty"/></translation>
-    <translation id="3299164444287315523">Vendido<ph name="cumQty"/> of <ph name="orderQty"/></translation>
-    <translation id="6423882485565529376">Comprado <ph name="cumQty"/></translation>
-    <translation id="6688778063196611921">Vendido <ph name="cumQty"/></translation>
-    <translation id="690728493759310893">Orden de compra cancelada <ph name="orderQty"/></translation>
-    <translation id="1830557040290176622">Orden de venta cancelada<ph name="orderQty"/></translation>
+    <translation id="1018659621973695009">Comprando <ph name="buyqty"/></translation>
+    <translation id="2558205583188831232">Vendiendo <ph name="sellqty"/></translation>
+    <translation id="5538420626107837552">Comprado <ph name="cumboughtqty"/> de <ph name="boughtqty"/></translation>
+    <translation id="2632768407381513570">Vendido <ph name="cumsoldqty"/> de <ph name="soldqty"/></translation>
+    <translation id="9136647129258822022">Comprado <ph name="boughtcumqty"/></translation>
+    <translation id="751385212445336949">Vendido <ph name="souldcumqty"/></translation>
+    <translation id="5690696186287822771">Cancelada la oferta de compra de <ph name="cancelledbuyorderqty"/></translation>
+    <translation id="1958906512165615859">Cancelada la oferta de venta de <ph name="cancelledsellorderqty"/></translation>
     <translation id="5678612155514869681">Enviando...</translation>
     <translation id="5324543943830920360">Esperando compradores</translation>
     <translation id="676511361642673915">Esperando vendedores</translation>
@@ -444,7 +501,7 @@
     <translation id="1974003013963953370">Desactivar</translation>
     <translation id="2184919597071231767">Desactivado</translation>
     <translation id="7470182973282136325">Activado</translation>
-    <translation id="8523587740438692716">Identificacion</translation>
+    <translation id="8523587740438692716">Identificación</translation>
     <translation id="1623188531967359459">Nombre de usuario</translation>
     <translation id="7579942901107351213">Correo electronico</translation>
     <translation id="7905181092638420164">Estado</translation>
@@ -468,7 +525,7 @@
     <translation id="4670462076425028517">Precio por:</translation>
     <translation id="2836929569038606269">Total:</translation>
     <translation id="8914746547850879819">Comision (optional):</translation>
-    <translation id="403362466876676198">Identificacion del cliente</translation>
+    <translation id="403362466876676198">Identificación del cliente</translation>
     <translation id="8282725871353943578">COMPRA</translation>
     <translation id="798662724377115710">VENTA</translation>
     <!-- ../bitex/api/bitex.js -->
