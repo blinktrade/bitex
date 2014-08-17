@@ -2346,6 +2346,7 @@ def db_bootstrap(session):
                      state='',
                      zip_code='01',
                      country_code='BJ',
+                     lang='fr',
                      country='Benin',
                      lang='fr',
                      phone_number_1='+229 (66) 36 11 24', phone_number_2='+225 (60) 03 94 98', skype='ubuntubitx', email='wilfriedsare@gmail.com',
