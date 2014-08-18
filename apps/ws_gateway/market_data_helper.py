@@ -81,11 +81,11 @@ class MarketDataSubscriber(object):
 
 
     @staticmethod
-    def get(symbol, db_session=None):
+    def get(symbol, application=None):
         """" get. """
         global MDSUBSCRIBEDICT
         if symbol not in MDSUBSCRIBEDICT:
-            MDSUBSCRIBEDICT[symbol] = MarketDataSubscriber(symbol, db_session)
+            MDSUBSCRIBEDICT[symbol] = MarketDataSubscriber(symbol, application)
         return MDSUBSCRIBEDICT[symbol]
 
     def get_last_trades(self):
