@@ -2228,13 +2228,8 @@ def db_bootstrap(session):
                          }
                      ]),
                      accept_customers_from=json.dumps([
-                         [ 'US_NY'],  # Only US_NY
-                         [ "US",  # except US and all other states
-                           "US_AL","US_AK","US_AZ","US_AR","US_CA","US_CO","US_CT","US_DE","US_DC","US_FL",
-                           "US_GA","US_HI","US_ID","US_IL","US_IN","US_IA","US_KS","US_KY","US_LA","US_ME",
-                           "US_MD","US_MA","US_MI","US_MN","US_MS","US_MO","US_MT","US_NE","US_NV","US_NH",
-                           "US_NJ","US_NM","US_NC","US_ND","US_OH","US_OK","US_OR","US_PA","US_RI","US_SC",
-                           "US_SD","US_TN","US_TX","US_UT","US_VE","US_VA","US_WA","US_WV","US_WI","US_WY"]
+                         [ 'US'],  # Only US
+                         [ "*" ]   # except US and all other states
                      ]) ,
                      is_broker_hub=False,
                      support_url='https://www.facebook.com/groups/',
