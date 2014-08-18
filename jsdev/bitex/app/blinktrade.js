@@ -86,6 +86,12 @@ goog.require('uniform.Validators');         // Switch according to the test($MOD
  */
 var MSG_SUCCESS_PASSWORD_CHANGE = goog.getMsg('Password changed!');
 
+/**
+* @desc Password Chanced with success dialog title
+*/
+var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
+
+
 
 /**
  * @param {string=} opt_default_country
@@ -702,7 +708,7 @@ bitex.app.BlinkTrade.prototype.onChangePasswordResponse_ = function(e) {
   } else {
 
     if (msg['UserStatusText'] == 'MSG_SUCCESS_PASSWORD_CHANGE') {
-      this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE );
+      this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE,  MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
     } else {
       this.showDialog( msg['UserStatusText'] );
     }
@@ -776,11 +782,6 @@ bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
  */
 bitex.app.BlinkTrade.prototype.onBitexPasswordChangedOk_ = function(e) {
   var msg = e.data;
-
-  /**
-   * @desc Password Chanced with success dialog title
-   */
-  var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
 
   if (msg['UserStatusText'] == 'MSG_SUCCESS_PASSWORD_CHANGE') {
     this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE, MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
