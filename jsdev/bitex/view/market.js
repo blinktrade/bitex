@@ -187,6 +187,8 @@ bitex.view.MarketView.prototype.onBitexSecurityStatus_ = function(e) {
     model.set('formatted_min_' + msg["Symbol"], this.getApplication().formatCurrency(msg["LowPx"]/1.e8,  currency, true ), true );
     model.set('formatted_max_' + msg["Symbol"], this.getApplication().formatCurrency(msg["HighPx"]/1.e8,  currency, true ), true );
     model.set('formatted_last_price_' + msg["Symbol"], this.getApplication().formatCurrency(msg["LastPx"]/1.e8,  currency, true ), true );
+    model.set('formatted_bid_' + msg["Symbol"], this.getApplication().formatCurrency(msg["BestBid"]/1.e8,  currency, true ), true );
+    model.set('formatted_ask_' + msg["Symbol"], this.getApplication().formatCurrency(msg["BestAsk"]/1.e8,  currency, true ), true );
 };
 
 /**

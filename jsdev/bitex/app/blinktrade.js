@@ -86,6 +86,12 @@ goog.require('uniform.Validators');         // Switch according to the test($MOD
  */
 var MSG_SUCCESS_PASSWORD_CHANGE = goog.getMsg('Password changed!');
 
+/**
+* @desc Password Chanced with success dialog title
+*/
+var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
+
+
 
 /**
  * @param {string=} opt_default_country
@@ -504,6 +510,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_);
   handler.listen(this.views_, bitex.view.View.EventType.SET_NOT_VERIFIED, this.onBrokerSetUserNotVerified_);
   handler.listen(this.views_, bitex.view.View.EventType.SET_WITHDRAW_EMAIL, this.onBrokerSetWithdrawEmailConfirmation_);
+  handler.listen(this.views_, bitex.view.View.EventType.RESET_TWOFACTOR, this.onBrokerResetUserTwoFactor_);
 
   this.connectBitEx();
 };
@@ -706,7 +713,7 @@ bitex.app.BlinkTrade.prototype.onChangePasswordResponse_ = function(e) {
   } else {
 
     if (msg['UserStatusText'] == 'MSG_SUCCESS_PASSWORD_CHANGE') {
-      this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE );
+      this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE,  MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
     } else {
       this.showDialog( msg['UserStatusText'] );
     }
@@ -780,11 +787,6 @@ bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
  */
 bitex.app.BlinkTrade.prototype.onBitexPasswordChangedOk_ = function(e) {
   var msg = e.data;
-
-  /**
-   * @desc Password Chanced with success dialog title
-   */
-  var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
 
   if (msg['UserStatusText'] == 'MSG_SUCCESS_PASSWORD_CHANGE') {
     this.showDialog( MSG_SUCCESS_PASSWORD_CHANGE, MSG_BITEX_PASSWORD_CHANGED_OK_TITLE );
@@ -1117,6 +1119,16 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
  */
 bitex.app.BlinkTrade.prototype.onUserConfirmWithdraw_ = function(e){
   this.conn_.confirmWithdraw(e.target.getConfirmationToken());
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onBrokerResetUserTwoFactor_ = function(e){
+  var client_id = e.target.getClientID();
+  this.conn_.updateUserProfile({ 'TwoFactorEnabled': false }, client_id);
 };
 
 /**

@@ -627,7 +627,24 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
     var handler = this.getHandler();
 
     var selectedCustomer = this.getApplication().getModel().get('SelectedCustomer');
+    console.log('hey yo:', data_action);
     switch( data_action ) {
+      case 'SET_TWO_FACTOR':
+
+        this.client_id_ =  goog.string.toNumber(selectedCustomer['ID']);
+        this.dispatchEvent(bitex.view.View.EventType.RESET_TWOFACTOR);
+
+        var new_withdraw_email_data_el = soy.renderAsElement( bitex.templates.AccountOverviewHeaderTwoFactors,
+                                                        {msg_customer_detail: {'TwoFactorEnabled' : false } } );
+
+        var withdraw_email_data_el = goog.dom.getElementByClass('account-overview-two-factors',
+                                                       goog.dom.getElement('account_overview_header_id') );
+
+        goog.dom.removeChildren(withdraw_email_data_el);
+        goog.dom.appendChild(withdraw_email_data_el, new_withdraw_email_data_el);
+
+        break;
+
       case 'SET_WITHDRAW_EMAIL':
 
 
