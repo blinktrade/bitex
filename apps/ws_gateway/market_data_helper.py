@@ -37,13 +37,10 @@ class MarketDataSubscriber(object):
         self.symbol = str(symbol)
         self.buy_side = []
         self.sell_side = []
-        self.bid = 0
-        self.ask = 0
         self.volume_dict = {}
         self.inst_status = InstrumentStatusHelper(symbol)
         self.md_pub_socket = None
         self.md_pub_socket_stream = None
-        self.ask = 0
         self.is_ready = False
         self.process_later = []
         self.application = application
@@ -162,8 +159,6 @@ class MarketDataSubscriber(object):
         """" on_book_clear. """
         self.buy_side = []
         self.sell_side = []
-        self.bid = 0
-        self.ask = 0
 
     def on_trade_clear(self):
         """" on_trade_clear. """
@@ -177,17 +172,18 @@ class MarketDataSubscriber(object):
             self.buy_side = self.buy_side[index:]
 
             if self.buy_side:
-                self.bid = self.buy_side[0]['price']
+                self.inst_status.bid = self.buy_side[0]['price']
             else:
-                self.bid = 0
+                self.inst_status.bid = 0
 
         elif side == '1':
             self.sell_side = self.sell_side[index:]
 
             if self.sell_side:
-                self.ask = self.sell_side[0]['price']
+                self.inst_status.ask = self.sell_side[0]['price']
             else:
-                self.ask = 0
+                self.inst_status.ask = 0
+
 
     def on_book_delete_order(self, msg):
         """" on_book_delete_order. """
@@ -197,16 +193,17 @@ class MarketDataSubscriber(object):
         if side == '0':
             del self.buy_side[index]
             if self.buy_side:
-                self.bid = self.buy_side[0]['price']
+                self.inst_status.bid = self.buy_side[0]['price']
             else:
-                self.bid = 0
+                self.inst_status.bid = 0
 
         elif side == '1':
             del self.sell_side[index]
             if self.sell_side:
-                self.ask = self.sell_side[0]['price']
+                self.inst_status.ask = self.sell_side[0]['price']
             else:
-                self.ask = 0
+                self.inst_status.ask = 0
+
 
     def on_book_new_order(self, msg):
         """" on_book_new_order. """
@@ -225,12 +222,13 @@ class MarketDataSubscriber(object):
         if msg.get('MDEntryType') == '0':  # buy
             self.buy_side.insert(index, order)
             if index == 0:
-                self.bid = msg.get('MDEntryPx')
+                self.inst_status.bid = msg.get('MDEntryPx')
 
         elif msg.get('MDEntryType') == '1':  # sell
             self.sell_side.insert(index, order)
             if index == 0:
-                self.ask = msg.get('MDEntryPx')
+                self.inst_status.ask = msg.get('MDEntryPx')
+
 
     def on_book_update_order(self, msg):
         """" on_book_new_order. """
@@ -248,12 +246,12 @@ class MarketDataSubscriber(object):
         if msg.get('MDEntryType') == '0':  # sell
             self.buy_side[index] = order
             if index == 0:
-                self.bid = msg.get('MDEntryPx')
+                self.inst_status.bid = msg.get('MDEntryPx')
 
         elif msg.get('MDEntryType') == '1':  # sell
             self.sell_side[index] = order
             if index == 0:
-                self.ask = msg.get('MDEntryPx')
+                self.inst_status.ask = msg.get('MDEntryPx')
 
     def on_trade(self, msg):
         if not self.is_ready:
@@ -316,7 +314,9 @@ class SecurityStatusPublisher(object):
                 "LowPx": helper.min_price,
                 "LastPx": helper.last_price,
                 "BuyVolume": helper.volume_price,
-                "SellVolume": helper.volume_size
+                "SellVolume": helper.volume_size,
+                "BestBid": helper.bid,
+                "BestAsk": helper.ask
             }
 
             self.handler(sender, ss)
@@ -384,7 +384,9 @@ def generate_security_status(symbol, req_id):
         "LowPx": md_subscriber.inst_status.min_price,
         "LastPx": md_subscriber.inst_status.last_price,
         "BuyVolume": md_subscriber.inst_status.volume_price,
-        "SellVolume": md_subscriber.inst_status.volume_size
+        "SellVolume": md_subscriber.inst_status.volume_size,
+        "BestBid": md_subscriber.inst_status.bid,
+        "BestAsk": md_subscriber.inst_status.ask
     }
 
     return ss

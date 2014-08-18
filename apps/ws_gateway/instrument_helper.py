@@ -14,6 +14,8 @@ class InstrumentStatusHelper(object):
         self.last_price = 0
         self.max_price = 0
         self.min_price = None
+        self.bid = 0
+        self.ask = 0
 
 
     def _subtract_trade(self, trade):
