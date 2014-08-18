@@ -1171,10 +1171,10 @@ def processProcessWithdraw(session, msg):
     percent_fee = msg.get('PercentFee',0.)
     fixed_fee   = msg.get('FixedFee',0.)
 
-    if percent_fee > withdraw.percent_fee:
+    if percent_fee > float(withdraw.percent_fee):
       raise NotAuthorizedError() # Broker tried to raise their fees manually
 
-    if fixed_fee > withdraw.fixed_fee:
+    if fixed_fee > float(withdraw.fixed_fee):
       raise NotAuthorizedError() # Broker tried to raise their fees manually
 
     withdraw.set_in_progress( application.db_session, percent_fee, fixed_fee)
