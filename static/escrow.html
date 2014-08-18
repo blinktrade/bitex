@@ -188,7 +188,7 @@ Sign up
                     <br />
                 </li>
 
-                <li class="ui-field-contain ctrlHolder">
+                <li class="ui-field-contain ctrlHolder" style="display: none">
                     <select uniform-validators="required;" placeholder="Country" uniform-validators="required" name="Country" id="id_signup_country"></select>
                 </li>
 
@@ -196,13 +196,12 @@ Sign up
                     <select placeholder="State or Province" name="State" id="id_signup_state"></select>
                 </li>
 
-                <li class="ctrlHolder">
+                <li class="ctrlHolder" style="display: none">
                     <select uniform-validators="required;" placeholder="Broker" uniform-validators="required" name="Broker" id="id_signup_broker"></select>
                 </li>
-
             </ul>
 
-            <div style="text-align: center">
+            <div style="text-align: center; display: none">
                 <li class="ui-field-contain" style="text-align: center">Terms of service <h1></h1>
                     <input align="center" type="checkbox" name="terms" id="id_signup_terms" style="text-align: center">
                     <br />
@@ -530,7 +529,7 @@ Dialog transaction Complete
     $('#id_withdraw_method_selector').selectmenu("refresh");
   }
 
-  var app = new MerchantApp();
+  var app = new MerchantApp('US', 3, 'NY');
   app.run();
   //app.run('wss://test.blinktrade.com/trade/');
 </script>

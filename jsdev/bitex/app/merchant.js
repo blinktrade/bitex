@@ -45,10 +45,11 @@ goog.require('bitex.ui.Merchant.templates');
 /**
  * @param {string=} opt_default_country
  * @param {number=} opt_default_broker_id
+ * @param {string=} opt_default_state
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
+bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id, opt_default_state) {
   goog.events.EventTarget.call(this);
 
   this.model_ = new bitex.model.Model(document.body);
@@ -60,6 +61,10 @@ bitex.app.MerchantApp = function(opt_default_country, opt_default_broker_id) {
 
   if (goog.isDefAndNotNull(opt_default_broker_id)) {
     this.model_.set('DefaultBrokerID', opt_default_broker_id);
+  }
+
+  if (goog.isDefAndNotNull(opt_default_state)) {
+    this.model_.set('DefaultState', opt_default_state);
   }
 
   this.currency_info_       = {};
@@ -603,14 +608,6 @@ bitex.app.MerchantApp.prototype.onSecurityList_ =   function(e) {
 bitex.app.MerchantApp.prototype.adjustBrokerData_ = function(broker_info) {
   var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   var withdraw_structure = broker_info['WithdrawStructure'];
-  /*
-  goog.object.forEach(withdraw_structure,  function(withdraw_methods) {
-    goog.array.forEach( withdraw_methods, function(method) {
-      method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
-      method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
-    });
-  });
-  */
 
   broker_info['Currencies'] = broker_info['Currencies'].split(',');
   if (broker_info['Currencies'].length === 1 && goog.string.isEmpty(broker_info['Currencies'][0])) {
@@ -649,8 +646,14 @@ bitex.app.MerchantApp.prototype.adjustBrokerData_ = function(broker_info) {
   percent_fmt.setMaximumFractionDigits(2);
   percent_fmt.setMinimumFractionDigits(2);
 
-  broker_info['FormattedTransactionFeeBuy'] = percent_fmt.format(broker_info['TransactionFeeBuy'] / 10000);
-  broker_info['FormattedTransactionFeeSell'] = percent_fmt.format(broker_info['TransactionFeeSell'] / 10000);
+  if (goog.isDefAndNotNull(broker_info['TransactionFeeBuy'])) {
+    broker_info['FormattedTransactionFeeBuy'] = percent_fmt.format(broker_info['TransactionFeeBuy'] / 10000);
+  }
+  if (goog.isDefAndNotNull(broker_info['TransactionFeeSell'])) {
+    broker_info['FormattedTransactionFeeSell'] = percent_fmt.format(broker_info['TransactionFeeSell'] / 10000);
+  }
+
+
 
 
   return broker_info;
@@ -1585,7 +1588,6 @@ bitex.app.MerchantApp.prototype.onBrokerList_ = function(e) {
  * @protected
  */
 bitex.app.MerchantApp.prototype.onSelectCountry_ = function(selected_country) {
-
   var signup_state_el = goog.dom.getElement('id_signup_state');
   var model = this.getModel();
   var countries = bitex.util.getCountries();
@@ -1626,6 +1628,9 @@ bitex.app.MerchantApp.prototype.onSelectCountry_ = function(selected_country) {
       goog.dom.forms.setValue( goog.dom.getElement('id_signup_state'), last_state_with_broker );
       this.onSelectState_(selected_country, last_state_with_broker);
       return;
+    } else if (goog.isDefAndNotNull(model.get('DefaultState'))) {
+      goog.dom.forms.setValue( goog.dom.getElement('id_signup_state'), model.get('DefaultState') );
+      this.onSelectState_(selected_country, model.get('DefaultState'));
     }
   }
 
@@ -1671,7 +1676,7 @@ bitex.app.MerchantApp.prototype.createWitdrawRequiredFields_ = function(current_
                 goog.soy.renderAsElement( bitex.ui.Merchant.templates.WithdrawFieldContent, { field: current_field } ) );
         }
     });
-}
+};
 
 
 
@@ -1788,13 +1793,13 @@ bitex.app.MerchantApp.prototype.onChangeBroker_ = function(e){
       }
     });
 
-    var fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.PERCENT);
-    fmt.setMaximumFractionDigits(2);
-    fmt.setMinimumFractionDigits(2);
-
-    broker['FormattedTransactionFeeBuy'] = fmt.format(broker['TransactionFeeBuy'] / 10000);
-    broker['FormattedTransactionFeeSell'] = fmt.format(broker['TransactionFeeSell'] / 10000);
-
+    if (goog.isDefAndNotNull(broker)) {
+      var fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.PERCENT);
+      fmt.setMaximumFractionDigits(2);
+      fmt.setMinimumFractionDigits(2);
+      broker['FormattedTransactionFeeBuy'] = fmt.format(broker['TransactionFeeBuy'] / 10000);
+      broker['FormattedTransactionFeeSell'] = fmt.format(broker['TransactionFeeSell'] / 10000);
+    }
   }
 };
 
@@ -1823,10 +1828,10 @@ bitex.app.MerchantApp.prototype.onSelectState_ = function( selected_country, sel
     goog.dom.appendChild( goog.dom.getElement('id_signup_broker'), el );
   }, this);
 
-  if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
-    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + model.get('DefaultBrokerID') );
-  } if (number_of_brokers_in_same_country_state == 1) {
+  if (number_of_brokers_in_same_country_state == 1) {
     goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + last_available_broker );
+  } else if (goog.isDefAndNotNull(model.get('DefaultBrokerID'))) {
+    goog.dom.forms.setValue( goog.dom.getElement('id_signup_broker'), '' + model.get('DefaultBrokerID') );
   }
   this.onChangeBroker_();
 };
