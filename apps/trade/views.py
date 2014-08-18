@@ -1125,7 +1125,7 @@ def processCustomerDetailRequest(session, msg):
 def processVerifyCustomer(session, msg):
   broker_id = msg.get('BrokerID')
   verify = msg.get('Verify')
-  if verify == 0 or  verify == 2:
+  if verify == 0 or verify == 2:
     if session.user is None :
       raise NotAuthorizedError()
     if session.user is None or session.user.is_broker == False:
@@ -1139,14 +1139,7 @@ def processVerifyCustomer(session, msg):
   if client.broker_id != broker_id:
     raise NotAuthorizedError()
 
-  verified = client.verified
-  if not verified:
-      client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
-      verified  = 2
-
-  if verify == 0:
-      verified = 0;
-      client.verified = 0;
+  client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
 
   application.db_session.commit()
 
@@ -1156,7 +1149,7 @@ def processVerifyCustomer(session, msg):
     'ClientID'            : msg.get('ClientID'),
     'BrokerID'            : msg.get('BrokerID'),
     'Username'            : client.username,
-    'Verified'            : verified,
+    'Verified'            : client.verified,
     'VerificationData'    : msg.get('VerificationData')
   }
   return json.dumps(response_msg, cls=JsonEncoder)
