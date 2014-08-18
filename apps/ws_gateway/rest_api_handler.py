@@ -12,6 +12,21 @@ class RestApiHandler(tornado.web.RequestHandler):
     def get(self, version, symbol, resource):
         self._process_request(version, symbol, resource)
 
+    def _send_tiker(self, symbol):
+      md_subscriber = MarketDataSubscriber.get(symbol, self.application)
+
+      ticker = {
+        "pair": symbol,
+        "high": md_subscriber.inst_status.max_price / 1e8,
+        "low": md_subscriber.inst_status.min_price / 1e8,
+        "last": md_subscriber.inst_status.last_price / 1e8,
+        "vol_" + symbol[3:].lower(): md_subscriber.inst_status.volume_price / 1e8,
+        "vol": md_subscriber.inst_status.volume_size / 1e8,
+        "buy": md_subscriber.inst_status.bid / 1e8,
+        "sell": md_subscriber.inst_status.ask / 1e8
+      }
+      self.write( json.dumps(ticker))
+
     def _send_order_book(self, symbol):
        md_subscriber = MarketDataSubscriber.get(symbol, self.application.db_session)
 
@@ -57,6 +72,8 @@ class RestApiHandler(tornado.web.RequestHandler):
                 self._send_order_book(instrument)
             elif resource == 'trades':
                 self._send_trades(instrument, since)
+            elif resource == 'ticker':
+                self._send_tiker(instrument)
             else:
                 self.send_error(404)
         else:
