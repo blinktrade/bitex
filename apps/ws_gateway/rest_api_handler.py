@@ -33,7 +33,7 @@ class RestApiHandler(tornado.web.RequestHandler):
         )
 
     def _send_trades(self, symbol, since):
-        md_subscriber = MarketDataSubscriber.get(symbol, self.application.db_session)
+        md_subscriber = MarketDataSubscriber.get(symbol, self.application)
 
         trades = []
 
