@@ -14,6 +14,8 @@
             <tr>
                 <th> {msg desc="Method field header"}Pair{/msg}</th>
                 <th> {msg desc="Method field header"}Last{/msg} </th>
+                <th> {msg desc="Method field header"}Bid{/msg} </th>
+                <th> {msg desc="Method field header"}Ask{/msg} </th>
                 <th> {msg desc="Method field header"}Volume (BTC){/msg} </th>
                 <th> {msg desc="Method field header"}Volume{/msg} </th>
                 <th> {msg desc="Method field header"}High{/msg} </th>
@@ -25,6 +27,8 @@
                 <tr data-symbol="{$inst['Symbol']}" >
                 <td>{$inst['Description']} </td>
                 <td><span class="bitex-model" data-model-key="formatted_last_price_{$inst['Symbol']}"></span></td>
+                <td><span class="bitex-model" data-model-key="formatted_bid_{$inst['Symbol']}"></span></td>
+                <td><span class="bitex-model" data-model-key="formatted_ask_{$inst['Symbol']}"></span></td>
                 <td><span class="bitex-model" data-model-key="formatted_volume_sell_{$inst['Symbol']}"></span></td>
                 <td><span class="bitex-model" data-model-key="formatted_volume_buy_{$inst['Symbol']}"></span></td>
                 <td><span class="bitex-model" data-model-key="formatted_max_{$inst['Symbol']}"></span></td>
