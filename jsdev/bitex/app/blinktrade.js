@@ -499,6 +499,7 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_);
   handler.listen(this.views_, bitex.view.View.EventType.SET_NOT_VERIFIED, this.onBrokerSetUserNotVerified_);
   handler.listen(this.views_, bitex.view.View.EventType.SET_WITHDRAW_EMAIL, this.onBrokerSetWithdrawEmailConfirmation_);
+  handler.listen(this.views_, bitex.view.View.EventType.RESET_TWOFACTOR, this.onBrokerResetUserTwoFactor_);
 
   this.connectBitEx();
 };
@@ -1112,6 +1113,16 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
  */
 bitex.app.BlinkTrade.prototype.onUserConfirmWithdraw_ = function(e){
   this.conn_.confirmWithdraw(e.target.getConfirmationToken());
+};
+
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onBrokerResetUserTwoFactor_ = function(e){
+  var client_id = e.target.getClientID();
+  this.conn_.updateUserProfile({ 'TwoFactorEnabled': false }, client_id);
 };
 
 /**

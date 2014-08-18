@@ -359,7 +359,7 @@ def processUpdateUserProfile(session, msg):
   broker_model_fields_writable = []
 
   if is_updating_his_customer_profile:
-    user_model_fields_writable = ['TransactionFeeBuy','TransactionFeeSell','WithdrawEmailValidation','VerificationData']
+    user_model_fields_writable = ['TransactionFeeBuy','TransactionFeeSell','WithdrawEmailValidation','VerificationData','VerificationData', 'TwoFactorEnabled']
 
   broker_profile = None
   if user.is_broker:

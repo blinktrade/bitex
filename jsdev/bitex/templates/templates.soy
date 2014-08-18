@@ -924,6 +924,18 @@
 /**
   * @param msg_customer_detail
   */
+{template .AccountOverviewHeaderTwoFactors}
+    {if $msg_customer_detail['TwoFactorEnabled'] }
+      <span class="label label-success">{msg desc="label on  overview header"}Enabled{/msg}</span>
+      <a href="#" class="btn btn-primary btn-mini" data-action="SET_TWO_FACTOR" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Disable{/msg}</a>
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}Disabled{/msg}</span>
+    {/if}
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
 {template .AccountOverviewHeader}
   <table class="table table-striped account-overview-table" style="width: 350px">
     <tbody>
@@ -961,7 +973,11 @@
       </tr>
       <tr>
          <td><strong>{msg desc="label on  overview header"}Has two step authentication{/msg}</strong></td>
-         <td>{$msg_customer_detail['TwoFactorEnabled']}</td>
+         <td class="account-overview-val account-overview-two-factors" >
+          {call .AccountOverviewHeaderTwoFactors}
+            {param msg_customer_detail: $msg_customer_detail /}
+          {/call}
+         </td>
       </tr>
       <tr>
          <td><strong>{msg desc="label on  overview header"}Registration date{/msg}</strong></td>
