@@ -96,12 +96,13 @@ var MSG_BITEX_PASSWORD_CHANGED_OK_TITLE = goog.getMsg('Success');
 /**
  * @param {string=} opt_default_country
  * @param {number=} opt_default_broker_id
+ * @param {string=} opt_default_state
  * @param {number=} opt_test_request_timer_in_ms. Defaults to 30 seconds
  * @param {number=} opt_maximum_allowed_delay_in_ms. Defaults to 10 seconds
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id, opt_test_request_timer_in_ms, opt_maximum_allowed_delay_in_ms) {
+bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id, opt_default_state, opt_test_request_timer_in_ms, opt_maximum_allowed_delay_in_ms) {
   goog.events.EventTarget.call(this);
 
   bootstrap.Dropdown.install();
@@ -126,6 +127,10 @@ bitex.app.BlinkTrade = function(opt_default_country, opt_default_broker_id, opt_
 
   if (goog.isDefAndNotNull(opt_default_broker_id)) {
     this.model_.set('DefaultBrokerID', opt_default_broker_id);
+  }
+
+  if (goog.isDefAndNotNull(opt_default_state)) {
+    this.model_.set('DefaultState', opt_default_state);
   }
 
   this.maximum_allowed_delay_in_ms_ = opt_maximum_allowed_delay_in_ms || 10000;
@@ -2555,17 +2560,6 @@ bitex.app.BlinkTrade.prototype.onSecurityList_ =   function(e) {
  * @private
  */
 bitex.app.BlinkTrade.prototype.adjustBrokerData_ = function(broker_info) {
-  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
-  var withdraw_structure = broker_info['WithdrawStructure'];
-  /*
-  goog.object.forEach(withdraw_structure,  function(withdraw_methods) {
-    goog.array.forEach( withdraw_methods, function(method) {
-      method['percent_fee'] = fmt.format(method['percent_fee']/100.0);
-      method['fixed_fee'] = fmt.format(method['fixed_fee']/1e8);
-    });
-  });
-  */
-
   broker_info['Currencies'] = broker_info['Currencies'].split(',');
   if (broker_info['Currencies'].length === 1 && goog.string.isEmpty(broker_info['Currencies'][0])) {
     broker_info['Currencies'] = [];
@@ -2602,8 +2596,8 @@ bitex.app.BlinkTrade.prototype.adjustBrokerData_ = function(broker_info) {
   percent_fmt.setMaximumFractionDigits(2);
   percent_fmt.setMinimumFractionDigits(2);
 
-  broker_info['FormattedTransactionFeeBuy'] = percent_fmt.format(broker_info['TransactionFeeBuy'] / 10000);
-  broker_info['FormattedTransactionFeeSell'] = percent_fmt.format(broker_info['TransactionFeeSell'] / 10000);
+  broker_info['FormattedTransactionFeeBuy'] = percent_fmt.format(broker_info['TransactionFeeBuy'] / 100);
+  broker_info['FormattedTransactionFeeSell'] = percent_fmt.format(broker_info['TransactionFeeSell'] / 100);
 
   return broker_info;
 };
