@@ -1,6 +1,8 @@
 from datetime import datetime
 from bitex.signals import Signal
 
+import time
+
 signal_publish_security_status = Signal()
 
 class InstrumentStatusHelper(object):
@@ -14,9 +16,21 @@ class InstrumentStatusHelper(object):
         self.last_price = 0
         self.max_price = 0
         self.min_price = None
-        self.bid = 0
-        self.ask = 0
+        self.bid = None
+        self.ask = None
+        self.timestamp_last_update = int(time.time() * 1000)
 
+    def set_best_bid(self, bid ):
+      if self.bid != bid:
+        self.timestamp_last_update = int(time.time() * 1000)
+        self.bid = bid
+        signal_publish_security_status('SECURITY_STATUS', self)
+
+    def set_best_ask(self, ask ):
+      if self.ask != ask:
+        self.timestamp_last_update = int(time.time() * 1000)
+        self.ask = ask
+        signal_publish_security_status('SECURITY_STATUS', self)
 
     def _subtract_trade(self, trade):
         volume_price = int(

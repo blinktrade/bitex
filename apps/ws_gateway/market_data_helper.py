@@ -172,17 +172,17 @@ class MarketDataSubscriber(object):
             self.buy_side = self.buy_side[index:]
 
             if self.buy_side:
-                self.inst_status.bid = self.buy_side[0]['price']
+                self.inst_status.set_best_bid(self.buy_side[0]['price'])
             else:
-                self.inst_status.bid = 0
+                self.inst_status.set_best_bid(None)
 
         elif side == '1':
             self.sell_side = self.sell_side[index:]
 
             if self.sell_side:
-                self.inst_status.ask = self.sell_side[0]['price']
+                self.inst_status.set_best_ask(self.sell_side[0]['price'])
             else:
-                self.inst_status.ask = 0
+                self.inst_status.set_best_ask(None)
 
 
     def on_book_delete_order(self, msg):
@@ -192,17 +192,20 @@ class MarketDataSubscriber(object):
 
         if side == '0':
             del self.buy_side[index]
-            if self.buy_side:
-                self.inst_status.bid = self.buy_side[0]['price']
-            else:
-                self.inst_status.bid = 0
+            if index == 0:
+                if self.buy_side:
+                    self.inst_status.set_best_bid(self.buy_side[0]['price'])
+                else:
+                    self.inst_status.set_best_bid(None)
+
 
         elif side == '1':
             del self.sell_side[index]
-            if self.sell_side:
-                self.inst_status.ask = self.sell_side[0]['price']
-            else:
-                self.inst_status.ask = 0
+            if index == 0:
+                if self.sell_side:
+                    self.inst_status.set_best_ask(self.sell_side[0]['price'])
+                else:
+                  self.inst_status.set_best_ask(None)
 
 
     def on_book_new_order(self, msg):
@@ -222,12 +225,12 @@ class MarketDataSubscriber(object):
         if msg.get('MDEntryType') == '0':  # buy
             self.buy_side.insert(index, order)
             if index == 0:
-                self.inst_status.bid = msg.get('MDEntryPx')
+                self.inst_status.set_best_bid(msg.get('MDEntryPx'))
 
         elif msg.get('MDEntryType') == '1':  # sell
             self.sell_side.insert(index, order)
             if index == 0:
-                self.inst_status.ask = msg.get('MDEntryPx')
+                self.inst_status.set_best_ask(msg.get('MDEntryPx'))
 
 
     def on_book_update_order(self, msg):
@@ -246,12 +249,13 @@ class MarketDataSubscriber(object):
         if msg.get('MDEntryType') == '0':  # sell
             self.buy_side[index] = order
             if index == 0:
-                self.inst_status.bid = msg.get('MDEntryPx')
+                self.inst_status.set_best_bid(msg.get('MDEntryPx'))
 
         elif msg.get('MDEntryType') == '1':  # sell
             self.sell_side[index] = order
             if index == 0:
-                self.inst_status.ask = msg.get('MDEntryPx')
+                self.inst_status.set_best_ask(msg.get('MDEntryPx'))
+
 
     def on_trade(self, msg):
         if not self.is_ready:
