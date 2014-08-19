@@ -11,94 +11,274 @@ goog.require('goog.dom.TagName');
 
 
 /**
+ * @desc Column ID of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID = goog.getMsg('ID');
+
+/**
+ * @desc Column Status of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_DESCRIPTION = goog.getMsg('Description');
+
+/**
+ * @desc Column Status of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS = goog.getMsg('Status');
+
+/**
+ * @desc Column Side of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE = goog.getMsg('Side');
+
+/**
+ * @desc Column Qty of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_QTY = goog.getMsg('Qty');
+
+/**
+ * @desc Column Price of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_PRICE = goog.getMsg('Price');
+
+/**
+ * @desc Column  Leaves Qty of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_LEAVES_QTY = goog.getMsg('Leaves Qty');
+
+/**
+ * @desc Column  Cum Qty of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_CUM_QTY = goog.getMsg('Cum Qty');
+
+/**
+ * @desc Column Average Price of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_AVG_PX = goog.getMsg('Average Price');
+
+/**
+ * @desc Column Volume Price of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME = goog.getMsg('Total');
+
+/**
+ * @desc Column Order Date of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ORDER_DATE = goog.getMsg('Date/Time');
+
+/**
+ * @desc Column Actions of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS = goog.getMsg('Actions');
+
+/**
+ * @desc Column Buy Side of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_BUY = goog.getMsg('Buy');
+
+/**
+ * @desc Column Sell Side of the Order Manager
+ */
+var MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_SELL = goog.getMsg('Sell');
+
+/**
+ * @desc cancel order button on order manager component
+ */
+var MSG_ORDER_MANAGER_ACTION_CANCEL_ORDER = goog.getMsg('cancel');
+
+
+/**
+ * @param {string} opt_mode. Defaults to advanced mode
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper
  * @constructor
  * @extends {goog.ui.Component}
  */
-bitex.ui.OrderManager = function(opt_blinkDelay, opt_domHelper) {
-  var grid_columns = [
+bitex.ui.OrderManager = function(opt_mode, opt_blinkDelay, opt_domHelper) {
+  this.mode_ = opt_mode || 'advanced';
+  this.blink_delay_ = opt_blinkDelay || 700;
+
+  var grid_columns_simple = [
     {
       'property': 'OrderID',
-      'label': 'ID',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID,
+      'sortable': false,
+      'formatter': function(s, rowSet) { return rowSet['ClOrdID']},
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-id'); }
+    },{
+      'property': 'Side',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_DESCRIPTION,
+      'sortable': false,
+      'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'description'); }
+    },{
+      'property': 'OrdStatus',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS,
+      'sortable': false,
+      'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'status'); }
+    },{
+      'property': 'AvgPx',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_PRICE,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
+    },{
+      'property': 'Volume',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_VOLUME,
+      'sortable': false,
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'volume'); }
+    },{
+      'property': 'ClOrdID',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS,
+      'sortable': false,
+      'formatter': function(id, row_set_obj){
+        var classes = "btn btn-mini btn-danger";
+        var attributes = { 'class':classes, 'data-action':'cancel', 'data-client-order-id': id } ;
+
+        if ( goog.isDefAndNotNull(row_set_obj) ) {
+          attributes['data-order-id'] = row_set_obj["OrderID"];
+
+          if (row_set_obj["LeavesQty"] == 0) {
+            return "";
+          }
+        }
+
+        return goog.dom.createDom( 'a', attributes, MSG_ORDER_MANAGER_ACTION_CANCEL_ORDER );
+      },
+      'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
+    }
+  ];
+
+  var grid_columns_advanced = [
+    {
+      'property': 'OrderID',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ID,
       'sortable': false,
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-id'); }
     },{
       'property': 'OrdStatus',
-      'label': 'Status',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_STATUS,
       'sortable': false,
       'formatter': function(s){ return bitex.ui.OrderManager.Status[s]; },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'status'); }
     },{
       'property': 'Side',
-      'label': 'C/V',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE,
       'sortable': false,
       'formatter': function(s){
         switch(s){
-          case '1': return 'C';
-          case '2': return 'V';
+          case '1': return MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_BUY;
+          case '2': return MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_SIDE_SELL;
         }
         return '';
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'side'); }
     },{
       'property': 'OrderQty',
-      'label': 'Vol. BTC',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_QTY,
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'order-qty'); }
     },{
       'property': 'Price',
-      'label': 'Preço R$',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_PRICE,
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'price'); }
     },{
       'property': 'LeavesQty',
-      'label': 'BTC em aberto',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_LEAVES_QTY,
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'leaves_qty'); }
     },{
       'property': 'CumQty',
-      'label': 'BTC executado',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_CUM_QTY,
       'sortable': false,
       'formatter': function(s){return (s/1e8).toFixed(8);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'cum-qty'); }
     },{
       'property': 'AvgPx',
-      'label': 'Preço médio',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_AVG_PX,
       'sortable': false,
-      'formatter': function(s){return (s/1e5).toFixed(5);},
+      'formatter': function(s){return (s/1e8).toFixed(5);},
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'avg-price'); }
     },{
       'property': 'ClOrdID',
-      'label': 'Ações',
+      'label': MSG_ORDER_MANAGER_ACTIVITY_TABLE_COLUMN_ACTIONS,
       'sortable': false,
-      'formatter': function(id){
-        var classes = "icon-remove";
-        var i =goog.dom.createDom( 'i', { 'class':classes, 'data-client-order-id':id });
-        return goog.dom.createDom( 'a', { 'class':"text-error", "href":"#" }, i);
+      'formatter': function(id, row_set_obj){
+        var classes = "btn btn-mini btn-danger";
+        var attributes = { 'class':classes, 'data-action':'cancel', 'data-client-order-id': id } ;
+
+        if ( goog.isDefAndNotNull(row_set_obj) ) {
+          attributes['data-order-id'] = row_set_obj["OrderID"];
+
+          if (row_set_obj["LeavesQty"] == 0) {
+            return "";
+          }
+        }
+
+        return goog.dom.createDom( 'a', attributes, MSG_ORDER_MANAGER_ACTION_CANCEL_ORDER );
       },
       'classes': function() { return goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'actions'); }
     }
   ];
 
-  this.blink_delay_ = opt_blinkDelay || 700;
 
-  bitex.ui.DataGrid.call(this,  { 'rowClassFn':this.getRowClass, 'columns': grid_columns } , opt_domHelper);
+  /** @desc Order manager table tittle */
+  var MSG_ORDER_MANAGER_TABLE_TITLE = goog.getMsg('My orders');
+
+  var options = {
+    'rowIDFn': this.getRowID ,
+    'rowClassFn':this.getRowClass,
+    'columns': grid_columns_advanced,
+    'title': MSG_ORDER_MANAGER_TABLE_TITLE,
+    'showSearch': false
+  };
+
+  if (this.mode_ == 'simple') {
+    options['columns'] = grid_columns_simple;
+  }
+
+  bitex.ui.DataGrid.call(this,  options , opt_domHelper);
 };
 goog.inherits(bitex.ui.OrderManager, bitex.ui.DataGrid);
+
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_PENDING = goog.getMsg('Pending');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_NEW = goog.getMsg('New');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_PARTIALL_FILL = goog.getMsg('Partially filled');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_FILL = goog.getMsg('Filled');
+
+/**
+ * @desc Order Manager Status description
+ */
+var MSG_ORDER_MANAGER_STATUS_CXL = goog.getMsg('Cancelled');
 
 /**
  * @enum {string}
  */
 bitex.ui.OrderManager.Status = {
-  '-': 'pendente',
-  '0': 'nova',
-  '1': 'exec. parcial',
-  '2': 'executada',
-  '4': 'cancelada'
+  '-': MSG_ORDER_MANAGER_STATUS_PENDING,
+  '0': MSG_ORDER_MANAGER_STATUS_NEW,
+  '1': MSG_ORDER_MANAGER_STATUS_PARTIALL_FILL,
+  '2': MSG_ORDER_MANAGER_STATUS_FILL,
+  '4': MSG_ORDER_MANAGER_STATUS_CXL
 };
 
 /**
@@ -115,6 +295,11 @@ bitex.ui.OrderManager.EventType = {
  */
 bitex.ui.OrderManager.prototype.blink_delay_;
 
+/**
+ * @type {string}
+ * @private
+ */
+bitex.ui.OrderManager.prototype.mode_;
 
 /**
  * @type {string}
@@ -128,12 +313,19 @@ bitex.ui.OrderManager.prototype.getCssClass = function() {
 
 /**
  * @param {Object} row_set
- * @return {Array.<string>|string|Object}
+ * @return {string}
+ */
+bitex.ui.OrderManager.prototype.getRowID = function(row_set){
+  return this.getId() + '_' + row_set['ClOrdID'];
+};
+
+/**
+ * @param {Object} row_set
+ * @return {string}
  */
 bitex.ui.OrderManager.prototype.getRowClass = function(row_set) {
   var status =  row_set['OrdStatus'];
 
-  var class_id = 'client-order-id-' + row_set['ClOrdID'];
   var class_status;
   switch(status) {
     case '-':
@@ -153,136 +345,27 @@ bitex.ui.OrderManager.prototype.getRowClass = function(row_set) {
       break;
   }
 
-  return [class_id, class_status];
+  return class_status;
+};
+
+/**
+ * @param {string} client_order_id
+ */
+bitex.ui.OrderManager.prototype.removeOrder = function(client_order_id) {
+  var rowId = this.getId() + '_' + client_order_id;
+
+  var el = goog.dom.getElement(rowId);
+  if (goog.isDefAndNotNull(el)) {
+    goog.dom.removeNode(el);
+  }
 };
 
 /**
  * @param  {Object} execution_report_msg
  */
 bitex.ui.OrderManager.prototype.processExecutionReport = function(execution_report_msg){
-  var class_id = 'client-order-id-' + execution_report_msg['ClOrdID'];
-
-  var tr_element = goog.dom.getElementByClass(class_id, this.getElement());
-
-  if (execution_report_msg['LeavesQty'] === 0 ) {
-    // Remove order
-    if (goog.isDefAndNotNull(tr_element)) {
-      goog.dom.removeNode(tr_element);
-    }
-    return;
-  }
-
-  if (goog.isDefAndNotNull(tr_element)) {
-    goog.object.forEach(execution_report_msg, function(value,column, obj) {
-      var td_element = this.setColumnValue( tr_element, column, value );
-      if (goog.isDefAndNotNull( td_element)) {
-
-        var blink_class = goog.getCssName(bitex.ui.OrderManager.CSS_CLASS, 'blink');
-        goog.dom.classes.add( td_element,  blink_class );
-        goog.Timer.callOnce( function(){
-          goog.dom.classes.remove( td_element,  blink_class );
-        }, this.blink_delay_ , this);
-
-      }
-    }, this);
-
-    var current_classes = goog.dom.classes.get(tr_element);
-    var new_classes = this.getRowClass( execution_report_msg );
-
-    goog.dom.classes.addRemove( tr_element, current_classes, new_classes );
-    return;
-  }
-
-
-  var columns = goog.object.getKeys(execution_report_msg);
-  var values = goog.object.getValues(execution_report_msg);
-
-  var tr_elements = this.resultSetToElements( [ values ] , columns );
-  goog.dom.insertChildAt(this.table_data_body_el_, tr_elements[0], 0);
-
-  // TODO: call adjustSizes_ if this is the first row inserted
-  //this.adjustSizes_(tr_elements[0]);
+  this.insertOrUpdateRecord(execution_report_msg, 0);
 };
-
-
-/**
- *
- * @param {string} clientOrderId
- * @param {string} status
- * @param {string} side
- * @param {number} orderQty
- * @param {number} price
- * @param {number} leavesQty
- * @param {number} opt_cumQty
- * @param {number} opt_avgPrice
- * @param {string=} opt_orderId
- */
-bitex.ui.OrderManager.prototype.insertOrder = function(clientOrderId,
-                                                       status,
-                                                       side,
-                                                       orderQty,
-                                                       price,
-                                                       leavesQty,
-                                                       opt_cumQty,
-                                                       opt_avgPrice,
-                                                       opt_orderId) {
-
-
-  var tr_element_id = 'client_order_id_' + clientOrderId;
-
-  var status_class;
-  switch( status) {
-    case '-':
-      status_class = goog.getCssName(this.getCssClass(), 'pending' );
-      break;
-    case '0':
-      status_class = goog.getCssName(this.getCssClass(), 'new' );
-      break;
-    case '1':
-      status_class = goog.getCssName(this.getCssClass(), 'partial' );
-      break;
-    case '2':
-      status_class = goog.getCssName(this.getCssClass(), 'fill' );
-      break;
-    case '4':
-      status_class = goog.getCssName(this.getCssClass(), 'cancel' );
-      break;
-  }
-
-  var tr_attributes = {
-    'id': tr_element_id,
-    'class': status_class
-  };
-
-
-  // Let's update the order
-  orderQty   = (orderQty/1e8).toFixed(8);
-  price      = (price/1e5).toFixed(5);
-  leavesQty  = (leavesQty/1e8).toFixed(8);
-  var cumQty = (opt_cumQty|0/1e8).toFixed(8);
-  var avgPx  = (opt_avgPrice|0/1e5).toFixed(5);
-  var orderId = opt_orderId|'';
-
-  var status_desc = bitex.ui.OrderManager.Status[status];
-
-  var dom = this.getDomHelper();
-  var tr = dom.createDom( 'tr', tr_attributes ,
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'id' ),      ''+  orderId  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'status' ),  ''+  status_desc  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'side' ),    ''+  side  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'order-qty' ),''+ orderQty  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'price' ),    ''+price  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'leaves-qty' ),''+ leavesQty  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'cum-qty' ), ''+ cumQty  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'avg-px' ),  ''+avgPx  ),
-    dom.createDom('td', goog.getCssName(this.getCssClass(), 'actions' ),
-      dom.createDom( 'a', { 'class':"text-error", "href":"" }, dom.createDom( 'i', { 'class':"icon-remove" })) )
-  );
-
-  dom.appendChild(this.tbody_, tr );
-};
-
-
 
 
 /** @inheritDoc */
@@ -292,9 +375,12 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
   var handler = this.getHandler();
 
   handler.listen(this.getElement(), 'click', function(e){
-    var client_order_id = e.target.getAttribute('data-client-order-id');
-    if (goog.isDefAndNotNull(client_order_id)) {
-      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, client_order_id) );
+    var order_id = e.target.getAttribute('data-order-id');
+    if (goog.isDefAndNotNull(order_id)) {
+      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, order_id) );
+    } else {
+      var client_order_id = e.target.getAttribute('data-client-order-id');
+      this.dispatchEvent( new bitex.ui.OrderManagerEvent (bitex.ui.OrderManager.EventType.CANCEL, undefined, client_order_id) );
     }
   });
 };
@@ -303,17 +389,24 @@ bitex.ui.OrderManager.prototype.enterDocument = function() {
 /**
  *
  * @param {string} type
- * @param {string} client_order_id
+ * @param {=string} opt_order_id
+ * @param {=string} opt_client_order_id
  * @extends {goog.events.Event}
  * @constructor
  */
-bitex.ui.OrderManagerEvent = function(type, client_order_id) {
+bitex.ui.OrderManagerEvent = function(type, opt_order_id, opt_client_order_id) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
-  this.client_order_id = client_order_id;
+  this.order_id = opt_order_id;
+
+  /**
+   * @type {string}
+   */
+  this.client_order_id = opt_client_order_id;
+
 };
 goog.inherits(bitex.ui.OrderManagerEvent, goog.events.Event);
 

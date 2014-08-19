@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt_BR">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Buy and sell Crypto currencies.">
+
+  <meta name="keywords" content="bitcoin, bitcoin exchange, bitcoin decentralized exchange">
+
+  <meta name="author" content="BitEx">
+
+  <meta charset="utf-8">
+
+
+  <link href="/css/bootstrap-combined.min.css" rel="stylesheet">
+  <link href="/css/font-awesome.min.css" rel="stylesheet">
+
+  <link href="/css/style.css?v4" rel="stylesheet">
+
+  <style>
+    body{
+      background-color: #ffffff;
+      padding-top: 50px;
+    }
+    .black_banner {
+      background-color: black;
+      min-height: 60px;
+      color: whitesmoke;
+      padding-left: 135px;
+    }
+  </style>
+
+  <link rel="canonical" href="https://www.blinktrade.com" />
+</head>
+
+<body>
+
+<div class="black_banner">
+  <img src="/images/blinktrade.png" style=" height: 55px; margin-top: 5px; margin-bottom: 5px; ">
+</div>
+
+
+<div class="clearfix" style="padding: 30px;"></div>
+
+<div class="container">
+  <div class="content-fluid">
+    <table id="depositForm" class="table table-condensed">
+
+      <tr><td colspan="3"><h4>Deposit Instructions</h4></td></tr>
+      <tr>
+        <td> Order ID:</td>
+        <td>{{control_number}}</td>
+      </tr>
+      <tr>
+        <td>Created:</td>
+        <td>{{current_date}}</td>
+      </tr>
+      <tr>
+        <td>Deposit Method:</td>
+        <td>Money Order</td>
+      </tr>
+      <tr>
+        <td>Instructions:</td>
+        <td>
+          1. Head to your local United States Postal Service and purchase a money order slip for the correct amount. Learn more about USPS money orders <a href="https://www.usps.com/shop/money-orders.htm">here</a><br/>
+          2. Fill out the money order form. <b>Important: Make sure to write your confirmation code directly on it!</b><br/>
+          3. Take a picture of the filled out money order<br/>
+          4. Upload the photo of the money order in the system<br/>
+          5. Send the money order to :
+          {{account_name}} <br/>
+          {{address_line_1}}<br/>
+          {{address_line_2}}<br/>
+        </td>
+      </tr>
+      <tr>
+        <td>Total Deposit:</td>
+        <td>{{currency}} {{value}}</td>
+      </tr>
+      <tr>
+        <td>Notes:</td>
+        <td>{% raw disclaimer %}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1202 @@
+{namespace bitex.templates}
+
+/**
+  * @param msg_customer_detail
+  */
+{template .CustomerDetailDialog}
+  <div class="row">
+    <div class="span6">
+      {msg desc="Customer username"}Username:{/msg}{$msg_customer_detail['Username']}
+    </div>
+  </div>
+{/template}
+
+/**
+  * @param error_message
+  * @param error_code
+  */
+{template .ErrorDialogContent}
+  <p class="lead">{$error_message}</p>
+  <dl class="dl-horizontal">
+     <dt>{msg desc="Error code label on error dialog content"}Error code{/msg}</dt>
+     <dd>{$error_code}</dd>
+  </dl>
+{/template}
+
+
+
+/**
+  * @param depositReceiptList
+  */
+{template .DepositReceiptDialogContent}
+  {foreach $receipt_url in $depositReceiptList}
+    <img width="100%" src="{{$receipt_url}}"/>
+    <a href="{{$receipt_url}}" target="_blank">{msg desc="Download picture link on deposit receipt dialog content"}Download{/msg}</a>
+  {/foreach}
+{/template}
+
+/**
+  * @param id_value
+  * @param percentFeeID
+  * @param fixedFeeID
+  * @param totalFeesID
+  * @param netValueID
+  * @param controlNumber
+  * @param currencySign
+  * @param value
+  * @param percentFee
+  * @param fixedFee
+  */
+{template .BrokerConfirmDepositContent}
+  <form class="form-horizontal broker-confirm-deposit">
+    <div class="control-group">
+      <label class="control-label">{msg desc="Control number label"}Control number{/msg}</label>
+      <div class="controls">
+        <label class="control-label" style="text-align: left;">{$controlNumber}</label>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label">{msg desc="Amount label"}Amount paid{/msg}</label>
+      <div class="controls">
+        <div class="input-prepend">
+          <span class="add-on">{$currencySign}</span>
+          <input id="{$id_value}" type="text" class="input-small" size="16" name="PaidValue" value="{$value}">
+        </div>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label">{msg desc="Fee percentage label"}Fees:{/msg}</label>
+      <div class="controls">
+        <div class="row-fluid">
+          <div class="span4">
+            <div class="input-append">
+              <input id="{$percentFeeID}" type="text" class="input-mini" size="16" name="Fee" value="{$percentFee}">
+              <span class="add-on">%</span>
+            </div>
+          </div>
+
+          <div class="span4">
+            <div class="input-prepend">
+              <span class="add-on">{$currencySign}</span>
+              <input id="{$fixedFeeID}" type="text" class="input-mini" size="16" name="Fee" value="{$fixedFee}">
+            </div>
+          </div>
+
+          <div class="span4">
+            <label id="{$totalFeesID}" class="control-label broker-confirm-deposit-fee" style="text-align: left;"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">{msg desc="Net amount"}Net amount{/msg}</label>
+      <div class="controls">
+        <label id="{$netValueID}" class="control-label broker-confirm-deposit-net-amount" style="text-align: left;"></label>
+      </div>
+    </div>
+
+  </form>
+{/template}
+
+
+/**
+  * @param show_title
+  * @param msg_broker
+  */
+{template .BrokerView}
+  {if $show_title}
+  <div class="section-title">
+    <h3>{msg desc="Title for the Broker view"}My broker{/msg}</h3>
+  </div>
+  {/if}
+
+  <div class="content">
+    {if $msg_broker['BrokerID'] == -1 }
+    {else}
+      <address>
+        <strong>{$msg_broker['BusinessName']}</strong><br/>
+        {$msg_broker['Address']}<br/>
+        {$msg_broker['City']}, {$msg_broker['State']} {$msg_broker['ZipCode']} - {$msg_broker['Country']}<br/>
+        {if $msg_broker['PhoneNumber1']}
+          <abbr title="{msg desc="label in broker general information table"}Phone{/msg}">{msg desc="label in broker general information table"}P:{/msg}</abbr>{$msg_broker['PhoneNumber1']} {if $msg_broker['PhoneNumber2']}, {$msg_broker['PhoneNumber2']}{/if}<br/>
+        {/if}
+        {if $msg_broker['Skype']}
+          Skype: {$msg_broker['Skype']}<br/>
+        {/if}
+        <a href="mailto:{$msg_broker['Email']}" target="_blank">{$msg_broker['Email']}</a>
+      </address>
+
+      {if $msg_broker['BrokerID'] > 0 }
+        <div class="row-fluid">
+          <div class="span3">
+            <h4>
+              {msg desc="Allowed markets section subtitle on broker view"}Markets{/msg}
+            </h4>
+            {foreach $allowed_market in keys($msg_broker['AllowedMarkets'])}
+              <div class="row-fluid">
+                <div class="span12">
+                  { $msg_broker['AllowedMarkets'][$allowed_market]['description']}
+                </div>
+              </div>
+            {/foreach}
+          </div>
+        </div>
+      {/if}
+
+      {if $msg_broker['BrokerID'] >= 0 }
+        {if length($msg_broker['FeeStructure']) > 0 }
+          <h4>
+            {msg desc="Fee section subtitle on Broker view"}Fees{/msg}
+          </h4>
+
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>{msg desc="Operation column on Broker fees table"}Operation{/msg}</th>
+                <th>{msg desc="Fees column on Broker fees table"}Fee{/msg}</th>
+                <th>{msg desc="Terms column on Broker fees table"}Terms{/msg}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {if not $msg_broker['IsBrokerHub'] }
+                {if $msg_broker['FormattedTransactionFeeBuy'] == $msg_broker['FormattedTransactionFeeSell']}
+                  <tr>
+                    <td>{msg desc="label in broker fees table"}Trade fee{/msg}</td>
+                    <td>{$msg_broker['FormattedTransactionFeeBuy']}</td>
+                    <td></td>
+                  </tr>
+                {else}
+                  <tr>
+                    <td>{msg desc="label in broker fees table"}Trade fee - Buy side{/msg}</td>
+                    <td>{$msg_broker['FormattedTransactionFeeBuy']}</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>{msg desc="label in broker fees table"}Trade fee - Sell side{/msg}</td>
+                    <td>{$msg_broker['FormattedTransactionFeeSell']} %</td>
+                    <td></td>
+                  </tr>
+                {/if}
+              {/if}
+              {foreach $fee in $msg_broker['FeeStructure']}
+                <tr>
+                  <td>{$fee['Operation']}</td>
+                  <td>{$fee['Fee']}</td>
+                  <td>{$fee['Terms']}</td>
+                </tr>
+              {/foreach}
+            </tbody>
+          </table>
+        {/if}
+      {/if}
+
+      {if not $msg_broker['IsBrokerHub'] }
+        <h4>
+          {msg desc="Wallet section subtitle on Broker view"}Wallets{/msg}
+        </h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>{msg desc="Coin  column on Broker wallet table"}Coin{/msg}</th>
+              <th>{msg desc="type  column on Broker wallet table"}Type{/msg}</th>
+              <th>{msg desc="address column type on Broker wallet table"}Address{/msg}</th>
+              <th>{msg desc="multisig column type on Broker wallet table"}Multi signature{/msg}</th>
+              <th>{msg desc="managed by column on Broker wallet table"}Managed by{/msg}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {foreach $crypto_currencies in $msg_broker['CryptoCurrencies']}
+              {foreach $wallets in $crypto_currencies['Wallets'] }
+                <tr>
+                  <td>{$crypto_currencies['CurrencyDescription']}</td>
+                  <td>{$wallets['type'] }</td>
+                  <td>
+                  {if $crypto_currencies['CurrencyCode'] == 'BTC' }
+                    <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                  {else}
+                    {$wallets['address'] }
+                  {/if}
+                  </td>
+                  <td>
+                    {if $wallets['multisig']}
+                      {msg desc="Multisig true"}Yes{/msg}
+                    {else}
+                      {msg desc="Multisig false"}No{/msg}
+                    {/if}
+                  </td>
+                  <td>{$wallets['managed_by'] }</td>
+                </tr>
+              {/foreach}
+            {/foreach}
+          </tbody>
+        </table>
+      {/if}
+
+      <h4>
+        {msg desc="Terms of service section subtitle on Broker view"}Terms of service{/msg}
+      </h4>
+      <iframe style="width:100%;height:400px;" src="{$msg_broker['TosUrl']}"></iframe>
+    {/if}
+  </div>
+
+
+
+{/template}
+
+/**
+  * @param reason_id
+  * @param custom_reason_id
+  */
+{template .CancelDepositDialogContent}
+<p>{msg desc="Cancel deposit dialog message"}Enter a reason for cancelling the deposit{/msg}</p>
+<form class="form-horizontal">
+  <fieldset>
+    <div class="control-group">
+      <label class="control-label" for="{$reason_id}" >{msg desc="Cancel deposit reason label"}Reason:{/msg}</label>
+      <div class="controls">
+        <select id="{$reason_id}">
+          <option value=0 selected>{msg desc="reason for cancelling deposit"}Other{/msg}</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <textarea id="{$custom_reason_id}" rows="2" style=""></textarea>
+      </div>
+    </div>
+  </fieldset>
+</form>
+{/template}
+
+
+/**
+  * @param reason_id
+  * @param custom_reason_id
+  */
+{template .CancelWithdrawDialogContent}
+<p>{msg desc="Cancel withdraw dialog message"}Enter a reason for cancelling the user withdraw{/msg}</p>
+<form class="form-horizontal">
+  <fieldset>
+    <div class="control-group">
+      <label class="control-label" for="{$reason_id}" >{msg desc="Cancel withdraw reason label"}Reason:{/msg}</label>
+      <div class="controls">
+        <select id="{$reason_id}">
+          <option value=0>{msg desc="reason for cancelling withdraw"}Other{/msg}</option>
+          <option value=-1 selected>{msg desc="reason for cancelling withdraw"}Insufficient funds{/msg}</option>
+          <option value=-2>{msg desc="reason for cancelling withdraw"}Account not verified{/msg}</option>
+          <option value=-3>{msg desc="reason for cancelling withdraw"}Suspicion of fraud{/msg}</option>
+          <option value=-4>{msg desc="reason for cancelling withdraw"}Withdrawing to a different account than yours{/msg}</option>
+          <option value=-5>{msg desc="reason for cancelling withdraw"}Invalid wallet{/msg}</option>
+          <option value=-6>{msg desc="reason for cancelling withdraw"}Invalid bank account{/msg}</option>
+          <option value=-7>{msg desc="reason for cancelling withdraw"}Amount exceeded your daily withdraw limit{/msg}</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <textarea id="{$custom_reason_id}" rows="2" style="display:none;"></textarea>
+      </div>
+    </div>
+  </fieldset>
+</form>
+
+{/template}
+
+/**
+  * @param id
+  */
+{template .GoogleAuthenticationCodeDialogContent}
+  <div class="ctrlHolder">
+    {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg}
+    <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
+  </div>
+{/template}
+
+/**
+  * @param id
+  */
+{template .WithdrawConfirmationDialogContent}
+  <form class="form-horizontal" data-deposit-status="prepare">
+  <fieldset>
+
+  <p>
+    {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
+  </p>
+
+  <div class="ctrlHolder">
+  <label>Confirmation Code</label>
+  <input id="{$id}" uniform-validators="required" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+  </div>
+  <p>
+    <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
+  </p>
+
+  </fieldset>
+  </form>
+{/template}
+
+
+/**
+  * @param id
+  * @param buy_fee
+  * @param sell_fee
+  */
+{template .UserFeesDialogContent}
+
+  <form class="form-horizontal">
+
+    <div class="control-group">
+
+      <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Buy fee {/msg}</label>
+      <div class="controls">
+        <input id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" id="{$id}_broker_buy_fee"> Use Broker Fee
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Sell fee{/msg}</label>
+      <div class="controls">
+        <input id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="{$id}_broker_sell_fee"> Use Broker Fee
+            </label>
+          </div>
+      </div>
+    </div>
+
+  </form>
+
+{/template}
+
+/**
+  * @param accounts
+  */
+{template .YourAccountSummary}
+  <h6>{msg desc="Your account label in the right side bar"}Your account{/msg}</h6>
+    {foreach $account in $accounts}
+      <table class="table table-bordered account-summary-table" >
+        <tbody>
+
+      <tr id="id_account_summary_{$account['brokerID']}"
+          class='account-summary-broker model-action-set'
+          data-key="SelectedBrokerID"
+          data-value="{$account['brokerID']}"
+          {if length($accounts) <= 1 or length($account['currencies']) == 0 }style="display:none;"{/if}>
+            <td colspan="3"><strong>{$account['brokerName']}</strong></td>
+      </tr>
+
+      {foreach $currency_info in $account['currencies']}
+        <tr>
+          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}"><strong>{$currency_info['currency']}</strong></td>
+          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}"><span class="bitex-model"
+                     data-model-key="formatted_balance_{$account['brokerID']}:{$account['clientID']}_{$currency_info['currency']}"
+                     data-blink-class="balance-info-blink">{$currency_info['formattedBalance']}</span></td>
+          <td style="padding: 4px;border-left:0;{if not isFirst($currency_info) }border-top: 0;{/if}">
+            {if $currency_info['showDeposit'] and  $currency_info['showWithdraw']}
+              <div class="btn-group">
+            {/if}
+
+            {if $currency_info['showDeposit'] }
+              <button class="btn btn-mini" data-action="deposit" data-currency="{$currency_info['currency']}">
+                <i data-action="deposit" data-currency="{$currency_info['currency']}" class="icon-plus"></i>
+              </button>
+            {/if}
+            {if $currency_info['showWithdraw'] }
+              <button class="btn btn-mini" data-action="withdraw" data-currency="{$currency_info['currency']}">
+                <i data-action="withdraw" data-currency="{$currency_info['currency']}" class="icon-minus"></i>
+              </button>
+            {/if}
+
+            {if $currency_info['showDeposit'] and  $currency_info['showWithdraw']}
+              </div>
+            {/if}
+
+          </td>
+        </tr>
+      {/foreach}
+
+        </tbody>
+      </table>
+    {/foreach}
+{/template}
+
+/**
+  * @param currencies
+  * @param? action
+  */
+{template .AccountBalances}
+  <table class="table table-striped" style="width: 350px">
+    <tbody>
+      {foreach $currency in $currencies}
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for available balance in a currency"}Available {$currency}{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model" data-model-key="formatted_balance_{$currency}" data-blink-class="balance-info-blink"></span>
+        </td>
+        {if $action == 'deposit'}
+          <td>
+            <button class="btn btn-mini" data-action="deposit"  data-currency="{$currency}">
+              <i data-action="deposit"  data-currency="{$currency}" class="icon-plus"/>
+             {msg desc="Deposit button label"} Deposit{/msg}
+            </button>
+          </td>
+        {/if}
+        {if $action == 'withdraw'}
+          <td>
+            <button class="btn btn-mini" data-action="withdraw" data-currency="{$currency}">
+              <i data-action="withdraw" data-currency="{$currency}" class="icon-minus"/>
+             {msg desc="Deposit button label"} Withdraw{/msg}
+            </button>
+          </td>
+        {/if}
+      </tr>
+      {/foreach}
+    </tbody>
+  </table>
+{/template}
+
+
+
+/**
+  */
+{template .WaitingForDepositResponseDialogContent}
+  <div class="row-fluid" data-deposit-status="processing">
+    <h5 class="text-center">
+       {msg desc="processing deposit request waiting dialog msg"}Processing deposit request...{/msg}
+    </h5>
+  </div>
+  <div class="row-fluid">
+    <div class="span6 offset3">
+      <div class="progress progress-striped active">
+        <div class="bar" style="width: 100%;"></div>
+      </div>
+    </div>
+  </div>
+{/template}
+
+/**
+  * @param deposit_message
+  */
+{template .DepositCryptoCurrencyContentDialog}
+  <div class="row-fluid" data-deposit-status="prepare">
+    <h4 class="text-center">
+      {$deposit_message['Data']['InputAddress'] }
+    </h4>
+    <div class="text-center">
+      <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl={$deposit_message['Data']['InputAddress'] }"/>
+    </div>
+  </div>
+{/template}
+
+/**
+  * @param data
+  */
+{template .CryptoCurrencyQRContentDialog}
+  <div class="row-fluid" data-deposit-status="prepare">
+    <h4 class="text-center">
+      {$data['Wallet']}
+    </h4>
+    <div class="text-center">
+      <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=$data['Wallet']"/>
+    </div>
+    <p class="text-center">
+      {msg desc="deposit processor dialog msg"} Powered by {/msg}
+      <a href="https://blockchain.info/api/api_receive/" target="_blank">https://blockchain.info/api/api_receive</a>
+    </p>
+  </div>
+{/template}
+
+/**
+  * @param currencydescription
+  */
+{template .ConfirmDepositCryptoCurrencyContentDialog}
+  <div class="row-fluid" data-deposit-status="confirm">
+    <h3 class="text-center">
+      {msg desc="deposit done dialog msg"} IMPORTANT! {/msg}
+    </h3>
+    <h4 class="text-center">
+      {msg desc="deposit done dialog msg"} We will generate a unique {$currencydescription} address that will be valid only for this transaction.{/msg}
+    </h4>
+    <h3 class="text-center">
+      {msg desc="deposit done dialog msg"} Did you understand? {/msg}
+    </h3>
+    <br/>
+    <br/>
+  </div>
+{/template}
+
+/**
+  * @param deposit_id
+  */
+{template .DepositSlipContentDialog}
+  <div class="row-fluid" data-deposit-status="done">
+  </div>
+
+  <div class="row-fluid">
+    <div class="span12 text-center">
+        {msg desc="Print deposit button in deposit dialog"}You can {/msg}
+         <a  target="_blank" href="/get_deposit?deposit_id={$deposit_id}" class="btn btn-primary">
+           {msg desc="Print deposit button in deposit dialog"} Print {/msg}
+         </a>
+         {msg desc="Print deposit button in deposit dialog"} or {/msg}
+         <a href="/get_deposit?download=1&deposit_id={$deposit_id}">
+            {msg desc="Download deposit button in deposit dialog"} Download {/msg}
+         </a>
+         {msg desc="Print deposit button in deposit dialog"} the deposit slip{/msg}
+    </div>
+  </div>
+{/template}
+
+/**
+  * @param currencySign
+  * @param percentFeeID
+  * @param fixedFeeID
+  * @param totalFeesID
+  * @param percentFee
+  * @param fixedFee
+  * @param netValueID
+  */
+{template .FeesFormControls}
+<div class="control-group">
+  <label class="control-label">{msg desc="Fee label"}Fees:{/msg}</label>
+  <div class="controls">
+    <div class="row-fluid">
+      <div class="span3">
+        <div class="input-append">
+          <input id="{$percentFeeID}" type="text" class="input-mini" size="16"  style="width: 40px;" name="PercentFee" value="{$percentFee}">
+          <span class="add-on">%</span>
+        </div>
+        <span style="font-style: italic;">{msg desc="Fee percentage label"}Percent fee{/msg}</span>
+      </div>
+
+      <div class="span1" style="margin-top: 4px;margin-bottom: -4px;">
+          <span style="font-weight: bold;">+</span>
+      </div>
+      <div class="span3">
+        <div class="input-prepend">
+          <span class="add-on">{$currencySign}</span>
+          <input id="{$fixedFeeID}" type="text" class="input-mini" size="16" style="width: 40px;" name="FixedFee" value="{$fixedFee}">
+        </div>
+        <span style="font-style: italic;">{msg desc="Fee fixed label"}Fixed fee{/msg}</span>
+      </div>
+      <div class="span1" style="margin-top: 4px;margin-bottom: -4px;">
+          <span style="font-weight: bold;">=</span>
+      </div>
+      <div class="span4">
+        <label id="{$totalFeesID}" class="control-label" style="text-align: left;"></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label">{msg desc="Net amount"}Net amount{/msg}</label>
+  <div class="controls">
+    <label id="{$netValueID}" class="control-label" style="text-align: left;"></label>
+  </div>
+</div>
+{/template}
+
+/**
+  * @param amountID
+  * @param amount
+  * @param formattedAmount
+  * @param currency
+  * @param currencySign
+  * @param percentFeeID
+  * @param fixedFeeID
+  * @param totalFeesID
+  * @param percentFee
+  * @param fixedFee
+  * @param netValueID
+  */
+{template .FeesForm}
+  <form class="form-horizontal" data-deposit-status="prepare">
+    <input type="hidden" name="Currency" value="{$currency}">
+    <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
+
+    <div class="control-group">
+      <label class="control-label">{msg desc="requested amount"}Requested Amount{/msg}</label>
+      <div class="controls">
+        <label class="control-label" style="text-align: left;">{$formattedAmount}</label>
+      </div>
+    </div>
+
+  {call .FeesFormControls}
+    {param currencySign: $currencySign /}
+    {param percentFeeID: $percentFeeID /}
+    {param percentFee: $percentFee /}
+    {param fixedFeeID: $fixedFeeID /}
+    {param fixedFee: $fixedFee /}
+    {param totalFeesID: $totalFeesID /}
+    {param netValueID: $netValueID /}
+  {/call}
+  </form>
+{/template}
+
+
+/**
+  * @param side
+  * @param? force_method
+  * @param currency
+  * @param currencySign
+  * @param methods
+  * @param methodID
+  * @param showFeeDataEntry
+  * @param amountID
+  * @param? amount
+  * @param percentFeeID
+  * @param fixedFeeID
+  * @param totalFeesID
+  * @param netValueID
+  * @param hideNetAmount
+  */
+{template .DepositWithdrawDialogContent}
+  <form class="form-horizontal" data-deposit-status="prepare">
+  <fieldset>
+
+    <input type="hidden" name="Currency" value="{$currency}">
+
+    {if $side == 'client'}
+
+
+      <div class="control-group">
+      <div class="ctrlHolder">
+        <label class="control-label">Amount</label>
+        <div class="controls">
+          <div class="input-prepend">
+            <span class="add-on">{$currencySign}</span>
+            <input id="{$amountID}" uniform-validators="required; validateNumber" type="text" class="input-small" size="16" name="Amount">
+          </div>
+        </div>
+      </div>
+      </div>
+
+    {else}
+      <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
+    {/if}
+
+    <div class="error"></div>
+
+    {if not $force_method}
+      {if length($methods) > 1}
+        <div class="control-group">
+          <label class="control-label">Method</label>
+          <div class="controls">
+            <select id="{$methodID}" name="Method" class="withdraw-method-selector">
+              {foreach $method in $methods }
+               <option {if isFirst($method)}selected{/if} value="{$method['method']}"
+                    data-net-value="{$method['method']}_{$netValueID}"
+                    data-percent-fee="{$method['method']}_{$percentFeeID}"
+                    data-fixed-fee="{$method['method']}_{$fixedFeeID}">{$method['description']}</option>
+              {/foreach}
+            </select>
+          </div>
+        </div>
+      {else}
+        {foreach $method in $methods }
+          <input  id="{$methodID}" type="hidden" name="Method"  value="{$method['method']}"
+                data-net-value="{$method['method']}_{$netValueID}"
+                data-percent-fee="{$method['method']}_{$percentFeeID}"
+                data-fixed-fee="{$method['method']}_{$fixedFeeID}">
+        {/foreach}
+      {/if}
+    {/if}
+
+    <div class="withdraw-methods">
+     {if length($methods) == 0 }
+        <div class="alert alert-danger text-center">
+          {msg desc="Error message when the brokers doesn't have deposit methods"}We are not accepting deposits at this moment. We sorry for the inconvenience.{/msg}
+        </div>
+     {/if}
+     {foreach $method in $methods }
+        {if $force_method}
+          {if $method['method'] == $force_method}
+            {foreach $field in $method['fields'] }
+              {if $field['side'] == $side}
+                <div class="control-group">
+                  <label class="control-label">{$field['label']}</label>
+                  <div class="controls">
+                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
+                  </div>
+                </div>
+              {/if}
+            {/foreach}
+            {if $side == 'client'}
+              <div class="control-group" style="margin-bottom: 5px;">
+                <div class="controls">
+                  <label>{$method['disclaimer']}</label>
+                  <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']}">
+                  <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']}">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">{msg desc="Fee percentage label"}Fees:{/msg}</label>
+                <div class="controls">
+                  <label id="{$method['method']}_{$totalFeesID}" class="control-label" style="text-align: left;"></label>
+                </div>
+              </div>
+
+              <div class="control-group" {if $hideNetAmount} style="display:none;" {/if} >
+                <label class="control-label">{msg desc="Net amount"}Net amount{/msg}</label>
+                <div class="controls">
+                  <label id="{$method['method']}_{$netValueID}" class="control-label" style="text-align: left;"></label>
+                </div>
+              </div>
+
+
+            {else}
+              {if $side == 'broker'}
+                <div class="control-group" style="margin-bottom: 5px;">
+                  <div class="controls">
+                    <label>{$method['disclaimer']}</label>
+                  </div>
+                </div>
+                {if $showFeeDataEntry}
+                  {call .FeesFormControls}
+                    {param currencySign: $currencySign /}
+                    {param percentFeeID: $method['method'] + '_' + $percentFeeID /}
+                    {param percentFee: $method['percent_fee']  /}
+                    {param fixedFeeID: $method['method']  + '_' +  $fixedFeeID /}
+                    {param fixedFee: $method['fixed_fee'] /}
+                    {param totalFeesID: $method['method']  + '_' +  $totalFeesID /}
+                    {param netValueID: $method['method']  + '_' +  $netValueID /}
+                  {/call}
+                 {/if}
+              {/if}
+            {/if}
+          {/if}
+        {else}
+          <div class="withdraw-method" data-withdraw-method="{$method['method']}" style="{if not isFirst($method)}display:none;{/if}" >
+            <div class="control-group" style="margin-bottom: 5px;">
+              <div class="controls">
+                <label>{$method['disclaimer']}</label>
+                <input id="{$method['method']}_{$percentFeeID}" type="hidden" value="{$method['percent_fee']}">
+                <input id="{$method['method']}_{$fixedFeeID}" type="hidden" value="{$method['fixed_fee']}">
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">{msg desc="Fee percentage label"}Fees:{/msg}</label>
+              <div class="controls">
+                <label id="{$method['method']}_{$totalFeesID}" class="control-label" style="text-align: left;"></label>
+              </div>
+            </div>
+
+            <div class="control-group" {if $hideNetAmount} style="display:none;" {/if}>
+              <label class="control-label">{msg desc="Net amount"}Net amount{/msg}</label>
+              <div class="controls">
+                <label id="{$method['method']}_{$netValueID}" class="control-label broker-confirm-deposit-net-amount" style="text-align: left;"></label>
+              </div>
+            </div>
+
+            {foreach $field in $method['fields'] }
+              {if $field['side'] == $side}
+                <div class="control-group">
+                <div class="ctrlHolder">
+                  <label class="control-label">{$field['label']}</label>
+                  <div class="controls">
+                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                  </div>
+                </div>
+                </div>
+              {/if}
+            {/foreach}
+          </div>
+        {/if}
+     {/foreach}
+    </div>
+
+
+    <div class="control-group dlg-response-group">
+      <label class="control-label dlg-response-group-label"></label>
+      <div class="controls" class="dlg-response-group-value" >
+      </div>
+    </div>
+    </fieldset>
+
+  </form>
+{/template}
+
+
+/**
+  * @param buy_fee
+  * @param sell_fee
+  */
+{template .YourFeesBalances}
+  <table class="table table-striped">
+    <tbody>
+
+
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for user buy fee"}Buy Fee{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model">{$buy_fee}</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for user sell fee"}Sell Fee{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model">{$sell_fee}</span>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+{/template}
+
+
+/**
+  * @param currencies
+  */
+{template .YourAccountBalances}
+  <table class="table table-striped" style="width: 350px">
+    <tbody>
+      {foreach $currency in $currencies}
+      <tr>
+        <td>
+          <strong>
+             {msg desc="label for available balance in a currency"}Available {$currency.code }{/msg}
+          </strong>
+        </td>
+        <td>
+          <span class="bitex-model" data-model-key="formatted_balance_{$currency.model_key}" data-blink-class="balance-info-blink">{if $currency.balance}{$currency.balance}{else}-{/if}</span>
+        </td>
+      </tr>
+      {/foreach}
+    </tbody>
+  </table>
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewHeaderVerifiedData}
+ {if $msg_customer_detail['Verified'] == 2 }
+    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
+    {$msg_customer_detail['VerificationData']}
+ {else}
+    {if $msg_customer_detail['Verified'] == 1 }
+      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span>
+      <a href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>
+      <a href="#" class="btn btn-danger btn-mini" data-action="SET_NOT_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as NOT verified{/msg}<i class="icon-white icon-remove"></i></a>
+      {$msg_customer_detail['VerificationData']}
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>
+    {/if}
+ {/if}
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewHeaderWithDrawEmailData}
+    {if $msg_customer_detail['NeedWithdrawEmail'] }
+      <span class="label label-success">{msg desc="label on  overview header"}Enabled{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_WITHDRAW_EMAIL" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Disable{/msg}</a>
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}Disabled{/msg}</span> <a
+        href="#" class="btn btn-primary btn-mini" data-action="SET_WITHDRAW_EMAIL" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Enabled{/msg}</a>
+    {/if}
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewHeaderTwoFactors}
+    {if $msg_customer_detail['TwoFactorEnabled'] }
+      <span class="label label-success">{msg desc="label on  overview header"}Enabled{/msg}</span>
+      <a href="#" class="btn btn-primary btn-mini" data-action="SET_TWO_FACTOR" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Disable{/msg}</a>
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}Disabled{/msg}</span>
+    {/if}
+{/template}
+
+/**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewHeader}
+  <table class="table table-striped account-overview-table" style="width: 350px">
+    <tbody>
+      <tr>
+        <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
+        <td>{$msg_customer_detail['ID']}</td>
+      </tr>
+      <tr>
+        <td><strong>{msg desc="label on  overview header"}Username{/msg}</strong></td>
+        <td>{$msg_customer_detail['Username']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Email{/msg}</strong></td>
+         <td>{$msg_customer_detail['Email']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}State{/msg}</strong></td>
+         <td>{$msg_customer_detail['State']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Country{/msg}</strong></td>
+         <td>{$msg_customer_detail['CountryCode']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Last login{/msg}</strong></td>
+         <td>{$msg_customer_detail['LastLogin']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
+         <td class="account-overview-val account-overview-verified">
+          {call .AccountOverviewHeaderVerifiedData}
+            {param msg_customer_detail: $msg_customer_detail /}
+          {/call}
+         </td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Has two step authentication{/msg}</strong></td>
+         <td class="account-overview-val account-overview-two-factors" >
+          {call .AccountOverviewHeaderTwoFactors}
+            {param msg_customer_detail: $msg_customer_detail /}
+          {/call}
+         </td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Registration date{/msg}</strong></td>
+         <td>{$msg_customer_detail['Created']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Needs email confirmation on withdraw{/msg}</strong></td>
+         <td class="account-overview-val account-overview-withdraw-email">
+          {call .AccountOverviewHeaderWithDrawEmailData}
+            {param msg_customer_detail: $msg_customer_detail /}
+          {/call}
+         </td>
+      </tr>
+
+    </tbody>
+  </table>
+{/template}
+
+
+/**
+  * @param msg_customer_detail
+  */
+{template .AccountOverviewUser}
+  <table class="table table-striped account-overview-table" style="width: 350px">
+    <tbody>
+      <tr>
+        <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
+        <td>{$msg_customer_detail['ID']}</td>
+      </tr>
+      <tr>
+        <td><strong>{msg desc="label on  overview header"}Username{/msg}</strong></td>
+        <td>{$msg_customer_detail['Username']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Email{/msg}</strong></td>
+         <td>{$msg_customer_detail['Email']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}State{/msg}</strong></td>
+         <td>{$msg_customer_detail['State']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Country{/msg}</strong></td>
+         <td>{$msg_customer_detail['CountryCode']}</td>
+      </tr>
+      <tr>
+         <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
+         <td class="account-overview-val account-overview-verified">
+
+ {if $msg_customer_detail['Verified'] == 2 }
+    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
+ {else}
+    {if $msg_customer_detail['Verified'] == 1 }
+      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span>
+    {else}
+      <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span>
+    {/if}
+ {/if}
+
+         </td>
+      </tr>
+    </tbody>
+  </table>
+{/template}
+
+
+
+/**
+  * @param clientID
+  */
+{template .EnterVerificationDataDialogContent}
+  <form class="form-horizontal" data-deposit-status="prepare">
+    <input type="hidden" name="ClientID" value="{$clientID}">
+    <div class="control-group">
+      <label class="control-label"> {msg desc="label on  overview header"}Verification data{/msg} </label>
+      <div class="controls">
+        <input type="text" class="input-xlarge" size="16" name="VerificationData">
+      </div>
+    </div>
+  </form>
+{/template}
+
+/**
+  * @param id
+  * @param symbol
+  * @param side
+  * @param type
+  * @param hide_fee
+  * @param hide_client_id
+  * @param broker_id
+  */
+{template .OrderEntry}
+ <div id="{$id}" class="well span6 order-entry">
+      <input type="hidden" name="symbol" class="order-entry-symbol" value="{$symbol}">
+      <input type="hidden" name="side" class="order-entry-side" value="{$side}">
+      <input type="hidden" name="type" class="order-entry-type" value="{$type}">
+      <input type="hidden" name="broker_id" class="order-entry-broker-id" value="{$broker_id}">
+
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>{msg desc="Amount label in Order Entry"}Amount:{/msg}</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
+            <input class="input-block-level order-entry-amount" type="text" value="" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"> <span>{msg desc="'Price per label' in Order Entry"}Price per {/msg}<span class="order-entry-amount-sign">฿</span>:</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
+            <input class="input-block-level order-entry-price" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5 order-entry-label"><span>{msg desc="Total label in Order Entry"}Total:{/msg}</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-price-sign">$</span>
+            <input class="input-block-level order-entry-total" type="text" required/>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid" {if $hide_fee}style="display: none;"{/if} >
+        <div class="span5 order-entry-label"> <span>{msg desc="'Fee (optional):' label in Order Entry"}Fee (optional):{/msg}</span>
+        </div>
+        <div class="span6">
+          <div class="input-prepend input-block-level order-entry-data"><span class="add-on order-entry-amount-sign">฿</span>
+            <input class="input-block-level order-entry-fee" type="text" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <div class="span5">
+          <input class="input-block-level order-entry-client-id" placeholder="{msg desc="'Client ID' label in Order Entry"}Client ID{/msg}" {if $hide_client_id}style="display:none"{/if} />
+        </div>
+        <div class="span5">
+          <button class="btn {if $side == 1}btn-success{else}btn-danger{/if} btn-execution order-entry-action">{if $side == 1}{msg desc="Buy button in Order Entry"}BUY{/msg}{else}{msg desc="Sell button in Order Entry"}SELL{/msg}{/if}</button>
+        </div>
+      </div>
+    </div>
+{/template}
+
+
+/**
+  * @param? title
+  * @param? id
+  * @param? wrapper_height Defaults to 360px
+  * @param? base_class
+  * @param? show_search
+  * @param? search_placeholder
+  * @param? button_filters
+  */
+{template .DataGrid}
+  <div {if $id}id="{$id}"{/if}  class="fuelux {if $base_class}{$base_class}{/if}" style="width:100%;">
+    <table class="table table-bordered datagrid datagrid-stretch-header">
+      <thead>
+        <tr>
+          <th colspan="4" {if not $title and not $show_search}style="display: none;"{/if}>
+            <span class="datagrid-header-title"  {if not $title}style="display: none;"{/if} ><strong>{$title}</strong></span>
+
+            <div class="datagrid-header-left" {if not $show_search}style="display: none;"{/if}>
+                <div class="input-append search datagrid-search">
+                  <input type="text" class="input-medium" placeholder="{$search_placeholder}">
+                  <button type="button" class="btn"><i class="icon-search"></i></button>
+                </div>
+            </div>
+
+            <div class="datagrid-header-right">
+              {if $button_filters}
+                <div class="select filter datagrid-filter" data-resize="auto">
+                  <button type="button" data-toggle="dropdown" class="btn dropdown-toggle">
+                    {foreach $button in $button_filters}
+                      {if isFirst($button)}
+                        <span class="dropdown-label" style="width: 111px;">{$button['label']}</span>
+                      {/if}
+                    {/foreach}
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {foreach $button in $button_filters}
+                      <li data-value="{$button['value']}"><a href="#">{$button['label']}</a></li>
+                    {/foreach}
+                  </ul>
+                </div>
+              {/if}
+            </div>
+          </th>
+        </tr>
+      </thead>
+    </table>
+    <div class="datagrid-stretch-wrapper" style="height:{if $wrapper_height}{$wrapper_height}{else}360{/if}px;">
+      <table class="table table-bordered datagrid">
+        <tbody></tbody>
+      </table>
+    </div>
+    <table class="table table-bordered datagrid datagrid-stretch-footer">
+      <tfoot>
+      <tr>
+        <th colspan="4">
+          <div class="datagrid-footer-left" style="visibility: visible;">
+            <div class="grid-controls">
+                        <span>
+                          <span class="grid-start"></span> -
+                          <span class="grid-end"></span>
+                        </span>
+            </div>
+          </div>
+          <div class="datagrid-footer-right" style="visibility: visible;">
+            <div class="grid-pager">
+              <button type="button" class="btn grid-prevpage"><i class="icon-chevron-left"></i></button>
+              <button type="button" class="btn grid-nextpage"><i class="icon-chevron-right"></i></button>
+            </div>
+          </div>
+        </th>
+      </tr>
+      </tfoot>
+    </table>
+  </div>
+{/template}

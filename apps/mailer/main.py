@@ -2,123 +2,178 @@
 
 import os
 import sys
-import  logging
+import logging
+import traceback
 
-ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
-sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
-sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path.insert(0, os.path.join(ROOT_PATH, 'libs'))
+sys.path.insert(0, os.path.join(ROOT_PATH, 'apps'))
 
-from datetime import timedelta
+DEFAULT_TEMPLATE_PATH = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "templates/"))
 
-import  time
-from bitex.client import BitExThreadedClient
+import time
+from util import send_email
 
-from smtplib import SMTP
-from email.MIMEText import MIMEText
-from email.Header import Header
-from email.Utils import parseaddr, formataddr
+from tornado.options import define, options
+import tornado
 
+from bitex.message import JsonMessage
 
-def send_email(sender, recipient, subject, body):
-    """Send an email.
+define("trade_pub", help="zmq publisher queue")
+define("mailchimp_apikey", help="mailchimp api key")
+define("mailchimp_newsletter_list_id", help="mailchimp newsletter list id")
+define("mandrill_apikey", help="mandrill api key")
+define("mailer_log",default=os.path.join(ROOT_PATH,"logs/","mailer.log"),help="logging")
+define("config", default=os.path.join(ROOT_PATH, "config/", "mailer.conf"), help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
-    All arguments should be Unicode strings (plain ASCII works as well).
-
-    Only the real name part of sender and recipient addresses may contain
-    non-ASCII characters.
-
-    The email will be properly MIME encoded and delivered though SMTP to
-    localhost port 25.  This is easy to change if you want something different.
-
-    The charset of the email will be the first one out of US-ASCII, ISO-8859-1
-    and UTF-8 that can represent all the characters occurring in the email.
-    """
-    print  'send_email', recipient, subject 
-
-    # Header class is smart enough to try US-ASCII, then the charset we
-    # provide, then fall back to UTF-8.
-    header_charset = 'ISO-8859-1'
-
-    # We must choose the body charset manually
-    for body_charset in 'US-ASCII', 'ISO-8859-1', 'UTF-8':
-        try:
-            body.encode(body_charset)
-        except UnicodeError:
-            pass
-        else:
-            break
-
-    # Split real name (which is optional) and email address parts
-    sender_name, sender_addr = parseaddr(sender)
-    recipient_name, recipient_addr = parseaddr(recipient)
-
-    # We must always pass Unicode strings to Header, otherwise it will
-    # use RFC 2047 encoding even on plain ASCII strings.
-    sender_name = str(Header(unicode(sender_name), header_charset))
-    recipient_name = str(Header(unicode(recipient_name), header_charset))
-
-    # Make sure email addresses do not contain non-ASCII characters
-    sender_addr = sender_addr.encode('ascii')
-    recipient_addr = recipient_addr.encode('ascii')
-
-    # Create the message ('plain' stands for Content-Type: text/plain)
-    msg = MIMEText(body.encode(body_charset), 'plain', body_charset)
-    msg['From'] = formataddr((sender_name, sender_addr))
-    msg['To'] = formataddr((recipient_name, recipient_addr))
-    msg['Subject'] = Header(unicode(subject), header_charset)
-
-    # Send the message via SMTP to localhost:25
-    smtp = SMTP("127.0.0.1")
-    smtp.ehlo()
-    smtp.sendmail('suporte@bitex.com.br', recipient, msg.as_string())
-    smtp.quit()
-
+import json
+import zmq
+import mailchimp
+import mandrill
 
 def main():
-  while  True:
+    tornado.options.parse_command_line()
+    if not options.trade_pub or\
+       not options.mailchimp_apikey or\
+       not options.mailchimp_newsletter_list_id or\
+       not options.mandrill_apikey or\
+       not options.mailer_log :
+      tornado.options.print_help()
+      return
+
+    mailchimp_api =  mailchimp.Mailchimp(options.mailchimp_apikey)
     try:
-      ws = BitExThreadedClient('wss://test.bitex.com.br:8449/trade')
-      def on_login(sender, msg):
-        ws.sendMsg( {'MsgType':'S0', 'EmailReqID':'0' } )
+        mailchimp_api.helper.ping()
+    except mailchimp.Error:
+        print "Invalid MailChimp API key"
+        return
+
+    mandrill_api = mandrill.Mandrill(options.mandrill_apikey)
+    try:
+        mandrill_api.users.ping()
+    except mandrill.Error:
+        print "Invalid Mandrill API key"
+        return
+
+    print mandrill_api.users.senders()
 
 
-      def on_message(sender, msg):
-        if msg['MsgType'] == 'C':
-          try:
-            sender = u'BitEx Suporte <suporte@bitex.com.br>'
-            send_email (sender, msg['To'], msg['Subject'], msg['Body'] )
-          except Exception as ex:
-            print "Error: unable to send email to " + str(msg['To']) + ' - ' + str(ex) 
-            
-        else:
-          print 'received ' , msg
-          print ''
+    input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
+        options.mailer_log,
+        when='MIDNIGHT')
+    formatter = logging.Formatter(u"%(asctime)s - %(message)s")
+    input_log_file_handler.setFormatter(formatter)
+
+    mail_logger = logging.getLogger("REPLAY")
+    mail_logger.setLevel(logging.INFO)
+    mail_logger.addHandler(input_log_file_handler)
+    mail_logger.info('START')
+
+    def log(command, key, value=None):
+        log_msg = u'%s, %s, %s' %(command, key, value if value else None)
+        mail_logger.info(unicode(log_msg))
+        pass
+
+    log('PARAM', 'BEGIN')
+    log('PARAM', 'trade_pub', options.trade_pub)
+    log('PARAM', 'mailer_log', options.mailer_log)
+    log('PARAM', 'END')
+
+    context = zmq.Context()
+    socket = context.socket(zmq.SUB)
+    socket.connect(options.trade_pub)
+    socket.setsockopt(zmq.SUBSCRIBE, "EMAIL")
+
+    while True:
+        try:
+            raw_email_message = socket.recv()
+            log('IN', 'TRADE_IN_PUB', raw_email_message)
+
+            msg = JsonMessage(raw_email_message)
+
+            if not msg.isEmail():
+                log('ERROR',
+                    'EXCEPTION',
+                    'Received message is not an email message')
+                continue
+
+            try:
+                sender = u'BitEx Support <suporte@bitex.com.br>'
+                body = ""
+                msg_to = msg.get('To')
+                subject = msg.get('Subject')
+                language = msg.get('Language')
+                content_type = 'plain'
+
+                if msg.has('Template') and msg.get('Template'):
+                    params = {}
+                    if msg.has('Params') and msg.get('Params'):
+                        params = json.loads(msg.get('Params'))
+
+                    template_name = msg.get('Template')
 
 
-      ws.signal_logged.connect(on_login)
-      ws.signal_recv.connect(on_message)
+                    if template_name  == 'welcome':
+                      # user signup .... let's register him on mailchimp newsletter
+                      try:
+                        mailchimp_api.lists.subscribe(
+                            id = options.mailchimp_newsletter_list_id ,
+                            email = {'email': params['email'] },
+                            merge_vars = {'EMAIL' : params['email'], 'FNAME': params['username'] } )
 
-      ws.connect()
+                      except mailchimp.ListAlreadySubscribedError:
+                        log('ERROR', 'EXCEPTION', params['email'] + ' mailchimp.ListAlreadySubscribedError' )
+                      except mailchimp.Error, e:
+                        log('ERROR', 'EXCEPTION', str(e))
 
-      # TODO: get the user and password from a configuration file
-      ws.login('mailer','abc123$%')
 
-      ws.run_forever()
+                    template_content = []
+                    for k,v in params.iteritems():
+                      template_content.append( { 'name': k, 'content': v  } )
 
-    except KeyboardInterrupt:
-      print 'Exiting'
-      ws.close()
-      break
+                    message = {
+                      'to': [ {'email': msg_to, 'name': params['username'],'type': 'to' }  ],
+                      'metadata': {'website': 'www.bitex.com.br'},
+                      'global_merge_vars': template_content
+                    }
 
-    except Exception, e:
-      print 'Error ', e
-      print 'reconnecting in 1 sec'
-      time.sleep(1)
+                    result = mandrill_api.messages.send_template(
+                      template_name= (template_name + '-' + language).lower(),
+                      template_content=template_content,
+                      message=message)
 
+                    log('INFO', 'SUCCESS', str(result))
+                    continue
+
+                elif msg.has('RawData') and msg.get('RawData'):
+                    body = msg.get('RawData')
+
+                log('IN', 'LOGINDEBUG START', "")
+                log('DEBUG',
+                    'EMAIL',
+                    u'{"Sender":"%s","To":"%s","Subject":"%s", "Body":"%s" }' % (sender,
+                                                                                 msg_to,
+                                                                                 subject,
+                                                                                 body))
+                log('IN', 'LOGINDEBUG END', "")
+                send_email(sender, msg_to, subject, body, content_type)
+                log('IN', 'SENT', "")
+
+                log('INFO', 'SUCCESS', msg.get('EmailThreadID'))
+            except Exception as ex:
+                traceback.print_exc()
+                log('ERROR', 'EXCEPTION', str(ex))
+                time.sleep(1)
+
+        except KeyboardInterrupt:
+            mail_logger.info('END')
+            break
+
+        except Exception as ex:
+            time.sleep(1)
 
 if __name__ == '__main__':
-  main()
-  #sender = u'BitEx Suporte <suporte@bitex.com.br>'
-  #send_email (sender, 'clebsonbr@yahoo.com', 'Checking server i6', '\r\nyour offer was execued\r\ncheers,\r\nBitex Admin' )
-  #send_email (sender, 'clebaum@hotmail.com', 'Checking server 5x', 'yo, your offer was execued\r\ncheers,\r\nBitex Admin' )
-
+    main()

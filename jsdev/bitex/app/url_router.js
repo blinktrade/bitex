@@ -8,21 +8,19 @@ goog.require('goog.string');
 
 
 /**
+ * @param {*} app
  * @param {string} baseUrl
  * @param {string} defaultView
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-bitex.app.UrlRouter = function(baseUrl, defaultView) {
-  this.history_ = new goog.history.Html5History();
-  this.history_.setUseFragment(false);
+bitex.app.UrlRouter = function(app, baseUrl, defaultView) {
+  this.urls_ = [];
 
+  this.app_ = app;
+  this.history_ = null
   this.base_url_ = baseUrl;
   this.default_view_ = defaultView;
-  this.setViewInternal(defaultView);
-
-  this.history_.addEventListener( goog.history.EventType.NAVIGATE, this.onNavigate_, undefined, this);
-  this.history_.setEnabled(true);
 };
 goog.inherits(bitex.app.UrlRouter, goog.events.EventTarget);
 
@@ -45,12 +43,24 @@ bitex.app.UrlRouter.prototype.default_view_;
  */
 bitex.app.UrlRouter.prototype.current_view_;
 
+
 /**
  * @type {goog.history.Html5History}
  * @private
  */
 bitex.app.UrlRouter.prototype.history_;
 
+/**
+ * @type {Array.<Object>}
+ * @private
+ */
+bitex.app.UrlRouter.prototype.urls_;
+
+/**
+ * @type {Array.<*>}
+ * @private
+ */
+bitex.app.UrlRouter.prototype.activeViewInfo_;
 
 /**
  * The events fired by the web socket.
@@ -60,28 +70,103 @@ bitex.app.UrlRouter.EventType = {
   SET_VIEW: 'set_view'
 };
 
+
+bitex.app.UrlRouter.prototype.addView = function(view_name, viewObject) {
+  this.urls_.push( { re: view_name, view:viewObject } );
+};
+
+
 /**
  * @param {string} view_name
  * @protected
  */
 bitex.app.UrlRouter.prototype.setViewInternal = function(view_name){
-  this.current_view_ = goog.string.remove(view_name, this.base_url_ );
-  if  ( this.current_view_ === "" ) {
-    this.current_view_ = this.default_view_;
+  var actual_view_name = goog.string.remove(view_name, this.base_url_ );
+
+  if  ( actual_view_name === "" ) {
+    actual_view_name = this.default_view_;
   }
+
+  var urlMapping =  goog.array.find(this.urls_, function( url_object  ) {
+    var re = new RegExp(url_object.re,"g");
+    if (goog.isDefAndNotNull(re.exec( actual_view_name ))) {
+      return true;
+    }
+  });
+
+
+  if (!goog.isDefAndNotNull(urlMapping)) {
+    return false;
+  }
+
+  if (this.current_view_ === actual_view_name ) {
+    return false;
+  }
+
+
+  if (goog.isDefAndNotNull(this.activeViewInfo_) ) {
+    this.activeViewInfo_.view.exitView();
+  }
+
+  var view_data = new RegExp(urlMapping.re,"g").exec(actual_view_name);
+  var view_url = view_data[0];
+  var view_id = view_data[1];
+  var args = view_data.splice(2);
+
+  this.current_view_ = actual_view_name;
+  this.activeViewInfo_ = urlMapping;
+  this.activeViewInfo_.view.enterView(args);
+
+  return true;
 };
 
 /**
  * @param {string} view_name
  */
 bitex.app.UrlRouter.prototype.setView = function(view_name) {
-  var res = this.dispatchEvent(
-      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_name ));
+  var urlMapping =  goog.array.find(this.urls_, function( url_object  ) {
+    var re = new RegExp(url_object.re,"g");
+    if (goog.isDefAndNotNull(re.exec( view_name ))) {
+      return true;
+    }
+  });
 
-  if (res) {
-    this.setViewInternal(view_name);
+  if ( view_name[0] === '/' && !goog.isDefAndNotNull(urlMapping)) {
+    this.setView( view_name.substr(1) );
+    return;
+  }
+
+  var actual_view_name = goog.string.remove(view_name, this.base_url_ );
+  var view_data = new RegExp(urlMapping.re,"g").exec(actual_view_name);
+  var view_url = view_data[0];
+  var view_id = view_data[1];
+  var view_args = view_data.splice(2);
+
+
+  var res = this.dispatchEvent(
+      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_id, view_args,view_url ));
+
+  if (!res) {
+    return;
+  }
+
+
+  if (!this.setViewInternal(view_name)) {
+    return;
+  }
+
+  if (goog.isDefAndNotNull(this.history_)) {
     this.history_.setToken( this.base_url_ + view_name);
   }
+};
+
+
+bitex.app.UrlRouter.prototype.init = function(){
+  this.history_ = new goog.history.Html5History();
+  this.history_.setUseFragment(false);
+
+  this.history_.addEventListener( goog.history.EventType.NAVIGATE, this.onNavigate_, undefined, this);
+  this.history_.setEnabled(true);
 };
 
 /**
@@ -109,16 +194,29 @@ bitex.app.UrlRouter.prototype.onNavigate_ = function(e){
 /**
  *
  * @param {bitex.app.UrlRouter.EventType} type
- * @param {string} view
+ * @param {string}  view_id
+ * @param {Array.<string>}  view_args
+ * @param {string}  view_url
  * @constructor
  */
-bitex.app.UrlRouterEvent = function(type, view) {
+bitex.app.UrlRouterEvent = function(type,  view_id, view_args,view_url) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
-  this.view = view
+  this.view_id = view_id;
+
+  /**
+   * @type {Array.<string>}
+   */
+  this.view_args = view_args;
+
+  /**
+   * @type {string}
+   */
+  this.view_url = view_url
+
 };
 goog.inherits(bitex.app.UrlRouterEvent, goog.events.Event);
 

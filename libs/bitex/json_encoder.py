@@ -1,8 +1,8 @@
 __author__ = 'rodrigo'
 
 import json
-import  datetime
-
+import datetime
+import decimal
 
 class JsonEncoder(json.JSONEncoder):
   def default(self, obj):
@@ -12,4 +12,6 @@ class JsonEncoder(json.JSONEncoder):
       return obj.strftime('%Y-%m-%d')
     if isinstance(obj, datetime.time):
       return obj.strftime('%H:%M:%S')
+    if isinstance(obj, decimal.Decimal):
+      return str(obj)
     return json.JSONEncoder.default(self, obj)

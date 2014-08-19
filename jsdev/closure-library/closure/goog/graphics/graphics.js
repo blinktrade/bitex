@@ -58,6 +58,9 @@ goog.graphics.createGraphics = function(width, height, opt_coordWidth,
       goog.userAgent.MOBILE)) {
     graphics = new goog.graphics.CanvasGraphics(width, height,
         opt_coordWidth, opt_coordHeight, opt_domHelper);
+  } else if (goog.userAgent.RHINO) {
+    graphics = new goog.graphics.ServerGraphics(width, height,
+        opt_coordWidth, opt_coordHeight, opt_domHelper);
   } else {
     graphics = new goog.graphics.SvgGraphics(width, height,
         opt_coordWidth, opt_coordHeight, opt_domHelper);
