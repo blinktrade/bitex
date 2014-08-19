@@ -1,9 +1,8 @@
-BitEx
+BlinkTrade
 =====
 
-BitEx - Crypto Currency Exchange Platform
-- TO BE COMPLETED -
-    
+BlinkTrade - Open Source Exchange Platform
+
 #Get Started
 
 ```
@@ -24,10 +23,8 @@ $ ./apps/mailer/main.py
 # Applications - Trade
 Matching engine and the core of the BitEx platform
 
-
 # Applications - Ws Gateway
 HTTP and WebSocket gateways
-
 
 # Applications - Mailer
 Mailing application
@@ -49,7 +46,8 @@ $ ./jsdev/build_release.sh  # recompile the application using the translated fil
 # vi ./static/statoshi_square.html
 ```
 
-
+#Why the name of the folder is Bitex ?
+Bitex stands for Bitcoin EXchnage and it was the first that we came up it name of our platform, by mid 2014 a company called bitex.la was formed in Argentina and we were forced to change our name, this source code it is not related in any form to bitex.la.
 
 #License
 
