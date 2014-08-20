@@ -100,6 +100,16 @@ bitex.view.AccountOverview.prototype.enterView = function(username) {
     return;
   }
 
+  var state = selectedCustomer['State'];
+  if (!goog.isDefAndNotNull(state) ) {
+      state = this.getApplication().getModel().get('Profile')['State'];
+      if (!goog.isDefAndNotNull(state) ) {
+        state = this.getApplication().getModel().get('Broker')['State'];;
+      }
+  }
+
+  selectedCustomer['State'] = state;
+
   this.recreateComponents_(selectedCustomer);
 };
 
