@@ -22,6 +22,9 @@ or:
 $ pip install -r requirements.txt
 ```
 
+#Build and Run
+
+```
 $ cd ./jsdev
 $ ./build_release.sh  # Or ./build_release.bat [Windows]
 
@@ -40,6 +43,7 @@ HTTP and WebSocket gateways
 Mailing application
 
 # Translating
+
 ```
 cd ./jsdev/tools
 $ python extract_messages.py  > /tmp/file_to_be_translated.xml
@@ -57,6 +61,7 @@ $ ./jsdev/build_release.sh  # recompile the application using the translated fil
 ```
 
 #Why the name of the folder is Bitex ?
+
 Bitex stands for Bitcoin EXchnage and it was the first that we came up it name of our platform, by mid 2014 a company called bitex.la was formed in Argentina and we were forced to change our name, this source code it is not related in any form to bitex.la.
 
 #License
