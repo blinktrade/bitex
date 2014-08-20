@@ -6,4 +6,4 @@ install:
   - "pip install -r requirements.txt"
 jdk:
   - openjdk7
-script: jsdev/build_release.sh
+#script: jsdev/build_release.sh
