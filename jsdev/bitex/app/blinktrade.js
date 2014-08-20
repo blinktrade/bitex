@@ -1844,6 +1844,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
   var currency = e.target.getCurrency();
   var handler = this.getHandler();
 
+  console.log('yo');
 
   /**
    * @desc Crypto Currency Withdraw accordion title
@@ -1972,12 +1973,31 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
     }, this);
 
 
-  handler.listenOnce(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+  handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
     if (e.key == 'ok') {
       e.preventDefault();
       e.stopPropagation();
 
       var deposit_form_el = goog.dom.getFirstElementChild(dlg.getContentElement());
+
+      var uf = new uniform.Uniform();
+      uf.decorate(  deposit_form_el );
+      error_list = uf.validate();
+      if (error_list.length > 0) {
+            goog.array.forEach(error_list, function(error_msg) {
+              /**
+               * @desc Withdraw  form validation error
+               */
+              var MSG_CURRENCY_DEPOSIT_ERROR_NOTIFICATION = goog.getMsg('Error: {$message}',{'message': error_msg} );
+
+              this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_ERROR_NOTIFICATION );
+            }, this );
+
+            e.stopPropagation();
+            e.preventDefault();
+
+            return;
+      }
 
       var deposit_data = bitex.util.getFormAsJSON(deposit_form_el);
 
@@ -1985,6 +2005,48 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
       var deposit_method_id = goog.string.toNumber(deposit_data['Method']);
 
       if (!goog.isNumber(amount) ||  isNaN(amount)) {
+
+      /**
+       * @desc Withdraw  form validation error
+       */
+        var MSG_CURRENCY_DEPOSIT_INVALID_ERROR_NOTIFICATION = goog.getMsg('Error: Invalid amount typed!' );
+
+        this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_INVALID_ERROR_NOTIFICATION );
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        return;
+      }
+
+      var msg = JSON.parse(this.getModel().get('Broker')['Validation']);
+      var validation = msg[this.getModel().get('Profile')['Verified']]
+
+      if ( !validation['enabled'] ) {
+        /**
+         * @desc Deposit is disable for user validation level
+         */
+        var MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION = goog.getMsg('Error: your broker has disabled for your verification level, please contact your broker!' );
+
+        this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION );
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        return;
+      }
+
+      if ( amount < validation['minDeposit'] || amount > validation['maxDeposit'] ) {
+        /**
+         * @desc Deposit amount out of broker range
+         */
+        var MSG_CURRENCY_DEPOSIT_VALIDATION_ERROR_NOTIFICATION = goog.getMsg('Error: deposit if out of your broker ranger, please contact your broker!' );
+
+        this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_VALIDATION_ERROR_NOTIFICATION );
+
+        e.stopPropagation();
+        e.preventDefault();
+
         return;
       }
 

@@ -170,6 +170,7 @@ def processLogin(session, msg):
         'PhoneNumber2'       : session.broker.phone_number_2       ,
         'Skype'              : session.broker.skype                ,
         'Email'              : session.broker.email                ,
+        'Validation'         : session.broker.validation           ,
         'Currencies'         : session.broker.currencies           ,
         'VerificationForm'   : session.broker.verification_jotform ,
         'UploadForm'         : session.broker.upload_jotform       ,
@@ -713,32 +714,7 @@ def processRequestDepositMethods(session, msg):
 
   return json.dumps(response, cls=JsonEncoder)
 
-def processRequestDeposit(session, msg):
-  deposit_id = msg.get('DepositID')
-
-  deposit = Deposit.get_deposit(application.db_session, deposit_id)
-  if not deposit:
-    return
-
-  response = {
-    'MsgType'           :'U23',
-    'DepositReqID'       : msg.get('DepositReqID'),
-    'DepositID'          : deposit.id,
-    'ClientID'          : deposit.user_id,
-    'BrokerID'          : deposit.broker_id,
-    'BrokerDepositCtrlNum': deposit.broker_deposit_ctrl_num,
-    'Type'              : deposit.type,
-    'Currency'          : deposit.currency,
-    'Value'             : deposit.value,
-    'PaidValue'         : deposit.paid_value,
-    'Status'            : deposit.status,
-    'DataLen'           : len(deposit.data),
-    'Data'              : deposit.data,
-    'Created'           : deposit.created,
-    'ClOrdID'           : deposit.client_order_id
-  }
-  return json.dumps(response, cls=JsonEncoder)
-
+@login_required
 def processRequestDeposit(session, msg):
   deposit_option_id = msg.get('DepositMethodID')
   deposit_id        = msg.get('DepositID')
@@ -749,6 +725,27 @@ def processRequestDeposit(session, msg):
   client_order_id   = msg.get('ClOrdID')
   instructions      = msg.get('Instructions')
   value             = msg.get('Value')
+
+  verification_level = str(session.user.verified)
+  deposit_validation = json.loads(session.broker.validation)
+
+  if verification_level in deposit_validation:
+      validations = deposit_validation[verification_level]
+
+      valid = True
+      if validations['enabled']:
+
+          if value < validations['minDeposit']:
+              valid = False
+
+          if value > validations['maxDeposit']:
+              valid = False
+
+      else:
+          valid = False
+
+      if not valid:
+          raise NotAuthorizedError()
 
   should_broadcast = False
   if deposit_option_id:

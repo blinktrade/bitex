@@ -758,6 +758,8 @@ class Broker(Base):
   support_url           = Column(String(255),   nullable=False)
 
   accept_customers_from = Column(Text,   nullable=False)
+  validation            = Column(Text,   nullable=False)
+
   is_broker_hub         = Column(Boolean, nullable=False, default=False)
 
   lang                  = Column(String(5),   nullable=False)
@@ -2006,6 +2008,11 @@ def db_bootstrap(session):
                fee_structure="[]",
                transaction_fee_buy=0,
                transaction_fee_sell=0,
+               validation=json.dumps({
+                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                   2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                   }),
                status=u'1',
                ranking=0)
     session.add(e)
@@ -2063,6 +2070,11 @@ def db_bootstrap(session):
                fee_structure="[]",
                transaction_fee_buy=0,
                transaction_fee_sell=0,
+               validation=json.dumps({
+                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                   2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                   }),
                status=u'1',
                ranking=1)
     session.add(e)
@@ -2157,6 +2169,11 @@ def db_bootstrap(session):
                    ]),
                transaction_fee_buy=60, # 0.6%
                transaction_fee_sell=60, # 0.6%
+               validation=json.dumps({
+                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                   2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                   }),
                status='1',
                ranking=5)
     session.add(e)
@@ -2243,6 +2260,11 @@ def db_bootstrap(session):
                          ]),
                      transaction_fee_buy=20,   # 0.2%
                      transaction_fee_sell=20,  # 0.2%
+                     validation=json.dumps({
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                         2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                         }),
                      status='1',
                      ranking=5)
           session.add(e)
@@ -2326,6 +2348,11 @@ def db_bootstrap(session):
                      transaction_fee_buy=60, # 0.6%
                      transaction_fee_sell=60, # 0.6%
                      status='1',
+                     validation=json.dumps({
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                         2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                         }),
                      ranking=4)
           session.add(e)
           session.commit()
@@ -2439,6 +2466,11 @@ def db_bootstrap(session):
                      ]),
                      transaction_fee_buy=50, # 0.5%
                      transaction_fee_sell=50, # 0.5%
+                     validation=json.dumps({
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
+                         2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                         }),
                      status='1',
                      ranking=2)
           session.add(e)
