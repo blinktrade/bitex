@@ -4,4 +4,6 @@ python:
 # command to install dependencies
 install:
   - "pip install -r requirements.txt"
-script: ./jsdev/build_release.sh
+jdk:
+  - openjdk7
+script: jsdev/build_release.sh
