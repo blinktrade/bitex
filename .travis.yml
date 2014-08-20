@@ -6,6 +6,5 @@ install:
   - "pip install -r requirements.txt"
 jdk:
   - openjdk7
-script: 
-  cd blinktrade/bitex/jsdev
-  ./build_release.sh
+script: cd blinktrade/bitex/jsdev
+script: ./build_release.sh
