@@ -2179,6 +2179,11 @@ bitex.app.BlinkTrade.prototype.onUserLoginOk_ = function(e) {
     broker_currencies.addAll(profile['BrokerCurrencies']);
   } else {
     goog.dom.classes.add( document.body, 'bitex-non-broker');
+
+    if ( profile['Verified'] == 2 ) {
+        goog.style.showElement(goog.dom.$("verification_menu_id"), false);
+    }
+
   }
   this.getModel().set('Profile',  profile);
   if (msg['IsBroker'] ) {
