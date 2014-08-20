@@ -5,7 +5,6 @@ BlinkTrade - Open Source Exchange Platform
 
 [How to install on Google Compute Engine](https://github.com/blinktrade/bitex/wiki/HOW-TO-DEPLOY-BLINKTRADE-ON-GOOGLE-COMPUTE-ENGINE) 
 
-[![Build Status](https://travis-ci.org/blinktrade/bitex.svg?branch=master)](https://travis-ci.org/blinktrade/bitex)
 
 #Get Started
 
