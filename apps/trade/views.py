@@ -714,7 +714,6 @@ def processRequestDepositMethods(session, msg):
 
   return json.dumps(response, cls=JsonEncoder)
 
-@login_required
 def processRequestDeposit(session, msg):
   deposit_option_id = msg.get('DepositMethodID')
   deposit_id        = msg.get('DepositID')
