@@ -2009,9 +2009,9 @@ def db_bootstrap(session):
                transaction_fee_buy=0,
                transaction_fee_sell=0,
                validation=json.dumps({
-                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                   2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                   2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
                    }),
                status=u'1',
                ranking=0)
@@ -2071,9 +2071,9 @@ def db_bootstrap(session):
                transaction_fee_buy=0,
                transaction_fee_sell=0,
                validation=json.dumps({
-                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                   2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                   2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
                    }),
                status=u'1',
                ranking=1)
@@ -2170,9 +2170,9 @@ def db_bootstrap(session):
                transaction_fee_buy=60, # 0.6%
                transaction_fee_sell=60, # 0.6%
                validation=json.dumps({
-                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                   2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                   0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                   1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                   2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
                    }),
                status='1',
                ranking=5)
@@ -2261,9 +2261,9 @@ def db_bootstrap(session):
                      transaction_fee_buy=20,   # 0.2%
                      transaction_fee_sell=20,  # 0.2%
                      validation=json.dumps({
-                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                         2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
                          }),
                      status='1',
                      ranking=5)
@@ -2349,9 +2349,9 @@ def db_bootstrap(session):
                      transaction_fee_sell=60, # 0.6%
                      status='1',
                      validation=json.dumps({
-                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                         2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
                          }),
                      ranking=4)
           session.add(e)
@@ -2467,9 +2467,9 @@ def db_bootstrap(session):
                      transaction_fee_buy=50, # 0.5%
                      transaction_fee_sell=50, # 0.5%
                      validation=json.dumps({
-                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 10000 },
-                         2: {"enabled": 1, "minDeposit" : 10, "maxDeposit": 10000 },
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
                          }),
                      status='1',
                      ranking=2)
