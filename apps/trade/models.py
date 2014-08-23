@@ -1979,6 +1979,24 @@ def db_bootstrap(session):
       session.add(e)
       session.commit()
 
+    if not User.get_user(session, 'demo'):
+        e = User(id=5,
+             username='demo',
+             email='demo@blinktrade.com',
+             broker_id=8999999,
+             broker_username='demo',
+             password=base64.b32encode(os.urandom(10)),
+             country_code='US',
+             state='MG',
+             transaction_fee_buy=60,
+             transaction_fee_sell=60,
+             verified=2,
+             is_staff=False,
+             is_system=False,
+             is_broker=True)
+    session.add(e)
+    session.commit()
+
 
   if not Broker.get_broker(session, -1):
     e = Broker(id=-1,
@@ -2473,6 +2491,75 @@ def db_bootstrap(session):
                          }),
                      status='1',
                      ranking=2)
+          session.add(e)
+          session.commit()
+
+      if not Broker.get_broker(session, 5):
+          e = Broker(id=5,
+                     short_name=u'demo',
+                     business_name=u'BlinkTrade Demo',
+                     address=u'',
+                     signup_label='BlinkTrade Demo',
+                     city='New York',
+                     state='NY',
+                     zip_code='10004',
+                     country_code='US',
+                     lang='en-US',
+                     country='United States',
+                     phone_number_1=None, phone_number_2=None, skype=None, email='demo@blinktrade.com',
+                     verification_jotform= 'http://form.jotform.co/form/42336230941852?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&email={{Email}}&phoneNumber[country]=1',
+                     upload_jotform= 'http://form.jotform.co/form/42344880060854?user_id={{UserID}}&username={{Username}}&broker_id={{BrokerID}}&broker_username={{BrokerUsername}}&deposit_method={{DepositMethod}}&control_number={{ControlNumber}}&deposit_id={{DepositID}}',
+                     currencies='USD',
+                     withdraw_structure=json.dumps( {
+                         'BTC': [
+                             {
+                                 'method':'bitcoin',
+                                 'description':'Bitcoin withdrawal',
+                                 'disclaimer': '',
+                                 'percent_fee':0.,
+                                 'fixed_fee':0,
+                                 'fields': [
+                                     {'side':'client', 'name': 'Wallet'        , 'validator':'validateAddress',  'type':'text'  , 'value':""       , 'label':'Wallet',        'placeholder':'' },
+                                     {'side':'broker', 'name': 'TransactionID' , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'TransactionID', 'placeholder':'' },
+                                     {'side':'broker', 'name': 'Link'          , 'validator':'validateAlphaNum', 'type':'text'  , 'value':""       , 'label':'Link',          'placeholder':'' },
+                                     ]
+                             }
+                         ]
+                     }),
+                     crypto_currencies=json.dumps([
+                         {
+                             "CurrencyCode": "BTC",
+                             "CurrencyDescription":"Bitcoin",
+                             "Confirmations":[ [0, 1e8, 0], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                             "Wallets": [
+                                 { "type":"cold", "address":"moHiFJA7zd4SyygkoHa7EFDhNGLfGZV1uy", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
+                                 { "type":"hot", "address":"n3bmQE6SF4tjPwsULjMDjtarkjTPZj5VpA", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
+                                 ]
+                         }
+                     ]),
+                     accept_customers_from=json.dumps([
+                         [ "*", 'US'],  # Only US
+                         [ "*" ]   # except US and all other states
+                     ]) ,
+                     is_broker_hub=False,
+                     support_url='https://www.facebook.com/groups/',
+                     tos_url='/tos.html',
+                     fee_structure=json.dumps([
+                         { "Operation" : "USPS Money Order deposit",       "Fee":"$5"               , "Terms":"30 minutes." },
+                         { "Operation" : "Check deposit",                  "Fee":"1%"               , "Terms":"3 business days" },
+                         { "Operation" : "Wire transfer deposit",          "Fee":"0.3%"             , "Terms":"Next business day" },
+                         { "Operation" : "Wire transfer withdraw",         "Fee":"0.3%"             , "Terms":"Next business day" },
+                         { "Operation" : "PayPal withdrawal",              "Fee":"0%"               , "Terms":"Instant" },
+                         ]),
+                     transaction_fee_buy=20,   # 0.2%
+                     transaction_fee_sell=20,  # 0.2%
+                     validation=json.dumps({
+                         0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
+                         2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
+                         }),
+                     status='1',
+                     ranking=5)
           session.add(e)
           session.commit()
 
