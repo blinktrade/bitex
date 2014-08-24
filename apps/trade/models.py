@@ -1214,7 +1214,7 @@ class Order(Base):
   cxl_qty         = Column(Integer,       nullable=False, default=0)
   fee             = Column(Integer,       nullable=False, default=0)
 
-  
+
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
       kwargs['leaves_qty'] = kwargs.get('order_qty')
@@ -1994,8 +1994,8 @@ def db_bootstrap(session):
              is_staff=False,
              is_system=False,
              is_broker=True)
-    session.add(e)
-    session.commit()
+        session.add(e)
+        session.commit()
 
 
   if not Broker.get_broker(session, -1):
@@ -2538,7 +2538,7 @@ def db_bootstrap(session):
                          }
                      ]),
                      accept_customers_from=json.dumps([
-                         [ "*", 'US'],  # Only US
+                         [ "*" ],  # Only US
                          [ "*" ]   # except US and all other states
                      ]) ,
                      is_broker_hub=False,
@@ -3069,6 +3069,34 @@ def db_bootstrap(session):
                             'account_id': '12.454.181/0001-05',
                             'disclaimer': u"DOC-1 dia para confirmar, TED-3 horas, Depósito em dinheiro direto no caixa - 3 horas ",
                             } ) )
+      session.add(bo)
+      session.commit()
+
+    if not DepositMethods.get_deposit_method(session, 408 ):
+      bo = DepositMethods(id=408,
+                          broker_id=5,
+                          name="wire_transfer_usa",
+                          description=u'Wire transfer',
+                          disclaimer=u'1 business day.',
+                          type='BTI',
+                          percent_fee=.3,
+                          fixed_fee=0,
+                          broker_deposit_ctrl_num=90001,
+                          currency='USD',
+                          parameters= json.dumps( {
+                              'download_filename': 'usa_wire_transfer_{{id}}.html',
+                              'html_template':'usa_wire_transfer.html',
+                              'currency':'$',
+                              'value': '{{value}}',
+                              'current_date': '{{current_date}}',
+                              'control_number': '{{broker_deposit_ctrl_num}}',
+                              'routing_number' : '0000000',
+                              'account_number' : '0000000',
+                              'account_name': 'DEMO',
+                              'address_line_1': 'DEMO',
+                              'address_line_2': 'DEMO',
+                              'disclaimer': u"Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.",
+                              } ) )
       session.add(bo)
       session.commit()
 
