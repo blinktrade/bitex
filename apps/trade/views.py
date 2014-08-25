@@ -714,7 +714,6 @@ def processRequestDepositMethods(session, msg):
 
   return json.dumps(response, cls=JsonEncoder)
 
-@login_required
 def processRequestDeposit(session, msg):
   deposit_option_id = msg.get('DepositMethodID')
   deposit_id        = msg.get('DepositID')
@@ -726,26 +725,27 @@ def processRequestDeposit(session, msg):
   instructions      = msg.get('Instructions')
   value             = msg.get('Value')
 
-  verification_level = str(session.user.verified)
-  deposit_validation = json.loads(session.broker.validation)
+  if session.user:
+      verification_level = str(session.user.verified)
+      deposit_validation = json.loads(session.broker.validation)
 
-  if verification_level in deposit_validation:
-      validations = deposit_validation[verification_level]
+      if verification_level in deposit_validation and value != None:
+          validations = deposit_validation[verification_level]
 
-      valid = True
-      if validations['enabled']:
+          valid = True
+          if validations['enabled']:
 
-          if value < validations['minDeposit']:
+              if value < validations['minDeposit']:
+                  valid = False
+
+              if value > validations['maxDeposit']:
+                  valid = False
+
+          else:
               valid = False
 
-          if value > validations['maxDeposit']:
-              valid = False
-
-      else:
-          valid = False
-
-      if not valid:
-          raise NotAuthorizedError()
+          if not valid:
+              raise NotAuthorizedError()
 
   should_broadcast = False
   if deposit_option_id:
