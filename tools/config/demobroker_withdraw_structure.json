@@ -1,0 +1,45 @@
+{
+  "BTC": [
+    {
+      "method":"bitcoin",
+      "description":"Bitcoin withdrawal",
+      "disclaimer": "",
+      "percent_fee":0,
+      "fixed_fee":0,
+      "fields": [
+        {"side":"client", "name": "Wallet"        , "validator":"validateAddress",  "type":"text"  , "value":""       , "label":"Wallet",        "placeholder":"" },
+        {"side":"broker", "name": "TransactionID" , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker", "name": "Link"          , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"Link",          "placeholder":"" }
+      ]
+    }
+  ],
+  "VEF": [ {
+      "method":"mercantil-transfer",
+      "description":"Transferencia Banco Mercantil",
+      "disclaimer":"",
+      "percent_fee": 1.65,
+      "fixed_fee": 0,
+      "fields": [
+        {"side":"client", "name": "AccountType"  , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Tipo de cuenta", "placeholder":"" },
+        {"side":"client", "name": "AccountNumber", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Número de cuenta", "placeholder":"8888 8888 8888 8888 8888" },
+        {"side":"client", "name": "VenezuelanID" , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Documento de identificación", "placeholder":"ex. 888.888.888-88"},
+        {"side":"broker", "name": "TransactionID", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker", "name": "Link"         , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Link", "placeholder":"" }
+      ]
+    }, {
+      "method":"bank-transfer",
+      "description":"Transferencia electronica",
+      "disclaimer":"",
+      "percent_fee": 2.95,
+      "fixed_fee": 0,
+      "fields": [
+        {"side":"client", "name": "BankName"     ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Nombre del banco", "placeholder": "" },
+        {"side":"client", "name": "AccountType"  ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Tipo de cuenta", "placeholder":"" },
+        {"side":"client", "name": "AccountNumber",  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Número de cuenta", "placeholder":"8888 8888 8888 8888 8888" },
+        {"side":"client", "name": "VenezuelanID" ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Documento de identificación", "placeholder":"ex. 888.888.888-88"},
+        {"side":"broker", "name": "TransactionID",  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker", "name": "Link"         ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Link", "placeholder":"" }
+      ]
+    }
+  ]
+}
