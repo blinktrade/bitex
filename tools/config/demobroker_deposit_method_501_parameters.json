@@ -1,0 +1,12 @@
+{
+  "download_filename": "usa_usps_money_order_{{id}}.html",
+  "html_template":"usa_usps_money_order.html",
+  "currency":"$",
+  "value": "{{value}}",
+  "current_date": "{{current_date}}",
+  "control_number": "{{broker_deposit_ctrl_num}}",
+  "account_name": "New York Bitcoin Center LLC",
+  "address_line_1": "40 Broad St",
+  "address_line_2": "New York - NY - 10001",
+  "disclaimer": "Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us."
+}
