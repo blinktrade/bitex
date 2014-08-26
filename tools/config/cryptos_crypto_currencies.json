@@ -1,0 +1,27 @@
+[
+    {
+        "Wallets": [
+            {
+                "managed_by": "Cryptos Ltd",
+                "signatures": [],
+                "type": "cold",
+                "multisig": false,
+                "address": "mvJnMX8cSExUumKhNcoSF1rWdY7CaGzKSD"
+            },
+            {
+                "managed_by": "Cryptos Ltd",
+                "signatures": [],
+                "type": "hot",
+                "multisig": false,
+                "address": "mvbKgNBC7bUEyyeGyjKoM7wPcvAeHakgje"
+            }
+        ],
+        "CurrencyCode": "BTC",
+        "Confirmations": [
+            [0, 100000000.0, 0],
+            [100000000.0, 20000000000.0, 3],
+            [20000000000.0, 2100000000000000.0, 6]
+        ],
+        "CurrencyDescription": "Bitcoin"
+    }
+]

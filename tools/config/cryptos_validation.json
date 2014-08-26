@@ -1,0 +1,5 @@
+{
+  "0": {"enabled": 1, "minDeposit" : 0, "maxDeposit": 100000000000 },
+  "1": {"enabled": 1, "minDeposit" : 0, "maxDeposit": 100000000000 },
+  "2": {"enabled": 1, "minDeposit" : 0, "maxDeposit": 100000000000 }
+}
