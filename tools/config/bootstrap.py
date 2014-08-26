@@ -66,8 +66,8 @@ def main():
         broker_id = None
         broker_username = None
         password = base64.b32encode(os.urandom(10))
-        transaction_fee_buy = 0
-        transaction_fee_sell = 0
+        transaction_fee_buy = None
+        transaction_fee_sell = None
         verified = 0
         is_system = False
         is_staff = False

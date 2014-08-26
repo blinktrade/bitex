@@ -1,0 +1,16 @@
+{
+  "BTC": [
+    {
+      "method":"bitcoin",
+      "description":"Bitcoin withdrawal",
+      "disclaimer": "",
+      "percent_fee":0,
+      "fixed_fee":0,
+      "fields": [
+        {"side":"client", "name": "Wallet"        , "validator":"validateAddress",  "type":"text"  , "value":""       , "label":"Wallet",        "placeholder":"" },
+        {"side":"broker", "name": "TransactionID" , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker", "name": "Link"          , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"Link",          "placeholder":"" }
+      ]
+    }
+  ]
+}
