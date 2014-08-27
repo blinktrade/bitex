@@ -1,0 +1,13 @@
+template-name=customer-verification-submit-en
+template-slug=customer-verification-submit-en
+temaplate-defaults-from-address=support@blinktrade.zendesk.com
+template-defaults-from-name=BlinkTrade
+template-defaults-subject=Your account has been sent for verification
+
+Hi *|username|*, <br/>
+<br/>
+Your data has been sent, we will validate your account shortly.
+. <br/>
+<br/>
+Thank you <br/>
+BlinkTrade

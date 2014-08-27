@@ -1,0 +1,21 @@
+template-name=withdraw-confirmation-bitcoin-en
+template-slug=withdraw-confirmation-bitcoin-en
+temaplate-defaults-from-address=support@blinktrade.zendesk.com
+template-defaults-from-name=BlinkTrade
+template-defaults-subject=Confirm the withdraw order *|currency|*
+
+Hi *|username|* <br/>
+<br/>
+This is your confirmation code <br/>
+*|confirmation_token|* <br/>
+<br/>
+Attention this confirmation code is valid to confirm your withdraw order<br/>
+Facts: *|created|* <br/> UTC
+Value: *|amount|* <br/>
+Currency: *|currency|* <br/>
+Destination: *|wallet|* <br/>
+<br/>
+Attention: <br/>
+This procedure is necessary to increase the security of the system, because if your BlinkTrade password is compromised, the attacker does not make the order Put Stone retirement bitcoins without access to their email account. <br/>
+<br/>
+Thank you<br/>

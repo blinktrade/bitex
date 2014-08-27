@@ -1,0 +1,15 @@
+template-name=withdraw-cancelled-en
+template-slug=withdraw-cancelled-en
+temaplate-defaults-from-address=support@blinktrade.zendesk.com
+template-defaults-from-name=BlinkTrade
+template-defaults-subject=Your withdrawal request *|amount|* *|currency|* was canceled
+
+Hi *|username|* <br/>
+<br/>
+Your withdrawal request made ​​on *|created|* UTC to the value of *|amount|* *|currency|* was canceled for the following reason: <br/>
+<br/>
+Error code: *|reason_id|* <br/>
+Description: *|reason|* <br/>
+<br/>
+Thank you <br/>
+BlinkTrade
