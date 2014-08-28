@@ -1,0 +1,12 @@
+template-name=welcome-en
+template-slug=welcome-en
+temaplate-defaults-from-address=support@blinktrade.zendesk.com
+template-defaults-from-name=BlinkTrade
+template-defaults-subject=Hi *|USERNAME|*, Welcome to BlinkTrade
+
+Hi *|USERNAME|* <br/>
+  <br/>
+Welcome to BlinkTrade <br/>
+  <br/>
+Thank you <br/>
+BlinkTrade <br/>

@@ -1,0 +1,12 @@
+template-name=your-account-has-been-verified-en
+template-slug=your-account-has-been-verified-en
+temaplate-defaults-from-address=support@blinktrade.zendesk.com
+template-defaults-from-name=BlinkTrade
+template-defaults-subject=Your account has been verified
+
+Hi *|username|*, <br/>
+<br/>
+Your account has been verified.<br/>
+<br/>
+Thank you,<br/>
+BlinkTrade

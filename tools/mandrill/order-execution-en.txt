@@ -1,0 +1,19 @@
+template-name=order-execution-en
+template-slug=order-execution-en
+temaplate-defaults-from-address=support@blinktrade.zendesk.com
+template-defaults-from-name=BlinkTrade
+template-defaults-subject=Your order *|order_id|* was executed.
+
+Hi *|username|*,<br/>
+<br/>
+Your order was executed. <br/>
+<br/>
+Number: *|order_id|* <br/>
+Ejecuciono Number: *|trade_id|* <br/>
+Command executed in: *|executed_when|* (UTC) <br/>
+Quantity: *|qty|* <br/>
+Price: *|price|* <br/>
+Total: *|total|* <br/>
+<br/>
+Thank you <br/>
+BlinkTrade<br/>
