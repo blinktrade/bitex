@@ -390,6 +390,165 @@ class User(Base):
       return True
     return False
 
+
+class Position(Base):
+  __tablename__         = 'position'
+  id                    = Column(Integer,       primary_key=True)
+  account_id            = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  account_name          = Column(String(15),    nullable=False)
+  broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  broker_name           = Column(String(30),    nullable=False)
+  currency              = Column(String(4),     ForeignKey('currencies.code') ,nullable=False )
+  position              = Column(Integer,       nullable=False, default=0)
+  last_update           = Column(DateTime, default=datetime.datetime.now, nullable=False)
+
+  __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_position_uc'), )
+
+  def __repr__(self):
+    return u"<Position(id=%r, account_id=%r, account_name=%r, broker_id=%r, broker_name=%r, currency=%r, position=%r)>" % (
+      self.id, self.account_id, self.account_name,  self.broker_id, self.broker_name, self.currency, self.position )
+
+  @staticmethod
+  def get_positions_by_account(session, account_id):
+    return session.query(Position).filter_by(account_id = account_id)
+
+  @staticmethod
+  def get_positions_by_account_broker(session, account_id, broker_id):
+    return session.query(Position).filter_by(account_id = account_id).filter_by(broker_id = broker_id )
+
+  @staticmethod
+  def get_position(session, account_id, broker_id, currency ):
+    currency  = currency.strip().upper()
+    obj = session.query(Position).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
+    if not obj:
+      return 0
+    return obj.position
+
+  @staticmethod
+  def update_position(session,operation, account_id, account_name, broker_id, broker_name, currency, value ):
+    currency  = currency.strip().upper()
+    obj = session.query(Position).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
+    if not obj:
+      obj = Position(account_id   = account_id,
+                     account_name = account_name,
+                     currency     = currency,
+                     broker_id    = broker_id,
+                     broker_name  = broker_name,
+                     position     = 0)
+
+    if operation == 'CREDIT':
+      obj.position = obj.position + value
+    elif operation == 'DEBIT':
+      obj.position = obj.position - value
+
+    session.add(obj)
+
+    position_update_msg = dict()
+    position_update_msg['MsgType'] = 'U43'
+    position_update_msg['ClientID'] = account_id
+    position_update_msg[broker_id] = { currency: obj.position }
+    application.publish( account_id,  position_update_msg  )
+
+    return obj.position
+
+
+class PositionLedger(Base):
+  __tablename__         = 'position_ledger'
+  id                    = Column(Integer,       primary_key=True)
+  currency              = Column(String(4),     ForeignKey('currencies.code'),nullable=False)
+  account_id            = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  account_name          = Column(String,        nullable=False)
+  broker_id             = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  broker_name           = Column(String,        nullable=False)
+  payee_id              = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payee_name            = Column(String,        nullable=False)
+  payee_broker_id       = Column(Integer,       ForeignKey('users.id'),       nullable=False)
+  payee_broker_name     = Column(String,        nullable=False)
+  operation             = Column(String(1),     nullable=False)
+  amount                = Column(Integer,       nullable=False)
+  position              = Column(Integer,       nullable=False)
+  reference             = Column(String(25),    nullable=False)
+  created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  description           = Column(String(255))
+
+  def __repr__(self):
+    return u"<PositionLedger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payee_broker_id=%r,"\
+           u"operation=%r,amount=%r,position=%r,reference=%r, created=%r,description=%r,"\
+           u"account_name=%r,broker_name=%r,payee_name=%r,payee_broker_name=%r)>" % (
+      self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payee_broker_id,
+      self.operation, self.amount, self.position, self.reference, self.created, self.description,
+      self.account_name, self.broker_name, self.payee_name, self.payee_broker_name)
+
+
+  @staticmethod
+  def get_list(session, broker_id, account_id, operation_list, page_size, offset, currency=None, filter_array=[]):
+    query = session.query(PositionLedger).filter( PositionLedger.operation.in_( operation_list ) ).filter(PositionLedger.broker_id==broker_id)
+
+    if currency:
+      query = query.filter( PositionLedger.currency == currency)
+
+    if account_id:
+      query = query.filter( PositionLedger.account_id == account_id  )
+
+    for filter in filter_array:
+      if filter:
+        if filter.isdigit():
+          query = query.filter( or_( PositionLedger.description.like('%' + filter + '%' ),
+                                     PositionLedger.reference == filter,
+                                     PositionLedger.amount == int(filter),
+                                     PositionLedger.position == int(filter)
+          ))
+        else:
+          query = query.filter( or_( PositionLedger.description.like('%' + filter + '%' ),
+                                     PositionLedger.reference == filter
+          ))
+
+    query = query.order_by(desc(PositionLedger.created))
+
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+
+    return query
+
+  @staticmethod
+  def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None):
+    position = Position.update_position(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
+    ledger = PositionLedger( currency         = currency,
+                             account_id       = from_account_id,
+                             account_name     = from_account_name,
+                             payee_id         = to_account_id,
+                             payee_name       = to_account_name,
+                             broker_id        = from_broker_id,
+                             broker_name      = from_broker_name,
+                             payee_broker_id  = to_broker_id,
+                             payee_broker_name= to_broker_name,
+                             operation        = 'D',
+                             amount           = amount,
+                             position         = position,
+                             reference        = reference,
+                             description      = description )
+    session.add(ledger)
+
+    position = Position.update_position(session, 'CREDIT', to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount)
+    ledger = PositionLedger( currency         = currency,
+                             account_id       = to_account_id,
+                             account_name     = to_account_name,
+                             payee_id         = from_account_id,
+                             payee_name       = from_account_name,
+                             broker_id        = to_broker_id,
+                             broker_name      = to_broker_name,
+                             payee_broker_id  = from_broker_id,
+                             payee_broker_name= from_broker_name,
+                             operation        = 'C',
+                             amount           = amount,
+                             position         = position,
+                             reference        = reference,
+                             description      = description )
+    session.add(ledger)
+
+
 class Balance(Base):
   __tablename__         = 'balances'
   id                    = Column(Integer,       primary_key=True)
@@ -404,8 +563,8 @@ class Balance(Base):
   __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_balance_uc'), )
 
   def __repr__(self):
-    return u"<Balance(id=%r, account_id=%r, broker_id=%r, currency=%r, balance=%r)>" % (
-      self.id, self.account_id,  self.broker_id, self.currency, self.balance )
+    return u"<Balance(id=%r, account_id=%r, account_name=%r, broker_id=%r, broker_name=%r, currency=%r, balance=%r)>" % (
+      self.id, self.account_id, self.account_name,  self.broker_id, self.broker_name, self.currency, self.balance )
 
   @staticmethod
   def get_balances_by_rank(session, currency = 'BTC'):
@@ -482,9 +641,11 @@ class Ledger(Base):
 
   def __repr__(self):
     return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payee_broker_id=%r," \
-                    u"operation=%r,amount=%r,balance=%r,reference=%r, created=%r,description=%r)>" % (
+                    u"operation=%r,amount=%r,balance=%r,reference=%r, created=%r,description=%r," \
+                    u"account_name=%r,broker_name=%r,payee_name=%r,payee_broker_name=%r)>" % (
       self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payee_broker_id,
-      self.operation, self.amount, self.balance, self.reference, self.created, self.description)
+      self.operation, self.amount, self.balance, self.reference, self.created, self.description,
+      self.account_name, self.broker_name, self.payee_name, self.payee_broker_name)
 
 
   @staticmethod
@@ -722,6 +883,7 @@ class Ledger(Base):
     if counter_order_fee_amount:
       process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount )
 
+
 class Broker(Base):
   __tablename__         = 'brokers'
   id                    = Column(Integer,       ForeignKey('users.id'),  unique=True)
@@ -807,6 +969,119 @@ class Broker(Base):
       self.fee_structure , self.withdraw_structure,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from )
+
+class TrustedAddress(Base):
+  __tablename__         = 'trusted_address'
+  id                    = Column(Integer,       primary_key=True)
+  user_id               = Column(Integer,       ForeignKey('users.id'))
+  username              = Column(String,        nullable=False, index=True)
+  broker_id             = Column(Integer,       ForeignKey('users.id'))
+  broker_username       = Column(String,        nullable=False, index=True)
+  currency              = Column(String,        default='BTC', nullable=False, index=True)
+  address               = Column(String,        nullable=False, index=True )
+  created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  status                = Column(Integer,       nullable=False, default=0)
+
+  __table_args__ = (UniqueConstraint('user_id', 'broker_id', 'currency', 'address', name='_trusted_address_uc'), )
+
+  def __repr__(self):
+    return "<TrustedAddress(id=%r, user_id=%r, username=%r, " \
+           "broker_id=%r, broker_username=%r,address=%r, created=%r, status=%r)>" % (
+      self.id, self.user_id, self.username, self.broker_id,
+      self.broker_username, self.address, self.created, self.status)
+
+
+  @staticmethod
+  def suggest_address(session, user_id, username, broker_id, broker_username, address, currency):
+    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
+                                                  filter_by(broker_id = broker_id).\
+                                                  filter_by(currency = currency).\
+                                                  filter_by(address = address ).first()
+
+    if not rec:
+      rec = TrustedAddress( user_id         = user_id,
+                            username        = username,
+                            broker_id       = broker_id,
+                            broker_username = broker_username,
+                            address         = address,
+                            currency        = currency,
+                            status          = 0)
+      session.add(rec)
+
+    if not rec.status:
+      msg = {
+        'MsgType'       : 'U46',
+        'SuggestTrustedAddressReqID' : rec.id,
+        'UserID'        : rec.user_id,
+        'BrokerID'      : rec.broker_id,
+        'Currency'      : rec.currency,
+        'Address'       : rec.address
+      }
+      application.publish( user_id, msg )
+      application.publish( broker_id, msg )
+
+      UserEmail.create(session  = session,
+                       user_id  = user_id,
+                       subject  = 'CA',
+                       template ='confirm_address',
+                       language = options.global_email_language,
+                       params   = json.dumps({
+                                     'user_id': user_id,
+                                     'username':username,
+                                     'broker_id': broker_id,
+                                     'broker_username':broker_username,
+                                     'currency': currency,
+                                     'address':address} ) )
+
+
+    return rec
+
+  @staticmethod
+  def user_confirm_trusted_address(session, user_id, broker_id, address, currency):
+    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
+                                                  filter_by(broker_id = broker_id).\
+                                                  filter_by(currency = currency).\
+                                                  filter_by(address = address ).first()
+
+    if not rec:
+      return None
+
+    if rec.status < 1:
+      rec.status = 1
+      session.add(rec)
+
+
+
+    return True
+
+
+  @staticmethod
+  def broker_confirm_trusted_address(session, user_id, broker_id, address, currency):
+    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
+                                                  filter_by(broker_id = broker_id).\
+                                                  filter_by(currency = currency).\
+                                                  filter_by(address = address ).first()
+
+    if not rec:
+      return None
+
+    if rec.status < 2:
+      rec.status = 2
+      session.add(rec)
+
+    return True
+
+
+  @staticmethod
+  def is_trusted_address(session, user_id, broker_id, address, currency):
+    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
+                                      filter_by(broker_id = broker_id).\
+                                      filter_by(currency = currency).\
+                                      filter_by(address = address ).first()
+    if not rec:
+      return  False
+    return rec.status > 0
+
 
 class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
@@ -1392,7 +1667,6 @@ class Order(Base):
 
 class Trade(Base):
   __tablename__     = 'trade'
-  #id                = Column(String,        primary_key=True)
   id                = Column(Integer,        primary_key=True)
   order_id          = Column(Integer,       ForeignKey('orders.id'))
   counter_order_id  = Column(Integer,       ForeignKey('orders.id'))
@@ -1455,6 +1729,7 @@ class Trade(Base):
 
     return trades
 
+
 class Deposit(Base):
   __tablename__           = 'deposit'
 
@@ -1515,7 +1790,7 @@ class Deposit(Base):
         percent_fee             = 0.,
         fixed_fee               = 0,
         data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } ),
-      )
+    )
 
     if instructions:
       deposit.instructions = json.dumps(instructions)
@@ -1630,6 +1905,10 @@ class Deposit(Base):
 
   def process_confirmation(self, session, amount, percent_fee=0., fixed_fee=0, data=None ):
     should_update = False
+    should_start_a_loan_from_broker_to_the_user = False
+    should_ask_the_user_to_trust_his_payee_address = False
+    payee_address = None
+
     new_data = {}
     new_data.update(json.loads(self.data))
     if data:
@@ -1651,9 +1930,31 @@ class Deposit(Base):
       if not crypto_currency_param:
         return
 
+      if not data['Confirmations'] and self.status == '0':
+        if 'PayeeAddresses' in data:
+          try:
+            payee_addresses = json.loads(data['PayeeAddresses'])
+
+            if len(payee_addresses) == 1:
+              payee_address = payee_addresses[0]
+          except Exception:
+            pass
+
+        if payee_address:
+          if TrustedAddress.is_trusted_address(session,
+                                               self.user_id,
+                                               self.broker_id,
+                                               payee_address,
+                                               self.currency ):
+            should_start_a_loan_from_broker_to_the_user = True
+          else:
+            should_ask_the_user_to_trust_his_payee_address = True
+
       for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
         if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
           should_confirm = True
+          should_start_a_loan_from_broker_to_the_user = False
+          should_ask_the_user_to_trust_his_payee_address = False
           break
 
       if self.status == '0' or self.status == '1':
@@ -1662,7 +1963,16 @@ class Deposit(Base):
     else:
       should_confirm = True
 
-    if  should_confirm and self.status == '4':
+    if should_ask_the_user_to_trust_his_payee_address:
+      TrustedAddress.suggest_address(session,
+                                     self.user_id,
+                                     self.username,
+                                     self.broker_id,
+                                     self.broker_username,
+                                     payee_address,
+                                     self.currency)
+
+    if should_confirm and self.status == '4':
       # The user probably saved the deposit address and he is sending to the same address
       if self.type == 'CRY' and self.paid_value != amount:
         # TODO: Create another deposit
@@ -1671,58 +1981,149 @@ class Deposit(Base):
 
     should_execute_instructions = False
     should_adjust_ledger = False
-    if should_confirm and self.status != '4':
+    if (should_confirm and self.status != '4') or should_start_a_loan_from_broker_to_the_user:
       self.paid_value = amount
       self.percent_fee = percent_fee
       self.fixed_fee = fixed_fee
-      self.status = '4'
+
+      if not should_start_a_loan_from_broker_to_the_user:
+        self.status = '4'
 
       if self.instructions:
         should_execute_instructions = True
       should_adjust_ledger = True
       should_update = True
 
-    if should_adjust_ledger:
-      total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (float(self.percent_fee)/100.0))
-      total_fees = total_percent_fee_value + self.fixed_fee
-
-      Ledger.transfer(session,
-                      self.broker_id,         # from_account_id
-                      self.broker_username,   # from_account_name
-                      self.broker_id,         # from_broker_id
-                      self.broker_username,   # from_broker_name
-                      self.account_id,        # to_account_id
-                      self.username,          # to_account_name
-                      self.broker_id,         # to_broker_id
-                      self.broker_username,   # to_broker_name
-                      self.currency,          # currency
-                      self.paid_value,        # amount
-                      str(self.id),           # reference
-                      'D'                     # descriptions
+    if should_start_a_loan_from_broker_to_the_user:
+      PositionLedger.transfer(session,
+                              self.account_id,        # from_account_id
+                              self.username,          # from_account_name
+                              self.broker_id,         # from_broker_id
+                              self.broker_username,   # from_broker_name
+                              self.broker_id,         # to_account_id
+                              self.broker_username,   # to_account_name
+                              self.broker_id,         # to_broker_id
+                              self.broker_username,   # to_broker_name
+                              self.currency,          # currency
+                              self.paid_value,        # amount
+                              str(self.id),           # reference
+                              'D'                     # descriptions
       )
 
-      if total_fees:
+
+    if should_adjust_ledger:
+      should_payback_the_loan_from_broker_to_the_user = False
+      position = 0
+      if not should_start_a_loan_from_broker_to_the_user:
+        position = Position.get_position(session, self.account_id, self.broker_id, self.currency)
+        if position < 0:
+          should_payback_the_loan_from_broker_to_the_user = True
+          position *= -1
+
+
+      if should_payback_the_loan_from_broker_to_the_user:
+        val = self.paid_value - position
+        if val <= 0:
+          PositionLedger.transfer(session,
+                                  self.broker_id,         # from_account_id
+                                  self.broker_username,   # from_account_name
+                                  self.broker_id,         # from_broker_id
+                                  self.broker_username,   # from_broker_name
+                                  self.account_id,        # to_account_id
+                                  self.username,          # to_account_name
+                                  self.broker_id,         # to_broker_id
+                                  self.broker_username,   # to_broker_name
+                                  self.currency,          # currency
+                                  self.paid_value,        # amount
+                                  str(self.id),           # reference
+                                  'D'                     # descriptions
+          )
+        else:
+          PositionLedger.transfer(session,
+                                  self.broker_id,         # from_account_id
+                                  self.broker_username,   # from_account_name
+                                  self.broker_id,         # from_broker_id
+                                  self.broker_username,   # from_broker_name
+                                  self.account_id,        # to_account_id
+                                  self.username,          # to_account_name
+                                  self.broker_id,         # to_broker_id
+                                  self.broker_username,   # to_broker_name
+                                  self.currency,          # currency
+                                  position,               # amount
+                                  str(self.id),           # reference
+                                  'D'                     # descriptions
+          )
+
+          Ledger.transfer(session,
+                          self.broker_id,         # from_account_id
+                          self.broker_username,   # from_account_name
+                          self.broker_id,         # from_broker_id
+                          self.broker_username,   # from_broker_name
+                          self.account_id,        # to_account_id
+                          self.username,          # to_account_name
+                          self.broker_id,         # to_broker_id
+                          self.broker_username,   # to_broker_name
+                          self.currency,          # currency
+                          val,                    # amount
+                          str(self.id),           # reference
+                          'D'                     # descriptions
+          )
+
+          total_percent_fee_value = ((val - self.fixed_fee) * (float(self.percent_fee)/100.0))
+          total_fees = total_percent_fee_value + self.fixed_fee
+          if total_fees:
+            Ledger.transfer(session,
+                            self.account_id,        # from_account_id
+                            self.username,          # from_account_name
+                            self.broker_id,         # from_broker_id
+                            self.broker_username,   # from_broker_name
+                            self.broker_id,         # to_account_id
+                            self.broker_username,   # to_account_name
+                            self.broker_id,         # to_broker_id
+                            self.broker_username,   # to_broker_name
+                            self.currency,          # currency
+                            total_fees,             # amount
+                            str(self.id),           # reference
+                            'DF'                    # descriptions
+            )
+
+      else:
         Ledger.transfer(session,
-                        self.account_id,        # from_account_id
-                        self.username,          # from_account_name
+                        self.broker_id,         # from_account_id
+                        self.broker_username,   # from_account_name
                         self.broker_id,         # from_broker_id
                         self.broker_username,   # from_broker_name
-                        self.broker_id,         # to_account_id
-                        self.broker_username,   # to_account_name
+                        self.account_id,        # to_account_id
+                        self.username,          # to_account_name
                         self.broker_id,         # to_broker_id
                         self.broker_username,   # to_broker_name
                         self.currency,          # currency
-                        total_fees,             # amount
+                        self.paid_value,        # amount
                         str(self.id),           # reference
-                        'DF'                    # descriptions
+                        'D'                     # descriptions
         )
 
+        total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (float(self.percent_fee)/100.0))
+        total_fees = total_percent_fee_value + self.fixed_fee
+        if total_fees:
+          Ledger.transfer(session,
+                          self.account_id,        # from_account_id
+                          self.username,          # from_account_name
+                          self.broker_id,         # from_broker_id
+                          self.broker_username,   # from_broker_name
+                          self.broker_id,         # to_account_id
+                          self.broker_username,   # to_account_name
+                          self.broker_id,         # to_broker_id
+                          self.broker_username,   # to_broker_name
+                          self.currency,          # currency
+                          total_fees,             # amount
+                          str(self.id),           # reference
+                          'DF'                    # descriptions
+          )
 
     instruction_to_execute = None
     if should_execute_instructions:
       instruction_to_execute = self.get_instructions()
-
-
 
     if should_update:
       self.data = json.dumps(new_data)
@@ -1993,7 +2394,7 @@ def db_bootstrap(session):
                          {
                              "CurrencyCode": "BTC",
                              "CurrencyDescription":"Bitcoin",
-                             "Confirmations":[ [0, 1e8, 0], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+                             "Confirmations":[ [1, 1e8, 1], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
                              "Wallets": [
                                  { "type":"cold", "address":"154J1nWscUNY959VxM8SaNpK8sfXUH7z2u", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },
                                  { "type":"hot", "address":"1Nk7JzvkmuTfMaUKKtRaK8K9PM2UfNcJP3", "multisig":False,"signatures":[], "managed_by":"BlinkTrade" },

@@ -22,9 +22,19 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
     input_transaction_hash  = self.get_argument("input_transaction_hash", default=None, strip=False)
     transaction_hash        = self.get_argument("transaction_hash",       default=None, strip=False)
     confirmations           = self.get_argument("confirmations",          default=0, strip=False)
+    payee_addresses         = self.get_argument("payee_addresses",        default=None, strip=False)
 
     import random
     req_id = random.randrange(600000,900000)
+
+    payee_addresses_json = None
+    if payee_addresses:
+      try:
+        payee_addresses_json = json.loads(payee_addresses)
+      except Exception,e:
+        pass
+
+
 
     process_deposit_message = {
       'MsgType': 'B0',
@@ -36,12 +46,15 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
         'Confirmations': int(confirmations),
         'InputAddress': input_address,
         'InputTransactionHash': input_transaction_hash,
-        'TransactionHash': transaction_hash
+        'TransactionHash': transaction_hash,
       }
     }
+
     if fee:
       process_deposit_message['Data']['ForwardFee'] = fee
 
+    if payee_addresses_json:
+      process_deposit_message['Data']['PayeeAddresses'] = json.dumps(payee_addresses_json)
 
     try:
       response_msg = self.application.application_trade_client.sendJSON(process_deposit_message)

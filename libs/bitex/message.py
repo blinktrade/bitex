@@ -168,6 +168,13 @@ class JsonMessage(BaseMessage):
       'U39': 'UpdateProfileResponse',
       'U40': 'ProfileRefresh',
 
+      'U42': 'PositionRequest' ,
+      'U43': 'PositionResponse' ,
+
+      'U44': 'SuggestTrustedAddressRequest' ,
+      'U45': 'SuggestTrustedAddressResponse' ,
+      'U46': 'SuggestTrustedAddressPublish' ,
+
       # Broker messages
       'B0':  'ProcessDeposit',
       'B1':  'ProcessDepositResponse',
@@ -464,6 +471,27 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('Profile')
       self.raise_exception_if_empty('Profile')
 
+
+    elif self.type == 'U42': # Position Request
+      self.raise_exception_if_required_tag_is_missing('PositionReqID')
+      self.raise_exception_if_empty('PositionReqID')
+
+    elif self.type == 'U43': # Position Response
+      self.raise_exception_if_required_tag_is_missing('PositionReqID')
+      self.raise_exception_if_empty('PositionReqID')
+
+
+    elif self.type == 'U44': # Suggest Trusted Address Request
+      self.raise_exception_if_required_tag_is_missing('SuggestTrustedAddressReqID')
+      self.raise_exception_if_empty('SuggestTrustedAddressReqID')
+
+    elif self.type == 'U45': # Suggest Trusted Address Response
+      self.raise_exception_if_required_tag_is_missing('SuggestTrustedAddressReqID')
+      self.raise_exception_if_empty('SuggestTrustedAddressReqID')
+
+    elif self.type == 'U46': # Suggest Trusted Address Publish
+      self.raise_exception_if_required_tag_is_missing('SuggestTrustedAddressReqID')
+      self.raise_exception_if_empty('SuggestTrustedAddressReqID')
 
     elif self.type == 'B0': # Deposit Payment Confirmation
       self.raise_exception_if_required_tag_is_missing('ProcessDepositReqID')

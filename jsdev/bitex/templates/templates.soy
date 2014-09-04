@@ -508,12 +508,8 @@
       {$data['Wallet']}
     </h4>
     <div class="text-center">
-      <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=$data['Wallet']"/>
+      <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl={$data['Wallet']}"/>
     </div>
-    <p class="text-center">
-      {msg desc="deposit processor dialog msg"} Powered by {/msg}
-      <a href="https://blockchain.info/api/api_receive/" target="_blank">https://blockchain.info/api/api_receive</a>
-    </p>
   </div>
 {/template}
 

@@ -1516,7 +1516,7 @@ bitex.app.BlinkTrade.prototype.onUserShowQr_ = function(e){
     dialog_title = MSG_SHOW_QR_CURRENCY_DEPOSIT_DIALOG_TITLE;
   }
 
-  var dlg =  this.showDialog(bitex.templates.CryptoCurrencyQRContentDialog({data:qrData}),
+  var dlg =  this.showDialog(bitex.templates.CryptoCurrencyQRContentDialog({data:qrData }),
                              dialog_title,
                              bootstrap.Dialog.ButtonSet.createCancel());
 };
