@@ -669,7 +669,7 @@
 
       <div class="control-group">
       <div class="ctrlHolder">
-        <label class="control-label">Amount</label>
+        <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
         <div class="controls">
           <div class="input-prepend">
             <span class="add-on">{$currencySign}</span>
@@ -688,7 +688,7 @@
     {if not $force_method}
       {if length($methods) > 1}
         <div class="control-group">
-          <label class="control-label">Method</label>
+          <label class="control-label">{msg desc="method"}Method{/msg} Method</label>
           <div class="controls">
             <select id="{$methodID}" name="Method" class="withdraw-method-selector">
               {foreach $method in $methods }

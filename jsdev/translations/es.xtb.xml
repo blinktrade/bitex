@@ -82,7 +82,7 @@
     <translation id="7839352478681394987">Parcialmente completado</translation>
     <translation id="675110957935221663">completado</translation>
     <translation id="7542104892805677705">cancelado</translation>
-    <translation id="6692650782191524255">Retirada <ph name="currency"/></translation>
+    <translation id="6692650782191524255">Retiro <ph name="currency"/></translation>
     <translation id="2086764853673285415">Error: <ph name="message"/></translation>
     <translation id="175524194750824187">Cancelar retiro</translation>
     <translation id="4503251500769434841">Ajustar <ph name="currency"/> retiro como 'en curso'</translation>
@@ -94,7 +94,7 @@
     <translation id="3509294057647878073">Cancelando orden...</translation>
     <translation id="3772510421440638316">Presentación <ph name="submissionID"/></translation>
     <translation id="3160671120235097661"><ph name="currency"/> depositar</translation>
-    <translation id="4030996601042264112"><ph name="currency"/> Retirar</translation>
+    <translation id="4030996601042264112"><ph name="currency"/> retirar</translation>
     <translation id="1384742915082292408">Cancelar deposito</translation>
     <translation id="7345616341057280227">Confirmar deposito</translation>
     <translation id="5236179900100603778"><ph name="currency"/> deposito</translation>
@@ -490,7 +490,7 @@
     <translation id="6679668639118391823">Comisiones:</translation>
     <translation id="9189368320862307296">Monto neto</translation>
     <translation id="6679668639118391823">Comisiones:</translation>
-    <translation id="9189368320862307296">Net amount</translation>
+    <translation id="9189368320862307296">Monto neto</translation>
     <translation id="7723325992076527303">Disponible <ph name="code"/></translation>
     <translation id="7780938860376937874">Si</translation>
     <translation id="5926818206032411087">Pendiente</translation>
