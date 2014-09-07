@@ -145,6 +145,7 @@ class JsonMessage(BaseMessage):
       'U20': 'DepositMethodsRequest',
       'U21': 'DepositMethodsResponse',
 
+
       'U24': 'WithdrawConfirmationRequest',
       'U25': 'WithdrawConfirmationResponse',
       'U26': 'WithdrawListRequest',
@@ -174,6 +175,9 @@ class JsonMessage(BaseMessage):
       'U44': 'ConfirmTrustedAddressRequest' ,
       'U45': 'ConfirmTrustedAddressResponse' ,
       'U46': 'SuggestTrustedAddressPublish' ,
+
+      'U48': 'DepositMethodRequest',
+      'U49': 'DepositMethodResponse',
 
       # Broker messages
       'B0':  'ProcessDeposit',
@@ -289,6 +293,10 @@ class JsonMessage(BaseMessage):
 
     elif self.type == 'U20': # Request Deposit Methods
       self.raise_exception_if_required_tag_is_missing('DepositMethodReqID')
+
+    elif self.type == 'U48': # Deposit Method Request
+      self.raise_exception_if_required_tag_is_missing('DepositMethodReqID')
+      self.raise_exception_if_required_tag_is_missing('DepositMethodID')
 
 
     elif self.type == 'D':  #New Order Single

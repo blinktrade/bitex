@@ -21,31 +21,41 @@ class DepositHandler(tornado.web.RequestHandler):
     super(DepositHandler, self).__init__(application, request, **kwargs)
     self.remote_ip = request.headers.get('X-Forwarded-For', request.headers.get('X-Real-Ip', request.remote_ip))
 
-  def write_bank_transfer_instructions(self, deposit):
+  def write_ws_gateway_template(self, deposit):
     template_loader = template.Loader(DEPOSIT_TEMPLATE_PATH)
-    t_loader = template_loader.load( deposit['html_template']  )
-    deposit_html = t_loader.generate(**deposit).decode('utf-8')
+    deposit_data = deposit.get('Data')
+    t_loader = template_loader.load( deposit_data['html_template']  )
+
+    deposit_html = t_loader.generate(**deposit_data).decode('utf-8')
+    self.write(deposit_html)
+
+  def write_deposit_template(self, deposit_method, deposit):
+    t = template.Template( deposit_method.get('HtmlTemplate')  )
+    deposit_data = deposit.get('Data')
+
+    deposit_html = t.generate(**deposit_data).decode('utf-8')
     self.write(deposit_html)
 
 
   def write_brazilian_deposit_system(self,deposit):
-    if 'data_documento' in deposit and  deposit['data_documento']:
-      deposit['data_documento'] = datetime.datetime.strptime( deposit['data_documento'] , "%Y-%m-%d").date()
+    deposit_data = deposit.get('Data')
+    if 'data_documento' in deposit_data and  deposit_data['data_documento']:
+      deposit_data['data_documento'] = datetime.datetime.strptime( deposit_data['data_documento'] , "%Y-%m-%d").date()
 
-    if 'data_vencimento' in deposit and deposit['data_vencimento']:
-      deposit['data_vencimento'] = datetime.datetime.strptime( deposit['data_vencimento'] , "%Y-%m-%d").date()
+    if 'data_vencimento' in deposit_data and deposit_data['data_vencimento']:
+      deposit_data['data_vencimento'] = datetime.datetime.strptime( deposit_data['data_vencimento'] , "%Y-%m-%d").date()
 
-    if 'data_processamento' in deposit and deposit['data_processamento']:
-      deposit['data_processamento'] = datetime.datetime.strptime( deposit['data_processamento'] , "%Y-%m-%d").date()
+    if 'data_processamento' in deposit_data and deposit_data['data_processamento']:
+      deposit_data['data_processamento'] = datetime.datetime.strptime( deposit_data['data_processamento'] , "%Y-%m-%d").date()
 
     buffer = StringIO()
     from pyboleto.pdf import BoletoPDF
     boleto_pdf = BoletoPDF(buffer)
 
     from pyboleto import bank
-    ClasseBanco = bank.get_class_for_codigo(deposit['codigo_banco'])
+    ClasseBanco = bank.get_class_for_codigo(deposit_data['codigo_banco'])
     deposit_dados = ClasseBanco()
-    for field_name, field_value in deposit.iteritems():
+    for field_name, field_value in deposit_data.iteritems():
       if field_value:
         setattr(deposit_dados, field_name, field_value)
     boleto_pdf.drawBoleto(deposit_dados)
@@ -75,20 +85,29 @@ class DepositHandler(tornado.web.RequestHandler):
       self.send_error(404)
       return
 
+    deposit_method_id = deposit_response_msg.get('DepositMethodID')
+    deposit_method_response_msg = self.application.application_trade_client.sendString(
+      json.dumps({ 'MsgType': 'U48', 'DepositMethodReqID': 1, 'DepositMethodID': deposit_method_id }))
 
-    deposit = deposit_response_msg.get('Data')
-    if not deposit:
+    if not deposit_method_response_msg or not deposit_method_response_msg.isDepositMethodResponse():
+      self.send_error(404)
+      return
+
+    if not deposit_response_msg.get('Data'):
       self.send_error()
       return
 
-    deposit['remote_ip'] = self.remote_ip
+    deposit_response_msg.get('Data')['remote_ip'] = self.remote_ip
 
     if download == 1:
       self.set_header("Content-Disposition", "attachment; filename=%s"% deposit['download_filename'] )
 
     if deposit_response_msg.get('Type') == 'BBS':
-      self.write_brazilian_deposit_system(deposit)
-    elif deposit_response_msg.get('Type') == 'BTI':
-      self.write_bank_transfer_instructions(deposit)
+      self.write_brazilian_deposit_system(deposit_response_msg)
+    elif deposit_response_msg.get('Type') == 'WTP':
+      self.write_ws_gateway_template(deposit_response_msg)
+    elif deposit_response_msg.get('Type') == 'DTP':
+      self.write_deposit_template(deposit_method_response_msg, deposit_response_msg)
+
     else:
       self.write('Invalid deposit type')

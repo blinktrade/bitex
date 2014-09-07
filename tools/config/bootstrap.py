@@ -173,7 +173,7 @@ def main():
         except Exception,e:
           pass
 
-        deposit_limits_json = {0: {"enabled": False},1: {"enabled": False}, 2: {"enabled": False }}
+        deposit_limits_json = {}
         try:
           with open(config.get(section_name, 'deposit_limits')  ) as data_file:
             deposit_limits_json = json.load(data_file)
@@ -248,6 +248,20 @@ def main():
       with open(config.get(section_name, 'parameters')  ) as data_file:
         parameters_json = json.load(data_file)
 
+      html_template = None
+      try:
+        with open(config.get(section_name, 'html_template')  ) as data_file:
+          html_template = data_file.read()
+      except Exception,e:
+        pass
+
+      deposit_limits_json = {0: {"enabled": False},1: {"enabled": False}, 2: {"enabled": False }}
+      try:
+        with open(config.get(section_name, 'deposit_limits')  ) as data_file:
+          deposit_limits_json = json.load(data_file)
+      except Exception,e:
+        pass
+
 
       if not DepositMethods.get_deposit_method(session, config.getint(section_name, 'id')):
         e = DepositMethods(id                         = config.getint(section_name, 'id'),
@@ -260,7 +274,9 @@ def main():
                             fixed_fee                 = config.getint(section_name, 'fixed_fee'),
                             broker_deposit_ctrl_num   = config.getint(section_name, 'broker_deposit_ctrl_num'),
                             currency                  = config.get(section_name, 'currency'),
-                            parameters                = json.dumps( parameters_json))
+                            deposit_limits            = json.dumps(deposit_limits_json),
+                            html_template             = html_template.decode('utf-8'),
+                            parameters                = json.dumps(parameters_json))
         session.add(e)
         session.commit()
 

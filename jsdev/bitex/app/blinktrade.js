@@ -770,6 +770,7 @@ bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
     var currency = deposit_method['Currency'];
     var percent_fee = deposit_method['PercentFee'];
     var fixed_fee = deposit_method['FixedFee'];
+    var deposit_limits = deposit_method['DepositLimits'];
 
     deposit_methods.push( { id:deposit_method_id,
                            description:description,
@@ -777,7 +778,8 @@ bitex.app.BlinkTrade.prototype.onBitexDepositMethodsResponse_ = function(e) {
                            type: type,
                            currency:currency,
                            percent_fee: percent_fee,
-                           fixed_fee: fixed_fee
+                           fixed_fee: fixed_fee,
+                           deposit_limits: deposit_limits
                          } );
   });
 
@@ -1071,41 +1073,23 @@ bitex.app.BlinkTrade.prototype.onUserWithdrawRequest_ = function(e){
   var dlg =  this.showDialog(dialogContent,
                              MSG_CURRENCY_WITHDRAW_DIALOG_TITLE,
                              bootstrap.Dialog.ButtonSet.createOkCancel());
-
-  this.doCalculateFees_(
-      withdraw_amount_element_id,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
-      currency,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
-      true,
-      true);
-
   var handler = this.getHandler();
-  handler.listen(goog.dom.getElement(method_element_id), goog.events.EventType.CHANGE, function(e){
-    this.doCalculateFees_(
-        withdraw_amount_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
-        currency,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
-        true,
-        true);
-  }, this);
 
-  handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,function(e) {
-    this.doCalculateFees_(
-        withdraw_amount_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
-        currency,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
-        true,
-        true);
-  }, this);
+  goog.array.forEach( withdraw_methods, function(withdraw_method) {
+    var method_id = withdraw_method['method'];
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(method_id + '_' + withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,function(e) {
+      this.doCalculateFees_(
+          method_id + '_' + withdraw_amount_element_id,
+          method_id + '_' + fixed_fee_element_id,
+          method_id + '_' + percent_fee_element_id,
+          currency,
+          method_id + '_' + total_fees_element_id,
+          method_id + '_' + net_value_element_id,
+          true,
+          true);
+    }, this);
+  }, this );
+
 
   handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
     if (e.key == 'ok') {
@@ -1988,23 +1972,61 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
     return;
   }
 
-  var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
+
+  var user_verification_level = this.getModel().get('Profile')['Verified'];
+
+  var broker_deposit_limit;
+  if (goog.isDefAndNotNull(this.getModel().get('Broker')['DepositLimits'][currency] )) {
+    broker_deposit_limit = this.getModel().get('Broker')['DepositLimits'][currency][user_verification_level];
+  }
+
   var deposit_methods = [];
   goog.array.forEach(this.getModel().get('DepositMethods'), function(deposit_method){
     if (deposit_method.currency == currency) {
-      deposit_methods.push({
-                              'method': deposit_method.id,
-                              'description': deposit_method.description,
-                              'disclaimer': deposit_method.disclaimer,
-                              'percent_fee': fmt.format(deposit_method.percent_fee),
-                              'fixed_fee': fmt.format(deposit_method.fixed_fee/1e8),
-                              'fields': []
-                            });
+
+      var deposit_method_limit = deposit_method.deposit_limits[ user_verification_level ];
+      var deposit_limit = { 'enabled':false };
+
+      var has_limits_enabled_on_deposit_method = false;
+
+      if (goog.isDefAndNotNull(deposit_method_limit) && goog.isDefAndNotNull(deposit_method_limit['enabled'])) {
+        has_limits_enabled_on_deposit_method = deposit_method_limit['enabled'];
+      }
+
+      var has_limits_enabled_on_broker = false;
+      if (goog.isDefAndNotNull(broker_deposit_limit) && goog.isDefAndNotNull(broker_deposit_limit['enabled'])) {
+        has_limits_enabled_on_broker = broker_deposit_limit['enabled'];
+      }
+
+      if (has_limits_enabled_on_deposit_method && has_limits_enabled_on_broker) {
+        deposit_limit['enabled'] = true;
+        deposit_limit['min'] = Math.max( broker_deposit_limit['min'], deposit_method_limit['min']  );
+        deposit_limit['max'] = Math.min( broker_deposit_limit['max'], deposit_method_limit['max']  );
+
+        deposit_limit['min'] = deposit_limit['min']/1e8;
+        deposit_limit['formatted_min'] = this.formatCurrency(deposit_limit['min'], currency, true);
+
+        deposit_limit['max'] = deposit_limit['max']/1e8;
+        deposit_limit['formatted_max'] = this.formatCurrency(deposit_limit['max'], currency, true);
+      }
+
+      if ( goog.isDefAndNotNull(deposit_limit) && deposit_limit['enabled']) {
+        deposit_methods.push({
+                               'method': deposit_method.id,
+                               'description': deposit_method.description,
+                               'disclaimer': deposit_method.disclaimer,
+                               'percent_fee': deposit_method.percent_fee,
+                               'fixed_fee': deposit_method.fixed_fee,
+                               'limits': deposit_limit,
+                               'fields': []
+                             });
+
+      }
     }
   }, this);
 
   var method_element_id = goog.string.getRandomString();
-  var withdraw_amount_element_id = goog.string.getRandomString();
+  var amount_element_id = goog.string.getRandomString();
   var fixed_fee_element_id = goog.string.getRandomString();
   var percent_fee_element_id = goog.string.getRandomString();
   var total_fees_element_id = goog.string.getRandomString();
@@ -2017,7 +2039,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
     currencySign: this.getCurrencySign(currency),
     methods: deposit_methods,
     methodID: method_element_id,
-    amountID: withdraw_amount_element_id,
+    amountID: amount_element_id,
     showFeeDataEntry:false,
     fixedFeeID: fixed_fee_element_id,
     percentFeeID: percent_fee_element_id,
@@ -2031,42 +2053,20 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
                               MSG_CURRENCY_DEPOSIT_DIALOG_TITLE,
                               bootstrap.Dialog.ButtonSet.createOkCancel());
 
-  this.doCalculateFees_(
-      withdraw_amount_element_id,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
-      currency,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-      goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
-      false,
-      false);
-
-
-  handler.listen(goog.dom.getElement(method_element_id), goog.events.EventType.CHANGE, function(e){
-    this.doCalculateFees_(
-        withdraw_amount_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
-        currency,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-        goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
-        false,
-        false);
-  }, this);
-
-  handler.listen( new goog.events.InputHandler(goog.dom.getElement(withdraw_amount_element_id) ),goog.events.InputHandler.EventType.INPUT,
-    function(e) {
+  goog.array.forEach( deposit_methods, function(deposit_method) {
+    var method_id = deposit_method['method'];
+    handler.listen( new goog.events.InputHandler(goog.dom.getElement(method_id + '_' + amount_element_id) ),goog.events.InputHandler.EventType.INPUT,function(e) {
       this.doCalculateFees_(
-          withdraw_amount_element_id,
-          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + fixed_fee_element_id,
-          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + percent_fee_element_id,
+          method_id + '_' + amount_element_id,
+          method_id + '_' + fixed_fee_element_id,
+          method_id + '_' + percent_fee_element_id,
           currency,
-          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + total_fees_element_id,
-          goog.dom.forms.getValue(goog.dom.getElement(method_element_id)) + '_' + net_value_element_id,
+          method_id + '_' + total_fees_element_id,
+          method_id + '_' + net_value_element_id,
           false,
-          false);
+          true);
     }, this);
-
+  }, this );
 
   var validate_deposit = true;
 
@@ -2117,36 +2117,6 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
             return;
           }
 
-          var deposit_limits = JSON.parse(this.getModel().get('Broker')['DepositLimits']);
-          var validation = deposit_limits[this.getModel().get('Profile')['Verified']];
-
-          if ( !validation['enabled'] ) {
-            /**
-             * @desc Deposit is disable for user validation level
-             */
-            var MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION = goog.getMsg('You must verify your account in order to deposit funds!' );
-
-            this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION );
-
-            e.stopPropagation();
-            e.preventDefault();
-
-            return;
-          }
-
-          if ( (amount * 1e8) < validation['minDeposit'] || (amount * 1e8) > validation['maxDeposit'] ) {
-            /**
-             * @desc Deposit amount out of broker range
-             */
-            var MSG_CURRENCY_DEPOSIT_VALIDATION_ERROR_NOTIFICATION = goog.getMsg('Error: deposit if out of your broker ranger, please contact your broker!' );
-
-            this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_VALIDATION_ERROR_NOTIFICATION );
-
-            e.stopPropagation();
-            e.preventDefault();
-
-            return;
-          }
       }
 
       if (deposit_form_el.getAttribute('data-deposit-status') != 'prepare')  {

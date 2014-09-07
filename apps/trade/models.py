@@ -14,7 +14,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy import desc, func
 from sqlalchemy.sql.expression import and_, or_, exists
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint, UnicodeText
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 import json
@@ -356,6 +356,7 @@ class User(Base):
                             'verification_data': verification_data,
                             'broker_username': self.broker_username}))
       elif self.verified > 1:
+
         # First 200 verified users of SurBitcoin will be awarded with 200 Bolivares Fuertes ( Aprox $500 ) to buy Bitcoins
         Ledger.transfer(session,
                         self.broker_id,            # from_account_id
@@ -2210,13 +2211,18 @@ class DepositMethods(Base):
   currency                  = Column(String(3),  nullable=False)
   percent_fee               = Column(Numeric,    nullable=False, default=0)
   fixed_fee                 = Column(Integer,    nullable=False, default=0)
+  html_template             = Column(UnicodeText)
+  deposit_limits            = Column(Text)
   parameters                = Column(Text,       nullable=False)
+
 
   def __repr__(self):
     return u"<DepositMethods(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ," \
-           u"type=%r, broker_deposit_ctrl_num=%r, currency=%r,percent_fee=%r, fixed_fee=%r, parameters=%r)>"\
+           u"type=%r, broker_deposit_ctrl_num=%r, currency=%r,percent_fee=%r, fixed_fee=%r, " \
+           u"deposit_limits=%r, html_template=%r, parameters=%r)>"\
     % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type,
-       self.broker_deposit_ctrl_num, self.currency, self.percent_fee, self.fixed_fee, self.parameters)
+       self.broker_deposit_ctrl_num, self.currency, self.percent_fee, self.fixed_fee,
+       self.deposit_limits, self.html_template, self.parameters)
 
   @staticmethod
   def get_deposit_method(session, deposit_option_id):

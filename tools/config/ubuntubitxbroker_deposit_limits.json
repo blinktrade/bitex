@@ -1,5 +1,7 @@
 {
-  "0": {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
-  "1": {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
-  "2": {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 }
+  "VEF": {
+    "0": { "enabled":false },
+    "1": { "enabled":false },
+    "2": { "enabled":true }
+  }
 }

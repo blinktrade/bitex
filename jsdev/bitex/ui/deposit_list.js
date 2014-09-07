@@ -266,7 +266,8 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
             break;
 
           case 'BBS':
-          case 'BTI':
+          case 'WTP':
+          case 'DTP':
             switch( rowSet['Status'] ) {
               case '0':
               case '1':

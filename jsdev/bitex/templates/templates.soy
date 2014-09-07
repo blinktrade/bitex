@@ -717,21 +717,7 @@
 
     <input type="hidden" name="Currency" value="{$currency}">
 
-    {if $side == 'client'}
-
-      <div class="control-group">
-      <div class="ctrlHolder">
-        <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
-        <div class="controls">
-          <div class="input-prepend">
-            <span class="add-on">{$currencySign}</span>
-            <input id="{$amountID}" uniform-validators="required; validateNumber" type="text" class="input-small" size="16" name="Amount">
-          </div>
-        </div>
-      </div>
-      </div>
-
-    {else}
+    {if $side == 'broker'}
       <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
     {/if}
 
@@ -740,7 +726,7 @@
     {if not $force_method}
       {if length($methods) > 1}
         <div class="control-group">
-          <label class="control-label">{msg desc="method"}Method{/msg} Method</label>
+          <label class="control-label">{msg desc="method"}Method{/msg}</label>
           <div class="controls">
             <select id="{$methodID}" name="Method" class="withdraw-method-selector">
               {foreach $method in $methods }
@@ -771,6 +757,40 @@
      {foreach $method in $methods }
         {if $force_method}
           {if $method['method'] == $force_method}
+
+            {if $side == 'client'}
+              <div class="control-group ctrlHolder">
+                <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
+                <div class="controls">
+                  <div class="input-prepend">
+                    <span class="add-on">{$currencySign}</span>
+                    <input id="{$method['method']}_{$amountID}"
+                        uniform-validators="required; validateNumber {if $method['limits']['enabled']} {if $method['limits']['min']}; validateMin {$method['limits']['min'] }{/if}{if $method['limits']['max']}; validateMax {$method['limits']['max'] } {/if} {/if}"
+                        type="text"
+                        class="withdraw-field input-small"
+                        size="16"
+                        name="Amount">
+                  </div>
+                  {if $method['limits']['enabled']}
+                    <div>
+                      <em>
+                        <small>
+                          {if $method['limits']['min']}
+                            {msg desc="amount help block"} Maximum: {$method['limits']['formatted_max'] } per day.  {/msg}
+                            <br>
+                          {/if}
+                          {if $method['limits']['max']}
+                            {msg desc="amount help block"} Minimum: {$method['limits']['formatted_min'] } per transaction.  {/msg}
+                          {/if}
+                        </small>
+                      </em>
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/if}
+
+
             {foreach $field in $method['fields'] }
               {if $field['side'] == $side}
                 <div class="control-group">
@@ -804,7 +824,6 @@
                 </div>
               </div>
 
-
             {else}
               {if $side == 'broker'}
                 <div class="control-group" style="margin-bottom: 5px;">
@@ -828,6 +847,39 @@
           {/if}
         {else}
           <div class="withdraw-method" data-withdraw-method="{$method['method']}" style="{if not isFirst($method)}display:none;{/if}" >
+
+            {if $side == 'client'}
+              <div class="control-group ctrlHolder">
+                <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
+                <div class="controls">
+                  <div class="input-prepend">
+                    <span class="add-on">{$currencySign}</span>
+                    <input id="{$method['method']}_{$amountID}"
+                        uniform-validators="required; validateNumber {if $method['limits']['enabled']} {if $method['limits']['min']}; validateMin {$method['limits']['min'] }{/if}{if $method['limits']['max']}; validateMax {$method['limits']['max'] } {/if} {/if}"
+                        type="text"
+                        class="withdraw-field input-small"
+                        size="16"
+                        name="Amount" {if not isFirst($method)}disabled{/if}>
+                  </div>
+                  {if $method['limits']['enabled']}
+                    <div>
+                      <em>
+                        <small>
+                          {if $method['limits']['min']}
+                            {msg desc="amount help block"} Maximum: {$method['limits']['formatted_max'] } per day.  {/msg}
+                            <br>
+                          {/if}
+                          {if $method['limits']['max']}
+                            {msg desc="amount help block"} Minimum: {$method['limits']['formatted_min'] } per transaction.  {/msg}
+                          {/if}
+                        </small>
+                      </em>
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/if}
+
             <div class="control-group" style="margin-bottom: 5px;">
               <div class="controls">
                 <label>{$method['disclaimer']}</label>

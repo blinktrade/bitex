@@ -28,3 +28,6 @@ class NotAuthorizedError(TradeRuntimeError):
 
 class InvalidClientIDError(TradeRuntimeError):
   error_description = "Invalid Client ID"
+
+class InvalidParameter(TradeRuntimeError):
+  error_description = "Invalid Parameter"

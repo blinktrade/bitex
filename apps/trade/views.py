@@ -170,7 +170,7 @@ def processLogin(session, msg):
         'PhoneNumber2'       : session.broker.phone_number_2       ,
         'Skype'              : session.broker.skype                ,
         'Email'              : session.broker.email                ,
-        'DepositLimits'      : session.broker.deposit_limits       ,
+        'DepositLimits'      : json.loads(session.broker.deposit_limits),
         'Currencies'         : session.broker.currencies           ,
         'VerificationForm'   : session.broker.verification_jotform ,
         'UploadForm'         : session.broker.upload_jotform       ,
@@ -736,6 +736,36 @@ def processEnableDisableTwoFactorAuth(session, msg):
               'TwoFactorSecret' : two_factor_secret }
   return json.dumps(response, cls=JsonEncoder)
 
+
+def processRequestDepositMethod(session, msg):
+  deposit_method_id = msg.get('DepositMethodID')
+
+  deposit_method = DepositMethods.get_deposit_method(application.db_session, deposit_method_id)
+  if not deposit_method:
+    response = {'MsgType':'U49', 'DepositMethodReqID': msg.get('DepositMethodReqID'), 'DepositMethodID':-1}
+
+  else:
+    response = {
+      'MsgType':'U49',
+      'DepositMethodReqID': msg.get('DepositMethodReqID'),
+      'DepositMethodID':    deposit_method.id,
+      'Description':        deposit_method.description,
+      'Disclaimer':         deposit_method.disclaimer,
+      'Type':               deposit_method.type,
+      'DepositLimits':      '{}',
+      'HtmlTemplate':       '',
+      'Currency':           deposit_method.currency,
+      'PercentFee':         deposit_method.percent_fee,
+      'FixedFee':           deposit_method.fixed_fee,
+      'Parameters':         json.loads(deposit_method.parameters)
+    }
+    if deposit_method.deposit_limits:
+      response['DepositLimits'] = json.loads(deposit_method.deposit_limits)
+    if deposit_method.html_template:
+      response['HtmlTemplate'] = deposit_method.html_template
+
+  return json.dumps(response, cls=JsonEncoder)
+
 @login_required
 def processRequestDepositMethods(session, msg):
   deposit_options = DepositMethods.get_list(application.db_session,session.user.broker_id )
@@ -748,6 +778,7 @@ def processRequestDepositMethods(session, msg):
       'Description': deposit_option.description,
       'Disclaimer': deposit_option.disclaimer,
       'Type': deposit_option.type,
+      'DepositLimits':  json.loads(deposit_option.deposit_limits) ,
       'Currency': deposit_option.currency,
       'PercentFee': deposit_option.percent_fee,
       'FixedFee': deposit_option.fixed_fee

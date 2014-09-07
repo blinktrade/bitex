@@ -1,5 +1,8 @@
 {
-  "0": {"enabled": false, "minDeposit" : 0, "maxDeposit": 10000 },
-  "1": {"enabled": false, "minDeposit" : 0, "maxDeposit": 10000 },
-  "2": {"enabled": true, "minDeposit" : 10, "maxDeposit": 10000 }
+  "USD": {
+    "0": { "enabled":false },
+    "1": { "enabled":false },
+    "2": { "enabled":true, "min" : 1000000000, "max":  260000000000 },
+    "3": { "enabled":true, "min" : 1000000000, "max": 2600000000000  }
+  }
 }
