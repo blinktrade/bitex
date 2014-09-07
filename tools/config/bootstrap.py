@@ -173,10 +173,10 @@ def main():
         except Exception,e:
           pass
 
-        validation_json = {0: {"enabled": False},1: {"enabled": False}, 2: {"enabled": False }}
+        deposit_limits_json = {0: {"enabled": False},1: {"enabled": False}, 2: {"enabled": False }}
         try:
-          with open(config.get(section_name, 'validation')  ) as data_file:
-            validation_json = json.load(data_file)
+          with open(config.get(section_name, 'deposit_limits')  ) as data_file:
+            deposit_limits_json = json.load(data_file)
         except Exception,e:
           pass
 
@@ -237,7 +237,7 @@ def main():
                    fee_structure            = json.dumps(fee_structure_json),
                    transaction_fee_buy      = transaction_fee_buy,
                    transaction_fee_sell     = transaction_fee_sell,
-                   validation               = json.dumps(validation_json),
+                   deposit_limits           = json.dumps(deposit_limits_json),
                    status                   = config.get(section_name, 'status'),
                    ranking                  = config.getint(section_name, 'ranking'))
         session.add(e)

@@ -170,7 +170,7 @@ def processLogin(session, msg):
         'PhoneNumber2'       : session.broker.phone_number_2       ,
         'Skype'              : session.broker.skype                ,
         'Email'              : session.broker.email                ,
-        'Validation'         : session.broker.validation           ,
+        'DepositLimits'      : session.broker.deposit_limits       ,
         'Currencies'         : session.broker.currencies           ,
         'VerificationForm'   : session.broker.verification_jotform ,
         'UploadForm'         : session.broker.upload_jotform       ,
@@ -774,18 +774,18 @@ def processRequestDeposit(session, msg):
 
   if session.user:
       verification_level = str(session.user.verified)
-      deposit_validation = json.loads(session.broker.validation)
+      deposit_limits = json.loads(session.broker.deposit_limits)
 
-      if verification_level in deposit_validation and value != None:
-          validations = deposit_validation[verification_level]
+      if verification_level in deposit_limits and value != None:
+          deposit_limit = deposit_limits[verification_level]
 
           valid = True
-          if validations['enabled']:
+          if deposit_limit['enabled']:
 
-              if value < validations['minDeposit']:
+              if value < deposit_limit['minDeposit']:
                   valid = False
 
-              if value > validations['maxDeposit']:
+              if value > deposit_limit['maxDeposit']:
                   valid = False
 
           else:

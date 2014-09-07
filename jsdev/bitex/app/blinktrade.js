@@ -2080,7 +2080,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
 
           var uf = new uniform.Uniform();
           uf.decorate(  deposit_form_el );
-          error_list = uf.validate();
+          var error_list = uf.validate();
           if (error_list.length > 0) {
                 goog.array.forEach(error_list, function(error_msg) {
                   /**
@@ -2117,14 +2117,14 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
             return;
           }
 
-          var msg = JSON.parse(this.getModel().get('Broker')['Validation']);
-          var validation = msg[this.getModel().get('Profile')['Verified']]
+          var deposit_limits = JSON.parse(this.getModel().get('Broker')['DepositLimits']);
+          var validation = deposit_limits[this.getModel().get('Profile')['Verified']];
 
           if ( !validation['enabled'] ) {
             /**
              * @desc Deposit is disable for user validation level
              */
-            var MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION = goog.getMsg('Error: your broker has disabled for your verification level, please contact your broker!' );
+            var MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION = goog.getMsg('You must verify your account in order to deposit funds!' );
 
             this.showNotification( 'error', MSG_CURRENCY_DEPOSIT_DISABLED_ERROR_NOTIFICATION );
 
@@ -2174,7 +2174,7 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
         }
       }
     }
-  });
+  }, this);
 };
 
 /**

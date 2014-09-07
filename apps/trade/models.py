@@ -920,7 +920,7 @@ class Broker(Base):
   support_url           = Column(String(255),   nullable=False)
 
   accept_customers_from = Column(Text,   nullable=False)
-  validation            = Column(Text,   nullable=False)
+  deposit_limits        = Column(Text,   nullable=False)
 
   is_broker_hub         = Column(Boolean, nullable=False, default=False)
 
@@ -2429,7 +2429,7 @@ def db_bootstrap(session):
                          ]),
                      transaction_fee_buy=20,   # 0.2%
                      transaction_fee_sell=20,  # 0.2%
-                     validation=json.dumps({
+                     deposit_limits=json.dumps({
                          0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
                          1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
                          2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
@@ -2517,7 +2517,7 @@ def db_bootstrap(session):
                      transaction_fee_buy=60, # 0.6%
                      transaction_fee_sell=60, # 0.6%
                      status='1',
-                     validation=json.dumps({
+                     deposit_limits=json.dumps({
                          0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
                          1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
                          2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
@@ -2635,7 +2635,7 @@ def db_bootstrap(session):
                      ]),
                      transaction_fee_buy=50, # 0.5%
                      transaction_fee_sell=50, # 0.5%
-                     validation=json.dumps({
+                     deposit_limits=json.dumps({
                          0: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
                          1: {"enabled": 0, "minDeposit" : 0, "maxDeposit": 0 },
                          2: {"enabled": 1, "minDeposit" : 1000000000, "maxDeposit": 1000000000000 },
