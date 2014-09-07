@@ -448,6 +448,8 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.TWO_FACTOR_SECRET, this.onBitexTwoFactorSecretResponse_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.BALANCE_RESPONSE, this.onBitexBalanceResponse_);
+  handler.listen( this.conn_ , bitex.api.BitEx.EventType.POSITION_RESPONSE, this.onBitexPositionResponse_);
+
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_OK, this.onBitexPasswordChangedOk_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.PASSWORD_CHANGED_ERROR, this.onBitexPasswordChangedError_);
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_METHODS_RESPONSE, this.onBitexDepositMethodsResponse_ );
@@ -456,14 +458,15 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
 
   handler.listen( this.conn_ , bitex.api.BitEx.EventType.EXECUTION_REPORT, this.onBitexExecutionReport_);
 
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx: ' ) );
-  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx: ' )  );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'rx' ) );
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.SENT_RAW_MESSAGE, goog.bind(  this.onBitexRawMessageLogger_, this, 'tx' )  );
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.VERIFY_CUSTOMER_UPDATE, this.onBitexVerifyCustomerUpdate_ );
 
   handler.listen( this.conn_,bitex.api.BitEx.EventType.WITHDRAW_RESPONSE, this.onBitexWithdrawResponse_);
   handler.listen( this.conn_,bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
 
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.SUGGEST_TRUSTED_ADDRESS_PUBLISH, this.onSuggestTrustedAddress_);
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
@@ -971,6 +974,35 @@ bitex.app.BlinkTrade.prototype.onBitexTwoFactorSecretResponse_ = function(e){
   var msg = e.data;
   this.getModel().set('TwoFactorSecret', msg['TwoFactorSecret']);
   this.getModel().set('TwoFactorEnabled', msg['TwoFactorEnabled'] );
+};
+
+
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onBitexPositionResponse_ = function(e) {
+  var msg = e.data;
+  delete msg['MsgType'];
+  delete msg['PositionReqID'];
+
+  var clientID = msg['ClientID'];
+
+  goog.object.forEach(msg, function( positions, broker ) {
+    goog.object.forEach(positions, function( position, currency ) {
+      position = position / 1e8;
+      // formatted_position_9000001:2_BTC
+      var position_key = 'position_' + broker + ':' + clientID + '_'  + currency;
+      this.getModel().set( position_key , position );
+
+      if (position){
+        this.getModel().set('formatted_' + position_key, this.formatCurrency(position, currency, true));
+      } else {
+        this.getModel().set('formatted_' + position_key, '');
+      }
+    }, this);
+  },this);
+
 };
 
 /**
@@ -1491,6 +1523,48 @@ bitex.app.BlinkTrade.prototype.onShowReceipt_ = function(e){
                              bootstrap.Dialog.ButtonSet.createOk());
 };
 
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onSuggestTrustedAddress_ = function(e){
+  var msg = e.data;
+
+  var model = this.getModel();
+  if (!model.get('IsVerified')) {
+    return;
+  }
+
+  /**
+   * @desc Enable instant deposit dialog title
+   */
+  var MSG_ENABLE_INSTANT_DEPOSIT_DIALOG_TITLE =
+      goog.getMsg('Enable {$currency} instant deposit?', {currency :  this.getCurrencyDescription(msg['Currency']) });
+
+
+  var dlg =  this.showDialog(bitex.templates.ConfirmTrustedAddressContentDialog( {data: msg } ),
+                             MSG_ENABLE_INSTANT_DEPOSIT_DIALOG_TITLE,
+                             bootstrap.Dialog.ButtonSet.createYesNoCancel());
+
+  var handler = this.getHandler();
+  handler.listen(dlg, goog.ui.Dialog.EventType.SELECT, function(e) {
+    if (e.key == 'yes') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var address_label_el = goog.dom.getElementByClass('confirm-trusted-address-label', dlg.getContentElement());
+      var label;
+
+      if (goog.isDefAndNotNull(address_label_el)){
+        label = goog.dom.forms.getValue(address_label_el);
+      }
+
+      this.conn_.confirmTrustedAddressRequest( msg['Address'], msg['Currency'], label );
+    }
+
+    dlg.dispose();
+  }, this);
+};
 
 /**
  * @param {goog.events.Event} e
@@ -1519,6 +1593,18 @@ bitex.app.BlinkTrade.prototype.onUserShowQr_ = function(e){
   var dlg =  this.showDialog(bitex.templates.CryptoCurrencyQRContentDialog({data:qrData }),
                              dialog_title,
                              bootstrap.Dialog.ButtonSet.createCancel());
+
+  var handler = this.getHandler();
+  var input_address =  qrData['Wallet'];
+  handler.listenOnce(this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_REFRESH, function(e){
+    var refresh_msg = e.data;
+    if (refresh_msg['Data']['InputAddress'] !== input_address ) {
+      return;
+    }
+    if (goog.isDefAndNotNull( refresh_msg['Data']['Confirmations'] ) && refresh_msg['Data']['Confirmations']  == '0') {
+      dlg.dispose();
+    }
+  });
 };
 
 /**
@@ -1881,11 +1967,22 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
 
         handler.listenOnce( this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_RESPONSE + '.' + request_id, function(e){
           var msg = e.data;
+          var input_address = msg['Data']['InputAddress'];
           goog.soy.renderElement(goog.dom.getFirstElementChild(dlgConfirm.getContentElement()),
                                  bitex.templates.DepositCryptoCurrencyContentDialog,
                                  {deposit_message:msg} );
-        });
 
+
+          handler.listen(this.conn_ , bitex.api.BitEx.EventType.DEPOSIT_REFRESH, function(e){
+            var refresh_msg = e.data;
+            if (refresh_msg['Data']['InputAddress'] !== input_address ) {
+              return;
+            }
+            if (goog.isDefAndNotNull( refresh_msg['Data']['Confirmations'] ) && refresh_msg['Data']['Confirmations']  == '0') {
+              dlgConfirm.dispose();
+            }
+          });
+        }, this);
       }
     });
     return;

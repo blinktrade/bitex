@@ -4,7 +4,7 @@ import os
 import hashlib
 
 import logging
-import hmac, base64, struct, hashlib, time
+import hmac, base64, struct, hashlib, time, uuid
 
 import datetime
 from bitex.utils import smart_str
@@ -972,13 +972,14 @@ class Broker(Base):
 
 class TrustedAddress(Base):
   __tablename__         = 'trusted_address'
-  id                    = Column(Integer,       primary_key=True)
+  id                    = Column(String(25), primary_key=True)
   user_id               = Column(Integer,       ForeignKey('users.id'))
   username              = Column(String,        nullable=False, index=True)
   broker_id             = Column(Integer,       ForeignKey('users.id'))
   broker_username       = Column(String,        nullable=False, index=True)
   currency              = Column(String,        default='BTC', nullable=False, index=True)
   address               = Column(String,        nullable=False, index=True )
+  label                 = Column(String(25) )
   created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
   status                = Column(Integer,       nullable=False, default=0)
 
@@ -986,9 +987,9 @@ class TrustedAddress(Base):
 
   def __repr__(self):
     return "<TrustedAddress(id=%r, user_id=%r, username=%r, " \
-           "broker_id=%r, broker_username=%r,address=%r, created=%r, status=%r)>" % (
+           "broker_id=%r, broker_username=%r,address=%r, created=%r, status=%r, label=%r)>" % (
       self.id, self.user_id, self.username, self.broker_id,
-      self.broker_username, self.address, self.created, self.status)
+      self.broker_username, self.address, self.created, self.status, self.label)
 
 
   @staticmethod
@@ -999,7 +1000,10 @@ class TrustedAddress(Base):
                                                   filter_by(address = address ).first()
 
     if not rec:
-      rec = TrustedAddress( user_id         = user_id,
+      id = uuid.uuid4().hex
+
+      rec = TrustedAddress( id              = id,
+                            user_id         = user_id,
                             username        = username,
                             broker_id       = broker_id,
                             broker_username = broker_username,
@@ -1011,14 +1015,14 @@ class TrustedAddress(Base):
     if not rec.status:
       msg = {
         'MsgType'       : 'U46',
-        'SuggestTrustedAddressReqID' : rec.id,
+        'SuggestTrustedAddressReqID' : uuid.uuid4().hex,
+        'TrustedAddressID': rec.id,
         'UserID'        : rec.user_id,
         'BrokerID'      : rec.broker_id,
         'Currency'      : rec.currency,
         'Address'       : rec.address
       }
       application.publish( user_id, msg )
-      application.publish( broker_id, msg )
 
       UserEmail.create(session  = session,
                        user_id  = user_id,
@@ -1026,18 +1030,17 @@ class TrustedAddress(Base):
                        template ='confirm_address',
                        language = options.global_email_language,
                        params   = json.dumps({
+                                     'trusted_address_id': rec.id,
                                      'user_id': user_id,
                                      'username':username,
                                      'broker_id': broker_id,
                                      'broker_username':broker_username,
                                      'currency': currency,
                                      'address':address} ) )
-
-
     return rec
 
   @staticmethod
-  def user_confirm_trusted_address(session, user_id, broker_id, address, currency):
+  def user_confirm_trusted_address(session, user_id, broker_id, address, currency, label=None):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
                                                   filter_by(broker_id = broker_id).\
                                                   filter_by(currency = currency).\
@@ -1048,15 +1051,14 @@ class TrustedAddress(Base):
 
     if rec.status < 1:
       rec.status = 1
+      if label:
+        rec.label = label
       session.add(rec)
-
-
-
     return True
 
 
   @staticmethod
-  def broker_confirm_trusted_address(session, user_id, broker_id, address, currency):
+  def broker_confirm_trusted_address(session, user_id, broker_id, address, currency, label=None):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
                                                   filter_by(broker_id = broker_id).\
                                                   filter_by(currency = currency).\
@@ -1067,6 +1069,7 @@ class TrustedAddress(Base):
 
     if rec.status < 2:
       rec.status = 2
+      rec.label = label
       session.add(rec)
 
     return True
@@ -1261,6 +1264,15 @@ class Withdraw(Base):
     if self.paid_amount > current_balance:
       self.cancel(session, -1 ) # Insufficient funds
       return
+
+    # User won't be able to withdraw his funds if he has any unconfirmed bitcoin deposits
+    # This will only be a issue in case of a double spend attack.
+    current_positions = Position.get_positions_by_account_broker(session, self.account_id, self.broker_id)
+    for position in current_positions:
+      if position.position != 0:
+        self.cancel(session, -8 ) # User has deposits that are not yet confirmed
+        return
+
 
     self.status = '2'
     Ledger.transfer(session,

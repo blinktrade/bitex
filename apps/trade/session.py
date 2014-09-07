@@ -108,6 +108,12 @@ class Session(object):
     elif msg.type == 'U38': # Update User Profile
       return  processUpdateUserProfile(self, msg)
 
+    elif msg.type == 'U42': # Request for Positions
+      return  processRequestForPositions(self,msg)
+
+    elif msg.type == 'U44':
+      return processConfirmTrustedAddressRequest(self, msg)
+
     elif msg.type == 'B0':  # Deposit Payment Confirmation
       return processProcessDeposit(self, msg)
 

@@ -290,6 +290,7 @@
           <option value=-5>{msg desc="reason for cancelling withdraw"}Invalid wallet{/msg}</option>
           <option value=-6>{msg desc="reason for cancelling withdraw"}Invalid bank account{/msg}</option>
           <option value=-7>{msg desc="reason for cancelling withdraw"}Amount exceeded your daily withdraw limit{/msg}</option>
+          <option value=-8>{msg desc="reason for cancelling withdraw"}User has deposits that are not yet confirmed{/msg}</option>
         </select>
       </div>
     </div>
@@ -394,10 +395,25 @@
 
       {foreach $currency_info in $account['currencies']}
         <tr>
-          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}"><strong>{$currency_info['currency']}</strong></td>
-          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}"><span class="bitex-model"
-                     data-model-key="formatted_balance_{$account['brokerID']}:{$account['clientID']}_{$currency_info['currency']}"
-                     data-blink-class="balance-info-blink">{$currency_info['formattedBalance']}</span></td>
+
+          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}">
+            <strong>{$currency_info['currency']}</strong>
+          </td>
+
+          <td style="padding: 4px;{if not isFirst($currency_info) }border-top: 0;{/if}">
+            <span class="bitex-model"
+               data-model-key="formatted_balance_{$account['brokerID']}:{$account['clientID']}_{$currency_info['currency']}"
+               data-blink-class="balance-info-blink">{$currency_info['formattedBalance']}
+            </span>
+            <abbr title="{msg desc="Unconfirmed deposits"}Unconfirmed deposits from your confirmed addresses{/msg}">
+              <em>
+                 <span class="bitex-model"
+                    data-model-key="formatted_position_{$account['brokerID']}:{$account['clientID']}_{$currency_info['currency']}"
+                    data-blink-class="balance-info-blink"></span>
+               </em>
+            </abbr>
+
+         </td>
           <td style="padding: 4px;border-left:0;{if not isFirst($currency_info) }border-top: 0;{/if}">
             {if $currency_info['showDeposit'] and  $currency_info['showWithdraw']}
               <div class="btn-group">
@@ -405,12 +421,12 @@
 
             {if $currency_info['showDeposit'] }
               <button class="btn btn-mini" data-action="deposit" data-currency="{$currency_info['currency']}">
-                <i data-action="deposit" data-currency="{$currency_info['currency']}" class="icon-plus"></i>
+                <i data-action="deposit" data-currency="{$currency_info['currency']}" class="icon-download-alt"></i>
               </button>
             {/if}
             {if $currency_info['showWithdraw'] }
               <button class="btn btn-mini" data-action="withdraw" data-currency="{$currency_info['currency']}">
-                <i data-action="withdraw" data-currency="{$currency_info['currency']}" class="icon-minus"></i>
+                <i data-action="withdraw" data-currency="{$currency_info['currency']}" class="icon-upload-alt"></i>
               </button>
             {/if}
 
@@ -485,6 +501,9 @@
   </div>
 {/template}
 
+
+
+
 /**
   * @param deposit_message
   */
@@ -512,6 +531,40 @@
     </div>
   </div>
 {/template}
+
+
+/**
+  * @param data
+  */
+{template .ConfirmTrustedAddressContentDialog}
+  <div class="row-fluid">
+    <h3 class="text-center">
+      {msg desc="confirm trusted address dialog msg"} Do you want to enable instant deposits for this address?{/msg}
+    </h3>
+
+    <h5 class="text-center">{$data['Address'] }</h5>
+    <div class="text-center">
+      <input type="text" class="confirm-trusted-address-label" size="30" placeholder="{msg desc="confirm trusted label placeholder"}Enter a label for this address.{/msg}"></input>
+    </div>
+
+    <h4 class="text-center">
+      {msg desc="confirm trusted address dialog msg"}Only enable it if you have the private key for this address.{/msg}
+    </h4>
+
+    <div class="alert alert-block">
+      <h4>{msg desc="confirm trusted address dialog msg"}Always remember what happened at MtGox{/msg}</h4>
+      {msg desc="confirm trusted address dialog msg"}
+        Never ever under any circumstances leave your Bitcoins deposited at any Exchange,
+        no matter how secure they claim to be. Bitcoins are meant to be with the people and not
+        in the hands of the Exchange operator. We don't want to create a "pot of gold" that
+        will attract hackers. The "Instant deposits" technology will allow you to send
+        your bitcoins instantly to trade them in the exchange, thus eliminating the need
+        for you to leave Bitcoins at the exchange in order to negotiate them quickly.
+      {/msg}
+    </div>
+  </div>
+{/template}
+
 
 /**
   * @param currencydescription
@@ -665,7 +718,6 @@
     <input type="hidden" name="Currency" value="{$currency}">
 
     {if $side == 'client'}
-
 
       <div class="control-group">
       <div class="ctrlHolder">

@@ -55,7 +55,8 @@ class WalletNotifyHandler(tornado.web.RequestHandler):
           input_raw_tx = self.application.bitcoind.getrawtransaction(input['txid'])
           decoded_input_raw_tx = self.application.bitcoind.decoderawtransaction(input_raw_tx)
           for payee_address in decoded_input_raw_tx['vout'][ input['vout'] ]['scriptPubKey']['addresses']:
-            payee_addresses.append(  payee_address  )
+            if payee_address not in payee_addresses:
+              payee_addresses.append(payee_address)
       except Exception, e :
         pass
 

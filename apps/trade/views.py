@@ -9,7 +9,7 @@ import json
 
 from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
   NeedSecondFactorException, UserAlreadyExistsException, BrokerDoesNotExistsException, \
-  Withdraw, Broker, Instrument, Currency, Balance, Ledger
+  Withdraw, Broker, Instrument, Currency, Balance, Ledger, Position, PositionLedger, TrustedAddress
 
 from execution import OrderMatcher
 
@@ -546,6 +546,53 @@ def processSignup(session, msg):
                     'B'                     # descriptions
     )
   return processLogin(session, msg)
+
+@login_required
+@verified_user_required
+def processConfirmTrustedAddressRequest(session, msg):
+  TrustedAddress.user_confirm_trusted_address(application.db_session,
+                                              session.user.id,
+                                              session.broker.id,
+                                              msg.get('Address'),
+                                              msg.get('Currency'),
+                                              msg.get('Label') )
+  application.db_session.commit()
+
+  response = {
+    'MsgType': 'U45',
+    'ConfirmTrustedAddressReqID': msg.get('ConfirmTrustedAddressReqID'),
+    'Address':  msg.get('Address'),
+    'Currency': msg.get('Currency'),
+    'Label': msg.get('Label')
+  }
+  return json.dumps(response, cls=JsonEncoder)
+
+@login_required
+def processRequestForPositions(session, msg):
+  user = session.user
+  if msg.has('ClientID'):
+    user = User.get_user(application.db_session,
+                         user_id= int(msg.get('ClientID')) )
+
+    if not user:
+      raise NotAuthorizedError()
+
+    if user.broker_id  != session.user.id:
+      raise NotAuthorizedError()
+
+  positions = Position.get_positions_by_account( application.db_session, user.account_id )
+  response = {
+    'MsgType': 'U43',
+    'ClientID': user.id,
+    'PositionReqID': msg.get('PositionReqID')
+  }
+  for position in positions:
+    if position.broker_id in response:
+      response[position.broker_id][position.currency ] = position.position
+    else:
+      response[position.broker_id] = { position.currency: position.position }
+  return json.dumps(response, cls=JsonEncoder)
+
 
 @login_required
 def processRequestForBalances(session, msg):

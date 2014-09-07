@@ -119,12 +119,18 @@ bitex.api.BitEx.EventType = {
   WITHDRAW_REFRESH: 'withdraw_refresh',
   PROCESS_WITHDRAW_RESPONSE: 'process_withdraw',
 
-  /* Trading */
+  /* Positions & balance */
+  POSITION_RESPONSE: 'position_response',
   BALANCE_RESPONSE: 'balance_response',
+
+  /* Trading */
   ORDER_LIST_RESPONSE: 'order_list_response',
   HEARTBEAT: 'heartbeat',
   EXECUTION_REPORT: 'execution_report',
 
+  /* Trusted Address Management */
+  SUGGEST_TRUSTED_ADDRESS_RESPONSE: 'suggest_trusted_address_response',
+  SUGGEST_TRUSTED_ADDRESS_PUBLISH: 'suggest_trusted_address_pub',
 
   /* Securities */
   SECURITY_LIST: 'security_list',
@@ -442,8 +448,10 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
       break;
 
     case 'U23': // Deposit Refresh
+
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH + '.' + msg['UserID'], msg ) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH + '.' + msg['BrokerID'], msg ) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH + '.' + msg['DepositReqID'], msg ) );
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.DEPOSIT_REFRESH, msg ) );
       break;
 
@@ -520,6 +528,21 @@ bitex.api.BitEx.prototype.onMessage_ = function(e) {
 
     case 'U40': // Profile Refresh
       this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.PROFILE_REFRESH, msg ) );
+      break;
+
+    case 'U43': // Position Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.POSITION_RESPONSE + '.' + msg['PositionReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.POSITION_RESPONSE, msg ) );
+      break;
+
+    case 'U45': // Suggest Trusted Address Response
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SUGGEST_TRUSTED_ADDRESS_RESPONSE + '.' + msg['SuggestTrustedAddressReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SUGGEST_TRUSTED_ADDRESS_RESPONSE, msg ) );
+      break;
+
+    case 'U46': // Suggest Trusted Address Publish
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SUGGEST_TRUSTED_ADDRESS_PUBLISH + '.' + msg['SuggestTrustedAddressReqID'], msg) );
+      this.dispatchEvent( new bitex.api.BitExEvent( bitex.api.BitEx.EventType.SUGGEST_TRUSTED_ADDRESS_PUBLISH, msg ) );
       break;
 
     case 'B1': // Process Deposit Response
@@ -751,6 +774,25 @@ bitex.api.BitEx.prototype.requestBalances = function(opt_clientID, opt_request_i
 };
 
 /**
+ * @param {number=} opt_clientID
+ * @param {number} opt_request_id
+ */
+bitex.api.BitEx.prototype.requestPositions = function(opt_clientID, opt_request_id) {
+  var reqId = opt_request_id || parseInt(Math.random() * 1000000, 10);
+  var msg = {
+    'MsgType': 'U42',
+    'PositionReqID': reqId
+  };
+
+  if (goog.isDefAndNotNull(opt_clientID) && goog.isNumber(opt_clientID))  {
+    msg['ClientID'] = opt_clientID;
+  }
+
+  this.sendMessage(msg);
+};
+
+
+/**
  * @param {number} opt_request_id
  * @param {number} amount
  * @param {string} method
@@ -887,6 +929,27 @@ bitex.api.BitEx.prototype.requestDepositList = function(opt_requestId, opt_page,
 
   this.sendMessage(msg);
 
+  return requestId;
+};
+
+/**
+ *
+ * @param {string} address
+ * @param {string} currency
+ * @param {string} label
+ * @param {number=} opt_requestId
+ */
+bitex.api.BitEx.prototype.confirmTrustedAddressRequest = function(address, currency, label ,opt_requestId) {
+  var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
+
+  var msg = {
+    'MsgType': 'U44',
+    'ConfirmTrustedAddressReqID': requestId,
+    'Address': address,
+    'Currency': currency,
+    'Label': label
+  };
+  this.sendMessage(msg);
   return requestId;
 };
 

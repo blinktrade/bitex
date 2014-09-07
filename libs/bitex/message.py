@@ -171,8 +171,8 @@ class JsonMessage(BaseMessage):
       'U42': 'PositionRequest' ,
       'U43': 'PositionResponse' ,
 
-      'U44': 'SuggestTrustedAddressRequest' ,
-      'U45': 'SuggestTrustedAddressResponse' ,
+      'U44': 'ConfirmTrustedAddressRequest' ,
+      'U45': 'ConfirmTrustedAddressResponse' ,
       'U46': 'SuggestTrustedAddressPublish' ,
 
       # Broker messages
@@ -476,18 +476,14 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('PositionReqID')
       self.raise_exception_if_empty('PositionReqID')
 
-    elif self.type == 'U43': # Position Response
-      self.raise_exception_if_required_tag_is_missing('PositionReqID')
-      self.raise_exception_if_empty('PositionReqID')
 
+    elif self.type == 'U44': # Confirm Trusted Address Request
+      self.raise_exception_if_required_tag_is_missing('ConfirmTrustedAddressReqID')
+      self.raise_exception_if_empty('ConfirmTrustedAddressReqID')
 
-    elif self.type == 'U44': # Suggest Trusted Address Request
-      self.raise_exception_if_required_tag_is_missing('SuggestTrustedAddressReqID')
-      self.raise_exception_if_empty('SuggestTrustedAddressReqID')
-
-    elif self.type == 'U45': # Suggest Trusted Address Response
-      self.raise_exception_if_required_tag_is_missing('SuggestTrustedAddressReqID')
-      self.raise_exception_if_empty('SuggestTrustedAddressReqID')
+    elif self.type == 'U45': # Confirm Trusted Address Response
+      self.raise_exception_if_required_tag_is_missing('ConfirmTrustedAddressReqID')
+      self.raise_exception_if_empty('ConfirmTrustedAddressReqID')
 
     elif self.type == 'U46': # Suggest Trusted Address Publish
       self.raise_exception_if_required_tag_is_missing('SuggestTrustedAddressReqID')
