@@ -1,0 +1,64 @@
+{
+  "BTC": [
+    {
+      "method":"bitcoin",
+      "description":"Saque em Bitcoins",
+      "disclaimer": "Automático e imediato ao utilizar autenticação em 2 passos para usuários verificados, e Manual em até 24 horas para usuários não verificados.",
+      "percent_fee": 0.,
+      "fixed_fee":0,
+      "fields": [
+        {"side":"client", "name": "Wallet"        , "validator":"validateAddress", "type":"text"  , "value":""       , "label":"Wallet",        "placeholder":"" },
+        {"side":"broker", "name": "TransactionID" , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"TransactionID", "placeholder":"" }
+      ]
+    }
+  ],
+  "XOF": [
+    {
+      "method":"swift",
+      "description":"International Transfer",
+      "disclaimer":"84 hours, 1.5%  fee + Fr 35000,00",
+      "percent_fee": 1.5,
+      "fixed_fee": 3500000000000,
+      "fields": [
+        {"side":"client", "name": "BankName"     , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Banco name", "placeholder": "ex. JPMORGAN CHASE BANK, N.A" },
+        {"side":"client", "name": "BankSwift"    , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Swift code", "placeholder": "ex. CHASUS33" },
+        {"side":"client", "name": "RoutingNumber", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Routing Number", "placeholder":"ex. 021000021" },
+        {"side":"client", "name": "AccountNumber", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Account Number", "placeholder":"ex. 88888-8" },
+        {"side":"broker", "name": "TransactionID", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker", "name": "Link"         , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Link", "placeholder":"" }
+      ]
+    },{
+      "method":"scgen_xof_transfer",
+      "description":"Société Générale CFA Transfer",
+      "disclaimer":"24 hours, 1.5%  fee + Fr 1000,00",
+      "percent_fee": 1.5,
+      "fixed_fee": 100000000000,
+      "fields": [
+        {"side":"client", "name": "AccountNumber", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Account Number", "placeholder":"ex. 88888-8" },
+        {"side":"broker", "name": "TransactionID", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker", "name": "Link"         , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Link", "placeholder":"" }
+      ]
+    },{
+      "method":"paypal",
+      "description":"Paypal",
+      "disclaimer":"Paypal might charge you additional fees",
+      "percent_fee": 1.5,
+      "fixed_fee": 0,
+      "fields": [
+        {"side":"client",  "name": "Email"          , "validator":"", "type":"text"  , "value":""       , "label":"Email"        , "placeholder":"" },
+        {"side":"broker",  "name": "TransactionID"  , "validator":"", "type":"text"  , "value":""       , "label":"TransactionID", "placeholder":"" },
+        {"side":"broker",  "name": "Link"           , "validator":"", "type":"text"  , "value":""       , "label":"Link",          "placeholder":"" }
+      ]
+    },{
+      "method":"mtn",
+      "description":"MTN Mobile Money Online",
+      "disclaimer":"",
+      "percent_fee": 1.5,
+      "fixed_fee": 350000000000,
+      "fields": [
+        {"side":"client",  "name": "PhoneNumber"    , "validator":"", "type":"text"  , "value":""       , "label":"Phone Number" , "placeholder":"" },
+        {"side":"broker",  "name": "TransactionID"  , "validator":"", "type":"text"  , "value":""       , "label":"TransactionID", "placeholder":"" }
+      ]
+    }
+  ]
+}

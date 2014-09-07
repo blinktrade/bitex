@@ -1,0 +1,11 @@
+[
+  {
+    "CurrencyCode": "BTC",
+    "CurrencyDescription":"Bitcoin",
+    "Confirmations":[ [0, 1e8, 1], [ 1e8, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
+    "Wallets": [
+      { "type":"cold", "address":"16tdTifYyEMYGMqaFjgqS6oLQ7ZZLt4E8r", "multisig":true,"signatures":[], "managed_by":"BlinkTrade" },
+      { "type":"hot", "address":"1LFHd1VnA923Ljvz6SrmuoC2fTe5rF2w4Q", "multisig":false,"signatures":[], "managed_by":"BlinkTrade" }
+    ]
+  }
+]
