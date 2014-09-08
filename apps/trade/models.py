@@ -356,22 +356,28 @@ class User(Base):
                             'verification_data': verification_data,
                             'broker_username': self.broker_username}))
       elif self.verified > 1:
+        if options.verification_bonus:
+          current_bonus_balance = Balance.get_balance(session,
+                                                      options.verification_bonus['account_id'],
+                                                      options.verification_bonus['broker_id'],
+                                                      options.verification_bonus['currency'])
+          if current_bonus_balance > 0:
+            bonus_amount = min(current_bonus_balance, options.verification_bonus['amount'])
+            Ledger.transfer(session,
+                            options.verification_bonus['account_id'],       # from_account_id
+                            options.verification_bonus['account_name'],     # from_account_name
+                            options.verification_bonus['broker_id'],        # from_broker_id
+                            options.verification_bonus['broker_username'],  # from_broker_name
+                            self.id,                                        # to_account_id
+                            self.username,                                  # to_account_name
+                            self.broker_id,                                 # to_broker_id
+                            self.broker_username,                           # to_broker_name
+                            options.verification_bonus['currency'],         # currency
+                            bonus_amount,                                   # amount
+                            str(self.id),                                   # reference
+                            'B'                                             # descriptions
+            )
 
-        # First 200 verified users of SurBitcoin will be awarded with 200 Bolivares Fuertes ( Aprox $500 ) to buy Bitcoins
-        Ledger.transfer(session,
-                        self.broker_id,            # from_account_id
-                        self.broker_username,      # from_account_name
-                        self.broker_id,            # from_broker_id
-                        self.broker_username,      # from_broker_name
-                        self.id,                   # to_account_id
-                        self.username,             # to_account_name
-                        self.broker_id,            # to_broker_id
-                        self.broker_username,      # to_broker_name
-                        'VEF',                     # currency
-                        200e8,                     # amount
-                        str(self.id),              # reference
-                        'B'                        # descriptions
-        )
 
         UserEmail.create( session = session,
                           user_id = self.id,

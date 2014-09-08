@@ -79,6 +79,7 @@ class TradeApplication(object):
     self.log('PARAM','dev_mode'              ,self.options.dev_mode)
     self.log('PARAM','satoshi_mode'          ,self.options.satoshi_mode)
     self.log('PARAM','global_email_language' ,self.options.global_email_language)
+    self.log('PARAM','verification_bonus'    ,self.options.verification_bonus)
     self.log('PARAM','END')
 
 

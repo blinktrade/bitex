@@ -803,38 +803,66 @@ def processRequestDeposit(session, msg):
   instructions      = msg.get('Instructions')
   value             = msg.get('Value')
 
-  if session.user:
-      verification_level = str(session.user.verified)
-      deposit_limits = json.loads(session.broker.deposit_limits)
-
-      if verification_level in deposit_limits and value != None:
-          deposit_limit = deposit_limits[verification_level]
-
-          valid = True
-          if deposit_limit['enabled']:
-
-              if value < deposit_limit['minDeposit']:
-                  valid = False
-
-              if value > deposit_limit['maxDeposit']:
-                  valid = False
-
-          else:
-              valid = False
-
-          if not valid:
-              raise NotAuthorizedError()
-
   should_broadcast = False
   if deposit_option_id:
     if session.user is None :
       raise NotAuthorizedError()
 
-
     deposit_option = DepositMethods.get_deposit_method(application.db_session, deposit_option_id)
     if not deposit_option:
       response = {'MsgType':'U19', 'DepositID': -1 }
       return json.dumps(response, cls=JsonEncoder)
+
+    verification_level = str(session.user.verified)
+    broker_deposit_limits = None
+    deposit_method_deposit_limits = None
+
+    if session.broker.deposit_limits:
+      broker_deposit_limits = json.loads(session.broker.deposit_limits)
+      if deposit_option.currency in broker_deposit_limits:
+        broker_deposit_limits = broker_deposit_limits[deposit_option.currency]
+      else:
+        broker_deposit_limits = None
+
+    if deposit_option.deposit_limits:
+      deposit_method_deposit_limits = json.loads(deposit_option.deposit_limits)
+    else:
+      deposit_method_deposit_limits = broker_deposit_limits
+
+
+    if not broker_deposit_limits:
+      broker_deposit_limits = deposit_method_deposit_limits
+
+    if not  deposit_method_deposit_limits:
+      raise NotAuthorizedError()
+
+    if not broker_deposit_limits[str(verification_level)]["enabled"]:
+      raise  NotAuthorizedError()
+
+    if not  deposit_method_deposit_limits[str(verification_level)]["enabled"]:
+      raise  NotAuthorizedError()
+
+    broker_deposit_min = broker_deposit_limits[str(verification_level)]['min'] if 'min' in broker_deposit_limits[str(verification_level)] else None
+    deposit_method_deposit_min = deposit_method_deposit_limits[str(verification_level)]['min'] if 'min' in deposit_method_deposit_limits[str(verification_level)] else None
+    min_deposit_value = max(deposit_method_deposit_min, broker_deposit_min)
+
+    broker_deposit_max = broker_deposit_limits[str(verification_level)]['max'] if 'max' in broker_deposit_limits[str(verification_level)] else None
+    deposit_method_deposit_max = deposit_method_deposit_limits[str(verification_level)]['max'] if 'max' in deposit_method_deposit_limits[str(verification_level)] else None
+
+    if deposit_method_deposit_max and broker_deposit_max:
+      max_deposit_value =  min(deposit_method_deposit_max, broker_deposit_max)
+    elif deposit_method_deposit_max:
+      max_deposit_value = deposit_method_deposit_max
+    elif broker_deposit_max:
+      max_deposit_value = broker_deposit_max
+    else:
+      max_deposit_value = None
+
+    if min_deposit_value and value < min_deposit_value :
+      raise NotAuthorizedError()
+
+    if max_deposit_value and value > max_deposit_value:
+      raise NotAuthorizedError()
 
     deposit = deposit_option.generate_deposit(  application.db_session,
                                                 session.user,
@@ -855,7 +883,6 @@ def processRequestDeposit(session, msg):
                                                      value)
     application.db_session.commit()
     should_broadcast = True
-
   else:
     deposit = Deposit.get_deposit(application.db_session, deposit_id)
 

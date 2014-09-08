@@ -1,6 +1,5 @@
 {
     "download_filename": "bpay_{{id}}.html",
-    "html_template": "bpay.html",
     "currency": "A$",
     "value": "{{value}}",
     "current_date": "{{current_date}}",

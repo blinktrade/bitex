@@ -18,21 +18,10 @@
     <style>
       body{
         background-color: #ffffff;
-        padding-top: 50px;
-      }
-      .box {
-        border: 1px solid #ebedef;
-        padding: 30px;
-        font-size: 16px;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-        margin-bottom: 20px;
       }
 
       .bpay-box {
         width: 270px;
-        height: 140px;
         border: 2px solid #0F204B;
         padding: 10px;
       }
@@ -59,30 +48,15 @@
   </head>
 
   <body>
-    <div class="clearfix" style="padding: 30px;"></div>
-
     <div class="container">
       <div class="content-fluid">
 
         <div  class="box">
-          <h3>Deposit into your Filler simply with BPAY®</h3>
-          <p class="small">You can use BPAY® to deposit Australian Dollars into your Filler.</p>
-
-          <ol class="small">
-            <li>Sign in to your mobile banking app or internet banking</li>
-            <li>Following your bank's instructions to make a BPAY Bill Payment</li>
-            <li>Use the Biller Code and Reference Number below to make your deposit</li>
-          </ol>
-
-          <p class="small">Your BPAY Bill Payment will be processed by <strong>Bill Buddy</strong>, our BPAY Master Biller.</p>
-
+          <h3>Deposit using BPAY®</h3>
           <p class="small">It usually takes <strong>one business day</strong> for most BPAY deposits to be processed. However, for your first A$ 3,000 in BPAY deposits, they can take up to 3 business days to become available in your account.</p>
-
-          <p></p>
           <hr>
-
-          <div class="row">
-            <div class="span4">
+          <div class="row-fluid">
+            <div class="span6">
               <div class="bpay-box">
                 <div class="ref">
                   Biller Code: {{biller_code}}<br>
@@ -95,7 +69,7 @@
                 </div>
               </div>
             </div>
-            <div class="span4">
+            <div class="span6">
               <h4>Deposit limits (Important)</h4>
               <p class="small">Maximum: A$ 2,600.00 per day. <br>
                 Minimum: A$ 10.00 per transaction. </p>

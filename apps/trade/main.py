@@ -18,6 +18,8 @@ define("test_mode", default=False, help="Test mode")
 define("satoshi_mode", default=False, help="Satoshi mode")
 define("dev_mode", default=False, help="Dev mode")
 define("global_email_language", help="template email language")
+define("verification_bonus", type=dict, help="Verification bonus details")
+
 define("config", help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
 
 from trade_application import application
