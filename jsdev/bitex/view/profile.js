@@ -67,7 +67,7 @@ bitex.view.ProfileView.prototype.enterView = function() {
 
     var state = model.get('Profile')['State'];
     if (!goog.isDefAndNotNull(state) ) {
-        state = model.get('Broker')['State'];;
+        state = model.get('Broker')['State'];
     }
 
     customer['State'] = state;
@@ -165,6 +165,7 @@ bitex.view.ProfileView.prototype.enterDocument = function() {
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.CHANGE, this.onChangeWithdrawStructure_);
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.SAVE, this.onSaveWithdrawStructure_);
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.CANCEL, this.onCancelWithdrawStructure_);
+  handler.listen(this, bitex.ui.WithdrawMethods.EventType.VALIDATION_ERROR, this.onValidationErrorWithdrawStructure_);
 
 
   handler.listen( this.getApplication().getModel(),  bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
@@ -234,6 +235,17 @@ bitex.view.ProfileView.prototype.onSaveWithdrawStructure_ = function(e) {
     withdraw_method_component.setSavingStatus(false);
   });
 };
+
+/**
+ * @param {goog.events.Event} e
+ * @private
+ */
+bitex.view.ProfileView.prototype.onValidationErrorWithdrawStructure_ = function(e) {
+  var error = e.target.getLastError();
+  this.getApplication().showNotification('error', error);
+};
+
+
 
 /**
  * @param {goog.events.Event} e

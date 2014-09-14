@@ -170,7 +170,6 @@ def processLogin(session, msg):
         'PhoneNumber2'       : session.broker.phone_number_2       ,
         'Skype'              : session.broker.skype                ,
         'Email'              : session.broker.email                ,
-        'DepositLimits'      : json.loads(session.broker.deposit_limits),
         'Currencies'         : session.broker.currencies           ,
         'VerificationForm'   : session.broker.verification_jotform ,
         'UploadForm'         : session.broker.upload_jotform       ,
@@ -755,7 +754,7 @@ def processRequestDepositMethod(session, msg):
       'DepositLimits':      '{}',
       'HtmlTemplate':       '',
       'Currency':           deposit_method.currency,
-      'PercentFee':         deposit_method.percent_fee,
+      'PercentFee':         float(deposit_method.percent_fee),
       'FixedFee':           deposit_method.fixed_fee,
       'Parameters':         json.loads(deposit_method.parameters)
     }
@@ -780,7 +779,7 @@ def processRequestDepositMethods(session, msg):
       'Type': deposit_option.type,
       'DepositLimits':  json.loads(deposit_option.deposit_limits) ,
       'Currency': deposit_option.currency,
-      'PercentFee': deposit_option.percent_fee,
+      'PercentFee': float(deposit_option.percent_fee),
       'FixedFee': deposit_option.fixed_fee
     } )
 
@@ -813,50 +812,25 @@ def processRequestDeposit(session, msg):
       response = {'MsgType':'U19', 'DepositID': -1 }
       return json.dumps(response, cls=JsonEncoder)
 
-    verification_level = str(session.user.verified)
-    broker_deposit_limits = None
+    verification_level = session.user.verified
+
     deposit_method_deposit_limits = None
-
-    if session.broker.deposit_limits:
-      broker_deposit_limits = json.loads(session.broker.deposit_limits)
-      if deposit_option.currency in broker_deposit_limits:
-        broker_deposit_limits = broker_deposit_limits[deposit_option.currency]
-      else:
-        broker_deposit_limits = None
-
     if deposit_option.deposit_limits:
       deposit_method_deposit_limits = json.loads(deposit_option.deposit_limits)
-    else:
-      deposit_method_deposit_limits = broker_deposit_limits
 
-
-    if not broker_deposit_limits:
-      broker_deposit_limits = deposit_method_deposit_limits
-
-    if not  deposit_method_deposit_limits:
+    if not deposit_method_deposit_limits:
       raise NotAuthorizedError()
 
-    if not broker_deposit_limits[str(verification_level)]["enabled"]:
+    while verification_level > 0:
+      if str(verification_level) in deposit_method_deposit_limits:
+        break
+      verification_level -= 1
+
+    if not deposit_method_deposit_limits[str(verification_level)]["enabled"]:
       raise  NotAuthorizedError()
 
-    if not  deposit_method_deposit_limits[str(verification_level)]["enabled"]:
-      raise  NotAuthorizedError()
-
-    broker_deposit_min = broker_deposit_limits[str(verification_level)]['min'] if 'min' in broker_deposit_limits[str(verification_level)] else None
-    deposit_method_deposit_min = deposit_method_deposit_limits[str(verification_level)]['min'] if 'min' in deposit_method_deposit_limits[str(verification_level)] else None
-    min_deposit_value = max(deposit_method_deposit_min, broker_deposit_min)
-
-    broker_deposit_max = broker_deposit_limits[str(verification_level)]['max'] if 'max' in broker_deposit_limits[str(verification_level)] else None
-    deposit_method_deposit_max = deposit_method_deposit_limits[str(verification_level)]['max'] if 'max' in deposit_method_deposit_limits[str(verification_level)] else None
-
-    if deposit_method_deposit_max and broker_deposit_max:
-      max_deposit_value =  min(deposit_method_deposit_max, broker_deposit_max)
-    elif deposit_method_deposit_max:
-      max_deposit_value = deposit_method_deposit_max
-    elif broker_deposit_max:
-      max_deposit_value = broker_deposit_max
-    else:
-      max_deposit_value = None
+    min_deposit_value = deposit_method_deposit_limits[str(verification_level)]['min'] if 'min' in deposit_method_deposit_limits[str(verification_level)] else None
+    max_deposit_value = deposit_method_deposit_limits[str(verification_level)]['max'] if 'max' in deposit_method_deposit_limits[str(verification_level)] else None
 
     if min_deposit_value and value < min_deposit_value :
       raise NotAuthorizedError()
@@ -922,7 +896,7 @@ def depositRecordToDepositMessage( deposit ):
   deposit_message['Status']              = deposit.status
   deposit_message['ReasonID']            = deposit.reason_id
   deposit_message['Reason']              = deposit.reason
-  deposit_message['PercentFee']          = deposit.percent_fee
+  deposit_message['PercentFee']          = float(deposit.percent_fee)
   deposit_message['FixedFee']            = deposit.fixed_fee
   deposit_message['ClOrdID']             = deposit.client_order_id
   return deposit_message
@@ -931,6 +905,35 @@ def depositRecordToDepositMessage( deposit ):
 def processWithdrawRequest(session, msg):
   reqId           = msg.get('WithdrawReqID')
   client_order_id = msg.get('ClOrdID')
+
+  verification_level = session.user.verified
+
+  withdraw_structure = json.loads(session.broker.withdraw_structure)
+  limits = None
+  for withdraw_method in withdraw_structure[msg.get('Currency')]:
+    if msg.get('Method') == withdraw_method['method']:
+      limits = withdraw_method['limits']
+      break
+
+  if not limits:
+    raise NotAuthorizedError()
+
+  while verification_level > 0:
+    if str(verification_level) in limits:
+      break
+    verification_level -= 1
+
+  if not limits[str(verification_level)]["enabled"]:
+    raise  NotAuthorizedError()
+
+  min_amount = limits[str(verification_level)]['min'] if 'min' in limits[str(verification_level)] else None
+  max_amount = limits[str(verification_level)]['max'] if 'max' in limits[str(verification_level)] else None
+
+  if min_amount and msg.get('Amount') < min_amount :
+    raise NotAuthorizedError()
+
+  if max_amount and msg.get('Amount') > max_amount:
+    raise NotAuthorizedError()
 
   withdraw_record = Withdraw.create(application.db_session,
                                     session.user,
@@ -964,7 +967,7 @@ def withdrawRecordToWithdrawMessage( withdraw ):
   withdraw_message['Status']              = withdraw.status
   withdraw_message['ReasonID']            = withdraw.reason_id
   withdraw_message['Reason']              = withdraw.reason
-  withdraw_message['PercentFee']          = withdraw.percent_fee
+  withdraw_message['PercentFee']          = float(withdraw.percent_fee)
   withdraw_message['FixedFee']            = withdraw.fixed_fee
   withdraw_message['PaidAmount']          = withdraw.paid_amount
   withdraw_message['ClOrdID']             = withdraw.client_order_id
@@ -1036,7 +1039,7 @@ def processWithdrawListRequest(session, msg):
       withdraw.status,
       withdraw.reason_id,
       withdraw.reason,
-      withdraw.percent_fee,
+      float(withdraw.percent_fee),
       withdraw.fixed_fee,
       withdraw.paid_amount,
       withdraw.user_id,
@@ -1482,7 +1485,7 @@ def processDepositListRequest(session, msg):
       json.loads(deposit.data),
       deposit.created,
       deposit.broker_deposit_ctrl_num,
-      deposit.percent_fee,
+      float(deposit.percent_fee),
       deposit.fixed_fee,
       deposit.status,
       deposit.reason_id,

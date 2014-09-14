@@ -42,6 +42,7 @@ uniform.Uniform = function(opt_model, opt_domHelper){
   controlModel.method         =  goog.object.get(model, 'method',         null);
   controlModel.name           =  goog.object.get(model, 'name',           null);
   controlModel.target         =  goog.object.get(model, 'target',         null);
+  controlModel.control_holder_class =  goog.object.get(model, 'control-holder-class',uniform.Uniform.CTRLHOLDER_CLASS);
   this.setModel(controlModel);
 };
 goog.inherits(uniform.Uniform, goog.ui.Component);
@@ -243,7 +244,7 @@ uniform.Uniform.prototype.getCssClass = function() {
  * @return {string}
  */
 uniform.Uniform.prototype.getControlHolderClass = function() {
-  return uniform.Uniform.CTRLHOLDER_CLASS;
+  return this.getModel().control_holder_class;
 };
 
 
@@ -305,6 +306,10 @@ uniform.Uniform.prototype.createDom = function() {
   if (this.getTarget()) {
     goog.object.set(formAttributes, 'target', this.getTarget() );
   }
+
+  goog.object.set(formAttributes, 'data-uniform-control-holder-class', this.getControlHolderClass() );
+
+
   
   var topEl = dom.createDom('form', formAttributes, this.getContent());
   goog.dom.classes.add(topEl, this.getCssClass());
@@ -327,6 +332,7 @@ uniform.Uniform.prototype.decorateInternal = function(element) {
   this.getModel().method        = element.getAttribute('method');
   this.getModel().name          = element.getAttribute('name');
   this.getModel().target        = element.getAttribute('target');
+  this.getModel().control_holder_class = element.getAttribute('data-uniform-control-holder-class') || uniform.Uniform.CTRLHOLDER_CLASS;
 
   goog.dom.classes.add(element, this.getCssClass());
 
@@ -427,7 +433,12 @@ uniform.Uniform.prototype.getAsJSON = function(){
     if (el.disabled || el.tagName.toLowerCase() == 'fieldset') {
       continue;
     }
+
     var name = el.name;
+    if (goog.string.isEmpty(name)) {
+      continue;
+    }
+
     var type = el.type.toLowerCase();
     switch (type) {
       case 'file':
@@ -447,9 +458,9 @@ uniform.Uniform.prototype.getAsJSON = function(){
         }
         break;
       default:
-        var value = goog.dom.forms.getValue(el);
-        if (value != null) {
-          json_res[name] = value;
+        var form_value = goog.dom.forms.getValue(el);
+        if (form_value != null) {
+          json_res[name] = form_value;
         }
     }
   }
@@ -459,11 +470,12 @@ uniform.Uniform.prototype.getAsJSON = function(){
 
 /**
  * @param {Element} formElement
+ * @param {string=} opt_control_holder_class. Defaults to CTRLHOLDER_CLASS
  * @return {Element}
  */
-uniform.Uniform.prototype.findControlHolderEl_ = function(formElement) {
-  return goog.dom.getAncestorByClass(formElement,
-      this.getControlHolderClass());
+uniform.Uniform.prototype.findControlHolderEl_ = function(formElement, opt_control_holder_class) {
+  var control_holder_class = opt_control_holder_class || this.getControlHolderClass();
+  return goog.dom.getAncestorByClass(formElement, control_holder_class);
 };
 
 
@@ -482,9 +494,7 @@ uniform.Uniform.SmEvents = {
  * @param {Element} fieldElement
  * @param {*=} param1
  */
-uniform.Uniform.prototype.processFieldEvent_ = function(event,
-                                                                      fieldElement,
-                                                                      param1) {
+uniform.Uniform.prototype.processFieldEvent_ = function(event, fieldElement, param1) {
   var controlHolderEl = this.findControlHolderEl_(fieldElement);
   if (!goog.isDefAndNotNull(controlHolderEl)) {
     return;
@@ -601,18 +611,15 @@ uniform.Uniform.prototype.onFormElementBlur_ = function(e) {
 
   try {
     // run the meta info
-    uniform.Meta.getInstance().runMeta(this.getElement() );
+    uniform.Meta.getInstance().runMeta(this.getElement());
   } catch (metaError) {
     this.logger_.info(metaError);
   }
 
   // lets run validation on the element.
   try {
-    uniform.Validators.getInstance().runValidation(e.target,
-                                                                 caption);
-
-    this.processFieldEvent_(uniform.Uniform.SmEvents.VALIDATED,
-                            e.target);
+    uniform.Validators.getInstance().runValidation(e.target, caption);
+    this.processFieldEvent_(uniform.Uniform.SmEvents.VALIDATED, e.target);
   } catch (validationError) {
     this.logger_.info(validationError);
 
@@ -650,8 +657,6 @@ uniform.Uniform.prototype.onWindowBeforeUnload_ = function(e) {
  */  
 uniform.Uniform.prototype.focus = function() {
   var els = this.getElement().elements;
-
-  var els = this.getElement().elements;
   for (var el, i = 0; el = els[i]; i++) {
     if (el.disabled ||
         el.tagName.toLowerCase() === goog.dom.TagName.INPUT.FIELDSET ) {
@@ -674,9 +679,7 @@ uniform.Uniform.prototype.focus = function() {
  * @param {Array.<string>} messages
  * @param {boolean} opt_scroll. Defaults to true
  */
-uniform.Uniform.prototype.showFormError = function(title,
-                                                                 messages, 
-                                                                 opt_scroll) {
+uniform.Uniform.prototype.showFormError = function(title,messages,opt_scroll) {
   var scroll = true;
   if (goog.isDefAndNotNull(opt_scroll)) { 
     scroll = opt_scroll;
@@ -716,8 +719,7 @@ uniform.Uniform.prototype.showFormError = function(title,
  * @param {Array.<string>} messages
  * @param {boolean} opt_scroll. Defaults to true
  */
-uniform.Uniform.prototype.showFormSuccess = function(title,
-                                                                   opt_scroll){
+uniform.Uniform.prototype.showFormSuccess = function(title,opt_scroll){
   var scroll = true;
   if (goog.isDefAndNotNull(opt_scroll)) { 
     scroll = opt_scroll;
@@ -744,28 +746,31 @@ uniform.Uniform.prototype.showFormSuccess = function(title,
 
 /**
  * @param {Element} el
+ * @param {string=} opt_control_holder_class. Defaults to CTRLHOLDER_CLASS
  * @return {string}
  */ 
-uniform.Uniform.prototype.getCaptionForElement = function(el) {
-
+uniform.Uniform.prototype.getCaptionForElement = function(el, opt_control_holder_class) {
+  if (goog.isDefAndNotNull(el.getAttribute('data-uniform-label'))) {
+    return el.getAttribute('data-uniform-label');
+  }
 
   var labelEl = goog.dom.getAncestorByTagNameAndClass(el, 'label');
 
   if (! goog.isDefAndNotNull(labelEl)) {
-    var controlHolderEl = this.findControlHolderEl_(el);
+    var controlHolderEl = this.findControlHolderEl_(el, opt_control_holder_class);
 
-    var allLabels = goog.dom.getElementsByTagNameAndClass('label', 
-      undefined, controlHolderEl); 
+    var allLabels = goog.dom.getElementsByTagNameAndClass('label',undefined, controlHolderEl);
 
     labelEl = goog.array.find(allLabels, function(lbEl) {
-                if ( goog.dom.getNextElementSibling(lbEl) == el) {
-                  return true;
-                }
-              });
+      if ( goog.dom.getNextElementSibling(lbEl) == el) {
+        return true;
+      }
+    });
 
     if (!goog.isDefAndNotNull(labelEl)) {
       labelEl = allLabels[0];
     }
+
   }
 
   var caption = "";
@@ -781,9 +786,10 @@ uniform.Uniform.prototype.getCaptionForElement = function(el) {
 // submit the data manually through ajax. So, he must be able to
 // set the form.
 /**
+ * @param {string=} opt_control_holder_class. Defaults to CTRLHOLDER_CLASS
  * @return {Array.<string>}
  */ 
-uniform.Uniform.prototype.validate = function() {
+uniform.Uniform.prototype.validate = function(opt_control_holder_class) {
   var errors = [];
 
   // lets revalidate all inputs again
@@ -802,7 +808,7 @@ uniform.Uniform.prototype.validate = function() {
     } catch (validationError) {
       this.logger_.info(validationError);
 
-      var controlHolderEl = this.findControlHolderEl_(el);
+      var controlHolderEl = this.findControlHolderEl_(el, opt_control_holder_class);
       if (goog.isDefAndNotNull(controlHolderEl)) {
         goog.dom.classes.add(controlHolderEl, this.getCssInvalidState());
       }

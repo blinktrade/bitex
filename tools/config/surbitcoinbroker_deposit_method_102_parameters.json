@@ -1,6 +1,4 @@
 {
-  "download_filename": "la_wire_transfer_{{id}}.html",
-  "html_template":"la_wire_transfer.html",
   "currency":"BsF.",
   "value": "{{value}}",
   "current_date": "{{current_date}}",

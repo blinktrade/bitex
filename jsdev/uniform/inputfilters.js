@@ -26,7 +26,7 @@ uniform.InputFilters = function() {
                           [this.filterInteger_,0 ] );
 
   this.registerInputFilter( 'non_space',
-      [this.filterNonSpace_,0 ] );
+                          [this.filterNonSpace_,0 ] );
 
 
 
@@ -54,7 +54,7 @@ uniform.InputFilters.prototype.registerInputFilter = function(
 uniform.InputFilters.prototype.filter = function(e) {
   var element = e.target;
 
-  var InputFilterAttribute = element.getAttribute('uniform-filters');
+  var InputFilterAttribute = element.getAttribute('data-uniform-filters');
   var elClassesArray = InputFilterAttribute && 
     typeof InputFilterAttribute.split == 'function' ? 
       InputFilterAttribute.split(/\s+/) : [];
@@ -115,11 +115,12 @@ uniform.InputFilters.prototype.filterNumber_ = function(e) {
        e.keyCode == goog.events.KeyCodes.NUM_MINUS  ||
        e.keyCode == goog.events.KeyCodes.NUM_PERIOD  || 
        e.keyCode == goog.events.KeyCodes.PERIOD ||
-       e.keyCode == goog.events.KeyCodes.COMMA   || 
+       e.keyCode == goog.events.KeyCodes.COMMA  ||
+       e.keyCode == goog.events.KeyCodes.DASH  ||
+       e.keyCode == goog.events.KeyCodes.FF_SEMICOLON ||
        e.keyCode == goog.events.KeyCodes.E ) {
     return;  // allowed
-  } 
-
+  }
   e.preventDefault();
 };
 
@@ -132,6 +133,7 @@ uniform.InputFilters.prototype.filterInteger_ = function(e) {
 
   if ( e.ctrlKey || !e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO &&
        e.keyCode <= goog.events.KeyCodes.NINE ||
+       e.keyCode == goog.events.KeyCodes.DASH  ||
        e.keyCode >= goog.events.KeyCodes.NUM_ZERO &&
        e.keyCode <= goog.events.KeyCodes.NUM_NINE) {
     return;  // allowed

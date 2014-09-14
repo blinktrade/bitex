@@ -27,9 +27,9 @@
                 <td>{$method['disclaimer']}</td>
 
                 {if $method['has_fixed_fee']}
-                  <td>{$method['percent_fee']}% + {$method['formatted_fixed_fee']}</td>
+                  <td>{$method['formatted_percent_fee']}% + {$method['formatted_fixed_fee']}</td>
                 {else}
-                  <td>{$method['percent_fee']}%</td>
+                  <td>{$method['formatted_percent_fee']}%</td>
                 {/if}
 
 

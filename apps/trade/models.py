@@ -14,7 +14,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy import desc, func
 from sqlalchemy.sql.expression import and_, or_, exists
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint, UnicodeText
+from sqlalchemy import Column, Integer, Unicode, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint, UnicodeText
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 import json
@@ -927,7 +927,6 @@ class Broker(Base):
   support_url           = Column(String(255),   nullable=False)
 
   accept_customers_from = Column(Text,   nullable=False)
-  deposit_limits        = Column(Text,   nullable=False)
 
   is_broker_hub         = Column(Boolean, nullable=False, default=False)
 
@@ -2219,7 +2218,7 @@ class DepositMethods(Base):
   fixed_fee                 = Column(Integer,    nullable=False, default=0)
   html_template             = Column(UnicodeText)
   deposit_limits            = Column(Text)
-  parameters                = Column(Text,       nullable=False)
+  parameters                = Column(Text,nullable=False)
 
 
   def __repr__(self):

@@ -266,9 +266,9 @@ def main():
       if not DepositMethods.get_deposit_method(session, config.getint(section_name, 'id')):
         e = DepositMethods(id                         = config.getint(section_name, 'id'),
                             broker_id                 = config.getint(section_name, 'broker_id'),
-                            name                      = config.get(section_name, 'name'),
-                            description               = config.get(section_name, 'description'),
-                            disclaimer                = config.get(section_name, 'disclaimer'),
+                            name                      = config.get(section_name, 'name').decode('utf-8'),
+                            description               = config.get(section_name, 'description').decode('utf-8'),
+                            disclaimer                = config.get(section_name, 'disclaimer').decode('utf-8'),
                             type                      = config.get(section_name, 'type'),
                             percent_fee               = config.getfloat(section_name, 'percent_fee'),
                             fixed_fee                 = config.getint(section_name, 'fixed_fee'),
@@ -276,7 +276,7 @@ def main():
                             currency                  = config.get(section_name, 'currency'),
                             deposit_limits            = json.dumps(deposit_limits_json),
                             html_template             = html_template.decode('utf-8'),
-                            parameters                = json.dumps(parameters_json))
+                            parameters                = json.dumps(parameters_json).decode('utf-8') )
         session.add(e)
         session.commit()
 

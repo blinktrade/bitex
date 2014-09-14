@@ -305,35 +305,43 @@
 {/template}
 
 /**
-  * @param id
   */
 {template .GoogleAuthenticationCodeDialogContent}
-  <div class="ctrlHolder">
-    {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg}
-    <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
-  </div>
+  <form class="form-horizontal" data-deposit-status="prepare" data-uniform-control-holder-class="control-group">
+    <fieldset>
+      <div class="control-group">
+        <label>
+          {msg desc="Google Authenticator code dialog label"}Google Authenticator code:{/msg}
+        </label>
+        <input name="token"
+               data-uniform-validators="required"
+               data-uniform-label="{msg desc="Limit table field header"}Google authenticator code{/msg}"
+               placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}"
+               class="input-large"
+               type="text"
+               size="10">
+      </div>
+    </fieldset>
+  </form>
 {/template}
 
 /**
-  * @param id
   */
 {template .WithdrawConfirmationDialogContent}
-  <form class="form-horizontal" data-deposit-status="prepare">
-  <fieldset>
+  <form class="form-horizontal" data-deposit-status="prepare" data-uniform-control-holder-class="control-group">
+    <fieldset>
+      <p>
+        {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
+      </p>
 
-  <p>
-    {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
-  </p>
-
-  <div class="ctrlHolder">
-  <label>Confirmation Code</label>
-  <input id="{$id}" uniform-validators="required" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
-  </div>
-  <p>
-    <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
-  </p>
-
-  </fieldset>
+      <div class="control-group">
+        <label>Confirmation Code</label>
+        <input name="confirmation_code" type="text" data-uniform-validators="required" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+      </div>
+      <p>
+        <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
+      </p>
+    </fieldset>
   </form>
 {/template}
 
@@ -671,7 +679,7 @@
 {template .FeesForm}
   <form class="form-horizontal" data-deposit-status="prepare">
     <input type="hidden" name="Currency" value="{$currency}">
-    <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
+    <input id="{$amountID}" type="hidden" name="Amount" value="{$amount}">
 
     <div class="control-group">
       <label class="control-label">{msg desc="requested amount"}Requested Amount{/msg}</label>
@@ -708,9 +716,10 @@
   * @param totalFeesID
   * @param netValueID
   * @param hideNetAmount
+  * @param? verificationLevel
   */
 {template .DepositWithdrawDialogContent}
-  <form class="form-horizontal" data-deposit-status="prepare">
+  <form class="form-horizontal" data-deposit-status="prepare" data-uniform-control-holder-class="control-group">
   <fieldset>
 
     <input type="hidden" name="Currency" value="{$currency}">
@@ -757,28 +766,29 @@
           {if $method['method'] == $force_method}
 
             {if $side == 'client'}
-              <div class="control-group ctrlHolder">
+              <div class="control-group">
                 <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
                 <div class="controls">
                   <div class="input-prepend">
                     <span class="add-on">{$currencySign}</span>
                     <input id="{$method['method']}_{$amountID}"
-                        uniform-validators="required; validateNumber {if $method['limits']['enabled']} {if $method['limits']['min']}; validateMin {$method['limits']['min'] }{/if}{if $method['limits']['max']}; validateMax {$method['limits']['max'] } {/if} {/if}"
+                        data-uniform-validators="required; validateNumber {if $method['limits'][$verificationLevel]['enabled']} {if $method['limits'][$verificationLevel]['min']}; validateMin {$method['limits'][$verificationLevel]['formatted_min_value'] }{/if}{if $method['limits'][$verificationLevel]['max']}; validateMax {$method['limits'][$verificationLevel]['formatted_max_value'] } {/if} {/if}"
+                        data-uniform-filters="number"
                         type="text"
                         class="withdraw-field input-small"
                         size="16"
                         name="Amount">
                   </div>
-                  {if $method['limits']['enabled']}
+                  {if $method['limits'][$verificationLevel]['enabled']}
                     <div>
                       <em>
                         <small>
-                          {if $method['limits']['min']}
-                            {msg desc="amount help block"} Maximum: {$method['limits']['formatted_max'] } per day.  {/msg}
+                          {if $method['limits'][$verificationLevel]['min']}
+                            {msg desc="amount help block"} Maximum: {$method['limits'][$verificationLevel]['formatted_max'] } per day.  {/msg}
                             <br>
                           {/if}
-                          {if $method['limits']['max']}
-                            {msg desc="amount help block"} Minimum: {$method['limits']['formatted_min'] } per transaction.  {/msg}
+                          {if $method['limits'][$verificationLevel]['max']}
+                            {msg desc="amount help block"} Minimum: {$method['limits'][$verificationLevel]['formatted_min'] } per transaction.  {/msg}
                           {/if}
                         </small>
                       </em>
@@ -794,7 +804,7 @@
                 <div class="control-group">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
+                    <input class="withdraw-field" data-uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
                   </div>
                 </div>
               {/if}
@@ -847,28 +857,29 @@
           <div class="withdraw-method" data-withdraw-method="{$method['method']}" style="{if not isFirst($method)}display:none;{/if}" >
 
             {if $side == 'client'}
-              <div class="control-group ctrlHolder">
+              <div class="control-group">
                 <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
                 <div class="controls">
                   <div class="input-prepend">
                     <span class="add-on">{$currencySign}</span>
                     <input id="{$method['method']}_{$amountID}"
-                        uniform-validators="required; validateNumber {if $method['limits']['enabled']} {if $method['limits']['min']}; validateMin {$method['limits']['min'] }{/if}{if $method['limits']['max']}; validateMax {$method['limits']['max'] } {/if} {/if}"
+                        data-uniform-validators="required; validateNumber {if $method['limits'][$verificationLevel]['enabled']} {if $method['limits'][$verificationLevel]['min']}; validateMin {$method['limits'][$verificationLevel]['formatted_min_value'] }{/if}{if $method['limits'][$verificationLevel]['max']}; validateMax {$method['limits'][$verificationLevel]['formatted_max_value'] } {/if} {/if}"
+                        data-uniform-filters="number"
                         type="text"
                         class="withdraw-field input-small"
                         size="16"
                         name="Amount" {if not isFirst($method)}disabled{/if}>
                   </div>
-                  {if $method['limits']['enabled']}
+                  {if $method['limits'][$verificationLevel]['enabled']}
                     <div>
                       <em>
                         <small>
-                          {if $method['limits']['min']}
-                            {msg desc="amount help block"} Maximum: {$method['limits']['formatted_max'] } per day.  {/msg}
+                          {if $method['limits'][$verificationLevel]['min']}
+                            {msg desc="amount help block"} Maximum: {$method['limits'][$verificationLevel]['formatted_max'] } per day.  {/msg}
                             <br>
                           {/if}
-                          {if $method['limits']['max']}
-                            {msg desc="amount help block"} Minimum: {$method['limits']['formatted_min'] } per transaction.  {/msg}
+                          {if $method['limits'][$verificationLevel]['max']}
+                            {msg desc="amount help block"} Minimum: {$method['limits'][$verificationLevel]['formatted_min'] } per transaction.  {/msg}
                           {/if}
                         </small>
                       </em>
@@ -902,12 +913,10 @@
             {foreach $field in $method['fields'] }
               {if $field['side'] == $side}
                 <div class="control-group">
-                <div class="ctrlHolder">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                    <input class="withdraw-field" data-uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
                   </div>
-                </div>
                 </div>
               {/if}
             {/foreach}
