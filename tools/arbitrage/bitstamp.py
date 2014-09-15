@@ -33,7 +33,7 @@ class BitStampClient(object):
     self.pusher.connection.bind('pusher:connection_established', self.on_bitstamp_connect_handler)
     self.pusher.connection.bind('pusher:connection_failed', self.on_bitstamp_connect_failed_handler)
 
-    self.arbitrator = BlinkTradeArbitrator(self.username,self.password,self.websocket_url, 'BTCUSD')
+    self.arbitrator = BlinkTradeArbitrator(self.username,self.password,self.websocket_url, 'BTCAUD' ) #'BTCUSD')
     self.arbitrator.signal_order.connect(self.on_send_order_to_bitstamp)
     self.arbitrator.signal_logged.connect(self.on_blinktrade_logged)
     self.arbitrator.signal_disconnected.connect(self.on_blinktrade_discconnected)
@@ -126,8 +126,8 @@ def main():
   websocket_url = config.get('bitstamp', 'websocket_url')
   username      = config.get('bitstamp', 'username')
   password      = config.get('bitstamp', 'password')
-  buy_fee       = int(config.get('bitstamp', 'buy_fee'))
-  sell_fee      = int(config.get('bitstamp', 'sell_fee'))
+  buy_fee       = float(config.get('bitstamp', 'buy_fee'))
+  sell_fee      = float(config.get('bitstamp', 'sell_fee'))
   api_key       = config.get('bitstamp', 'api_key')
   api_secret    = config.get('bitstamp', 'api_secret')
 
