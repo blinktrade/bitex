@@ -66,7 +66,7 @@ def main():
   print 'buy_fee:', buy_fee
   print 'sell_fee:', sell_fee
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCBRL')
+  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCUSD' ) #'BTCBRL')
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order_to_MB)

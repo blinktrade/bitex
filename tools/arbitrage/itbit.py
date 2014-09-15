@@ -56,12 +56,12 @@ def main():
   websocket_url = config.get('itbit', 'websocket_url')
   username      = config.get('itbit', 'username')
   password      = config.get('itbit', 'password')
-  buy_fee       = int(config.get('itbit', 'buy_fee'))
-  sell_fee      = int(config.get('itbit', 'sell_fee'))
+  buy_fee       = float(config.get('itbit', 'buy_fee'))
+  sell_fee      = float(config.get('itbit', 'sell_fee'))
   api_key       = config.get('itbit', 'api_key')
   api_secret    = config.get('itbit', 'api_secret')
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCUSD')
+  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCAUD' ) #'BTCUSD')
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order)
