@@ -173,13 +173,6 @@ def main():
         except Exception,e:
           pass
 
-        deposit_limits_json = {}
-        try:
-          with open(config.get(section_name, 'deposit_limits')  ) as data_file:
-            deposit_limits_json = json.load(data_file)
-        except Exception,e:
-          pass
-
         phone_number_1 = None
         try:
           phone_number_1 = config.get(section_name, 'phone_number_1')
@@ -237,7 +230,6 @@ def main():
                    fee_structure            = json.dumps(fee_structure_json),
                    transaction_fee_buy      = transaction_fee_buy,
                    transaction_fee_sell     = transaction_fee_sell,
-                   deposit_limits           = json.dumps(deposit_limits_json),
                    status                   = config.get(section_name, 'status'),
                    ranking                  = config.getint(section_name, 'ranking'))
         session.add(e)

@@ -1175,7 +1175,7 @@ def processCustomerListRequest(session, msg):
               'TransactionFeeBuy', 'TransactionFeeSell', 'NeedWithdrawEmail' ]
 
   for entity in user_list:
-    result_set.append( [
+    result_set.append([
       entity.id                   ,
       entity.username             ,
       entity.email                ,
@@ -1190,6 +1190,7 @@ def processCustomerListRequest(session, msg):
       entity.transaction_fee_sell ,
       entity.withdraw_email_validation
     ])
+
 
   response_msg = {
     'MsgType'           : 'B3',

@@ -93,7 +93,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       'VerifyCustomerReqID':req_id,
       'ClientID': user_id,
       'BrokerID': broker_id,
-      'VerificationData':  {
+      'VerificationData':  json.dumps({
         'formID': formID,
         'submissionID': submissionID,
         'created_at': createdAt,
@@ -112,7 +112,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
         },
         'phone_number': str(phone_number_country) + str(phone_number_area) + str(phone_number_phone),
         'date_of_birth': str(birth_date_year) + '-' +  str(birth_date_month) + '-' + str(birth_date_day),
-      },
+      }),
       'Verify': 1
     }
 

@@ -304,7 +304,11 @@ bitex.app.BlinkTrade.validateBitcoinAddress_ = function(el, condition, minLength
  * @param {string} opt_url
  */
 bitex.app.BlinkTrade.prototype.run = function(opt_url) {
-  var url =  'wss://' + window.location.hostname + '/trade/';
+  var protocol = 'wss:';
+  if (window.location.protocol === 'http:') {
+    protocol = 'ws:';
+  }
+  var url =  protocol + '//' + window.location.hostname + '/trade/';
   if (goog.isDefAndNotNull(opt_url)) {
     url = opt_url;
   }
