@@ -105,14 +105,18 @@ def getProfileMessage(user, profile=None):
     profile_message = {
       'Type'               : 'USER',
       'UserID'             : user.id,
+      'ID'                 : user.id,
       'Username'           : user.username,
       'Email'              : profile.email,
       'State'              : profile.state,
       'Country'            : profile.country_code,
+      'CountryCode'        : profile.country_code,
       'Verified'           : profile.verified,
       'VerificationData'   : profile.verification_data,
       'TwoFactorEnabled'   : profile.two_factor_enabled,
       'NeedWithdrawEmail'  : profile.withdraw_email_validation,
+      'TransactionFeeBuy'  : profile.transaction_fee_buy,
+      'TransactionFeeSell' : profile.transaction_fee_sell
       }
   return profile_message
 
@@ -201,9 +205,10 @@ def processNewOrderSingle(session, msg):
          msg.get('ClientID') != session.user.email:
         raise NotAuthorizedError()
 
-  account_id = session.user.account_id
-  account_user = session.user
-  broker_user = account_user.broker
+  account_id    = session.user.account_id
+  account_user  = session.user
+  broker_user   = session.broker
+  fee_account   = session.broker_accounts['fees']
 
   if session.user.is_broker:
     if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
@@ -260,37 +265,47 @@ def processNewOrderSingle(session, msg):
           raise InvalidClientIDError()
 
 
-      account_user = client
-      account_id   = client.account_id
-      broker_user  = account_user.broker
+      account_user  = client
+      account_id    = client.account_id
+      broker_user   = session.profile
+      fee_account   = session.user_accounts['fees']
 
   if not broker_user:
     raise NotAuthorizedError()
 
   fee = 0
   if msg.get('Side') in ('1', '3'): # Buy or Buy Minus ( To be implemented )
-    fee = broker_user.transaction_fee_buy
+    if account_user.transaction_fee_buy is None:
+      fee = broker_user.transaction_fee_buy
+    else:
+      fee = account_user.transaction_fee_buy
   else:
-    fee = broker_user.transaction_fee_sell
+    if account_user.transaction_fee_sell is None:
+      fee = broker_user.transaction_fee_sell
+    else:
+      fee = account_user.transaction_fee_sell
 
   # process the new order.
   order = Order.create(application.db_session,
-                       user_id          = session.user.id,
-                       account_id       = msg.get('ClientID', account_id ),
-                       user             = session.user,
-                       username         = session.user.username,
-                       account_user     = account_user,
-                       account_username = account_user.username,
-                       broker_user      = broker_user,
-                       broker_username  = broker_user.username,
-                       client_order_id  = msg.get('ClOrdID'),
-                       symbol           = msg.get('Symbol'),
-                       side             = msg.get('Side'),
-                       type             = msg.get('OrdType'),
-                       price            = msg.get('Price', 0),
-                       order_qty        = msg.get('OrderQty'),
-                       time_in_force    = msg.get('TimeInForce', '1'),
-                       fee              = fee)
+                       user_id              = session.user.id,
+                       account_id           = msg.get('ClientID', account_id ),
+                       user                 = session.user,
+                       username             = session.user.username,
+                       account_user         = account_user,
+                       account_username     = account_user.username,
+                       broker_id            = account_user.broker_id,
+                       broker_username      = account_user.broker_username,
+                       client_order_id      = msg.get('ClOrdID'),
+                       symbol               = msg.get('Symbol'),
+                       side                 = msg.get('Side'),
+                       type                 = msg.get('OrdType'),
+                       price                = msg.get('Price', 0),
+                       order_qty            = msg.get('OrderQty'),
+                       time_in_force        = msg.get('TimeInForce', '1'),
+                       fee                  = fee,
+                       fee_account_id       = fee_account[0],
+                       fee_account_username = fee_account[1],
+                       email_lang           = session.email_lang)
   application.db_session.flush() # just to assign an ID for the order.
 
   OrderMatcher.get(msg.get('Symbol')).match(application.db_session, order)
@@ -359,7 +374,7 @@ def processUpdateUserProfile(session, msg):
   broker_model_fields_writable = []
 
   if is_updating_his_customer_profile:
-    user_model_fields_writable = ['TransactionFeeBuy','TransactionFeeSell','WithdrawEmailValidation','VerificationData','VerificationData', 'TwoFactorEnabled']
+    user_model_fields_writable = ['TransactionFeeBuy','TransactionFeeSell','WithdrawEmailValidation', 'TwoFactorEnabled']
 
   broker_profile = None
   if user.is_broker:
@@ -673,7 +688,7 @@ def processRequestPasswordRequest(session, msg):
   user  = User.get_user( application.db_session, email = msg.get('Email') )
   success = 0
   if user:
-    user.request_reset_password( application.db_session )
+    user.request_reset_password( application.db_session, session.email_lang )
     application.db_session.commit()
     success = 1
 
@@ -942,7 +957,8 @@ def processWithdrawRequest(session, msg):
                                     msg.get('Amount'),
                                     msg.get('Method'),
                                     msg.get('Data', {} ),
-                                    client_order_id )
+                                    client_order_id,
+                                    session.email_lang)
 
   application.db_session.commit()
 
@@ -1155,7 +1171,7 @@ def processRequestDatabaseQuery(session, msg):
 def processCustomerListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
-  status_list = msg.get('StatusList', [0, 1, 2] )
+  status_list = msg.get('StatusList', [0, 1, 2, 3, 4, 5] )
   country     = msg.get('Country', None)
   state       = msg.get('State', None)
   client_id   = msg.get('ClientID', None)
@@ -1231,11 +1247,13 @@ def processCustomerDetailRequest(session, msg):
 def processVerifyCustomer(session, msg):
   broker_id = msg.get('BrokerID')
   verify = msg.get('Verify')
-  if verify == 0 or verify == 2:
+  if verify == 0 or verify >= 2:
     if session.user is None :
       raise NotAuthorizedError()
+
     if session.user is None or session.user.is_broker == False:
       raise NotAuthorizedError()
+
     broker_id = session.user.id
 
   client = User.get_user( application.db_session, user_id= msg.get('ClientID') )
@@ -1245,7 +1263,13 @@ def processVerifyCustomer(session, msg):
   if client.broker_id != broker_id:
     raise NotAuthorizedError()
 
-  client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'))
+  broker = Broker.get_broker(application.db_session, broker_id)
+  broker_accounts  = json.loads(broker.accounts)
+  bonus_account = None
+  if 'bonus' in broker_accounts :
+    bonus_account = broker_accounts['bonus']
+
+  client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'), bonus_account)
 
   application.db_session.commit()
 
@@ -1256,7 +1280,7 @@ def processVerifyCustomer(session, msg):
     'BrokerID'            : msg.get('BrokerID'),
     'Username'            : client.username,
     'Verified'            : client.verified,
-    'VerificationData'    : msg.get('VerificationData')
+    'VerificationData'    : client.verification_data
   }
   return json.dumps(response_msg, cls=JsonEncoder)
 
@@ -1287,7 +1311,9 @@ def processProcessWithdraw(session, msg):
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
 
-    withdraw.set_as_complete( application.db_session, data)
+    broker_fees_account = session.user_accounts['fees']
+
+    withdraw.set_as_complete( application.db_session, data, broker_fees_account)
 
   application.db_session.commit()
 

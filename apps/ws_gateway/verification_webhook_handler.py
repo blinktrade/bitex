@@ -18,7 +18,10 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
     createdAt = int(mktime(dt.timetuple()) + dt.microsecond/1000000.0)
 
 
+
     raw_request = json.loads(self.get_argument('rawRequest'))
+    print raw_request
+
     broker_id             = None
     user_id               = None
     first_name            = None
@@ -39,6 +42,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
     identification_ssn    = None
     identification_tax_id = None
 
+    fields                = []
 
     for key, value in raw_request.iteritems():
       if 'broker_id' in key:
@@ -47,6 +51,8 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
         user_id = int(value)
       if 'ssn' in key:
         identification_ssn = str(value)
+      if 'fields' in key:
+        fields = value.split(',')
       if 'taxId' in key:
         identification_tax_id = str(value)
 
@@ -84,6 +90,14 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       if 'address' in key and isinstance(value, dict ) and 'country' in value:
         address_country = value['country']
 
+    uploaded_files = []
+    for field in fields:
+      for key, value in raw_request.iteritems():
+        if field in key:
+          if isinstance(value, list ):
+            uploaded_files.extend(value)
+          else:
+            uploaded_files.append(value)
 
     import random
     req_id = random.randrange(600000,900000)
@@ -93,7 +107,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       'VerifyCustomerReqID':req_id,
       'ClientID': user_id,
       'BrokerID': broker_id,
-      'VerificationData':  json.dumps({
+      'VerificationData':  {
         'formID': formID,
         'submissionID': submissionID,
         'created_at': createdAt,
@@ -112,7 +126,8 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
         },
         'phone_number': str(phone_number_country) + str(phone_number_area) + str(phone_number_phone),
         'date_of_birth': str(birth_date_year) + '-' +  str(birth_date_month) + '-' + str(birth_date_day),
-      }),
+        'uploaded_files': uploaded_files
+      },
       'Verify': 1
     }
 
@@ -128,6 +143,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       else:
         verify_request_message['VerificationData']['identification'] = {'tax_id': identification_tax_id}
 
+    verify_request_message['VerificationData'] = json.dumps(verify_request_message['VerificationData'])
 
     self.application.application_trade_client.sendJSON(verify_request_message)
     self.write('*ok*')

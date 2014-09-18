@@ -103,6 +103,7 @@ bitex.model.Model.prototype.updateDom = function() {
  * @param {*} value The value to add.
  */
 bitex.model.Model.prototype.set = function(key, value) {
+  var old_value = this.map_.get(key);
   this.map_.set(key, value);
 
   var elements = goog.dom.getElementsByClass('bitex-model', this.element_);
@@ -134,12 +135,14 @@ bitex.model.Model.prototype.set = function(key, value) {
   this.dispatchEvent( new bitex.model.ModelEvent(
       bitex.model.Model.EventType.SET + key,
       key,
-      value));
+      value,
+      old_value));
 
   this.dispatchEvent( new bitex.model.ModelEvent(
       bitex.model.Model.EventType.SET,
       key,
-      value));
+      value,
+      old_value));
 
 };
 
@@ -153,7 +156,7 @@ bitex.model.Model.prototype.set = function(key, value) {
  * @constructor
  * @extends {goog.events.Event}
  */
-bitex.model.ModelEvent = function( type, key, data){
+bitex.model.ModelEvent = function( type, key, data, old_data){
   goog.events.Event.call(this, type);
 
   /** @type {string} */
@@ -161,6 +164,10 @@ bitex.model.ModelEvent = function( type, key, data){
 
   /** @type {Object|string|number|boolean} */
   this.data = data;
+
+  /** @type {Object|string|number|boolean} */
+  this.old_data = old_data;
+
 };
 goog.inherits(bitex.model.ModelEvent, goog.events.Event);
 

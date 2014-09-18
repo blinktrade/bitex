@@ -28,7 +28,23 @@ var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED = goog.getMsg('Verified');
 /**
  * @desc Column Verified YES of the Customer Table
  */
-var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES = goog.getMsg('Yes');
+var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LI = goog.getMsg('Yes - Level I');
+
+/**
+ * @desc Column Verified YES of the Customer Table
+ */
+var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LII = goog.getMsg('Yes - Level II');
+
+/**
+ * @desc Column Verified YES of the Customer Table
+ */
+var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LIII = goog.getMsg('Yes - Level III');
+
+/**
+ * @desc Column Verified YES of the Customer Table
+ */
+var MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LIV = goog.getMsg('Yes - Level IV');
+
 
 /**
  * @desc Column Verified PENDING of the Customer Table
@@ -98,12 +114,19 @@ bitex.ui.Customers = function( opt_domHelper) {
       'label': MSG_CUSTOMER_TABLE_COLUMN_VERIFIED,
       'sortable': false,
       'formatter': function(s){
-        if (s == 2) {
-          return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES;
-        } else if (s == 1) {
-          return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PENDING;
-        } else {
-          return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_NO;
+        switch(s) {
+          case 0:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_NO;
+          case 1:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PENDING;
+          case 2:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LI;
+          case 3:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LII;
+          case 4:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LIII;
+          case 5:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LIV;
         }
       },
       'classes': function() { return goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'verified'); }

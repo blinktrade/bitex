@@ -9,11 +9,14 @@ class Session(object):
     self.remote_ip      = remote_ip
     self.client_version = client_version
 
-    self.user           = None
-    self.is_broker      = False
-    self.profile        = None
-    self.broker         = None
-    self.should_end     = False
+    self.user             = None
+    self.is_broker        = False
+    self.profile          = None
+    self.broker           = None
+    self.should_end       = False
+    self.user_accounts    = None
+    self.broker_accounts  = None
+    self.email_lang       = 'en'
 
   def set_user(self, user):
     if user is None:
@@ -21,22 +24,27 @@ class Session(object):
       self.is_broker = False
       self.profile = None
       self.should_end = False
+      self.email_lang = 'en'
       return
 
     if self.user:
       raise UserAlreadyLogged
     self.user = user
+    self.email_lang = user.email_lang
 
     self.is_broker = self.user.is_broker
 
     from models import Broker
     if self.is_broker:
       self.profile = Broker.get_broker( application.db_session,user.id)
+      self.user_accounts = json.loads(self.profile.accounts)
     else:
       self.profile = user
 
     if user.broker_id is not None:
-      self.broker = Broker.get_broker( application.db_session,user.broker.id)
+      self.broker           = Broker.get_broker( application.db_session,user.broker.id)
+      self.broker_accounts  = json.loads(self.broker.accounts)
+
 
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest

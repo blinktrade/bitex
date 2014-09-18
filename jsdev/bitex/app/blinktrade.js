@@ -471,6 +471,9 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen( this.conn_,bitex.api.BitEx.EventType.WITHDRAW_CONFIRMATION_RESPONSE, this.onBitexWithdrawConfirmationResponse_);
 
   handler.listen( this.conn_, bitex.api.BitEx.EventType.SUGGEST_TRUSTED_ADDRESS_PUBLISH, this.onSuggestTrustedAddress_);
+  handler.listen( this.conn_, bitex.api.BitEx.EventType.UPDATE_PROFILE_RESPONSE, this.onUpdateProfileResponse_);
+
+
 
   handler.listen( document.body, goog.events.EventType.CLICK , this.onBodyClick_);
   handler.listen( document.body, goog.events.EventType.CHANGE , this.onBodyChange_);
@@ -515,9 +518,9 @@ bitex.app.BlinkTrade.prototype.run = function(opt_url) {
   handler.listen(this.views_, bitex.view.View.EventType.UPLOAD_RECEIPT, this.onUserUploadReceipt_);
 
   handler.listen(this.views_, bitex.view.View.EventType.SET_VERIFIED, this.onBrokerSetUserAsVerified_);
-  handler.listen(this.views_, bitex.view.View.EventType.SET_NOT_VERIFIED, this.onBrokerSetUserNotVerified_);
-  handler.listen(this.views_, bitex.view.View.EventType.SET_WITHDRAW_EMAIL, this.onBrokerSetWithdrawEmailConfirmation_);
-  handler.listen(this.views_, bitex.view.View.EventType.RESET_TWOFACTOR, this.onBrokerResetUserTwoFactor_);
+  handler.listen(this.views_, bitex.view.View.EventType.UPDATE_PROFILE, this.onUpdateProfile_ );
+
+  handler.listen(this.views_, bitex.view.View.EventType.FILE_VIEW, this.onUserFileView_);
 
   this.connectBitEx();
 };
@@ -1155,35 +1158,28 @@ bitex.app.BlinkTrade.prototype.onUserConfirmWithdraw_ = function(e){
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.BlinkTrade.prototype.onBrokerResetUserTwoFactor_ = function(e){
+bitex.app.BlinkTrade.prototype.onUpdateProfile_ = function(e){
   var client_id = e.target.getClientID();
-  this.conn_.updateUserProfile({ 'TwoFactorEnabled': false }, client_id);
+  var new_values = e.target.getProfileTagNewValues();
+  this.conn_.updateUserProfile( new_values , client_id);
 };
+
 
 /**
  * @param {goog.events.Event} e
  * @private
  */
-bitex.app.BlinkTrade.prototype.onBrokerSetWithdrawEmailConfirmation_ = function(e){
-  var client_id = e.target.getClientID();
-  var verification_data = e.target.getVerificationData();
-  this.conn_.updateUserProfile(verification_data, client_id);
-};
-
-/**
- * @param {goog.events.Event} e
- * @private
- */
-bitex.app.BlinkTrade.prototype.onBrokerSetUserNotVerified_ = function(e){
-  var request_id = e.target.getRequestId();
-  var client_id = e.target.getClientID();
-
+bitex.app.BlinkTrade.prototype.onUserFileView_ = function(e){
   /**
-   * @desc set as not verified by the broker ß
+   * @desc File view dialog title
    */
-  var MSG_USER_NOT_VERIFIED = goog.getMsg('Set as Not verified by the broker');
+  var MSG_FILE_VIEW_DIALOG_TITLE = goog.getMsg('View');
 
-  this.conn_.verifyCustomer(request_id, client_id, 0, MSG_USER_NOT_VERIFIED);
+
+  var file_view_dialog_content = bitex.templates.FileViewDialogContent( {filename:e.target.getFilename()});
+  this.showDialog( file_view_dialog_content,
+                   MSG_FILE_VIEW_DIALOG_TITLE,
+                   bootstrap.Dialog.ButtonSet.createOk() );
 };
 
 
@@ -1195,8 +1191,9 @@ bitex.app.BlinkTrade.prototype.onBrokerSetUserAsVerified_ = function(e){
   var request_id = e.target.getRequestId();
   var client_id = e.target.getClientID();
   var verification_data = e.target.getVerificationData();
+  var verification_level = e.target.getVerificationLevel();
 
-  this.conn_.verifyCustomer(request_id, client_id, 2, verification_data );
+  this.conn_.verifyCustomer(request_id, client_id, verification_level, verification_data );
 };
 
 /**
@@ -1535,6 +1532,17 @@ bitex.app.BlinkTrade.prototype.onShowReceipt_ = function(e){
   var dlg =  this.showDialog(bitex.templates.DepositReceiptDialogContent({depositReceiptList:receiptData['DepositReceipt']}),
                              MSG_SHOW_DEPOSIT_RECEIPT_DIALOG_TITLE,
                              bootstrap.Dialog.ButtonSet.createOk());
+};
+
+/**
+ * @param {bitex.api.BitExEvent} e
+ * @private
+ */
+bitex.app.BlinkTrade.prototype.onUpdateProfileResponse_ = function(e) {
+  var msg = e.data;
+  var new_profile = msg['Profile'];
+  var model = this.getModel();
+  model.set('SelectedCustomer', new_profile);
 };
 
 /**
@@ -2082,12 +2090,20 @@ bitex.app.BlinkTrade.prototype.onUserDepositRequest_ = function(e){
   goog.array.forEach(this.getModel().get('DepositMethods'), function(deposit_method){
     if (deposit_method.currency == currency) {
 
-      var deposit_method_limit = deposit_method.deposit_limits[ user_verification_level ];
+      var deposit_method_limit;
+
+      for (var x = user_verification_level; x>0;x--) {
+        deposit_method_limit = deposit_method.deposit_limits[ x ];
+        if (goog.isDefAndNotNull(deposit_method_limit)) {
+          break;
+        }
+      }
+
       var deposit_limit = { 'enabled':false };
 
       var has_limits_enabled_on_deposit_method = false;
 
-      if (goog.isDefAndNotNull(deposit_method_limit) && goog.isDefAndNotNull(deposit_method_limit['enabled'])) {
+      if ( goog.isDefAndNotNull(deposit_method_limit) && goog.isDefAndNotNull(deposit_method_limit['enabled'])) {
         has_limits_enabled_on_deposit_method = deposit_method_limit['enabled'];
       }
 

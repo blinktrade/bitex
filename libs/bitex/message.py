@@ -546,18 +546,18 @@ class JsonMessage(BaseMessage):
       self.raise_exception_if_required_tag_is_missing('VerifyCustomerReqID')
       self.raise_exception_if_required_tag_is_missing('ClientID')
       self.raise_exception_if_required_tag_is_missing('Verify')
-      self.raise_exception_if_required_tag_is_missing('VerificationData')
 
       self.raise_exception_if_not_a_integer('VerifyCustomerReqID')
       self.raise_exception_if_not_greater_than_zero('VerifyCustomerReqID')
 
       self.raise_exception_if_not_a_integer('Verify')
-      self.raise_exception_if_not_in('Verify', [0,1,2])
+      self.raise_exception_if_not_in('Verify', [0,1,2,3,4,5])
 
       self.raise_exception_if_not_a_integer('ClientID')
       self.raise_exception_if_not_greater_than_zero('ClientID')
 
-      self.raise_exception_if_empty('VerificationData')
+      if 'VerificationData' in self.message:
+        self.raise_exception_if_empty('VerificationData')
 
 
     elif self.type == 'B9': # Verify Customer Response

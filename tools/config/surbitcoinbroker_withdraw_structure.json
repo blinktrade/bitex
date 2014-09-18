@@ -4,8 +4,16 @@
       "method":"bitcoin",
       "description":"Bitcoin withdrawal",
       "disclaimer": "",
-      "percent_fee":0.,
-      "fixed_fee":0,
+      "percent_fee":0,
+      "fixed_fee": 10000,
+      "limits": {
+        "0": {"enabled": true, "min": 500000, "max": 100000000},
+        "1": {"enabled": true, "min": 500000, "max": 100000000},
+        "2": {"enabled": true, "min": 500000},
+        "3": {"enabled": true, "min": 500000},
+        "4": {"enabled": true, "min": 500000},
+        "5": {"enabled": true, "min": 500000}
+      },
       "fields": [
         {"side":"client", "name": "Wallet"        , "validator":"validateAddress",  "type":"text"  , "value":""       , "label":"Wallet",        "placeholder":"" },
         {"side":"broker", "name": "TransactionID" , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"TransactionID", "placeholder":"" }
@@ -19,6 +27,14 @@
       "disclaimer":"",
       "percent_fee": 1.65,
       "fixed_fee": 0,
+      "limits": {
+        "0": {"enabled": false},
+        "1": {"enabled": false},
+        "2": {"enabled": true, "min": 30000000000, "max":   1200000000000},
+        "3": {"enabled": true, "min": 30000000000, "max":  12000000000000},
+        "4": {"enabled": true, "min": 30000000000, "max": 120000000000000},
+        "5": {"enabled": true, "min": 30000000000}
+      },
       "fields": [
         {"side":"client", "name": "AccountType"  , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Tipo de cuenta", "placeholder":"" },
         {"side":"client", "name": "AccountNumber", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Número de cuenta", "placeholder":"8888 8888 8888 8888 8888" },
@@ -32,6 +48,14 @@
       "disclaimer":"",
       "percent_fee": 2.95,
       "fixed_fee": 0,
+      "limits": {
+        "0": {"enabled": false},
+        "1": {"enabled": false},
+        "2": {"enabled": true, "min": 30000000000, "max":   1200000000000},
+        "3": {"enabled": true, "min": 30000000000, "max":  12000000000000},
+        "4": {"enabled": true, "min": 30000000000, "max": 120000000000000},
+        "5": {"enabled": true, "min": 30000000000}
+      },
       "fields": [
         {"side":"client", "name": "BankName"     ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Nombre del banco", "placeholder": "" },
         {"side":"client", "name": "AccountType"  ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Tipo de cuenta", "placeholder":"" },

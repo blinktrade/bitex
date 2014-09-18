@@ -6,6 +6,8 @@ goog.require('goog.crypt');
 goog.require('goog.crypt.Sha256');
 
 
+
+
 bitex.util.decimalPlaces = function(num) {
   var match = (''+num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
   if (!match) { return 0; }

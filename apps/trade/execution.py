@@ -259,7 +259,7 @@ class OrderMatcher(object):
                           user_id = order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
-                          language= options.global_email_language,
+                          language= order.email_lang,
                           params  = email_data[2])
 
         email_data = generate_email_subject_and_body(session, counter_order, trade)
@@ -267,7 +267,7 @@ class OrderMatcher(object):
                           user_id = counter_order.user_id,
                           subject = email_data[0],
                           template= email_data[1],
-                          language= options.global_email_language,
+                          language= counter_order.email_lang,
                           params  = email_data[2])
 
 

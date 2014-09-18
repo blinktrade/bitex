@@ -1114,7 +1114,7 @@ bitex.api.BitEx.prototype.requestCustomerList = function(opt_requestId, opt_filt
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
   var page = opt_page || 0;
   var limit = opt_limit || 100;
-  var status = opt_status || [0,1,2];
+  var status = opt_status || [0,1,2,3,4,5];
 
   var msg = {
     'MsgType': 'B2',
@@ -1164,18 +1164,20 @@ bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clien
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {number} clientId
  * @param {number} verify
- * @param {string} verificationData
+ * @param {string=} opt_verificationData
  */
-bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, verify, verificationData){
+bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, verify, opt_verificationData){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );
 
   var msg = {
     'MsgType': 'B8',
     'VerifyCustomerReqID': requestId,
     'ClientID': clientId,
-    'Verify':  verify,
-    'VerificationData': verificationData
+    'Verify':  verify
   };
+  if (goog.isDefAndNotNull(opt_verificationData)) {
+    msg['VerificationData'] = opt_verificationData;
+  }
   this.sendMessage(msg);
   return requestId;
 };

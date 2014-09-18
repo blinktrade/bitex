@@ -139,7 +139,8 @@ def main():
                  verified             = verified,
                  is_staff             = is_staff,
                  is_system            = is_system,
-                 is_broker            = is_broker)
+                 is_broker            = is_broker,
+                 email_lang           = config.get(section_name, 'email_lang'))
         session.add(e)
         session.commit()
 
@@ -230,6 +231,7 @@ def main():
                    fee_structure            = json.dumps(fee_structure_json),
                    transaction_fee_buy      = transaction_fee_buy,
                    transaction_fee_sell     = transaction_fee_sell,
+                   accounts                 = config.get(section_name, 'accounts'),
                    status                   = config.get(section_name, 'status'),
                    ranking                  = config.getint(section_name, 'ranking'))
         session.add(e)

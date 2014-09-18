@@ -143,7 +143,7 @@ class User(Base):
   password        = Column(String(128), nullable=False)
 
   verified        = Column(Integer, nullable=False, default=0, index=True)
-  verification_data = Column(String(255), index=True )
+  verification_data = Column(Text, index=True)
   is_staff        = Column(Boolean, nullable=False, default=False)
   is_system       = Column(Boolean, nullable=False, default=False)
   is_broker       = Column(Boolean, nullable=False, default=False)
@@ -159,16 +159,19 @@ class User(Base):
 
   withdraw_email_validation  = Column(Boolean, nullable=False, default=True)
 
+  email_lang       = Column(String, nullable=False)
 
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
            u" password_algo=%r, password_salt=%r, password=%r,"\
            u" state=%r, country_code=%r, transaction_fee_buy=%r, transaction_fee_sell=%r,"\
-           u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, last_login=%r )>" \
+           u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, " \
+           u"last_login=%r,  email_lang=%r)>" \
           % (self.id, self.username, self.email, self.broker_id,
              self.password_algo, self.password_salt, self.password,
              self.state, self.country_code, self.transaction_fee_buy, self.transaction_fee_sell,
-             self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created, self.last_login)
+             self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created,
+             self.last_login, self.email_lang)
 
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
@@ -223,7 +226,7 @@ class User(Base):
       query = query.filter(User.state == state)
 
     if client_id:
-      query = query.filter( or_( User.username.like(client_id), User.email.like(client_id) ) )
+      query = query.filter( or_( User.username.like(client_id), User.email.like('%' + client_id + '%'), User.verification_data.like( '%'  + client_id + '%') ) )
 
 
     if page_size:
@@ -254,7 +257,8 @@ class User(Base):
               state               = state,
               country_code        = country_code,
               broker_id           = broker_id,
-              broker_username     = broker.user.username)
+              broker_username     = broker.user.username,
+              email_lang          = broker.lang)
 
     session.add(u)
     session.commit()
@@ -263,7 +267,7 @@ class User(Base):
                       user_id = u.id,
                       subject = 'W',
                       template= "welcome",
-                      language= options.global_email_language,
+                      language= u.email_lang,
                       params=  json.dumps({
                         'username': u.username,
                         'email': u.email,
@@ -316,15 +320,46 @@ class User(Base):
       self.two_factor_enabled = False
       return ""
 
-  def request_reset_password(self, session):
-    UserPasswordReset.create( session, self.id )
+  def request_reset_password(self, session, email_lang):
+    UserPasswordReset.create( session, self.id , email_lang )
 
-  def set_verified(self, session, verified, verification_data = None ):
+  def set_verified(self, session, verified, verification_data, bonus_account):
+    just_became_verified = False
     if self.verified != verified:
+      if self.verified < 2 and verified >= 2:
+        just_became_verified = True
       self.verified = verified
 
+      verification_data_json = []
       if verification_data:
-        self.verification_data = str(verification_data)
+        if self.verification_data:
+          try:
+            current_verification_data = json.loads(self.verification_data)
+            if isinstance(current_verification_data, list):
+              try:
+                current_verification_data.append(  json.loads(verification_data))
+              except ValueError:
+                current_verification_data.append( { "data": verification_data} )
+            if isinstance(current_verification_data, dict):
+              try:
+                current_verification_data = [ current_verification_data, json.loads(verification_data) ]
+              except ValueError:
+                current_verification_data = [ current_verification_data,  { "data": verification_data} ]
+          except ValueError:
+            try:
+              current_verification_data = [ { "data": self.verification_data }, json.loads(verification_data) ]
+            except ValueError:
+              current_verification_data = [ { "data": self.verification_data }, { "data": verification_data} ]
+          verification_data_json = current_verification_data
+        else:
+          try:
+            verification_data_json = [ json.loads(verification_data) ]
+          except ValueError:
+            verification_data_json = [ { "data" : verification_data } ]
+        verification_data = json.dumps(verification_data_json)
+
+        self.verification_data = verification_data
+
 
       session.add(self)
       session.flush()
@@ -340,42 +375,46 @@ class User(Base):
       application.publish( self.id,  verify_customer_refresh_msg  )
 
       if self.verified == 1:
+        email_params = {
+          'username': self.username,
+          'email': self.email,
+          'state': self.state,
+          'country_code': self.country_code,
+          'id': self.id,
+          'broker_id': self.broker_id,
+          'verified': self.verified,
+          'verification_data': verification_data,
+          'broker_username': self.broker_username
+        }
         UserEmail.create( session = session,
                           user_id = self.broker_id,
                           subject = "VS",
                           template= "customer-verification-submit",
-                          language= options.global_email_language,
-                          params=  json.dumps({
-                            'username': self.username,
-                            'email': self.email,
-                            'state': self.state,
-                            'country_code': self.country_code,
-                            'id': self.id,
-                            'broker_id': self.broker_id,
-                            'verified': self.verified,
-                            'verification_data': verification_data,
-                            'broker_username': self.broker_username}))
+                          language= self.email_lang,
+                          params=  json.dumps(email_params))
+
       elif self.verified > 1:
-        if options.verification_bonus:
+        if just_became_verified and bonus_account:
+
           current_bonus_balance = Balance.get_balance(session,
-                                                      options.verification_bonus['account_id'],
-                                                      options.verification_bonus['broker_id'],
-                                                      options.verification_bonus['currency'])
+                                                      bonus_account[0],
+                                                      self.broker_id,
+                                                      bonus_account[2][0] )
           if current_bonus_balance > 0:
-            bonus_amount = min(current_bonus_balance, options.verification_bonus['amount'])
+            bonus_amount = min(current_bonus_balance, bonus_account[2][1])
             Ledger.transfer(session,
-                            options.verification_bonus['account_id'],       # from_account_id
-                            options.verification_bonus['account_name'],     # from_account_name
-                            options.verification_bonus['broker_id'],        # from_broker_id
-                            options.verification_bonus['broker_username'],  # from_broker_name
-                            self.id,                                        # to_account_id
-                            self.username,                                  # to_account_name
-                            self.broker_id,                                 # to_broker_id
-                            self.broker_username,                           # to_broker_name
-                            options.verification_bonus['currency'],         # currency
-                            bonus_amount,                                   # amount
-                            str(self.id),                                   # reference
-                            'B'                                             # descriptions
+                            bonus_account[0],         # from_account_id
+                            bonus_account[1],         # from_account_name
+                            self.broker_id,           # from_broker_id
+                            self.broker_username,     # from_broker_name
+                            self.id,                  # to_account_id
+                            self.username,            # to_account_name
+                            self.broker_id,           # to_broker_id
+                            self.broker_username,     # to_broker_name
+                            bonus_account[2][0],      # currency
+                            bonus_amount,             # amount
+                            str(self.id),             # reference
+                            'B'                       # descriptions
             )
 
 
@@ -383,7 +422,7 @@ class User(Base):
                           user_id = self.id,
                           subject = u"AV",
                           template= "your-account-has-been-verified",
-                          language= options.global_email_language,
+                          language= self.email_lang,
                           params=  json.dumps({
                             'username': self.username,
                             'email': self.email,
@@ -690,20 +729,20 @@ class Ledger(Base):
   @staticmethod
   def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None):
     balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
-    ledger = Ledger( currency         = currency,
-                     account_id       = from_account_id,
-                     account_name     = from_account_name,
-                     payee_id         = to_account_id,
-                     payee_name       = to_account_name,
-                     broker_id        = from_broker_id,
-                     broker_name      = from_broker_name,
-                     payee_broker_id  = to_broker_id,
-                     payee_broker_name= to_broker_name,
-                     operation        = 'D',
-                     amount           = amount,
-                     balance          = balance,
-                     reference        = reference,
-                     description      = description )
+    ledger = Ledger(currency          = currency,
+                    account_id        = from_account_id,
+                    account_name      = from_account_name,
+                    payee_id          = to_account_id,
+                    payee_name        = to_account_name,
+                    broker_id         = from_broker_id,
+                    broker_name       = from_broker_name,
+                    payee_broker_id   = to_broker_id,
+                    payee_broker_name = to_broker_name,
+                    operation         = 'D',
+                    amount            = amount,
+                    balance           = balance,
+                    reference         = reference,
+                    description       = description)
     session.add(ledger)
 
     balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount)
@@ -843,39 +882,21 @@ class Ledger(Base):
     session.add(counter_order_record_debit)
 
     def process_execution_fee(session,trade_id, order, currency, amount ):
-      balance = Balance.update_balance(session, 'DEBIT', order.account_id, order.account_username, order.broker_id, order.broker_username, currency, amount )
-      order_fee_record = Ledger(currency          = currency,
-                                account_id        = order.account_id,
-                                account_name      = order.account_username,
-                                broker_id         = order.broker_id,
-                                broker_name       = order.broker_username,
-                                payee_id          = order.broker_id,
-                                payee_name        = order.broker_username,
-                                payee_broker_id   = order.broker_id,
-                                payee_broker_name = order.broker_username,
-                                operation         = 'D',
-                                amount            = amount,
-                                balance           = balance,
-                                reference         = trade_id,
-                                description       = 'TF')
-      session.add(order_fee_record)
+      Ledger.transfer(session,
+                      order.account_id,           # from_account_id
+                      order.account_username,     # from_account_name
+                      order.broker_id,            # from_broker_id
+                      order.broker_username,      # from_broker_name
+                      order.fee_account_id,       # to_account_id
+                      order.fee_account_username, # to_account_name
+                      order.broker_id,            # to_broker_id
+                      order.broker_username,      # to_broker_name
+                      currency,                   # currency
+                      amount,                     # amount
+                      trade_id,                   # reference
+                      'TF'                        # descriptions
+      )
 
-      balance = Balance.update_balance(session, 'CREDIT', order.broker_id, order.broker_username, order.broker_id, order.broker_username, currency, amount )
-      broker_fee_record  = Ledger(currency          = currency,
-                                  account_id        = order.broker_id,
-                                  account_name      = order.broker_username,
-                                  broker_id         = order.broker_id,
-                                  broker_name       = order.broker_username,
-                                  payee_id          = order.account_id,
-                                  payee_name        = order.account_username,
-                                  payee_broker_id   = order.broker_id,
-                                  payee_broker_name = order.broker_username,
-                                  operation         = 'C',
-                                  amount            = amount,
-                                  balance           = balance,
-                                  reference         = trade_id,
-                                  description       = 'TF')
-      session.add(broker_fee_record)
 
     order_fee_currency = to_symbol if order.is_buy else from_symbol
     order_fee_base_amount = qty if order.is_buy else total_value
@@ -932,6 +953,8 @@ class Broker(Base):
 
   lang                  = Column(String(5),   nullable=False)
 
+  accounts              = Column(Text)
+
   mem_cache   = {}
 
   @staticmethod
@@ -968,13 +991,13 @@ class Broker(Base):
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
            u"fee_structure=%r, withdraw_structure=%r, " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
-           u"status=%r, ranking=%r, support_url=%r, is_broker_hub=%r ,accept_customers_from=%r )>"% (
+           u"status=%r, ranking=%r, support_url=%r, is_broker_hub=%r ,accept_customers_from=%r, lang=%r, accounts=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure,
       self.transaction_fee_buy, self.transaction_fee_sell,
-      self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from )
+      self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from, self.lang, self.accounts )
 
 class TrustedAddress(Base):
   __tablename__         = 'trusted_address'
@@ -999,7 +1022,7 @@ class TrustedAddress(Base):
 
 
   @staticmethod
-  def suggest_address(session, user_id, username, broker_id, broker_username, address, currency):
+  def suggest_address(session, user_id, username, broker_id, broker_username, address, currency, broker):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
                                                   filter_by(broker_id = broker_id).\
                                                   filter_by(currency = currency).\
@@ -1034,7 +1057,7 @@ class TrustedAddress(Base):
                        user_id  = user_id,
                        subject  = 'CA',
                        template ='confirm_address',
-                       language = options.global_email_language,
+                       language = broker.lang,
                        params   = json.dumps({
                                      'trusted_address_id': rec.id,
                                      'user_id': user_id,
@@ -1101,6 +1124,10 @@ class UserPasswordReset(Base):
   used            = Column(Boolean,       default=False)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
+  def __repr__(self):
+    return "<UserPasswordReset(id=%r, user_id=%r, token=%r, used=%r, created=%r)>" % (
+      self.id, self.user_id, self.token, self.used, self.created)
+
   @staticmethod
   def get_valid_token(session, token):
     req = session.query(UserPasswordReset).filter_by(token = token ).first()
@@ -1132,7 +1159,7 @@ class UserPasswordReset(Base):
     return  True
 
   @staticmethod
-  def create( session, user_id ):
+  def create( session, user_id, email_lang):
     import uuid
     token = uuid.uuid4().hex
 
@@ -1145,7 +1172,7 @@ class UserPasswordReset(Base):
                       user_id = user_id,
                       subject = "RP",
                       template= "password-reset",
-                      language= options.global_email_language,
+                      language= email_lang,
                       params=  json.dumps({'token':token, 'username':req.user.username } ))
 
 class UserEmail(Base):
@@ -1159,6 +1186,11 @@ class UserEmail(Base):
   language        = Column(String,        nullable=True)
   params          = Column(String,        nullable=True)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+
+
+  def __repr__(self):
+    return "<UserEmail(id=%r, user_id=%r, subject=%r, body=%r, template=%r, language=%r,params=%r, created=%r)>" % (
+      self.id, self.user_id, self.subject, self.body, self.template, self.language, self.params, self.created)
 
   @staticmethod
   def create( session, user_id, subject, template=None, language=None, params=None, body = None ):
@@ -1228,6 +1260,7 @@ class Withdraw(Base):
   created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
   reason_id       = Column(Integer)
   reason          = Column(String)
+  email_lang      = Column(String)
 
   client_order_id = Column(String(30), index=True)
 
@@ -1300,7 +1333,7 @@ class Withdraw(Base):
     session.add(self)
     session.flush()
 
-  def set_as_complete(self, session, data=None):
+  def set_as_complete(self, session, data, broker_fees_account):
     if self.status != '2':
       return
 
@@ -1322,8 +1355,8 @@ class Withdraw(Base):
                       self.username,          # from_account_name
                       self.broker_id,         # from_broker_id
                       self.broker_username,   # from_broker_name
-                      self.broker_id,         # to_account_id
-                      self.broker_username,   # to_account_name
+                      broker_fees_account[0], # to_account_id
+                      broker_fees_account[1], # to_account_name
                       self.broker_id,         # to_broker_id
                       self.broker_username,   # to_broker_name
                       self.currency,          # currency
@@ -1381,7 +1414,7 @@ class Withdraw(Base):
                       user_id = self.user_id ,
                       subject = "WC",
                       template=template_name,
-                      language=options.global_email_language,
+                      language= self.email_lang,
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
     return self
 
@@ -1419,7 +1452,7 @@ class Withdraw(Base):
     return query
 
   @staticmethod
-  def create(session, user, broker,  currency, amount, method, data, client_order_id):
+  def create(session, user, broker,  currency, amount, method, data, client_order_id, email_lang):
     import uuid
     confirmation_token = uuid.uuid4().hex
 
@@ -1441,6 +1474,7 @@ class Withdraw(Base):
                                method             = method,
                                currency           = currency,
                                amount             = amount,
+                               email_lang         = email_lang,
                                confirmation_token = confirmation_token,
                                percent_fee        = percent_fee,
                                fixed_fee          = fixed_fee,
@@ -1458,7 +1492,7 @@ class Withdraw(Base):
                         user_id  = user.id,
                         subject  = "CW",
                         template = template_name,
-                        language = options.global_email_language,
+                        language = email_lang,
                         params   = json.dumps(template_parameters, cls=JsonEncoder))
 
     else:
@@ -1472,41 +1506,42 @@ class Withdraw(Base):
   def __repr__(self):
     return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount='%r', " \
            u"broker_username=%r, data=%r, percent_fee=%r, fixed_fee-%r, "\
-           u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r, paid_amount=%r)>" % (
+           u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r, paid_amount=%r, email_lang=%r)>" % (
       self.id, self.user_id, self.account_id, self.broker_id, self.username, self.currency, self.method,self.amount,
       self.broker_username, self.data, self.percent_fee, self.fixed_fee,
-      self.confirmation_token, self.status, self.created, self.reason_id, self.reason, self.paid_amount)
+      self.confirmation_token, self.status, self.created, self.reason_id, self.reason, self.paid_amount, self.email_lang)
 
 class Order(Base):
   __tablename__   = 'orders'
 
-  id              = Column(Integer,       primary_key=True)
-  user_id         = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  foreign_keys=[user_id])
-  username        = Column(String(15),    nullable=False )
-  account_id      = Column(Integer,       ForeignKey('users.id'))
-  account_user    = relationship("User",  foreign_keys=[account_id] )
-  account_username= Column(String(15),    nullable=False )
-  broker_id       = Column(Integer,       ForeignKey('users.id'))
-  broker_user     = relationship("User",  foreign_keys=[broker_id] )
-  broker_username = Column(String(15),    nullable=False )
-  client_order_id = Column(String(30),    nullable=False, index=True)
-  status          = Column(String(1),     nullable=False, default='0', index=True)
-  symbol          = Column(String(12),    nullable=False)
-  side            = Column(String(1),     nullable=False)
-  type            = Column(String(1),     nullable=False, default='2')
-  time_in_force   = Column(String(1),     nullable=False, default='1')
-  price           = Column(Integer,       nullable=False, default=0)
-  order_qty       = Column(Integer,       nullable=False)
-  cum_qty         = Column(Integer,       nullable=False, default=0)
-  leaves_qty      = Column(Integer,       nullable=False, default=0)
-  created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
-  last_price      = Column(Integer,       nullable=False, default=0)
-  last_qty        = Column(Integer,       nullable=False, default=0)
-  average_price   = Column(Integer,       nullable=False, default=0)
-  cxl_qty         = Column(Integer,       nullable=False, default=0)
-  fee             = Column(Integer,       nullable=False, default=0)
-
+  id                    = Column(Integer,       primary_key=True)
+  user_id               = Column(Integer,       ForeignKey('users.id'))
+  user                  = relationship("User",  foreign_keys=[user_id])
+  username              = Column(String(15),    nullable=False )
+  account_id            = Column(Integer,       ForeignKey('users.id'))
+  account_user          = relationship("User",  foreign_keys=[account_id] )
+  account_username      = Column(String(15),    nullable=False )
+  broker_id             = Column(Integer,       ForeignKey('users.id'), nullable=False)
+  broker_username       = Column(String(15),    nullable=False )
+  client_order_id       = Column(String(30),    nullable=False, index=True)
+  status                = Column(String(1),     nullable=False, default='0', index=True)
+  symbol                = Column(String(12),    nullable=False)
+  side                  = Column(String(1),     nullable=False)
+  type                  = Column(String(1),     nullable=False, default='2')
+  time_in_force         = Column(String(1),     nullable=False, default='1')
+  price                 = Column(Integer,       nullable=False, default=0)
+  order_qty             = Column(Integer,       nullable=False)
+  cum_qty               = Column(Integer,       nullable=False, default=0)
+  leaves_qty            = Column(Integer,       nullable=False, default=0)
+  created               = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
+  last_price            = Column(Integer,       nullable=False, default=0)
+  last_qty              = Column(Integer,       nullable=False, default=0)
+  average_price         = Column(Integer,       nullable=False, default=0)
+  cxl_qty               = Column(Integer,       nullable=False, default=0)
+  fee                   = Column(Integer,       nullable=False, default=0)
+  fee_account_id        = Column(Integer,       ForeignKey('users.id'), nullable=False)
+  fee_account_username  = Column(String(15),    nullable=False)
+  email_lang            = Column(String,        nullable=False)
 
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
@@ -1522,11 +1557,13 @@ class Order(Base):
     return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r, client_order_id=%r, " \
            "broker_id=%r, broker_username=%r, time_in_force=%r, " \
            "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, " \
-           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r)>" \
+           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r, " \
+           "fee_account_id=%r, fee_account_username=%r, email_lang=%r)>" \
             % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
                self.broker_id, self.broker_username, self.time_in_force,
                self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
-               self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee)
+               self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee,
+               self.fee_account_id, self.fee_account_username, self.email_lang)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
@@ -1567,24 +1604,28 @@ class Order(Base):
     return  False
 
   @staticmethod
-  def create(session,user_id,account_id,user,username,account_user,account_username,broker_user,
-             broker_username,client_order_id,symbol,side,type,price,order_qty, time_in_force, fee):
-    order = Order( user_id          = user_id,
-                   account_id       = account_id,
-                   user             = user,
-                   username         = username,
-                   account_user     = account_user,
-                   account_username = account_username,
-                   broker_user      = broker_user,
-                   broker_username  = broker_username ,
-                   client_order_id  = client_order_id,
-                   symbol           = symbol,
-                   side             = side,
-                   type             = type,
-                   price            = price,
-                   order_qty        = order_qty,
-                   time_in_force    = time_in_force,
-                   fee              = fee)
+  def create(session,user_id,account_id,user,username,account_user,account_username, broker_id,
+             broker_username,client_order_id,symbol,side,type,price,order_qty, time_in_force,
+             fee, fee_account_id, fee_account_username, email_lang):
+    order = Order( user_id              = user_id,
+                   account_id           = account_id,
+                   user                 = user,
+                   username             = username,
+                   account_user         = account_user,
+                   account_username     = account_username,
+                   broker_id            = broker_id,
+                   broker_username      = broker_username ,
+                   client_order_id      = client_order_id,
+                   symbol               = symbol,
+                   side                 = side,
+                   type                 = type,
+                   price                = price,
+                   order_qty            = order_qty,
+                   time_in_force        = time_in_force,
+                   fee                  = fee,
+                   fee_account_id       = fee_account_id,
+                   fee_account_username = fee_account_username,
+                   email_lang           = email_lang)
     session.add(order)
     return order
 
@@ -1778,16 +1819,19 @@ class Deposit(Base):
 
   reason_id               = Column(Integer)
   reason                  = Column(String)
+  email_lang              = Column(String,     nullable=False)
 
   def __repr__(self):
     return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, " \
            u"deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
            u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, " \
-           u"fixed_fee=%r, percent_fee=%r, client_order_id=%r, data=%r, instructions=%r)>" % (
+           u"fixed_fee=%r, percent_fee=%r, client_order_id=%r, data=%r, instructions=%r," \
+           u"email_lang=%r)>" % (
       self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id,
       self.deposit_option_name, self.broker_deposit_ctrl_num,
       self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason,
-      self.fixed_fee, self.percent_fee, self.client_order_id, self.data, self.instructions )
+      self.fixed_fee, self.percent_fee, self.client_order_id, self.data, self.instructions,
+      self.email_lang)
 
   @staticmethod
   def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret, client_order_id, instructions=None, value=None ):
@@ -1802,6 +1846,7 @@ class Deposit(Base):
         username                = user.username,
         broker_username         = user.broker_username,
         broker_id               = user.broker_id,
+        email_lang              = user.email_lang,
         type                    = 'CRY',
         currency                = currency,
         secret                  = secret,
@@ -1926,6 +1971,7 @@ class Deposit(Base):
     should_start_a_loan_from_broker_to_the_user = False
     should_ask_the_user_to_trust_his_payee_address = False
     payee_address = None
+    broker = None
 
     new_data = {}
     new_data.update(json.loads(self.data))
@@ -1938,7 +1984,8 @@ class Deposit(Base):
     self.paid_value = amount
 
     if self.type == 'CRY' and data:
-      broker = Broker.get_broker( session, self.broker_id  )
+      if not broker:
+        broker = Broker.get_broker( session, self.broker_id  )
       broker_crypto_currencies = json.loads(broker.crypto_currencies)
       crypto_currency_param = None
       for crypto_currency_param in broker_crypto_currencies:
@@ -1988,7 +2035,8 @@ class Deposit(Base):
                                      self.broker_id,
                                      self.broker_username,
                                      payee_address,
-                                     self.currency)
+                                     self.currency,
+                                     self.email_lang )
 
     if should_confirm and self.status == '4':
       # The user probably saved the deposit address and he is sending to the same address
@@ -2090,13 +2138,17 @@ class Deposit(Base):
           total_percent_fee_value = ((val - self.fixed_fee) * (float(self.percent_fee)/100.0))
           total_fees = total_percent_fee_value + self.fixed_fee
           if total_fees:
+            if not broker:
+              broker = Broker.get_broker( session, self.broker_id  )
+            fee_account =  json.loads(broker.accounts)['fees']
+
             Ledger.transfer(session,
                             self.account_id,        # from_account_id
                             self.username,          # from_account_name
                             self.broker_id,         # from_broker_id
                             self.broker_username,   # from_broker_name
-                            self.broker_id,         # to_account_id
-                            self.broker_username,   # to_account_name
+                            fee_account[0],         # to_account_id
+                            fee_account[1],         # to_account_name
                             self.broker_id,         # to_broker_id
                             self.broker_username,   # to_broker_name
                             self.currency,          # currency
@@ -2124,13 +2176,17 @@ class Deposit(Base):
         total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (float(self.percent_fee)/100.0))
         total_fees = total_percent_fee_value + self.fixed_fee
         if total_fees:
+          if not broker:
+            broker = Broker.get_broker( session, self.broker_id  )
+          fee_account =  json.loads(broker.accounts)['fees']
+
           Ledger.transfer(session,
                           self.account_id,        # from_account_id
                           self.username,          # from_account_name
                           self.broker_id,         # from_broker_id
                           self.broker_username,   # from_broker_name
-                          self.broker_id,         # to_account_id
-                          self.broker_username,   # to_account_name
+                          fee_account[0],         # to_account_id
+                          fee_account[1],         # to_account_name
                           self.broker_id,         # to_broker_id
                           self.broker_username,   # to_broker_name
                           self.currency,          # currency
@@ -2256,7 +2312,8 @@ class DepositMethods(Base):
       broker_deposit_ctrl_num = self.broker_deposit_ctrl_num,
       fixed_fee               = self.fixed_fee,
       percent_fee             = self.percent_fee,
-      value                   = value
+      value                   = value,
+      email_lang              = user.email_lang
     )
     if client_order_id:
       deposit.client_order_id =  client_order_id
