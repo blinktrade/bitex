@@ -121,15 +121,15 @@
     <translation id="4580764630041215479">Грешка</translation>
 
     <!-- ../bitex/app/merchant.js -->
-    <translation id="4156107177373728298">Notify me when a new broker arrive in my region</translation>
-    <translation id="1719443865812389312">Invalid confirmation token!</translation>
-    <translation id="7780475408718386756">Withdraw confirmed</translation>
-    <translation id="2490879972594054166">He pays in <ph name="cryptocurrency"/>, you get <ph name="currency"/></translation>
-    <translation id="1984613840831794126">Error</translation>
-    <translation id="5532686595266455930">Invalid amount</translation>
-    <translation id="2896955421225501183">Missing amount</translation>
-    <translation id="8016596510410542846">Passwords does not match</translation>
-    <translation id="8806133580880290311">Payout Error</translation>
+    <translation id="4156107177373728298">Извести ме когато има брокер наоколо</translation>
+    <translation id="1719443865812389312">Заявката за потвърждение е невалидна!</translation>
+    <translation id="7780475408718386756">Тегленето е потвърдено</translation>
+    <translation id="2490879972594054166">Той плаща в <ph name="cryptocurrency"/>, Вие получавате <ph name="currency"/></translation>
+    <translation id="1984613840831794126">Грешка</translation>
+    <translation id="5532686595266455930">Невалидно количество</translation>
+    <translation id="2896955421225501183">Липсващо количество</translation>
+    <translation id="8016596510410542846">Паролите не съвпадат</translation>
+    <translation id="8806133580880290311">Грешка при плащане</translation>
 
     <!-- ../bitex/app/url_router.js -->
 
@@ -140,226 +140,226 @@
     <!-- ../bitex/templates/merchant.soy.js -->
 
     <!-- ../bitex/templates/templates.soy.js -->
-    <translation id="4112774560296927039">Username:</translation>
-    <translation id="2912732596065108180">Error code</translation>
-    <translation id="6907261760401925072">Download</translation>
-    <translation id="4296220550971285066">Control number</translation>
-    <translation id="4472705901299178069">Amount paid</translation>
-    <translation id="6679668639118391823">Fees:</translation>
-    <translation id="9189368320862307296">Net amount</translation>
-    <translation id="5062264377258128813">My broker</translation>
-    <translation id="7501496901609409044">Terms of service</translation>
-    <translation id="1878595583345933413">Phone</translation>
+    <translation id="4112774560296927039">Потребител:</translation>
+    <translation id="2912732596065108180">Грешен код</translation>
+    <translation id="6907261760401925072">Свали</translation>
+    <translation id="4296220550971285066">Идентификатор</translation>
+    <translation id="4472705901299178069">Платено количество</translation>
+    <translation id="6679668639118391823">Такси:</translation>
+    <translation id="9189368320862307296">Количество преди такси</translation>
+    <translation id="5062264377258128813">Моят брокер</translation>
+    <translation id="7501496901609409044">Правила за ползване</translation>
+    <translation id="1878595583345933413">Телефон</translation>
     <translation id="7967165623757583485">P:</translation>
-    <translation id="8065739383860680078">Markets</translation>
-    <translation id="8540732749264498117">Fees</translation>
-    <translation id="8054949212959724587">Operation</translation>
-    <translation id="2999468557463542173">Fee</translation>
-    <translation id="689733087712877941">Terms</translation>
-    <translation id="6642850366885821825">Trade fee</translation>
-    <translation id="3895384696369512234">Trade fee - Buy side</translation>
-    <translation id="1931685470208031431">Trade fee - Sell side</translation>
-    <translation id="4950767338180077661">Wallets</translation>
-    <translation id="7751382040323701583">Coin</translation>
-    <translation id="4805351876988617474">Type</translation>
-    <translation id="7533851232395619919">Address</translation>
-    <translation id="8542947810217885061">Multi signature</translation>
-    <translation id="1036654803205130460">Managed by</translation>
-    <translation id="7780938860376937874">Yes</translation>
-    <translation id="3075743333998898039">No</translation>
-    <translation id="262600148159298395">Enter a reason for cancelling the deposit</translation>
-    <translation id="7331504237070018903">Reason:</translation>
-    <translation id="4866363797614902680">Other</translation>
-    <translation id="8641756746357969551">Enter a reason for cancelling the user withdraw</translation>
-    <translation id="7331504237070018903">Reason:</translation>
-    <translation id="4866363797614902680">Other</translation>
-    <translation id="2872124263995695552">Insufficient funds</translation>
-    <translation id="1750769051523216720">Account not verified</translation>
-    <translation id="6728240705042197453">Suspicion of fraud</translation>
-    <translation id="3313132987280469701">Withdrawing to a different account than yours</translation>
-    <translation id="5177500745203563633">Invalid wallet</translation>
-    <translation id="6545296350987670913">Invalid bank account</translation>
-    <translation id="8638413112185124959">Amount exceeded your daily withdraw limit</translation>
-    <translation id="7011525327340223100">Google Authenticator code:</translation>
-    <translation id="707556265285906962">eg. 555555</translation>
-    <translation id="8174821602628092381">We just sent a confirmation code to your email.</translation>
-    <translation id="5002588433270413301">Confirmation code</translation>
-    <translation id="4772336795492447708">This is security measure to improve your account security</translation>
-    <translation id="1082397015730658819">Buy fee </translation>
-    <translation id="2327127560558817887">Sell fee</translation>
-    <translation id="8476044854846017210">Your account</translation>
-    <translation id="6234092191154646389">Available <ph name="currency"/></translation>
-    <translation id="2931542282780550292"> Deposit</translation>
-    <translation id="672532039726301516"> Withdraw</translation>
-    <translation id="3913856106384869212">Processing deposit request...</translation>
+    <translation id="8065739383860680078">Пазари</translation>
+    <translation id="8540732749264498117">Такси</translation>
+    <translation id="8054949212959724587">Операция</translation>
+    <translation id="2999468557463542173">Такса</translation>
+    <translation id="689733087712877941">Правила</translation>
+    <translation id="6642850366885821825">Такса за търгуване</translation>
+    <translation id="3895384696369512234">Такса на купуващия</translation>
+    <translation id="1931685470208031431">Такса на продаващия</translation>
+    <translation id="4950767338180077661">Портфейли</translation>
+    <translation id="7751382040323701583">Монета</translation>
+    <translation id="4805351876988617474">Тип</translation>
+    <translation id="7533851232395619919">Адрес</translation>
+    <translation id="8542947810217885061">Множествен подпис</translation>
+    <translation id="1036654803205130460">Контролира се от</translation>
+    <translation id="7780938860376937874">Да</translation>
+    <translation id="3075743333998898039">Не</translation>
+    <translation id="262600148159298395">Въведете причина за отказ на депозита</translation>
+    <translation id="7331504237070018903">Причина:</translation>
+    <translation id="4866363797614902680">Друго</translation>
+    <translation id="8641756746357969551">Въведете причина за отказ на потребителско теглене</translation>
+    <translation id="7331504237070018903">Причина:</translation>
+    <translation id="4866363797614902680">Друго</translation>
+    <translation id="2872124263995695552">Няма достатъчно наличност</translation>
+    <translation id="1750769051523216720">Акаунтът не е потвърден</translation>
+    <translation id="6728240705042197453">Подозрение за измама</translation>
+    <translation id="3313132987280469701">Тегли към различен от собственият акаунт</translation>
+    <translation id="5177500745203563633">Невалиден портфейл</translation>
+    <translation id="6545296350987670913">Невалидна банкова сметка</translation>
+    <translation id="8638413112185124959">Количеството надвишава дневният лимит за теглене</translation>
+    <translation id="7011525327340223100">Google Authenticator код:</translation>
+    <translation id="707556265285906962">напр. 555555</translation>
+    <translation id="8174821602628092381">Изпратихме код за потвърждение на Вашият email.</translation>
+    <translation id="5002588433270413301">Код за потвърждение</translation>
+    <translation id="4772336795492447708">Това е мярка, която ще подобри сигурността на Вашият акаунт</translation>
+    <translation id="1082397015730658819">Такса за купуване</translation>
+    <translation id="2327127560558817887">Такса за продаване</translation>
+    <translation id="8476044854846017210">Вашият акаунт</translation>
+    <translation id="6234092191154646389">Наличност <ph name="currency"/></translation>
+    <translation id="2931542282780550292"> Депозит</translation>
+    <translation id="672532039726301516"> Теглене</translation>
+    <translation id="3913856106384869212">Изпълнява заявката за депозит...</translation>
     <translation id="7216165792886101576"> Powered by </translation>
     <translation id="4275766412235812418"> IMPORTANT! </translation>
-    <translation id="2269158700527633822"> We will generate a unique <ph name="currencydescription"/> address that will be valid only for this transaction.</translation>
-    <translation id="6765495350112825099"> Did you understand? </translation>
-    <translation id="2639054144994719384">You can </translation>
-    <translation id="8586009595506445911"> Print </translation>
-    <translation id="7110028873964702084"> or </translation>
-    <translation id="6590413513441078562"> Download </translation>
-    <translation id="6851493927916202736"> the deposit slip</translation>
-    <translation id="6679668639118391823">Fees:</translation>
-    <translation id="6843863187347774461">Percent fee</translation>
-    <translation id="763555391505562072">Fixed fee</translation>
-    <translation id="9189368320862307296">Net amount</translation>
-    <translation id="5725329996632096701">Requested Amount</translation>
-    <translation id="4179283519212098677">We are not accepting deposits at this moment. We sorry for the inconvenience.</translation>
-    <translation id="6679668639118391823">Fees:</translation>
-    <translation id="9189368320862307296">Net amount</translation>
-    <translation id="6679668639118391823">Fees:</translation>
-    <translation id="9189368320862307296">Net amount</translation>
-    <translation id="4707897436830248282">Buy Fee</translation>
-    <translation id="6668532937181281406">Sell Fee</translation>
-    <translation id="7723325992076527303">Available <ph name="code"/></translation>
-    <translation id="7780938860376937874">Yes</translation>
-    <translation id="5926818206032411087">Pending</translation>
-    <translation id="3403435101437158678">Set as NOT verified</translation>
-    <translation id="3075743333998898039">No</translation>
-    <translation id="3021666306058318070">Set as verified</translation>
-    <translation id="7470182973282136325">Enabled</translation>
-    <translation id="1974003013963953370">Disable</translation>
-    <translation id="2184919597071231767">Disabled</translation>
-    <translation id="7470182973282136325">Enabled</translation>
+    <translation id="2269158700527633822"> Ще генерираме уникален <ph name="currencydescription"/> адрес, който ще бъде валиден само за тази транзакция.</translation>
+    <translation id="6765495350112825099"> Разбрахте ли ? </translation>
+    <translation id="2639054144994719384">Можете да </translation>
+    <translation id="8586009595506445911"> Принтирате </translation>
+    <translation id="7110028873964702084"> или </translation>
+    <translation id="6590413513441078562"> Свалите </translation>
+    <translation id="6851493927916202736"> разписка за депозита</translation>
+    <translation id="6679668639118391823">Такси:</translation>
+    <translation id="6843863187347774461">Такса %</translation>
+    <translation id="763555391505562072">Фиксирана такса</translation>
+    <translation id="9189368320862307296">Количество без такса</translation>
+    <translation id="5725329996632096701">Заявено количество</translation>
+    <translation id="4179283519212098677">Не приемаме депозити в момента. Съжаляваме за наудобството.</translation>
+    <translation id="6679668639118391823">Такси:</translation>
+    <translation id="9189368320862307296">Преди такси</translation>
+    <translation id="6679668639118391823">Такси:</translation>
+    <translation id="9189368320862307296">Количество преди такси</translation>
+    <translation id="4707897436830248282">Такса при купуване</translation>
+    <translation id="6668532937181281406">Такса при продаване</translation>
+    <translation id="7723325992076527303">Наличност <ph name="code"/></translation>
+    <translation id="7780938860376937874">Да</translation>
+    <translation id="5926818206032411087">Чакаща</translation>
+    <translation id="3403435101437158678">Промени на НЕПОТВЪРДЕНА</translation>
+    <translation id="3075743333998898039">Не</translation>
+    <translation id="3021666306058318070">Промени на ПОТВРЪДЕНА</translation>
+    <translation id="7470182973282136325">Включено</translation>
+    <translation id="1974003013963953370">Изключено</translation>
+    <translation id="2184919597071231767">Изключено</translation>
+    <translation id="7470182973282136325">Включено</translation>
     <translation id="8523587740438692716">ID</translation>
-    <translation id="1623188531967359459">Username</translation>
+    <translation id="1623188531967359459">Потребител</translation>
     <translation id="7579942901107351213">Email</translation>
-    <translation id="7905181092638420164">State</translation>
-    <translation id="2754069876470065537">Country</translation>
-    <translation id="3348685663359348234">Last login</translation>
-    <translation id="7791596296394746591">Is verified</translation>
-    <translation id="3243379052188717461">Has two step authentication</translation>
-    <translation id="265745910911667722">Registration date</translation>
-    <translation id="5292963672912892753">Needs email confirmation on withdraw</translation>
+    <translation id="7905181092638420164">Щат</translation>
+    <translation id="2754069876470065537">Държава</translation>
+    <translation id="3348685663359348234">Последно влизане</translation>
+    <translation id="7791596296394746591">Идентифицирана самоличност</translation>
+    <translation id="3243379052188717461">Двойна защита</translation>
+    <translation id="265745910911667722">Дата на регистрация</translation>
+    <translation id="5292963672912892753">Има нужда от потвърждение по мейл за тегления</translation>
     <translation id="8523587740438692716">ID</translation>
-    <translation id="1623188531967359459">Username</translation>
+    <translation id="1623188531967359459">Потребител</translation>
     <translation id="7579942901107351213">Email</translation>
-    <translation id="7905181092638420164">State</translation>
-    <translation id="2754069876470065537">Country</translation>
-    <translation id="7791596296394746591">Is verified</translation>
-    <translation id="7780938860376937874">Yes</translation>
-    <translation id="5926818206032411087">Pending</translation>
-    <translation id="3075743333998898039">No</translation>
-    <translation id="7173519882132262740">Verification data</translation>
-    <translation id="199016394919963544">Amount:</translation>
-    <translation id="4670462076425028517">Price per </translation>
-    <translation id="2836929569038606269">Total:</translation>
-    <translation id="8914746547850879819">Fee (optional):</translation>
-    <translation id="403362466876676198">Client ID</translation>
-    <translation id="8282725871353943578">BUY</translation>
-    <translation id="798662724377115710">SELL</translation>
+    <translation id="7905181092638420164">Щат</translation>
+    <translation id="2754069876470065537">Държава</translation>
+    <translation id="7791596296394746591">Идентифицирана самоличност</translation>
+    <translation id="7780938860376937874">Да</translation>
+    <translation id="5926818206032411087">Чака потвърждение</translation>
+    <translation id="3075743333998898039">Не</translation>
+    <translation id="7173519882132262740">Лични данни</translation>
+    <translation id="199016394919963544">Количество:</translation>
+    <translation id="4670462076425028517">Цена за </translation>
+    <translation id="2836929569038606269">Общо:</translation>
+    <translation id="8914746547850879819">Такса (не е задължително):</translation>
+    <translation id="403362466876676198">Клиент ID</translation>
+    <translation id="8282725871353943578">КУПИ</translation>
+    <translation id="798662724377115710">ПРОДАЙ</translation>
 
     <!-- ../bitex/ui/account_activity.js -->
     <translation id="6843864912009919805">ID</translation>
-    <translation id="1159462222642106601">Side</translation>
-    <translation id="3584342616551132388">Date/Time</translation>
-    <translation id="2145987329723512251">Price</translation>
-    <translation id="5088847860270762216">Qty</translation>
-    <translation id="8516168426198762290">Average Price</translation>
-    <translation id="9144502694009394125">Total</translation>
+    <translation id="1159462222642106601">Страна</translation>
+    <translation id="3584342616551132388">Дата/Час</translation>
+    <translation id="2145987329723512251">Цена</translation>
+    <translation id="5088847860270762216">Количество</translation>
+    <translation id="8516168426198762290">Средна цена</translation>
+    <translation id="9144502694009394125">Общо</translation>
 
     <!-- ../bitex/ui/bitex_datagrid.js -->
 
     <!-- ../bitex/ui/bitex_datagrid.soy.js -->
 
     <!-- ../bitex/ui/bitex_listview.js -->
-    <translation id="2008261778269795370">Load more...</translation>
+    <translation id="2008261778269795370">Зареди още...</translation>
 
     <!-- ../bitex/ui/bitex_listview.soy.js -->
 
     <!-- ../bitex/ui/change_password.js -->
 
     <!-- ../bitex/ui/change_password.soy.js -->
-    <translation id="5169040992614327432">Change Your password</translation>
-    <translation id="3541122738598167207">Current password</translation>
-    <translation id="2132507157280997728">New password</translation>
-    <translation id="6501928744832188708">Confirm new password</translation>
-    <translation id="1537136177414539884">Change Password</translation>
+    <translation id="5169040992614327432">Промяна на парола</translation>
+    <translation id="3541122738598167207">Текуща парола</translation>
+    <translation id="2132507157280997728">Нова парола</translation>
+    <translation id="6501928744832188708">Повтори паролата</translation>
+    <translation id="1537136177414539884">Промяна</translation>
 
     <!-- ../bitex/ui/customers.js -->
     <translation id="8760059298648880498">ID</translation>
-    <translation id="4133367714099977955">Username</translation>
-    <translation id="1729488863170893175">Verified</translation>
-    <translation id="3491186699363788719">Yes</translation>
-    <translation id="6632578121110508459">Pending</translation>
-    <translation id="5915224440342247505">No</translation>
+    <translation id="4133367714099977955">Потребител</translation>
+    <translation id="1729488863170893175">Потвърдена самоличност</translation>
+    <translation id="3491186699363788719">Да</translation>
+    <translation id="6632578121110508459">Чака потвърждение</translation>
+    <translation id="5915224440342247505">Не</translation>
     <translation id="7436020073690507077">Email</translation>
-    <translation id="3276120422247338709">Last seen</translation>
-    <translation id="6933140633350718576">Two step</translation>
-    <translation id="7999894366292936662">Yes</translation>
-    <translation id="7174797153832618058">No</translation>
-    <translation id="2250683114899504658">Actions</translation>
-    <translation id="9029307460728334893">details</translation>
-    <translation id="8768222037933950343">Customers</translation>
-    <translation id="932735387409563024">Username or email...</translation>
+    <translation id="3276120422247338709">Последно е влизал на</translation>
+    <translation id="6933140633350718576">Двойна защита</translation>
+    <translation id="7999894366292936662">Да</translation>
+    <translation id="7174797153832618058">Не</translation>
+    <translation id="2250683114899504658">Операции</translation>
+    <translation id="9029307460728334893">детайли</translation>
+    <translation id="8768222037933950343">Клиенти</translation>
+    <translation id="932735387409563024">Потребителско име или E-mail...</translation>
 
     <!-- ../bitex/ui/deposit_list.js -->
     <translation id="3247429058658143016">ID</translation>
-    <translation id="2275475817412574729">Status</translation>
-    <translation id="4543621457073911872">Currency</translation>
-    <translation id="44464766536304077">Value</translation>
-    <translation id="9178685175361105009">Paid Value</translation>
-    <translation id="1665580572794659093">Control Number</translation>
-    <translation id="3517778386433005569">Date/Hour</translation>
-    <translation id="1375361399014237995">Actions</translation>
-    <translation id="2938861513797761752">Details</translation>
-    <translation id="4743851523615792441">Username</translation>
-    <translation id="7620282075969587505">Pending</translation>
-    <translation id="600722792473560585">Unconfirmed</translation>
-    <translation id="6176285210774044206">In progress...</translation>
-    <translation id="6026792161832164223">Completed</translation>
-    <translation id="7036397632746968289">Cancelled</translation>
-    <translation id="3913641214492359043"><ph name="confirmations"/> of <ph name="necessaryconfirmations"/> confirmations</translation>
-    <translation id="2759149318636625432">view</translation>
+    <translation id="2275475817412574729">Състояние</translation>
+    <translation id="4543621457073911872">Валута</translation>
+    <translation id="44464766536304077">Стойност</translation>
+    <translation id="9178685175361105009">Платена стойност</translation>
+    <translation id="1665580572794659093">Идентификатор</translation>
+    <translation id="3517778386433005569">Дата/Час</translation>
+    <translation id="1375361399014237995">Операции</translation>
+    <translation id="2938861513797761752">Детайли</translation>
+    <translation id="4743851523615792441">Потребител</translation>
+    <translation id="7620282075969587505">Чака потвърждение</translation>
+    <translation id="600722792473560585">Непотвърдена</translation>
+    <translation id="6176285210774044206">Изпълнява се...</translation>
+    <translation id="6026792161832164223">Изпълнена</translation>
+    <translation id="7036397632746968289">Отказана</translation>
+    <translation id="3913641214492359043"><ph name="confirmations"/> от <ph name="necessaryconfirmations"/> потвърждения</translation>
+    <translation id="2759149318636625432">изглед</translation>
     <translation id="422360602904317893">qr</translation>
     <translation id="2104385034599419334">blockchain</translation>
-    <translation id="2749775595145403182">cancel</translation>
-    <translation id="988922196815109977">send receipt</translation>
-    <translation id="5394440554501370401">Set in progress</translation>
-    <translation id="6705472919416538814">Set as complete</translation>
-    <translation id="375746394788561917">Where are my coins ?</translation>
-    <translation id="3389792921392396519">Deposits</translation>
-    <translation id="2416953711317405731">Search ...</translation>
+    <translation id="2749775595145403182">отказ</translation>
+    <translation id="988922196815109977">изпрати разписка</translation>
+    <translation id="5394440554501370401">Изпълни</translation>
+    <translation id="6705472919416538814">Изпълнена</translation>
+    <translation id="375746394788561917">Къде са ми монетите ?</translation>
+    <translation id="3389792921392396519">Депозити</translation>
+    <translation id="2416953711317405731">Търси ...</translation>
 
     <!-- ../bitex/ui/ledger_activity.js -->
     <translation id="1585081072702721655">ID</translation>
-    <translation id="4036352431936422565">Date/Time</translation>
-    <translation id="1986398634167090180">Currency</translation>
-    <translation id="7706535402133574921">Amount</translation>
-    <translation id="6846218463222661873">Balance</translation>
-    <translation id="8079786437184763749">Operation</translation>
-    <translation id="8927317210830853911">Description</translation>
-    <translation id="6437712364178588987">Account</translation>
-    <translation id="1764424020363726678">Payee</translation>
-    <translation id="7491030838264972358">Deposit</translation>
-    <translation id="6371917383301427141">Withdraw</translation>
-    <translation id="4512252037284577414">Fee on deposit</translation>
-    <translation id="6185796191548546022">Fee on withdraw</translation>
-    <translation id="3612004234606795475">Trade</translation>
-    <translation id="1850588502751860198">Fee on trade</translation>
-    <translation id="4222722447990676665">Bonus</translation>
-    <translation id="2448291262120463177">Ledger</translation>
-    <translation id="1383812550631336118">Search ...</translation>
+    <translation id="4036352431936422565">Дата/Час</translation>
+    <translation id="1986398634167090180">Валута</translation>
+    <translation id="7706535402133574921">Количество</translation>
+    <translation id="6846218463222661873">Баланс</translation>
+    <translation id="8079786437184763749">Операции</translation>
+    <translation id="8927317210830853911">Описание</translation>
+    <translation id="6437712364178588987">Акаунт</translation>
+    <translation id="1764424020363726678">Бенефициент</translation>
+    <translation id="7491030838264972358">Депозит</translation>
+    <translation id="6371917383301427141">Теглене</translation>
+    <translation id="4512252037284577414">Такса за депозит</translation>
+    <translation id="6185796191548546022">Такса за теглене</translation>
+    <translation id="3612004234606795475">Търгуване</translation>
+    <translation id="1850588502751860198">Такса за търгуване</translation>
+    <translation id="4222722447990676665">Бонус</translation>
+    <translation id="2448291262120463177">Счетоводна книга</translation>
+    <translation id="1383812550631336118">Търсене ...</translation>
 
     <!-- ../bitex/ui/market_view_table.js -->
 
     <!-- ../bitex/ui/market_view_table.soy.js -->
-    <translation id="6761789860829025945">Pair</translation>
-    <translation id="7588541532855702731">Last</translation>
-    <translation id="1282493705187225130">Volume (BTC)</translation>
-    <translation id="8724501863945513834">Volume</translation>
-    <translation id="5744272020028069298">High</translation>
-    <translation id="2664375061587909181">Low</translation>
+    <translation id="6761789860829025945">Двойка</translation>
+    <translation id="7588541532855702731">Последна</translation>
+    <translation id="1282493705187225130">Количество (BTC)</translation>
+    <translation id="8724501863945513834">Количество</translation>
+    <translation id="5744272020028069298">Високо</translation>
+    <translation id="2664375061587909181">Ниско</translation>
 
     <!-- ../bitex/ui/order_book.js -->
     <translation id="6176879802067236637">BID</translation>
     <translation id="3061524675391310528">ASK</translation>
-    <translation id="8422561296832325154">Buyer</translation>
-    <translation id="1288513188612962307">Seller</translation>
-    <translation id="159067789700857238">Amount</translation>
-    <translation id="866909570315155404">Price</translation>
+    <translation id="8422561296832325154">Купувач</translation>
+    <translation id="1288513188612962307">Продавач</translation>
+    <translation id="159067789700857238">Количество</translation>
+    <translation id="866909570315155404">Цена</translation>
 
     <!-- ../bitex/ui/order_book.soy.js -->
 
@@ -367,170 +367,170 @@
 
     <!-- ../bitex/ui/order_manager.js -->
     <translation id="4074349737120839915">ID</translation>
-    <translation id="184338653577089844">Description</translation>
-    <translation id="6178399923739131757">Status</translation>
-    <translation id="2183547009519815142">Side</translation>
-    <translation id="4642438927941107670">Qty</translation>
-    <translation id="2506463809523281007">Price</translation>
-    <translation id="5858834917273196487">Leaves Qty</translation>
+    <translation id="184338653577089844">Описание</translation>
+    <translation id="6178399923739131757">Състояние</translation>
+    <translation id="2183547009519815142">Страна</translation>
+    <translation id="4642438927941107670">Количество</translation>
+    <translation id="2506463809523281007">Цена</translation>
+    <translation id="5858834917273196487">Остави количество</translation>
     <translation id="1975600462777767642">Cum Qty</translation>
-    <translation id="7751096803755647453">Average Price</translation>
-    <translation id="6514769908528820331">Total</translation>
-    <translation id="4650774354751697290">Date/Time</translation>
-    <translation id="5933526165230718177">Actions</translation>
-    <translation id="2354691648543224176">Buy</translation>
-    <translation id="1530868274778197347">Sell</translation>
-    <translation id="7403965749503820895">cancel</translation>
-    <translation id="1746196382534740845">My orders</translation>
-    <translation id="2862418125748017210">Pending</translation>
-    <translation id="7651405300494245365">New</translation>
-    <translation id="7884388121836672294">Partially filled</translation>
-    <translation id="8518549624003419322">Filled</translation>
-    <translation id="4661807207545160901">Cancelled</translation>
+    <translation id="7751096803755647453">Средна цена</translation>
+    <translation id="6514769908528820331">Общо</translation>
+    <translation id="4650774354751697290">Дата/Час</translation>
+    <translation id="5933526165230718177">Операции</translation>
+    <translation id="2354691648543224176">Купи</translation>
+    <translation id="1530868274778197347">Продай</translation>
+    <translation id="7403965749503820895">отказ</translation>
+    <translation id="1746196382534740845">Моите поръчки</translation>
+    <translation id="2862418125748017210">Чака потвърждение</translation>
+    <translation id="7651405300494245365">Нова</translation>
+    <translation id="7884388121836672294">Отчасти попълнена</translation>
+    <translation id="8518549624003419322">Попълнена</translation>
+    <translation id="4661807207545160901">Отказана</translation>
 
     <!-- ../bitex/ui/ranking_view_table.js -->
     <translation id="915633439580628945">#</translation>
-    <translation id="1968731519734795376">Trader</translation>
-    <translation id="2047129337971413573">Broker</translation>
-    <translation id="4868857967898981209">BTC Amount</translation>
-    <translation id="1046984476668106844">Best Traders Ranking</translation>
+    <translation id="1968731519734795376">Търговец</translation>
+    <translation id="2047129337971413573">Брокер</translation>
+    <translation id="4868857967898981209">Количество BTC</translation>
+    <translation id="1046984476668106844">Търговци с най-голям рейтинг</translation>
 
     <!-- ../bitex/ui/simple_chart.js -->
 
     <!-- ../bitex/ui/simple_chart.soy.js -->
 
     <!-- ../bitex/ui/simple_order_entry.js -->
-    <translation id="5884287034048610011">  ** No liquidity, please switch to advanced mode</translation>
+    <translation id="5884287034048610011">  ** Няма ликвидност, моля пуснете отложена поръчка</translation>
 
     <!-- ../bitex/ui/simple_order_entry.soy.js -->
-    <translation id="1197921766103282777"> for a total of </translation>
-    <translation id="2999468557463542173">Fee</translation>
-    <translation id="1784908204503101322">Price per <ph name="cryptocurrencydescription"/> :</translation>
-    <translation id="4412003609716883584">I want to buy</translation>
-    <translation id="2256231961966604601">I want to sell</translation>
-    <translation id="8282725871353943578">BUY</translation>
-    <translation id="798662724377115710">SELL</translation>
+    <translation id="1197921766103282777"> за общо </translation>
+    <translation id="2999468557463542173">Такса</translation>
+    <translation id="1784908204503101322">Цена за <ph name="cryptocurrencydescription"/> :</translation>
+    <translation id="4412003609716883584">Искам да купя</translation>
+    <translation id="2256231961966604601">Искам да продам</translation>
+    <translation id="8282725871353943578">КУПИ</translation>
+    <translation id="798662724377115710">ПРОДАЙ</translation>
 
     <!-- ../bitex/ui/trade_history.js -->
-    <translation id="4910410327565035271">Market</translation>
-    <translation id="1693658932676062163">Date/Hour</translation>
-    <translation id="3516811633575004108">Side</translation>
-    <translation id="4858540636217462881">Price</translation>
-    <translation id="8975033311327362202">Size</translation>
-    <translation id="5250264965574609363">Buyer</translation>
-    <translation id="9122092072746153215">Seller</translation>
-    <translation id="3856612553350016802">Buy</translation>
-    <translation id="5213602312487816796">Sell</translation>
-    <translation id="1757449898703971522">Last trades</translation>
+    <translation id="4910410327565035271">Пазар</translation>
+    <translation id="1693658932676062163">Дата/Час</translation>
+    <translation id="3516811633575004108">Страна</translation>
+    <translation id="4858540636217462881">Цена</translation>
+    <translation id="8975033311327362202">Количество</translation>
+    <translation id="5250264965574609363">Купувач</translation>
+    <translation id="9122092072746153215">Продавач</translation>
+    <translation id="3856612553350016802">Купи</translation>
+    <translation id="5213602312487816796">Продай</translation>
+    <translation id="1757449898703971522">Последни сделки</translation>
 
     <!-- ../bitex/ui/withdraw_list.js -->
     <translation id="6762041175470619352">ID</translation>
-    <translation id="909806336906094688">Status</translation>
-    <translation id="7242207185635924083">Pending</translation>
-    <translation id="7735261519688663855">Unconfirmed</translation>
-    <translation id="7264290103108347770">In progress...</translation>
-    <translation id="1628318838464177695">Completed</translation>
-    <translation id="7096919051167301604">Cancelled</translation>
-    <translation id="7442299103845522435">Currency</translation>
-    <translation id="3872080233688046838">Amount</translation>
-    <translation id="7559187503695037826">Method</translation>
-    <translation id="1996999318694812051">Date/Hour</translation>
-    <translation id="5420114004277219087">Actions</translation>
-    <translation id="2533475876080710712">Details</translation>
-    <translation id="8594999945495338034">Username</translation>
-    <translation id="7362527968218162733">Insufficient funds</translation>
-    <translation id="4967771909416437042">Account not verified</translation>
-    <translation id="8783883206505251684">Suspicion of fraud</translation>
-    <translation id="3237942001375401836">Withdrawing to a different account than yours</translation>
-    <translation id="7736827015127625334">Invalid wallet</translation>
-    <translation id="7456622820695033049">Invalid bank account</translation>
-    <translation id="4196089424197808429">Amount exceeded your daily withdraw limit</translation>
-    <translation id="3126221087311713945">Broker receipt</translation>
-    <translation id="5554907353742462076">view</translation>
-    <translation id="7508953949292168580">Transaction ID</translation>
-    <translation id="8392854148832160165">Wallet</translation>
+    <translation id="909806336906094688">Състояние</translation>
+    <translation id="7242207185635924083">Чака потвърждение</translation>
+    <translation id="7735261519688663855">Непотвърдена</translation>
+    <translation id="7264290103108347770">Изпълнява се...</translation>
+    <translation id="1628318838464177695">Изпълнена</translation>
+    <translation id="7096919051167301604">Отказана</translation>
+    <translation id="7442299103845522435">Валута</translation>
+    <translation id="3872080233688046838">Количество</translation>
+    <translation id="7559187503695037826">Метод</translation>
+    <translation id="1996999318694812051">Дата/Час</translation>
+    <translation id="5420114004277219087">Операции</translation>
+    <translation id="2533475876080710712">Детайли</translation>
+    <translation id="8594999945495338034">Потребител</translation>
+    <translation id="7362527968218162733">Недостатъчна наличност</translation>
+    <translation id="4967771909416437042">Акаунтът не е потвърден</translation>
+    <translation id="8783883206505251684">Опит за измама</translation>
+    <translation id="3237942001375401836">Теглене към различен акаунт от този на собственика</translation>
+    <translation id="7736827015127625334">Невалиден портфейл</translation>
+    <translation id="7456622820695033049">Невалидна банкова сметка</translation>
+    <translation id="4196089424197808429">Заявеното количество превишава дневния лимит за теглене</translation>
+    <translation id="3126221087311713945">Извлечение от брокера</translation>
+    <translation id="5554907353742462076">виж</translation>
+    <translation id="7508953949292168580">Номер на транзакцията</translation>
+    <translation id="8392854148832160165">Портфейл</translation>
     <translation id="5922230183391634320">qr</translation>
     <translation id="8291963583763967920">blockchain</translation>
-    <translation id="6258057536239204930">Account number</translation>
-    <translation id="8058666144467999863">Account holder name</translation>
-    <translation id="4980876197956173096">Bank name</translation>
-    <translation id="5485520759316966153">Bank number</translation>
+    <translation id="6258057536239204930">Номер на сметка</translation>
+    <translation id="8058666144467999863">Титуляр</translation>
+    <translation id="4980876197956173096">Име на банка</translation>
+    <translation id="5485520759316966153">Номер на банка</translation>
     <translation id="4006033223747178362">CPF or CNPJ</translation>
-    <translation id="2925917931628731211">Account branch</translation>
+    <translation id="2925917931628731211">Офис на банката</translation>
     <translation id="6425824923643215371">Routing number</translation>
-    <translation id="3869020421199764518">Bank Swift</translation>
+    <translation id="3869020421199764518">SWIFT код на банката</translation>
     <translation id="7837241883481586846">Email</translation>
-    <translation id="4347989764634792708">Cancel</translation>
-    <translation id="4750973951592223549">Set in progress</translation>
-    <translation id="1851931937177978320">Set as complete</translation>
-    <translation id="2357589092543507459">Withdrawals</translation>
-    <translation id="6379592045370432077">Search ...</translation>
+    <translation id="4347989764634792708">Отказ</translation>
+    <translation id="4750973951592223549">Изпълни</translation>
+    <translation id="1851931937177978320">Изпълнена</translation>
+    <translation id="2357589092543507459">Тегления</translation>
+    <translation id="6379592045370432077">Търсене ...</translation>
 
     <!-- ../bitex/ui/withdraw_method_editor.js -->
 
     <!-- ../bitex/ui/withdraw_method_editor.soy.js -->
-    <translation id="1865141073128722997">Client</translation>
-    <translation id="8705761170122068174">Broker</translation>
-    <translation id="3762026605340701025">Text</translation>
-    <translation id="4877983565534906709">delete</translation>
-    <translation id="2753513039544070249">Method name</translation>
-    <translation id="4858920379799770238">Description</translation>
-    <translation id="289892879088289479">Disclaimer</translation>
-    <translation id="8540732749264498117">Fees</translation>
-    <translation id="7943264533846198777">Custom fields</translation>
-    <translation id="5273095324434944450">Side</translation>
-    <translation id="239483712453182687">Name</translation>
-    <translation id="384312565413808338">Label</translation>
+    <translation id="1865141073128722997">Клиент</translation>
+    <translation id="8705761170122068174">Брокер</translation>
+    <translation id="3762026605340701025">Текст</translation>
+    <translation id="4877983565534906709">изтрий</translation>
+    <translation id="2753513039544070249">Име на метод</translation>
+    <translation id="4858920379799770238">Описание</translation>
+    <translation id="289892879088289479">Отговорност</translation>
+    <translation id="8540732749264498117">Такси</translation>
+    <translation id="7943264533846198777">Допълнителни полета</translation>
+    <translation id="5273095324434944450">Страна</translation>
+    <translation id="239483712453182687">Име</translation>
+    <translation id="384312565413808338">Текст</translation>
     <translation id="4901908982160453125">Placeholder</translation>
-    <translation id="4805351876988617474">Type</translation>
-    <translation id="4634392280884375732">Validator</translation>
-    <translation id="2268065814336572889">Value</translation>
-    <translation id="1995910970157127627">Actions</translation>
-    <translation id="3366375422229336602">Add field</translation>
+    <translation id="4805351876988617474">Тип</translation>
+    <translation id="4634392280884375732">Валидатор</translation>
+    <translation id="2268065814336572889">Стойност</translation>
+    <translation id="1995910970157127627">Операции</translation>
+    <translation id="3366375422229336602">Добави поле</translation>
 
     <!-- ../bitex/ui/withdraw_methods.js -->
-    <translation id="7757386014172837992">Edit withdraw method</translation>
-    <translation id="2520763755149521817">Add withdraw method</translation>
+    <translation id="7757386014172837992">Редактирай метод за теглене</translation>
+    <translation id="2520763755149521817">Добави метод за теглене</translation>
 
     <!-- ../bitex/ui/withdraw_methods.soy.js -->
-    <translation id="5299793153495359249">Currency</translation>
-    <translation id="239483712453182687">Name</translation>
-    <translation id="289892879088289479">Disclaimer</translation>
-    <translation id="8540732749264498117">Fees</translation>
-    <translation id="1995910970157127627">Actions</translation>
-    <translation id="8083376732741125235">edit</translation>
-    <translation id="4877983565534906709">delete</translation>
-    <translation id="1145421846442959153">Save</translation>
-    <translation id="2724952544111354077">Cancel</translation>
-    <translation id="8754493725691621942">Add withdraw method</translation>
-    <translation id="5453151655258368364">Saving...</translation>
+    <translation id="5299793153495359249">Валута</translation>
+    <translation id="239483712453182687">Име</translation>
+    <translation id="289892879088289479">Отговорност</translation>
+    <translation id="8540732749264498117">Такси</translation>
+    <translation id="1995910970157127627">Операции</translation>
+    <translation id="8083376732741125235">редактиране</translation>
+    <translation id="4877983565534906709">изтриване</translation>
+    <translation id="1145421846442959153">Запази</translation>
+    <translation id="2724952544111354077">Отказ</translation>
+    <translation id="8754493725691621942">Добави метод за теглене</translation>
+    <translation id="5453151655258368364">Запазване...</translation>
 
     <!-- ../bitex/util/util.js -->
 
     <!-- ../bitex/view/account_activity.js -->
 
     <!-- ../bitex/view/account_overview.js -->
-    <translation id="1756325739087482709">Set custom user fees</translation>
-    <translation id="6071283367687866482">Enter verification data</translation>
-    <translation id="1616094584678266028">declared / paid in <ph name="currencydesc"/></translation>
+    <translation id="1756325739087482709">Настройка на допълнителна такса</translation>
+    <translation id="6071283367687866482">Въведете верифициращи (лични) данни</translation>
+    <translation id="1616094584678266028">декларирано / платено в <ph name="currencydesc"/></translation>
 
     <!-- ../bitex/view/broker.js -->
 
     <!-- ../bitex/view/customers.js -->
 
     <!-- ../bitex/view/deposit.js -->
-    <translation id="7310406960338836164">declared / paid in <ph name="currencydesc"/></translation>
+    <translation id="7310406960338836164">декларирано / платено в <ph name="currencydesc"/></translation>
 
     <!-- ../bitex/view/forgot_password.js -->
-    <translation id="1019142662678297310">Invalid email address</translation>
+    <translation id="1019142662678297310">Невалиден E-mail</translation>
 
     <!-- ../bitex/view/ledger.js -->
-    <translation id="2757472766157151390">All currencies</translation>
-    <translation id="4744801026989562082">My customers</translation>
+    <translation id="2757472766157151390">Всички валути</translation>
+    <translation id="4744801026989562082">Моите клиенти</translation>
 
     <!-- ../bitex/view/login.js -->
-    <translation id="456918652210863713">Invalid username</translation>
-    <translation id="8640549489502576540">Password must have at least 8 characters</translation>
+    <translation id="456918652210863713">Невалидно потребителско име</translation>
+    <translation id="8640549489502576540">Паролата трябва да има поне 8 символа</translation>
 
     <!-- ../bitex/view/market.js -->
 
@@ -539,44 +539,44 @@
     <!-- ../bitex/view/offerbook.js -->
 
     <!-- ../bitex/view/profile.js -->
-    <translation id="2858393135112587568">Password must not be empty</translation>
-    <translation id="8148281545774779117">New password must have at least 8 characters</translation>
-    <translation id="9169640891730664289">Passwords does not match</translation>
+    <translation id="2858393135112587568">Паролата не може да бъде празна</translation>
+    <translation id="8148281545774779117">Новата парола трябва да има поне 8 символа</translation>
+    <translation id="9169640891730664289">Паролите не съвпадат</translation>
 
     <!-- ../bitex/view/ranking.js -->
 
     <!-- ../bitex/view/set_new_password.js -->
-    <translation id="3757804423543063307">Invalid confirmation code</translation>
-    <translation id="1924047624752361130">Password must have at least 8 characters</translation>
-    <translation id="1819752015791513766">Passwords does not match</translation>
+    <translation id="3757804423543063307">Невалиден код за потвърждение</translation>
+    <translation id="1924047624752361130">Паролата трябва да има поне 8 символа</translation>
+    <translation id="1819752015791513766">Паролите не съвпадат</translation>
 
     <!-- ../bitex/view/side_bar.js -->
-    <translation id="6988687481082965276">My customers</translation>
+    <translation id="6988687481082965276">Моите клиенти</translation>
 
     <!-- ../bitex/view/singup.js -->
-    <translation id="824760302463696685">Invalid username</translation>
-    <translation id="6360277786240269656">Invalid email</translation>
-    <translation id="4970940983930735928">Password must have at least 8 characters</translation>
-    <translation id="376556933125593961">Passwords does not match</translation>
+    <translation id="824760302463696685">Невалидно потребителско име</translation>
+    <translation id="6360277786240269656">Невалиден E-mail</translation>
+    <translation id="4970940983930735928">Паролата трябва да има поне 8 символа</translation>
+    <translation id="376556933125593961">Паролите не съвпадат</translation>
 
     <!-- ../bitex/view/tool_bar.js -->
 
     <!-- ../bitex/view/trading.js -->
-    <translation id="1018659621973695009">Buying <ph name="buyqty"/></translation>
-    <translation id="2558205583188831232">Selling <ph name="sellqty"/></translation>
-    <translation id="5538420626107837552">Bought <ph name="cumboughtqty"/> of <ph name="boughtqty"/></translation>
-    <translation id="2632768407381513570">Sold <ph name="cumsoldqty"/> of <ph name="soldqty"/></translation>
-    <translation id="9136647129258822022">Bought <ph name="boughtcumqty"/></translation>
-    <translation id="751385212445336949">Sold <ph name="souldcumqty"/></translation>
-    <translation id="5690696186287822771">Cancelled order to buy <ph name="cancelledbuyorderqty"/></translation>
-    <translation id="1958906512165615859">Cancelled order to sell <ph name="cancelledsellorderqty"/></translation>
-    <translation id="5678612155514869681">Sending...</translation>
-    <translation id="5324543943830920360">Waiting buyers</translation>
-    <translation id="676511361642673915">Waiting sellers</translation>
-    <translation id="2062170840589308991">Partially bought</translation>
-    <translation id="5941229271714249867">Partially sold</translation>
-    <translation id="3212466651503018463">Done</translation>
-    <translation id="665737134997884109">Cancelled</translation>
+    <translation id="1018659621973695009">Купува <ph name="buyqty"/></translation>
+    <translation id="2558205583188831232">Продава <ph name="sellqty"/></translation>
+    <translation id="5538420626107837552">Купи <ph name="cumboughtqty"/> of <ph name="boughtqty"/></translation>
+    <translation id="2632768407381513570">Продаде <ph name="cumsoldqty"/> of <ph name="soldqty"/></translation>
+    <translation id="9136647129258822022">Купено <ph name="boughtcumqty"/></translation>
+    <translation id="751385212445336949">Продадено <ph name="souldcumqty"/></translation>
+    <translation id="5690696186287822771">Отказана поръчка за купуване <ph name="cancelledbuyorderqty"/></translation>
+    <translation id="1958906512165615859">Отказана поръчка за продаване <ph name="cancelledsellorderqty"/></translation>
+    <translation id="5678612155514869681">Изпраща...</translation>
+    <translation id="5324543943830920360">Чака купувачи</translation>
+    <translation id="676511361642673915">Чака продавачи</translation>
+    <translation id="2062170840589308991">Частично купени</translation>
+    <translation id="5941229271714249867">Частично продадени</translation>
+    <translation id="3212466651503018463">Готово</translation>
+    <translation id="665737134997884109">Отказана</translation>
 
     <!-- ../bitex/view/two_factor.js -->
 
