@@ -568,8 +568,8 @@
     <translation id="2632768407381513570">Продаде <ph name="cumsoldqty"/> of <ph name="soldqty"/></translation>
     <translation id="9136647129258822022">Купено <ph name="boughtcumqty"/></translation>
     <translation id="751385212445336949">Продадено <ph name="souldcumqty"/></translation>
-    <translation id="5690696186287822771">Cancelled order to buy <ph name="cancelledbuyorderqty"/></translation>
-    <translation id="1958906512165615859">Cancelled order to sell <ph name="cancelledsellorderqty"/></translation>
+    <translation id="5690696186287822771">Отказана поръчка за купуване <ph name="cancelledbuyorderqty"/></translation>
+    <translation id="1958906512165615859">Отказана поръчка за продаване <ph name="cancelledsellorderqty"/></translation>
     <translation id="5678612155514869681">Изпраща...</translation>
     <translation id="5324543943830920360">Чака купувачи</translation>
     <translation id="676511361642673915">Чака продавачи</translation>
