@@ -2606,8 +2606,23 @@ bitex.app.BlinkTrade.prototype.onBeforeSetView_ = function(e){
 
     if (element_view_name === view_id) {
       goog.dom.classes.add( view_el, 'bitex-view-active' );
+
+      if ( !goog.dom.classes.has(view_el, 'bitex-view-always-show') ) {
+        if ( !goog.dom.classes.has(view_el, 'bitex-view-' + view_id) ) {
+            goog.style.showElement ( view_el, true);
+        } else {
+          goog.style.showElement( view_el, false);
+        }
+      }
     } else {
       goog.dom.classes.remove( view_el, 'bitex-view-active' );
+      if (!goog.dom.classes.has(view_el, 'bitex-view-always-show') ) {
+        if ( goog.dom.classes.has(view_el, 'bitex-view-' + view_id) ) {
+          goog.style.showElement ( view_el, true);
+        } else {
+          goog.style.showElement ( view_el, false);
+        }
+      }
     }
   }, this);
 };

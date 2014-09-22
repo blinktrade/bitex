@@ -369,56 +369,6 @@
   <div id="id_customers_well"></div>
 </div>
 
-<div id="account_activity" class="bitex-view">
-  <div class="section-title">
-    <h3 class="bitex-view-title">History</h3>
-  </div>
-  <div class="bitex-view-content">
-    <div id="id_trade_history_well"></div>
-  </div>
-</div>
-
-<div id="enable_two_factor" class="bitex-view">
-  <div class="section-title">
-    <h3 class="bitex-view-title">Enable or Disable Two steps authentication</h3>
-  </div>
-
-  <div class="content bitex-view-content">
-
-    <div class="well span6">
-      <div id="id_enable_two_factor_div" class="form-horizontal ">
-
-        <div class="control-group">
-          <label class="control-label">Key</label>
-          <div class="controls">
-            <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <div class="controls">
-            <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label class="control-label">Authentication code</label>
-          <div class="controls">
-            <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
-          </div>
-        </div>
-
-      </div>
-
-      <button id="id_btn_enable_two_factor" class="btn btn-primary">Enable</button>
-      <button id="id_btn_disable_two_factor" class="btn btn-danger">Disable</button>
-
-    </div>
-
-  </div>
-
-</div>
-
 <div id="my_broker" class="bitex-view">
    <div  class="bitex-view-title"></div>
    <div class="bitex-view-content"></div>
@@ -448,7 +398,7 @@
 
 </div>
 
-<div id="withdraw">
+<div id="withdraw" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Withdrawals</h3>
   </div>
@@ -460,7 +410,7 @@
   </div>
 </div>
 
-<div id="withdraw_requests">
+<div id="withdraw_requests" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Withdrawals requests</h3>
   </div>
@@ -470,7 +420,7 @@
   </div>
 </div>
 
-<div id="deposit">
+<div id="deposit" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Deposits</h3>
   </div>
@@ -482,7 +432,7 @@
   </div>
 </div>
 
-<div id="deposit_requests">
+<div id="deposit_requests" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Deposit requests</h3>
   </div>
@@ -493,7 +443,7 @@
 </div>
 
 
-<div id="ledger">
+<div id="ledger" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Ledger</h3>
   </div>
@@ -555,7 +505,20 @@
 
 </div>
 
-<div id="id_sidebar" class="span3 sidebar bitex-view">
+<div id="id_sidebar" class="span3 sidebar bitex-view
+                                          bitex-view-profile
+                                          bitex-view-trading
+                                          bitex-view-offerbook
+                                          bitex-view-customers
+                                          bitex-view-account_overview
+                                          bitex-view-withdraw
+                                          bitex-view-withdraw_requests
+                                          bitex-view-deposit
+                                          bitex-view-deposit_requests
+                                          bitex-view-ledger
+                                          bitex-view-settings
+                                          bitex-view-my_broker
+                                          bitex-view-verification">
   <h3><span class="bitex-model bitex-view-title" data-model-key="Username"  style="display: none"></span>Announcements</h3>
   <div class="bitex-view-content">
       <div id="account_balance" style="display: none">

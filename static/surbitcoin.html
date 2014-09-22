@@ -52,7 +52,7 @@
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
-<div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top">
+<div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top bitex-view-always-show">
   <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="/start"><img src="/images/surbitcoinbeta.png" style="
@@ -62,7 +62,8 @@
         "></a>
 
       <ul class="nav navbar-nav pull-right">
-        <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Mercado</a></li>
+        <li class="bitex-display-if-logged"><a href="" data-switch-view="offerbook">Negociaciones</a></li>
+        <li><a href="" data-switch-view="market">Mercado</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Ingresar</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Registrarse</a></li>
         <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn-link" style="padding: 6px 15px 10px;" >connect <i class="icon-white icon-repeat"></i></button></li>
@@ -536,7 +537,20 @@
 
 </div>
 
-<div id="id_sidebar" class="span3 sidebar bitex-view">
+<div id="id_sidebar" class="span3 sidebar bitex-view
+                                          bitex-view-profile
+                                          bitex-view-trading
+                                          bitex-view-offerbook
+                                          bitex-view-customers
+                                          bitex-view-account_overview
+                                          bitex-view-withdraw
+                                          bitex-view-withdraw_requests
+                                          bitex-view-deposit
+                                          bitex-view-deposit_requests
+                                          bitex-view-ledger
+                                          bitex-view-settings
+                                          bitex-view-my_broker
+                                          bitex-view-verification">
   <h3><span class="bitex-model bitex-view-title" data-model-key="Username"></span></h3>
   <div class="bitex-view-content">
       <div id="account_balance" style="">

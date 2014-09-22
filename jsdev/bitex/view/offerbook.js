@@ -59,6 +59,16 @@ bitex.view.OfferBookView.prototype.order_id_;
 bitex.view.OfferBookView.prototype.client_order_id;
 
 /**
+ * @type {bitex.ui.AdvancedOrderEntry}
+ */
+bitex.view.OfferBookView.prototype.buy_order_entry_;
+
+/**
+ * @type {bitex.ui.AdvancedOrderEntry}
+ */
+bitex.view.OfferBookView.prototype.sell_order_entry_;
+
+/**
  * The events fired
  * @enum {string} The event types
  */
@@ -80,7 +90,6 @@ bitex.view.OfferBookView.prototype.exitView = function() {
   this.destroyOrderBookComponents_();
 };
 
-
 /**
  * @param {Element} element Element to decorate.
  * @protected
@@ -88,11 +97,15 @@ bitex.view.OfferBookView.prototype.exitView = function() {
 bitex.view.OfferBookView.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
 
-  var buy_order_entry = new bitex.ui.AdvancedOrderEntry( {side: 1, type:2} );
-  var sell_order_entry = new bitex.ui.AdvancedOrderEntry( {side: 2, type:2} );
+  this.buy_order_entry_ = new bitex.ui.AdvancedOrderEntry( {side: 1, type:2} );
+  this.sell_order_entry_ = new bitex.ui.AdvancedOrderEntry( {side: 2, type:2} );
 
-  this.addChild(buy_order_entry, true);
-  this.addChild(sell_order_entry, true);
+  this.getContentElement = function() {
+    return goog.dom.getElement('offer_book_order_entry_content');
+  };
+
+  this.addChild(this.buy_order_entry_, true);
+  this.addChild(this.sell_order_entry_, true);
 };
 
 /**
@@ -190,27 +203,25 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
  */
 bitex.view.OfferBookView.prototype.onSelectedBrokerID_ = function(e){
   var model = this.getApplication().getModel();
-  var buy_order_entry = this.getChildAt(0);
-  var sell_order_entry = this.getChildAt(1);
 
   var selected_broker_id = model.get('SelectedBrokerID');
   var selected_symbol = model.get('SelectedSymbol');
   selected_symbol = goog.isDefAndNotNull(selected_symbol) ? selected_symbol.symbol : null;
 
   var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
-  buy_order_entry.setBrokerID(selected_broker_id);
-  sell_order_entry.setBrokerID(selected_broker_id);
+  this.buy_order_entry_.setBrokerID(selected_broker_id);
+  this.sell_order_entry_.setBrokerID(selected_broker_id);
 
   var market = selectedBroker['AllowedMarkets'][selected_symbol];
-  goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
-  goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
+  goog.style.showElement( this.sell_order_entry_.getElement(), goog.isDefAndNotNull( market));
+  goog.style.showElement( this.buy_order_entry_.getElement(), goog.isDefAndNotNull( market));
 
   if (model.get('IsBroker')) {
-    buy_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
-    sell_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+    this.buy_order_entry_.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+    this.sell_order_entry_.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
   } else {
-    buy_order_entry.setBrokerMode(false);
-    sell_order_entry.setBrokerMode(false);
+    this.buy_order_entry_.setBrokerMode(false);
+    this.sell_order_entry_.setBrokerMode(false);
   }
 };
 
@@ -225,42 +236,39 @@ bitex.view.OfferBookView.prototype.onSelectedSymbol_ = function(e){
   var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
   var symbol = selected_symbol.symbol;
 
-  var buy_order_entry = this.getChildAt(0);
-  var sell_order_entry = this.getChildAt(1);
-
-  buy_order_entry.setSymbol(symbol);
+  this.buy_order_entry_.setSymbol(symbol);
   if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
-    buy_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
+    this.buy_order_entry_.setAmountCurrencySign( selected_symbol.qty_currency.sign );
   }
   if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
-    buy_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+    this.buy_order_entry_.setPriceCurrencySign( selected_symbol.price_currency.sign );
   }
 
-  sell_order_entry.setSymbol(symbol);
+  this.sell_order_entry_.setSymbol(symbol);
   if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
-    sell_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
+    this.sell_order_entry_.setAmountCurrencySign( selected_symbol.qty_currency.sign );
   }
   if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
-    sell_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+    this.sell_order_entry_.setPriceCurrencySign( selected_symbol.price_currency.sign );
   }
 
-  buy_order_entry.setBrokerID(selected_broker_id);
-  sell_order_entry.setBrokerID(selected_broker_id);
+  this.buy_order_entry_.setBrokerID(selected_broker_id);
+  this.sell_order_entry_.setBrokerID(selected_broker_id);
 
   var market;
   if (goog.isDefAndNotNull(selectedBroker)) {
     market = selectedBroker['AllowedMarkets'][symbol];
   }
 
-  goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
-  goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
+  goog.style.showElement( this.sell_order_entry_.getElement(), goog.isDefAndNotNull( market));
+  goog.style.showElement( this.buy_order_entry_.getElement(), goog.isDefAndNotNull( market));
 
   if (model.get('IsBroker')) {
-    buy_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
-    sell_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+    this.buy_order_entry_.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+    this.sell_order_entry_.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
   } else {
-    buy_order_entry.setBrokerMode(false);
-    sell_order_entry.setBrokerMode(false);
+    this.buy_order_entry_.setBrokerMode(false);
+    this.sell_order_entry_.setBrokerMode(false);
   }
 
   this.recreateOrderBookComponents_(selected_symbol);
