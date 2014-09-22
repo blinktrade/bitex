@@ -79,10 +79,33 @@
             <div class="controls">
               <div class="row-fluid">
                 <div class="span6">
-                  <input id="{$id}_percent_fee"  type="text" class="input-block-level" autocomplete="off" maxlength="4" data-uniform-filters="number" data-uniform-validators="required ; validateNumber; validateMin 0; validateMax 100"  placeholder="Percent fee" required value="{$model['percent_fee'] }">
+                  <div class="input-append">
+                    <input id="{$id}_percent_fee"
+                           type="text"
+                           class="input-block-level"
+                           autocomplete="off"
+                           maxlength="4"
+                           data-uniform-filters="positive_number"
+                           data-uniform-validators="required ; validateNumber; validateMin 0; validateMax 25"
+                           label="{msg desc="Percent fee placeholder"}Percent fee{/msg}"
+                           required
+                           value="{$model['percent_fee'] }">
+                    <span class="add-on">%</span>
+                  </div>
                 </div>
                 <div class="span6">
-                  <input id="{$id}_fixed_fee" type="text" class="input-block-level" autocomplete="off" data-uniform-filters="number" data-uniform-validators="required ; validateNumber" placeholder="Fixed fee" required value="{ $model['fixed_fee'] }">
+                  <div class="input-prepend">
+                    <span class="add-on">{$model['currency']}</span>
+                    <input id="{$id}_fixed_fee"
+                           type="text"
+                           class="input-block-level"
+                           autocomplete="off"
+                           data-uniform-filters="positive_number"
+                           data-uniform-validators="required ; validateNumber; validateMin 0"
+                           label="{msg desc="Fixed fee placeholder"}Fixed fee{/msg}"
+                           required
+                           value="{ $model['fixed_fee'] }">
+                  </div>
                 </div>
               </div>
             </div>
@@ -163,7 +186,7 @@
                       class="input-small withdraw-method-editor-limit-max"
                       data-uniform-label="{msg desc="Limit table field header"}Min{/msg}"
                       data-uniform-validators="validateNumber; validateMin 0"
-                      data-uniform-filters="number"
+                      data-uniform-filters="positive_number"
                       data-uniform-meta="display If {$id}_level_{$level}_enabled == 'on'; enable If {$id}_level_{$level}_enabled == 'on'"
                       value="
                       {if $model['limits'] and $model['limits'][$level] and $model['limits'][$level]['min'] }
@@ -182,7 +205,7 @@
                        class="input-small withdraw-method-editor-limit-max"
                        data-uniform-label="{msg desc="Limit table field header"}Max{/msg}"
                        data-uniform-validators="validateNumber"
-                       data-uniform-filters="number"
+                       data-uniform-filters="positive_number"
                        data-uniform-meta="display If {$id}_level_{$level}_enabled == 'on'; enable If {$id}_level_{$level}_enabled == 'on'""
                        value="
                         {if $model['limits'] and $model['limits'][$level] and $model['limits'][$level]['max'] }

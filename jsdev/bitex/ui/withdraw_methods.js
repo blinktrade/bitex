@@ -219,6 +219,7 @@ bitex.ui.WithdrawMethods.prototype.onActionEdit_ = function(){
 
   var withdraw_method_editor = new  bitex.ui.WithdrawMethodEditor();
   var withdraw_method_editor_model = goog.object.unsafeClone(this.getModel()['withdraw_methods'][this.selected_currency_][idx]);
+  withdraw_method_editor_model['currency'] = this.selected_currency_;
   withdraw_method_editor.setModel(withdraw_method_editor_model);
 
   /**
@@ -315,6 +316,7 @@ bitex.ui.WithdrawMethods.prototype.onAddField_ = function(e) {
 
     var withdraw_method_editor = new  bitex.ui.WithdrawMethodEditor();
     withdraw_method_editor.setModel({
+                                      'currency' : this.selected_currency_,
                                       'description': '',
                                       'disclaimer': '',
                                       'fields': [],
@@ -322,7 +324,6 @@ bitex.ui.WithdrawMethods.prototype.onAddField_ = function(e) {
                                       'method': '',
                                       'percent_fee': ''
                                     });
-
     var buttonSet = bootstrap.Dialog.ButtonSet.createOkCancel();
 
     var dialog_ = new bootstrap.Dialog();
@@ -335,20 +336,36 @@ bitex.ui.WithdrawMethods.prototype.onAddField_ = function(e) {
 
     var handler = this.getHandler();
 
-    handler.listenOnce( dialog_, goog.ui.Dialog.EventType.SELECT, function(e) {
-      if ( goog.isDefAndNotNull(this.getModel()['withdraw_methods'][this.selected_currency_]) ) {
-        this.getModel()['withdraw_methods'][this.selected_currency_].push(
-            withdraw_method_editor.getWithdrawMethodJSON());
-      } else {
-        this.getModel()['withdraw_methods'][this.selected_currency_] = [
-          withdraw_method_editor.getWithdrawMethodJSON()
-        ];
+    handler.listen( dialog_, goog.ui.Dialog.EventType.SELECT, function(e) {
+      if (e.key == 'ok') {
+        var error_list = withdraw_method_editor.validate();
+        if (error_list.length > 0) {
+
+          goog.array.forEach(error_list, function(error_msg) {
+            this.last_error_ = error_msg;
+            this.dispatchEvent(bitex.ui.WithdrawMethods.EventType.VALIDATION_ERROR);
+          }, this );
+
+
+          e.stopPropagation();
+          e.preventDefault();
+          return;
+        }
+
+        if ( goog.isDefAndNotNull(this.getModel()['withdraw_methods'][this.selected_currency_]) ) {
+          this.getModel()['withdraw_methods'][this.selected_currency_].push(
+              withdraw_method_editor.getWithdrawMethodJSON());
+        } else {
+          this.getModel()['withdraw_methods'][this.selected_currency_] = [
+            withdraw_method_editor.getWithdrawMethodJSON()
+          ];
+        }
+        this.updateWindow();
+
+        this.setDirty(true);
+
+        this.dispatchEvent(bitex.ui.WithdrawMethods.EventType.CHANGE);
       }
-      this.updateWindow();
-
-      this.setDirty(true);
-
-      this.dispatchEvent(bitex.ui.WithdrawMethods.EventType.CHANGE);
     }, this);
   }
 };

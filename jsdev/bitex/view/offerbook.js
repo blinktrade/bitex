@@ -4,7 +4,8 @@ goog.provide('bitex.view.OfferBookView.EventType');
 goog.require('bitex.view.View');
 goog.require('bitex.view.View.EventType');
 
-goog.require('bitex.ui.OrderEntryX');
+goog.require('bitex.ui.AdvancedOrderEntry');
+
 
 /**
  * @param {*} app
@@ -66,10 +67,11 @@ bitex.view.OfferBookView.EventType = {
 
 bitex.view.OfferBookView.prototype.enterView = function() {
   goog.base(this, 'enterView');
+
   var model = this.getApplication().getModel();
-  var selected_symbol = model.get('SelectedSymbol');
-  if (goog.isDefAndNotNull(selected_symbol)) {
-    this.recreateOrderBookComponents_(selected_symbol);
+  if (goog.isDefAndNotNull(model.get('SelectedBrokerID')) && goog.isDefAndNotNull(model.get('SelectedSymbol')) ) {
+    this.onSelectedSymbol_();
+    this.onSelectedBrokerID_();
   }
 };
 
@@ -86,15 +88,11 @@ bitex.view.OfferBookView.prototype.exitView = function() {
 bitex.view.OfferBookView.prototype.decorateInternal = function(element) {
   this.setElementInternal(element);
 
-  var buy_order_entry = new bitex.ui.OrderEntryX();
-  var sell_order_entry = new bitex.ui.OrderEntryX();
+  var buy_order_entry = new bitex.ui.AdvancedOrderEntry( {side: 1, type:2} );
+  var sell_order_entry = new bitex.ui.AdvancedOrderEntry( {side: 2, type:2} );
 
-  this.addChild(buy_order_entry);
-  this.addChild(sell_order_entry);
-
-
-  buy_order_entry.decorate(goog.dom.getElement('id_order_entry_buy'));
-  sell_order_entry.decorate(goog.dom.getElement('id_order_entry_sell'));
+  this.addChild(buy_order_entry, true);
+  this.addChild(sell_order_entry, true);
 };
 
 /**
@@ -180,81 +178,94 @@ bitex.view.OfferBookView.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
 
   var handler = this.getHandler();
+
   var model = this.getApplication().getModel();
-
-  handler.listen( model,  bitex.model.Model.EventType.SET + 'SelectedSymbol', function(e) {
-    var selected_symbol = model.get('SelectedSymbol');
-    var selected_broker_id = model.get('SelectedBrokerID');
-    var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
-    var symbol = selected_symbol.symbol;
-
-    /*if (!this.isActiveView()) {
-      return;
-    }*/
-
-    var buy_order_entry = this.getChildAt(0);
-    var sell_order_entry = this.getChildAt(1);
-
-    buy_order_entry.setSymbol(symbol);
-    if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
-      buy_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
-    }
-    if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
-      buy_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
-    }
-
-    sell_order_entry.setSymbol(symbol);
-    if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
-      sell_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
-    }
-    if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
-      sell_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
-    }
-
-    buy_order_entry.setBrokerID(selected_broker_id);
-    sell_order_entry.setBrokerID(selected_broker_id);
-
-    var market;
-    if (goog.isDefAndNotNull(selectedBroker)) {
-      market = selectedBroker['AllowedMarkets'][symbol];
-    }
-
-    goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
-    goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
-
-    if (model.get('IsBroker')) {
-      buy_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
-      sell_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
-    } else {
-      buy_order_entry.setBrokerMode(false);
-      sell_order_entry.setBrokerMode(false);
-    }
-
-    this.recreateOrderBookComponents_(selected_symbol);
-  }, this);
-
-  handler.listen(model, bitex.model.Model.EventType.SET + 'SelectedBrokerID', function(e){
-    var buy_order_entry = this.getChildAt(0);
-    var sell_order_entry = this.getChildAt(1);
-    var selected_broker_id = model.get('SelectedBrokerID');
-    var selected_symbol = goog.isDefAndNotNull(selected_broker_id) ? selected_broker_id.symbol : null;
-    var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
-    buy_order_entry.setBrokerID(selected_broker_id);
-    sell_order_entry.setBrokerID(selected_broker_id);
-
-    var market = selectedBroker['AllowedMarkets'][selected_symbol];
-    goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
-    goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
-
-    if (model.get('IsBroker')) {
-      buy_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
-      sell_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
-    } else {
-      buy_order_entry.setBrokerMode(false);
-      sell_order_entry.setBrokerMode(false);
-    }
-  });
+  handler.listen(model, bitex.model.Model.EventType.SET + 'SelectedSymbol',   this.onSelectedSymbol_);
+  handler.listen(model, bitex.model.Model.EventType.SET + 'SelectedBrokerID', this.onSelectedBrokerID_);
 };
+
+/**
+ * @param  {bitex.model.ModelEvent} e
+ * @private
+ */
+bitex.view.OfferBookView.prototype.onSelectedBrokerID_ = function(e){
+  var model = this.getApplication().getModel();
+  var buy_order_entry = this.getChildAt(0);
+  var sell_order_entry = this.getChildAt(1);
+
+  var selected_broker_id = model.get('SelectedBrokerID');
+  var selected_symbol = model.get('SelectedSymbol');
+  selected_symbol = goog.isDefAndNotNull(selected_symbol) ? selected_symbol.symbol : null;
+
+  var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
+  buy_order_entry.setBrokerID(selected_broker_id);
+  sell_order_entry.setBrokerID(selected_broker_id);
+
+  var market = selectedBroker['AllowedMarkets'][selected_symbol];
+  goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
+  goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
+
+  if (model.get('IsBroker')) {
+    buy_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+    sell_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+  } else {
+    buy_order_entry.setBrokerMode(false);
+    sell_order_entry.setBrokerMode(false);
+  }
+};
+
+/**
+ * @param  {bitex.model.ModelEvent} e
+ * @private
+ */
+bitex.view.OfferBookView.prototype.onSelectedSymbol_ = function(e){
+  var model = this.getApplication().getModel();
+  var selected_symbol = model.get('SelectedSymbol');
+  var selected_broker_id = model.get('SelectedBrokerID');
+  var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
+  var symbol = selected_symbol.symbol;
+
+  var buy_order_entry = this.getChildAt(0);
+  var sell_order_entry = this.getChildAt(1);
+
+  buy_order_entry.setSymbol(symbol);
+  if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
+    buy_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
+  }
+  if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
+    buy_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+  }
+
+  sell_order_entry.setSymbol(symbol);
+  if (goog.isDefAndNotNull(selected_symbol.qty_currency)) {
+    sell_order_entry.setAmountCurrencySign( selected_symbol.qty_currency.sign );
+  }
+  if (goog.isDefAndNotNull(selected_symbol.price_currency)) {
+    sell_order_entry.setPriceCurrencySign( selected_symbol.price_currency.sign );
+  }
+
+  buy_order_entry.setBrokerID(selected_broker_id);
+  sell_order_entry.setBrokerID(selected_broker_id);
+
+  var market;
+  if (goog.isDefAndNotNull(selectedBroker)) {
+    market = selectedBroker['AllowedMarkets'][symbol];
+  }
+
+  goog.style.showElement( sell_order_entry.getElement(), goog.isDefAndNotNull( market));
+  goog.style.showElement( buy_order_entry.getElement(), goog.isDefAndNotNull( market));
+
+  if (model.get('IsBroker')) {
+    buy_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+    sell_order_entry.setBrokerMode(selected_broker_id == model.get('Profile')['BrokerID']);
+  } else {
+    buy_order_entry.setBrokerMode(false);
+    sell_order_entry.setBrokerMode(false);
+  }
+
+  this.recreateOrderBookComponents_(selected_symbol);
+};
+
 
 
 bitex.view.OfferBookView.prototype.onOBClear_ = function(e){

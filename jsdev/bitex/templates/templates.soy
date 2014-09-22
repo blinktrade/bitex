@@ -322,7 +322,7 @@
         <input name="token"
                data-uniform-validators="required"
                data-uniform-label="{msg desc="Limit table field header"}Google authenticator code{/msg}"
-               placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}"
+               label="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}"
                class="input-large"
                type="text"
                size="10">
@@ -342,7 +342,7 @@
 
       <div class="control-group">
         <label>Confirmation Code</label>
-        <input name="confirmation_code" type="text" data-uniform-validators="required" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+        <input name="confirmation_code" type="text" data-uniform-validators="required" label="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
       </div>
       <p>
         <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
@@ -558,7 +558,10 @@
 
     <h5 class="text-center">{$data['Address'] }</h5>
     <div class="text-center">
-      <input type="text" class="confirm-trusted-address-label" size="30" placeholder="{msg desc="confirm trusted label placeholder"}Enter a label for this address.{/msg}"></input>
+      <input type="text"
+             class="confirm-trusted-address-label"
+             size="30"
+             placeholder="{msg desc="confirm trusted label placeholder"}Enter a label for this address.{/msg}"></input>
     </div>
 
     <h4 class="text-center">
@@ -779,7 +782,7 @@
                     <span class="add-on">{$currencySign}</span>
                     <input id="{$method['method']}_{$amountID}"
                         data-uniform-validators="required; validateNumber {if $method['limits'][$verificationLevel]['enabled']} {if $method['limits'][$verificationLevel]['min']}; validateMin {$method['limits'][$verificationLevel]['formatted_min_value'] }{/if}{if $method['limits'][$verificationLevel]['max']}; validateMax {$method['limits'][$verificationLevel]['formatted_max_value'] } {/if} {/if}"
-                        data-uniform-filters="number"
+                        data-uniform-filters="positive_number"
                         type="text"
                         class="withdraw-field input-small"
                         size="16"
@@ -810,7 +813,11 @@
                 <div class="control-group">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" data-uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
+                    <input class="withdraw-field"
+                            data-uniform-validators="{$field['validator']}" type="{$field['type']}"
+                            name="{$field['name']}"
+                            label="{$field['placeholder']}"
+                            value="{$field['value']}"/>
                   </div>
                 </div>
               {/if}
@@ -870,7 +877,7 @@
                     <span class="add-on">{$currencySign}</span>
                     <input id="{$method['method']}_{$amountID}"
                         data-uniform-validators="required; validateNumber {if $method['limits'][$verificationLevel]['enabled']} {if $method['limits'][$verificationLevel]['min']}; validateMin {$method['limits'][$verificationLevel]['formatted_min_value'] }{/if}{if $method['limits'][$verificationLevel]['max']}; validateMax {$method['limits'][$verificationLevel]['formatted_max_value'] } {/if} {/if}"
-                        data-uniform-filters="number"
+                        data-uniform-filters="positive_number"
                         type="text"
                         class="withdraw-field input-small"
                         size="16"
@@ -921,7 +928,13 @@
                 <div class="control-group">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" data-uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                    <input class="withdraw-field"
+                           data-uniform-validators="{$field['validator']}"
+                           type="{$field['type']}"
+                           name="{$field['name']}"
+                           label="{$field['placeholder']}"
+                           value="{$field['value']}"
+                           {if not isFirst($method)}disabled{/if} />
                   </div>
                 </div>
               {/if}
@@ -1237,7 +1250,7 @@
       </div>
       <div class="row-fluid">
         <div class="span5">
-          <input class="input-block-level order-entry-client-id" placeholder="{msg desc="'Client ID' label in Order Entry"}Client ID{/msg}" {if $hide_client_id}style="display:none"{/if} />
+          <input class="input-block-level order-entry-client-id" label="{msg desc="'Client ID' label in Order Entry"}Client ID{/msg}" {if $hide_client_id}style="display:none"{/if} />
         </div>
         <div class="span5">
           <button class="btn {if $side == 1}btn-success{else}btn-danger{/if} btn-execution order-entry-action">{if $side == 1}{msg desc="Buy button in Order Entry"}BUY{/msg}{else}{msg desc="Sell button in Order Entry"}SELL{/msg}{/if}</button>

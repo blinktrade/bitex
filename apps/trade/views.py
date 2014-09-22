@@ -99,7 +99,8 @@ def getProfileMessage(user, profile=None):
       'Status'             : profile.status               ,
       'Ranking'            : profile.ranking              ,
       'SupportURL'         : profile.support_url          ,
-      'CryptoCurrencies'   : json.loads(profile.crypto_currencies)
+      'CryptoCurrencies'   : json.loads(profile.crypto_currencies),
+      'Accounts'           : json.loads(profile.accounts)
     }
   else:
     profile_message = {
@@ -205,70 +206,74 @@ def processNewOrderSingle(session, msg):
          msg.get('ClientID') != session.user.email:
         raise NotAuthorizedError()
 
-  account_id    = session.user.account_id
-  account_user  = session.user
-  broker_user   = session.broker
-  fee_account   = session.broker_accounts['fees']
-
   if session.user.is_broker:
-    if msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
-      client = None
-      if msg.get('ClientID').isdigit():
-        client = User.get_user( application.db_session, user_id= int(msg.get('ClientID')))
+    if not msg.has('ClientID'):  # it is broker sending an order on behalf of it's client
+      raise NotAuthorizedError()
 
-      if not client:
-        client = User.get_user(application.db_session, username= msg.get('ClientID'))
+    client = None
+    if msg.get('ClientID').isdigit():
+      client = User.get_user( application.db_session, user_id= int(msg.get('ClientID')))
 
-      if not client:
-        client = User.get_user(application.db_session, email= msg.get('ClientID'))
+    if not client:
+      client = User.get_user(application.db_session, username= msg.get('ClientID'))
 
-      if not client:
-        if application.options.satoshi_mode:
-          client, broker = User.signup(application.db_session,
-                                      msg.get('ClientID'),
-                                      msg.get('ClientID') + '@' + session.user.username + '.com',
-                                      'abc12345',
-                                      '',
-                                      session.user.country_code,
-                                      session.user.id)
+    if not client:
+      client = User.get_user(application.db_session, email= msg.get('ClientID'))
 
-          Ledger.transfer(application.db_session,
-                          client.broker_id,            # from_account_id
-                          client.broker_username,      # from_account_name
-                          client.broker_id,            # from_broker_id
-                          client.broker_username,      # from_broker_name
-                          client.id,                   # to_account_id
-                          client.username,             # to_account_name
-                          client.broker_id,            # to_broker_id
-                          client.broker_username,      # to_broker_name
-                          'BTC',                       # currency
-                          100e8,                       # amount
-                          str(client.id),              # reference
-                          'B'                          # descriptions
-          )
+    if not client:
+      if application.options.satoshi_mode:
+        # create account on the fly when running on satoshi mode
+        client, broker = User.signup(application.db_session,
+                                    msg.get('ClientID'),
+                                    msg.get('ClientID') + '@' + session.user.username + '.com',
+                                    'abc12345',
+                                    '',
+                                    session.user.country_code,
+                                    session.user.id)
 
-          Ledger.transfer(application.db_session,
-                          client.broker_id,            # from_account_id
-                          client.broker_username,      # from_account_name
-                          client.broker_id,            # from_broker_id
-                          client.broker_username,      # from_broker_name
-                          client.id,                   # to_account_id
-                          client.username,             # to_account_name
-                          client.broker_id,            # to_broker_id
-                          client.broker_username,      # to_broker_name
-                          'USD',                       # currency
-                          60000e8,                     # amount
-                          str(client.id),              # reference
-                          'B'                          # descriptions
-          )
-        else:
-          raise InvalidClientIDError()
+        Ledger.transfer(application.db_session,
+                        client.broker_id,            # from_account_id
+                        client.broker_username,      # from_account_name
+                        client.broker_id,            # from_broker_id
+                        client.broker_username,      # from_broker_name
+                        client.id,                   # to_account_id
+                        client.username,             # to_account_name
+                        client.broker_id,            # to_broker_id
+                        client.broker_username,      # to_broker_name
+                        'BTC',                       # currency
+                        100e8,                       # amount
+                        str(client.id),              # reference
+                        'B'                          # descriptions
+        )
+
+        Ledger.transfer(application.db_session,
+                        client.broker_id,            # from_account_id
+                        client.broker_username,      # from_account_name
+                        client.broker_id,            # from_broker_id
+                        client.broker_username,      # from_broker_name
+                        client.id,                   # to_account_id
+                        client.username,             # to_account_name
+                        client.broker_id,            # to_broker_id
+                        client.broker_username,      # to_broker_name
+                        'USD',                       # currency
+                        60000e8,                     # amount
+                        str(client.id),              # reference
+                        'B'                          # descriptions
+        )
+      else:
+        raise InvalidClientIDError()
 
 
-      account_user  = client
-      account_id    = client.account_id
-      broker_user   = session.profile
-      fee_account   = session.user_accounts['fees']
+
+    account_user  = client
+    account_id    = client.account_id
+    broker_user   = session.profile
+    fee_account   = session.user_accounts['fees']
+  else:
+    account_id    = session.user.account_id
+    account_user  = session.user
+    broker_user   = session.broker
+    fee_account   = session.broker_accounts['fees']
 
   if not broker_user:
     raise NotAuthorizedError()
@@ -961,6 +966,12 @@ def processWithdrawRequest(session, msg):
                                     session.email_lang)
 
   application.db_session.commit()
+
+  withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw_record)
+  withdraw_refresh['MsgType'] = 'U9'
+  application.publish( withdraw_record.account_id, withdraw_refresh  )
+  application.publish( withdraw_record.broker_id,  withdraw_refresh  )
+
 
   response = {
     'MsgType':            'U7',

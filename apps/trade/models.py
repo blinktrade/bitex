@@ -373,6 +373,8 @@ class User(Base):
       verify_customer_refresh_msg['VerificationData'] = verification_data
 
       application.publish( self.id,  verify_customer_refresh_msg  )
+      application.publish( self.broker_id,  verify_customer_refresh_msg  )
+
 
       if self.verified == 1:
         email_params = {
@@ -645,7 +647,7 @@ class Balance(Base):
     balance_obj = session.query(Balance).filter_by(account_id = account_id ).filter_by(broker_id = broker_id ).filter_by(currency = currency).first()
     if not balance_obj:
       balance_obj = Balance(account_id  = account_id,
-                            account_name    = account_name,
+                            account_name = account_name,
                             currency    = currency,
                             broker_id   = broker_id,
                             broker_name = broker_name,
@@ -664,6 +666,16 @@ class Balance(Base):
     balance_update_msg[broker_id] = { currency: balance_obj.balance }
     application.publish( account_id,  balance_update_msg  )
 
+    try:
+      broker_accounts = json.loads(Broker.get_broker(session, broker_id).accounts)
+      for name, account_data in broker_accounts.iteritems():
+        if account_id == account_data[0]:
+          application.publish( broker_id,  balance_update_msg  )
+          break
+    except :
+      pass
+
+
     return balance_obj.balance
 
 class Ledger(Base):
@@ -671,19 +683,19 @@ class Ledger(Base):
   id                    = Column(Integer,       primary_key=True)
   currency              = Column(String(4),     ForeignKey('currencies.code'),nullable=False)
   account_id            = Column(Integer,       ForeignKey('users.id'),       nullable=False)
-  account_name          = Column(String,        nullable=False)
+  account_name          = Column(String,        nullable=False,  index=True)
   broker_id             = Column(Integer,       ForeignKey('users.id'),       nullable=False)
-  broker_name           = Column(String,        nullable=False)
+  broker_name           = Column(String,        nullable=False,  index=True)
   payee_id              = Column(Integer,       ForeignKey('users.id'),       nullable=False)
-  payee_name            = Column(String,        nullable=False)
+  payee_name            = Column(String,        nullable=False,  index=True)
   payee_broker_id       = Column(Integer,       ForeignKey('users.id'),       nullable=False)
-  payee_broker_name     = Column(String,        nullable=False)
+  payee_broker_name     = Column(String,        nullable=False,  index=True)
   operation             = Column(String(1),     nullable=False)
-  amount                = Column(Integer,       nullable=False)
-  balance               = Column(Integer,       nullable=False)
-  reference             = Column(String(25),    nullable=False)
+  amount                = Column(Integer,       nullable=False,  index=True)
+  balance               = Column(Integer,       nullable=False,  index=True)
+  reference             = Column(String(25),    nullable=False,  index=True)
   created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
-  description           = Column(String(255))
+  description           = Column(String(255),   index=True)
 
   def __repr__(self):
     return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payee_broker_id=%r," \
@@ -708,12 +720,18 @@ class Ledger(Base):
       if filter:
         if filter.isdigit():
           query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
+                                     Ledger.payee_name == filter,
+                                     Ledger.account_name == filter,
+                                     Ledger.broker_name == filter,
                                      Ledger.reference == filter,
-                                     Ledger.amount == int(filter) * 1e8,
-                                     Ledger.balance == int(filter) * 1e8
+                                     Ledger.amount == int(filter),
+                                     Ledger.balance == int(filter)
                                      ))
         else:
           query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
+                                     Ledger.payee_name == filter,
+                                     Ledger.account_name == filter,
+                                     Ledger.broker_name == filter,
                                      Ledger.reference == filter
                                      ))
 
@@ -1022,7 +1040,7 @@ class TrustedAddress(Base):
 
 
   @staticmethod
-  def suggest_address(session, user_id, username, broker_id, broker_username, address, currency, broker):
+  def suggest_address(session, user_id, username, broker_id, broker_username, address, currency, email_lang):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
                                                   filter_by(broker_id = broker_id).\
                                                   filter_by(currency = currency).\
@@ -1057,7 +1075,7 @@ class TrustedAddress(Base):
                        user_id  = user_id,
                        subject  = 'CA',
                        template ='confirm_address',
-                       language = broker.lang,
+                       language = email_lang,
                        params   = json.dumps({
                                      'trusted_address_id': rec.id,
                                      'user_id': user_id,

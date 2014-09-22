@@ -124,8 +124,8 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
           'postal_code': address_postal,
           'country_code': address_country,
         },
-        'phone_number': str(phone_number_country) + str(phone_number_area) + str(phone_number_phone),
-        'date_of_birth': str(birth_date_year) + '-' +  str(birth_date_month) + '-' + str(birth_date_day),
+        'phone_number': phone_number_country + phone_number_area + phone_number_phone,
+        'date_of_birth': birth_date_year + '-' +  birth_date_month + '-' + birth_date_day,
         'uploaded_files': uploaded_files
       },
       'Verify': 1

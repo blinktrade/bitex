@@ -237,11 +237,6 @@ bitex.view.TradingView.prototype.recreateComponents_ = function( selected_symbol
 
   this.order_manager_table_.setColumnFormatter('Side', this.orderFormatter_, this);
   this.order_manager_table_.setColumnFormatter('OrdStatus', this.simpleStatusFormatter_, this);
-  /*
-  this.order_manager_table_.setColumnFormatter('Price', this.priceFormatter_, this);
-  this.order_manager_table_.setColumnFormatter('CumQty', this.qtyFormatter_, this);
-  this.order_manager_table_.setColumnFormatter('LeavesQty', this.qtyFormatter_, this);
-  */
   this.order_manager_table_.setColumnFormatter('AvgPx', this.avgPriceFormatter_, this);
   this.order_manager_table_.setColumnFormatter('Volume', this.priceFormatter_, this);
   handler.listen(this.order_manager_table_.getElement(), goog.events.EventType.CLICK, this.onCancelOrder_ );
@@ -267,20 +262,12 @@ bitex.view.TradingView.prototype.enterDocument = function() {
   var model = this.getApplication().getModel();
 
   handler.listen( model,  bitex.model.Model.EventType.SET + 'SelectedSymbol', function(e) {
-    var selected_symbol = model.get('SelectedSymbol');
-    var selected_broker_id = model.get('SelectedBrokerID');
     if (this.isActiveView()) {
+      var selected_symbol = model.get('SelectedSymbol');
+      var selected_broker_id = model.get('SelectedBrokerID');
       this.recreateComponents_(selected_symbol);
     }
   }, this);
-
-  handler.listen(model, bitex.model.Model.EventType.SET + 'SelectedBrokerID', function(e){
-    var selected_broker_id = model.get('SelectedBrokerID');
-    var selected_symbol = goog.isDefAndNotNull(selected_broker_id) ? selected_broker_id.symbol : null;
-    var selectedBroker = model.get('UserBrokers')[ selected_broker_id ];
-
-    var market = selectedBroker['AllowedMarkets'][selected_symbol];
-  });
 };
 
 /**

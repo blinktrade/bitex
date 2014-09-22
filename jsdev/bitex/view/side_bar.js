@@ -85,7 +85,7 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
     var MSG_MY_CUSTOMERS_ACCOUNT_BALANCE_LABEL = goog.getMsg('My customers');
 
     if (model.get('IsBroker')) {
-      accounts.push( {
+      accounts.push({
         'brokerID': model.get('Profile')['BrokerID'],
         'brokerName': MSG_MY_CUSTOMERS_ACCOUNT_BALANCE_LABEL,
         'clientID': model.get('UserID'),
@@ -100,6 +100,27 @@ bitex.view.SideBarView.prototype.enterDocument = function() {
           'showWithdraw': false
         });
       },this);
+
+      if (goog.isDefAndNotNull( model.get('Profile')['Accounts'] )) {
+        goog.object.forEach( model.get('Profile')['Accounts'], function(account_data, account_name) {
+          accounts.push({
+            'brokerID': model.get('Profile')['BrokerID'],
+            'brokerName': account_name,
+            'clientID':  account_data[0],
+            'currencies':[]
+          });
+
+          goog.array.forEach(model.get('Profile')['BrokerCurrencies'], function(currency) {
+            accounts[accounts.length-1]['currencies'].push({
+               'currency':currency,
+               'balance':0,
+               'formattedBalance': this.getApplication().formatCurrency(0,currency, true),
+               'showDeposit': false,
+               'showWithdraw': false
+             });
+          },this);
+        }, this  );
+      }
     }
 
     goog.soy.renderElement(goog.dom.getElement('id_account_summary_content'), bitex.templates.YourAccountSummary, {

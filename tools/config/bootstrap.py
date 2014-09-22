@@ -147,18 +147,14 @@ def main():
     if section_name[:6] == 'broker':
       if not Broker.get_broker(session, config.getint(section_name, 'id')):
         withdraw_structure_json = {}
-        try:
+        if config.get(section_name, 'withdraw_structure') != 'ignore':
           with open(config.get(section_name, 'withdraw_structure')  ) as data_file:
             withdraw_structure_json = json.load(data_file)
-        except Exception,e:
-          pass
 
-        crypto_currencies_json = []
-        try:
+        crypto_currencies_json = {}
+        if config.get(section_name, 'crypto_currencies') != 'ignore':
           with open(config.get(section_name, 'crypto_currencies')  ) as data_file:
             crypto_currencies_json = json.load(data_file)
-        except Exception,e:
-          pass
 
         accept_customers_from_json = [['*'],[ "CU", "SO", "SD",  "NG", "IR", "KP" ]]
         try:
@@ -168,11 +164,9 @@ def main():
           pass
 
         fee_structure_json = []
-        try:
+        if config.get(section_name, 'fee_structure') != 'ignore':
           with open(config.get(section_name, 'fee_structure')  ) as data_file:
             fee_structure_json = json.load(data_file)
-        except Exception,e:
-          pass
 
         phone_number_1 = None
         try:

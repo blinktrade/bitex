@@ -142,7 +142,6 @@ bitex.view.View.prototype.logger_ =
 /** @inheritDoc */
 bitex.view.View.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
-  var handler = this.getHandler();
 };
 
 

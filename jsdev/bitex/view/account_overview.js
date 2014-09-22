@@ -157,8 +157,6 @@ bitex.view.AccountOverview.prototype.decorateInternal = function(element) {
  */
 bitex.view.AccountOverview.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
-  var model = this.getApplication().getModel();
-  var handler = this.getHandler();
 };
 
 

@@ -42,7 +42,7 @@ uniform.Uniform = function(opt_model, opt_domHelper){
   controlModel.method         =  goog.object.get(model, 'method',         null);
   controlModel.name           =  goog.object.get(model, 'name',           null);
   controlModel.target         =  goog.object.get(model, 'target',         null);
-  controlModel.control_holder_class =  goog.object.get(model, 'control-holder-class',uniform.Uniform.CTRLHOLDER_CLASS);
+  controlModel.control_holder_class =  goog.object.get(model, 'control_holder_class',uniform.Uniform.CTRLHOLDER_CLASS);
   this.setModel(controlModel);
 };
 goog.inherits(uniform.Uniform, goog.ui.Component);
@@ -409,7 +409,7 @@ uniform.Uniform.prototype.enterDocument = function() {
     }
 
     if (el.tagName === goog.dom.TagName.INPUT ) {
-      ih = new goog.events.KeyHandler();
+      var ih = new goog.events.KeyHandler();
       ih.attach(el);
       handler.listen(ih, goog.events.KeyHandler.EventType.KEY,
         this.handleKeyEvent_);

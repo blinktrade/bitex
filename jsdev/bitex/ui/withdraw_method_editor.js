@@ -43,6 +43,7 @@ bitex.ui.WithdrawMethodEditor.prototype.form_;
 bitex.ui.WithdrawMethodEditor.prototype.setModel = function(obj) {
   var fmt = new goog.i18n.NumberFormat( goog.i18n.NumberFormat.Format.DECIMAL);
   fmt.setMaximumFractionDigits(8);
+  fmt.setMinimumFractionDigits(2);
 
   obj['percent_fee'] = fmt.format(obj['percent_fee'] );
   obj['fixed_fee'] = fmt.format( obj['fixed_fee']/1e8 );
@@ -90,6 +91,12 @@ bitex.ui.WithdrawMethodEditor.prototype.enterDocument = function() {
  * @return {Array.<string>}
  */
 bitex.ui.WithdrawMethodEditor.prototype.validate = function() {
+  if (goog.isDefAndNotNull(this.form_)) {
+    this.form_.dispose();
+  }
+  this.form_ = new uniform.Uniform();
+  this.form_.decorate( goog.dom.getElement(this.makeId('form')) );
+
   return this.form_.validate();
 };
 

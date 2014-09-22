@@ -84,14 +84,6 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
   if (model.get('IsBroker')) {
     button_filters = [];
 
-    goog.array.forEach(model.get('Broker')['BrokerCurrencies'], function(currency_code){
-      button_filters.push(
-          {
-            'label':model.get('Broker')['ShortName']  + ':' + this.getApplication().getCurrencyDescription(currency_code),
-            'value':goog.json.serialize( {'currency':currency_code, 'broker_id':model.get('Broker')['BrokerID']  } )
-          });
-    }, this );
-
 
     /**
      * @desc label on ledge filter
@@ -105,6 +97,32 @@ bitex.view.LedgerView.prototype.recreateComponents_ = function() {
             'value':goog.json.serialize( {'currency':currency_code, 'broker_id':model.get('UserID') } )
           });
     }, this );
+
+    if (goog.isDefAndNotNull( model.get('Profile')['Accounts'] )) {
+      goog.object.forEach( model.get('Profile')['Accounts'], function(account_data, account_name) {
+        goog.array.forEach(model.get('Profile')['BrokerCurrencies'], function(currency_code){
+
+          button_filters.push(
+              {
+                'label': account_name + ':' + this.getApplication().getCurrencyDescription(currency_code),
+                'value':goog.json.serialize( {'currency':currency_code, 'account_id': account_data[0]  } )
+              });
+
+        }, this);
+
+      }, this);
+    }
+
+
+
+    goog.array.forEach(model.get('Broker')['BrokerCurrencies'], function(currency_code){
+      button_filters.push(
+          {
+            'label':model.get('Broker')['ShortName']  + ':' + this.getApplication().getCurrencyDescription(currency_code),
+            'value':goog.json.serialize( {'currency':currency_code, 'broker_id':model.get('Broker')['BrokerID']  } )
+          });
+    }, this );
+
 
 
   } else {
@@ -182,6 +200,10 @@ bitex.view.LedgerView.prototype.onLedgerTableRequestData_ = function(e) {
         if (goog.isDefAndNotNull(filter_obj['broker_id'])) {
           brokerID = filter_obj['broker_id'];
         }
+        if (goog.isDefAndNotNull(filter_obj['account_id'])) {
+          userID = filter_obj['account_id'];
+        }
+
       } catch (ex) {
         filters.push(filter);
       }

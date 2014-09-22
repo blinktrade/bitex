@@ -78,6 +78,17 @@ bitex.view.ProfileView.prototype.enterView = function() {
     goog.soy.renderElement(account_overview_header_el,bitex.templates.AccountOverviewUser, {msg_customer_detail: customer});
   }
 
+
+  var secret = this.getApplication().getModel().get('TwoFactorSecret');
+  var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
+
+  var divEl = goog.dom.getElement('id_enable_two_factor_div');
+  var btnEnableEl = goog.dom.getElement('id_btn_enable_two_factor');
+  var btnDisableEl = goog.dom.getElement('id_btn_disable_two_factor');
+  goog.style.showElement( btnEnableEl , !this.getApplication().getModel().get("TwoFactorEnabled"));
+  goog.style.showElement( btnDisableEl , this.getApplication().getModel().get("TwoFactorEnabled"));
+  goog.style.showElement( divEl , has_secret);
+
   this.change_password_ = new bitex.ui.ChangePassword();
   this.addChild(this.change_password_, true);
   this.change_password_.enterDocument();
@@ -160,43 +171,15 @@ bitex.view.ProfileView.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
 
   var handler = this.getHandler();
-  var model = this.getApplication().getModel();
-
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.CHANGE, this.onChangeWithdrawStructure_);
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.SAVE, this.onSaveWithdrawStructure_);
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.CANCEL, this.onCancelWithdrawStructure_);
   handler.listen(this, bitex.ui.WithdrawMethods.EventType.VALIDATION_ERROR, this.onValidationErrorWithdrawStructure_);
 
+  var model = this.getApplication().getModel();
+  handler.listen( model, bitex.model.Model.EventType.SET + 'TwoFactorSecret', this.onModelSetTwoFactorSecret_ );
+  handler.listen( model, bitex.model.Model.EventType.SET + 'TwoFactorEnabled', this.onModelSetTwoFactorEnabled_);
 
-  handler.listen( this.getApplication().getModel(),  bitex.model.Model.EventType.SET + 'TwoFactorSecret', function(e){
-    var secret = e.data;
-    var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
-
-    if (has_secret) {
-      var issuer = 'BlinkTrade - ' + model.get('Broker')['ShortName'];
-
-      var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' +
-        encodeURIComponent('otpauth://totp/' + model.get('Username') + ' ' + model.get('Profile')['Email'] + '?secret=')  + secret +
-        encodeURIComponent('&issuer=' + issuer);
-
-      goog.dom.getElement('id_secret_qr').setAttribute('src', qr_code);
-    }
-  });
-
-  handler.listen( this.getApplication().getModel(),  bitex.model.Model.EventType.SET + 'TwoFactorEnabled', function(e){
-    var enabled = e.data;
-
-    var secret = this.getApplication().getModel().get('TwoFactorSecret');
-    var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
-
-    var divEl = goog.dom.getElement('id_enable_two_factor_div');
-    var btnEnableEl = goog.dom.getElement('id_btn_enable_two_factor');
-    var btnDisableEl = goog.dom.getElement('id_btn_disable_two_factor');
-
-    goog.style.showElement( btnEnableEl , !enabled);
-    goog.style.showElement( btnDisableEl , enabled);
-    goog.style.showElement( divEl , has_secret);
-  }, this);
 
   handler.listen(goog.dom.getElement('id_btn_enable_two_factor'), goog.events.EventType.CLICK, function(e){
     this.dispatchEvent(bitex.view.View.EventType.ENABLE_TWOFACTOR);
@@ -206,6 +189,47 @@ bitex.view.ProfileView.prototype.enterDocument = function() {
   handler.listen( goog.dom.getElement('id_btn_disable_two_factor'),  goog.events.EventType.CLICK , function(e){
     this.dispatchEvent(bitex.view.View.EventType.DISABLE_TWOFACTOR);
   }, this);
+
+};
+
+/**
+ * @param  {bitex.model.ModelEvent} e
+ * @private
+ */
+bitex.view.ProfileView.prototype.onModelSetTwoFactorSecret_ = function(e) {
+  var model = this.getApplication().getModel();
+
+  var secret = e.data;
+  var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
+
+  if (has_secret) {
+    var issuer = 'BlinkTrade - ' + model.get('Broker')['ShortName'];
+
+    var qr_code = 'https://chart.googleapis.com/chart?chs=200x200&chld=M%7C0&cht=qr&chl=' +
+        encodeURIComponent('otpauth://totp/' + model.get('Username') + ' ' + model.get('Profile')['Email'] + '?secret=')  + secret +
+        encodeURIComponent('&issuer=' + issuer);
+
+    goog.dom.getElement('id_secret_qr').setAttribute('src', qr_code);
+  }
+};
+
+/**
+ * @param  {bitex.model.ModelEvent} e
+ * @private
+ */
+bitex.view.ProfileView.prototype.onModelSetTwoFactorEnabled_ = function(e) {
+  var enabled = e.data;
+
+  var secret = this.getApplication().getModel().get('TwoFactorSecret');
+  var has_secret = goog.isDefAndNotNull(secret) && !goog.string.isEmpty(secret);
+
+  var divEl = goog.dom.getElement('id_enable_two_factor_div');
+  var btnEnableEl = goog.dom.getElement('id_btn_enable_two_factor');
+  var btnDisableEl = goog.dom.getElement('id_btn_disable_two_factor');
+
+  goog.style.showElement( btnEnableEl , !enabled);
+  goog.style.showElement( btnDisableEl , enabled);
+  goog.style.showElement( divEl , has_secret);
 
 };
 
