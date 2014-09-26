@@ -81,7 +81,7 @@ bitex.util.getCountries = function() {
     "AM": "Armenia",
     "AW": "Aruba",
     "AC": "Ascension Island",
-    "AU": "Australia",
+    "AU": ["Australia", "ACT|NSW|NT|QLD|SA|TAS|VIC|WA", "Australian Capital Territory|New South Wales|Northern Territory|Queensland|South Australia|Tasmania|Victoria|Western Australia"],
     "AT": "Austria",
     "AZ": "Azerbaijan",
     "BS": "Bahamas",

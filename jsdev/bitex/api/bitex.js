@@ -1164,7 +1164,7 @@ bitex.api.BitEx.prototype.requestCustomerDetails = function(opt_requestId, clien
  * @param {number=} opt_requestId. Defaults to random generated number
  * @param {number} clientId
  * @param {number} verify
- * @param {string=} opt_verificationData
+ * @param {Object} opt_verificationData
  */
 bitex.api.BitEx.prototype.verifyCustomer = function(opt_requestId, clientId, verify, opt_verificationData){
   var requestId = opt_requestId || parseInt( 1e7 * Math.random() , 10 );

@@ -660,7 +660,6 @@ bitex.view.AccountOverview.prototype.onElementChange_ = function(e){
     if (should_change) {
       this.dispatchEvent(bitex.view.View.EventType.UPDATE_PROFILE);
     }
-
   }
 };
 
@@ -890,7 +889,8 @@ bitex.view.AccountOverview.prototype.onAccountOverviewHeaderClick_ = function(e)
 
               this.client_id_ =  goog.string.toNumber(verification_data['ClientID']);
               this.verification_data_ = verification_data['VerificationData'];
-              this.verification_level_ = 2;
+
+              this.verification_level_ = 3;
 
               this.dispatchEvent(bitex.view.View.EventType.SET_VERIFIED);
 

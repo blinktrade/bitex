@@ -1280,7 +1280,13 @@ def processVerifyCustomer(session, msg):
   if 'bonus' in broker_accounts :
     bonus_account = broker_accounts['bonus']
 
-  client.set_verified(application.db_session, msg.get('Verify'), msg.get('VerificationData'), bonus_account)
+  verification_data =  msg.get('VerificationData')
+  try:
+    verification_data = json.loads(verification_data)
+  except :
+    verification_data = { "data": verification_data}
+
+  client.set_verified(application.db_session, msg.get('Verify'), verification_data , bonus_account)
 
   application.db_session.commit()
 
@@ -1303,11 +1309,12 @@ def processProcessWithdraw(session, msg):
   if withdraw.broker_id != session.user.id:
     raise  NotAuthorizedError()
 
+  result = False
   if msg.get('Action') == 'CANCEL':
     if withdraw.status == '4' or withdraw == '8':
       raise NotAuthorizedError()  # trying to cancel a completed operation or a cancelled operation
 
-    withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
+    result = withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
     percent_fee = msg.get('PercentFee',0.)
     fixed_fee   = msg.get('FixedFee',0.)
@@ -1318,26 +1325,27 @@ def processProcessWithdraw(session, msg):
     if fixed_fee > float(withdraw.fixed_fee):
       raise NotAuthorizedError() # Broker tried to raise their fees manually
 
-    withdraw.set_in_progress( application.db_session, percent_fee, fixed_fee)
+    result = withdraw.set_in_progress( application.db_session, percent_fee, fixed_fee)
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
 
     broker_fees_account = session.user_accounts['fees']
 
-    withdraw.set_as_complete( application.db_session, data, broker_fees_account)
+    result = withdraw.set_as_complete( application.db_session, data, broker_fees_account)
 
   application.db_session.commit()
 
-  withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw)
-  withdraw_refresh['MsgType'] = 'U9'
-
-  application.publish( withdraw.account_id, withdraw_refresh  )
-  application.publish( withdraw.broker_id,  withdraw_refresh  )
+  if result:
+    withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw)
+    withdraw_refresh['MsgType'] = 'U9'
+    application.publish( withdraw.account_id, withdraw_refresh  )
+    application.publish( withdraw.broker_id,  withdraw_refresh  )
 
   response_msg = {
     'MsgType'             : 'B7',
     'ProcessWithdrawReqID': msg.get('ProcessWithdrawReqID'),
     'WithdrawID'          : msg.get('WithdrawID'),
+    'Result'              : result,
     'Status'              : withdraw.status,
     'ReasonID'            : withdraw.reason_id,
     'Reason'              : withdraw.reason

@@ -9,7 +9,7 @@
       "limits": {
         "0": {"enabled": true, "min": 500000, "max": 100000000},
         "1": {"enabled": true, "min": 500000, "max": 100000000},
-        "2": {"enabled": true, "min": 500000},
+        "2": {"enabled": true, "min": 500000, "max": 100000000},
         "3": {"enabled": true, "min": 500000},
         "4": {"enabled": true, "min": 500000},
         "5": {"enabled": true, "min": 500000}
@@ -30,9 +30,9 @@
       "limits": {
         "0": {"enabled": false},
         "1": {"enabled": false},
-        "2": {"enabled": true, "min": 30000000000, "max":   1200000000000},
-        "3": {"enabled": true, "min": 30000000000, "max":  12000000000000},
-        "4": {"enabled": true, "min": 30000000000, "max": 120000000000000},
+        "2": {"enabled": false},
+        "3": {"enabled": true, "min": 30000000000, "max":   1200000000000},
+        "4": {"enabled": true, "min": 30000000000, "max":  12000000000000},
         "5": {"enabled": true, "min": 30000000000}
       },
       "fields": [
@@ -40,7 +40,6 @@
         {"side":"client", "name": "AccountNumber", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Número de cuenta", "placeholder":"8888 8888 8888 8888 8888" },
         {"side":"client", "name": "VenezuelanID" , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Documento de identificación", "placeholder":"ex. 888.888.888-88"},
         {"side":"broker", "name": "TransactionID", "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"TransactionID", "placeholder":"" },
-        {"side":"broker", "name": "Link"         , "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Link", "placeholder":"" }
       ]
     }, {
       "method":"bank-transfer",
@@ -51,9 +50,9 @@
       "limits": {
         "0": {"enabled": false},
         "1": {"enabled": false},
-        "2": {"enabled": true, "min": 30000000000, "max":   1200000000000},
-        "3": {"enabled": true, "min": 30000000000, "max":  12000000000000},
-        "4": {"enabled": true, "min": 30000000000, "max": 120000000000000},
+        "2": {"enabled": false},
+        "3": {"enabled": true, "min": 30000000000, "max":   1200000000000},
+        "4": {"enabled": true, "min": 30000000000, "max":  12000000000000},
         "5": {"enabled": true, "min": 30000000000}
       },
       "fields": [
@@ -62,7 +61,6 @@
         {"side":"client", "name": "AccountNumber",  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Número de cuenta", "placeholder":"8888 8888 8888 8888 8888" },
         {"side":"client", "name": "VenezuelanID" ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Documento de identificación", "placeholder":"ex. 888.888.888-88"},
         {"side":"broker", "name": "TransactionID",  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"TransactionID", "placeholder":"" },
-        {"side":"broker", "name": "Link"         ,  "validator":"validateAlphaNum", "type":"text"  , "value":""  , "label":"Link", "placeholder":"" }
       ]
     }
   ]

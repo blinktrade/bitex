@@ -877,14 +877,19 @@ bitex.app.BlinkTrade.prototype.onBitexVerifyCustomerUpdate_ = function(e) {
   /** @desc pending verification notification content msg */
   var MSG_PENDING_VERIFICATION_CONTENT = goog.getMsg('Sent to the broker.');
 
+  /** @desc pending verification notification content msg */
+  var MSG_PROGRESS_VERIFICATION_CONTENT = goog.getMsg('In progress.');
+
   /** @desc level 2 verification notification content msg */
-  var MSG_ACCOUNT_VERIFIED_CONTENT = goog.getMsg('You account has been verified. level - {$level}', {level : profile['Verified'] });
+  var MSG_ACCOUNT_VERIFIED_CONTENT = goog.getMsg('You account has been verified. level - {$level}', {level : profile['Verified'] - 2 });
 
 
   if (old_verified == 0 && profile['Verified'] == 1  ) {
     this.router_.setView('offerbook');
     this.showNotification('success', MSG_NOTIFICATION_VERIFY_TITLE, MSG_PENDING_VERIFICATION_CONTENT);
-  } else if (profile['Verified'] >= 2  ) {
+  } else if (profile['Verified'] == 2  ) {
+    this.showNotification('success', MSG_NOTIFICATION_VERIFY_TITLE, MSG_PROGRESS_VERIFICATION_CONTENT);
+  } else if (profile['Verified'] >= 3  ) {
     this.showNotification('success', MSG_NOTIFICATION_VERIFY_TITLE, MSG_ACCOUNT_VERIFIED_CONTENT);
   }
 };

@@ -326,7 +326,7 @@ class User(Base):
   def set_verified(self, session, verified, verification_data, bonus_account):
     just_became_verified = False
     if self.verified != verified:
-      if self.verified < 2 and verified >= 2:
+      if self.verified < 3 and verified >= 3:
         just_became_verified = True
       self.verified = verified
 
@@ -336,26 +336,15 @@ class User(Base):
           try:
             current_verification_data = json.loads(self.verification_data)
             if isinstance(current_verification_data, list):
-              try:
-                current_verification_data.append(  json.loads(verification_data))
-              except ValueError:
-                current_verification_data.append( { "data": verification_data} )
-            if isinstance(current_verification_data, dict):
-              try:
-                current_verification_data = [ current_verification_data, json.loads(verification_data) ]
-              except ValueError:
-                current_verification_data = [ current_verification_data,  { "data": verification_data} ]
+              current_verification_data.append(verification_data)
+            elif isinstance(current_verification_data, dict):
+              current_verification_data = [ current_verification_data, verification_data ]
           except ValueError:
-            try:
-              current_verification_data = [ { "data": self.verification_data }, json.loads(verification_data) ]
-            except ValueError:
-              current_verification_data = [ { "data": self.verification_data }, { "data": verification_data} ]
+            current_verification_data = [ { "data": self.verification_data }, verification_data ]
           verification_data_json = current_verification_data
         else:
-          try:
-            verification_data_json = [ json.loads(verification_data) ]
-          except ValueError:
-            verification_data_json = [ { "data" : verification_data } ]
+          verification_data_json = [ verification_data ]
+
         verification_data = json.dumps(verification_data_json)
 
         self.verification_data = verification_data
@@ -395,7 +384,7 @@ class User(Base):
                           language= self.email_lang,
                           params=  json.dumps(email_params))
 
-      elif self.verified > 1:
+      elif self.verified > 2:
         if just_became_verified and bonus_account:
 
           current_bonus_balance = Balance.get_balance(session,
@@ -1265,8 +1254,8 @@ class Withdraw(Base):
   user_id         = Column(Integer,       ForeignKey('users.id'))
   account_id      = Column(Integer,       ForeignKey('users.id'))
   broker_id       = Column(Integer,       ForeignKey('users.id'))
-  broker_username = Column(String,        nullable=False)
-  username        = Column(String,        nullable=False)
+  broker_username = Column(String,        nullable=False, index=True)
+  username        = Column(String,        nullable=False, index=True)
   currency        = Column(String,        nullable=False, index=True)
   amount          = Column(Integer,       nullable=False, index=True)
 
@@ -1307,7 +1296,7 @@ class Withdraw(Base):
 
   def set_in_progress(self, session, percent_fee=0., fixed_fee=0):
     if self.status != '1':
-      return
+      return False
 
     self.percent_fee = percent_fee
     self.fixed_fee = fixed_fee
@@ -1320,7 +1309,7 @@ class Withdraw(Base):
     current_balance = Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
     if self.paid_amount > current_balance:
       self.cancel(session, -1 ) # Insufficient funds
-      return
+      return True
 
     # User won't be able to withdraw his funds if he has any unconfirmed bitcoin deposits
     # This will only be a issue in case of a double spend attack.
@@ -1328,7 +1317,7 @@ class Withdraw(Base):
     for position in current_positions:
       if position.position != 0:
         self.cancel(session, -8 ) # User has deposits that are not yet confirmed
-        return
+        return True
 
 
     self.status = '2'
@@ -1351,9 +1340,11 @@ class Withdraw(Base):
     session.add(self)
     session.flush()
 
+    return True
+
   def set_as_complete(self, session, data, broker_fees_account):
     if self.status != '2':
-      return
+      return False
 
     new_data = {}
     new_data.update(json.loads(self.data))
@@ -1387,9 +1378,11 @@ class Withdraw(Base):
     session.add(self)
     session.flush()
 
+    return True
+
   def cancel(self, session, reason_id = None, reason=None):
     if self.status == '4':
-      return  self
+      return  False
 
     if self.status == '2': # in progress or completed
       #revert the transaction
@@ -1434,7 +1427,7 @@ class Withdraw(Base):
                       template=template_name,
                       language= self.email_lang,
                       params  = json.dumps(template_parameters, cls=JsonEncoder))
-    return self
+    return True
 
 
   @staticmethod

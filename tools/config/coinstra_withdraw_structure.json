@@ -7,9 +7,12 @@
             "percent_fee":0,
             "fixed_fee":0,
             "limits": {
-              "0": {"enabled": true},
-              "1": {"enabled": true},
-              "2": {"enabled": true}
+              "0": {"enabled": true, "min": 500000, "max": 100000000},
+              "1": {"enabled": true, "min": 500000, "max": 100000000},
+              "2": {"enabled": true, "min": 500000, "max": 100000000},
+              "3": {"enabled": true, "min": 500000},
+              "4": {"enabled": true, "min": 500000},
+              "5": {"enabled": true, "min": 500000}
             },
             "fields": [
                 {"side":"client", "name": "Wallet"        , "validator":"validateAddress",  "type":"text"  , "value":""       , "label":"Wallet",        "placeholder":"" },
@@ -25,9 +28,12 @@
         "percent_fee":0,
         "fixed_fee":0,
         "limits": {
-          "0": {"enabled": true},
-          "1": {"enabled": true},
-          "2": {"enabled": true, "min" : 1000000000, "max": 280000000000}
+          "0": {"enabled": false},
+          "1": {"enabled": false},
+          "2": {"enabled": false},
+          "3": {"enabled": true, "min" : 1000000000,  "max": 280000000000},
+          "4": {"enabled": true, "min" : 1000000000,  "max": 280000000000},
+          "5": {"enabled": true, "min" : 1000000000}
         },
         "fields": [
           {"side":"client", "name": "BillerID"      , "validator":"validateAlphaNum", "type":"text"  , "value":""       , "label":"BPAY Biller Code", "placeholder":"" },
