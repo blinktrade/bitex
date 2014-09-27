@@ -2,7 +2,7 @@
   "0": {"enabled": false},
   "1": {"enabled": false},
   "2": {"enabled": false},
-  "3": {"enabled": true, "min" : 1000000000, "max": 280000000000 },
-  "4": {"enabled": true, "min" : 1000000000, "max": 280000000000 },
+  "3": {"enabled": true, "min" : 1000000000, "max":  280000000000 },
+  "4": {"enabled": true, "min" : 1000000000, "max": 5000000000000 },
   "5": {"enabled": true, "min" : 1000000000 }
 }

@@ -219,7 +219,12 @@
                   <td>{$wallets['type'] }</td>
                   <td>
                   {if $crypto_currencies['CurrencyCode'] == 'BTC' }
-                    <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                    {switch $wallets['address'][0]}
+                      {case 'm','n','2','9','c'}
+                        <a href="https://test-insight.bitpay.com/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                      {default}
+                        <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                    {/switch}
                   {else}
                     {$wallets['address'] }
                   {/if}

@@ -6,7 +6,18 @@ goog.require('goog.crypt');
 goog.require('goog.crypt.Sha256');
 
 
-
+bitex.util.isTestNetAddress = function(address) {
+  switch(address[0]) {
+    case 'm':
+    case 'n':
+    case '2':
+    case '9':
+    case 'c':
+      return true;
+    default:
+      return false;
+  }
+};
 
 bitex.util.decimalPlaces = function(num) {
   var match = (''+num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);

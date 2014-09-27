@@ -1,11 +1,26 @@
 [
   {
-    "CurrencyCode": "BTC",
-    "CurrencyDescription":"Bitcoin",
-    "Confirmations":[ [0, 200e8, 3 ], [200e8, 21000000e8, 6 ] ],
     "Wallets": [
-      { "type":"cold", "address":"myfG1xhTZFhUQPBoQAEJBmP4uEGuWNeQhT", "multisig":true,"signatures":[], "managed_by":"BlinkTrade, SurBitcoin,Owen Gunden"},
-      { "type":"hot", "address":"1ArzBWPaVHNU51LuE85XtuRXgRrNDwrMMg", "multisig":false,"signatures":[], "managed_by":"SurBitcoin" }
-    ]
+      {
+        "managed_by": "BlinkTrade, Exchange Operator, Mediator ",
+        "signatures": [],
+        "type": "cold",
+        "multisig": false,
+        "address": "n4G7Zc5bKuMejRio6zqeUPgX6rYd3tqWPZ"
+      },
+      {
+        "managed_by": "Exchange Operator ",
+        "signatures": [],
+        "type": "hot",
+        "multisig": false,
+        "address": "msQRdMPcwLr3rWsLzG56ABhHtfavHH2yVW"
+      }
+    ],
+    "CurrencyCode": "BTC",
+    "Confirmations": [
+      [0, 20000000000, 1],
+      [20000000000, 2100000000000000, 6]
+    ],
+    "CurrencyDescription": "Bitcoin"
   }
 ]

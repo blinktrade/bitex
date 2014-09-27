@@ -4,7 +4,7 @@
       xmlns:fb="http://www.facebook.com/2008/fbml">
 <head>
     <meta charset="utf-8">
-    <title>BlinkTrade Demo - Decentralized open source bitcoin exchange</title>
+    <title>BlinkTrade - Open source bitcoin exchange</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Buy and sell Crypto currencies.">
 
@@ -12,8 +12,7 @@
 
     <meta name="author" content="BlinkTrade">
 
-    <title>BlinkTrade Demo - Decentralized bitcoin exchange</title>
-    <meta property="og:title" content="BlinkTrade Demo - Decentralized bitcoin exchange">
+    <meta property="og:title" content="BlinkTrade - Open source bitcoin exchange">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://blinktrade.com/">
     <meta property="og:image" content="https://blinktrade.com/images/blinktrade-demo.png">
@@ -46,9 +45,7 @@
     <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
 
     <!-- bitex application -->
-    <script src="./js/bitex_app_blink_trade.compiled.en_US.js" type="text/javascript"></script>
-    <!--  -->
-    <!-- <script src="./js/bitex_app_blink_trade.compiled.pt_BR.js" type="text/javascript"></script>  <!--  -->
+    <script src="./js/bitex_app_blink_trade.compiled.en_US.js?v=5" type="text/javascript"></script>
 
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
@@ -92,24 +89,24 @@
     <header class="jumbotron">
         <img src="/images/blinktrade-demo.png" style="">
 
-        <p class="lead bitex-view-title bitex-view-title">The first decentralized bitcoin exchange</p>
-
-        <p class="lead">
-            Please use the following credentials to login on DEMO environment:
+        <p class="lead bitex-view-title bitex-view-title">See our open source Bitcoin exchange in action</p>
 
         <p>
-            <b>Broker Profile:</b>
-            username: demo
-            password: k43VgNkjAE9Qzww
+            <b>Exchange operator Profile:</b>
+            <p class="text-center">
+            username: exchange<br/>
+            password: abc12345<br/>
+            </p>
         </p>
 
         <p>
             <b>User Profile:</b>
-            username: demouser
-            password: qNpDhSDa6xsKzj2
-        </p>
-        </p>
+            <p class="text-center">
+              username: user<br/>
+              password: abc12345<br/>
+            </p>
 
+        </p>
     </header>
 
 
@@ -142,9 +139,6 @@
         <h1 class="bitex-view-title">Signup</h1>
     </div>
     <p>Already registered? <a href="#" data-switch-view="signin">Login</a>.</p>
-
-    <p>Are you looking to be a broker in your state/country ?<a href="#" data-switch-view="broker_application">Broker
-        application</a>.</p>
 
     <div class="bitex-view-content">
         <form accept-charset="UTF-8" class="form-horizontal" id="new_user" method="post">
@@ -473,14 +467,12 @@
                 <div id="account_overview_header_id"></div>
             </div>
             <div class="span6">
-                <div id="account_overview_balances_id"></div>
-                <div id="account_overview_fees_id">
-
-                    <div id="account_overview_fees_balances_id"></div>
-
-                    <button id="id_btn_user_fees" class="btn btn-primary">Set user fees</button>
-
-                </div>
+              <div id="account_overview_fees_id">
+                <div id="account_overview_fees_balances_id"></div>
+                <button id="id_btn_user_fees" class="btn btn-primary btn-small pull-right" style="margin-bottom: 10px;">Set user fees</button>
+              </div>
+              <div id="account_overview_verify_data_id"></div>
+              <div id="account_overview_balances_id"></div>
             </div>
         </div>
         <div class="bitex-account-overview-view-content"></div>
@@ -625,8 +617,8 @@
         <ul class="nav nav-list">
             <li style=""><a href="" data-switch-view="profile"><i data-switch-view="profile" class="icon-user"></i> My
                 Profile</a></li>
-            <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-user"></i>
-                My Broker info</a></li>
+            <li style=""><a href="" data-switch-view="my_broker"><i data-switch-view="my_broker" class="icon-search"></i>
+                My Exchanger</a></li>
 
             <li><a href="" data-switch-view="trading"><i data-switch-view="trading" class="icon-random"></i> Buy or Sell</a>
             </li>
@@ -684,7 +676,7 @@
 
 <div id="ranking" class="page row bitex-view">
     <div class="page-header">
-        <h1 class="bitex-view-title">Best Bitcoin Traders</h1>
+        <h1 class="bitex-view-title">Ranking (only available in demo mode)</h1>
     </div>
     <div class="bitex-view-content well"></div>
 </div>

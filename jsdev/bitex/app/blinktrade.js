@@ -2857,6 +2857,7 @@ bitex.app.BlinkTrade.prototype.adjustBrokerData_ = function(broker_info) {
   goog.array.forEach( broker_info['CryptoCurrencies'], function(crypto_currency){
     broker_currencies.push(crypto_currency['CurrencyCode']);
 
+
     var market_crypto_currency = goog.object.findKey( this.all_markets_, function(market_info, symbol) {
       if (symbol.indexOf(crypto_currency['CurrencyCode']) >= 0)  {
         return true;

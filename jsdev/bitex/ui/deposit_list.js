@@ -191,7 +191,16 @@ bitex.ui.DepositList = function( crypto_currencies_def, opt_broker_mode, opt_sho
                                               goog.dom.createDom('span', undefined, rowSet['Data']['InputAddress']) );
 
             if (rowSet['Currency'] == 'BTC') {
+
               var blockchain_address = 'https://blockchain.info/address/'  + rowSet['Data']['InputAddress'];
+              switch (rowSet['Data']['InputAddress'][0]) {
+                case 'm':
+                case 'n':
+                case '2':
+                case '9':
+                case 'c':
+                  blockchain_address = 'https://test-insight.bitpay.com/address/'  + rowSet['Data']['InputAddress'];
+              }
 
               inner_el = goog.dom.createDom('div',
                                             undefined,
