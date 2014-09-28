@@ -11,7 +11,6 @@ from bitex.utils import smart_str
 from bitex.errors import OrderNotFound
 
 from sqlalchemy import ForeignKey
-from sqlalchemy import create_engine
 from sqlalchemy import desc, func
 from sqlalchemy.sql.expression import and_, or_, exists
 from sqlalchemy import Column, Integer, Unicode, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint, UnicodeText
@@ -22,9 +21,6 @@ import json
 from copy import deepcopy
 from bitex.json_encoder import JsonEncoder
 
-from tornado.options import  options
-
-engine = create_engine( options.db_engine, echo=options.db_echo)
 Base = declarative_base()
 
 from trade_application import application
@@ -2350,7 +2346,7 @@ class DepositMethods(Base):
 
     return deposit
 
-Base.metadata.create_all(engine)
+#Base.metadata.create_all(engine)
 
 def db_bootstrap(session):
   pass

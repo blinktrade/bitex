@@ -5,6 +5,7 @@ ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
 
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import json
 import base64
@@ -21,11 +22,11 @@ def main():
   config = ConfigParser.SafeConfigParser()
   config.read( candidates )
 
-  options.define('db_engine', config.get('database','db_engine'))
-  options.define('db_echo', True)
+  from trade.models import Base, Currency, Instrument, User, Broker, DepositMethods
+  engine = create_engine( config.get('database','db_engine'), echo=True)
+  Base.metadata.create_all(engine)
 
 
-  from trade.models import engine, Currency, Instrument, User, Broker, DepositMethods
   session = scoped_session(sessionmaker(bind=engine))
 
   for section_name in config.sections():
@@ -64,63 +65,60 @@ def main():
     if section_name[:4] == 'user':
       if not User.get_user(session, config.get(section_name, 'username')):
         broker_id = None
-        broker_username = None
-        password = base64.b32encode(os.urandom(10))
-        transaction_fee_buy = None
-        transaction_fee_sell = None
-        verified = 0
-        is_system = False
-        is_staff = False
-        is_broker = False
-        state = None
-
-
         try:
           broker_id = config.getint(section_name, 'broker_id')
         except Exception,e:
           pass
 
+        broker_username = None
         try:
           broker_username = config.get(section_name, 'broker_username')
         except Exception,e:
           pass
 
+        password = base64.b32encode(os.urandom(10))
         try:
           password = config.get(section_name, 'password')
         except Exception,e:
           pass
 
+        transaction_fee_buy = None
         try:
           transaction_fee_buy = config.getint(section_name, 'transaction_fee_buy')
         except Exception,e:
           pass
 
+        transaction_fee_sell = None
         try:
           transaction_fee_sell = config.getint(section_name, 'transaction_fee_sell')
         except Exception,e:
           pass
 
-
+        verified = 0
         try:
           verified = config.getint(section_name, 'verified')
         except Exception,e:
           pass
 
+        is_system = False
         try:
           is_system = config.getboolean(section_name, 'is_system')
         except Exception,e:
           pass
 
+        is_staff = False
         try:
           is_staff = config.getboolean(section_name, 'is_staff')
         except Exception,e:
           pass
 
+        is_broker = False
         try:
           is_broker = config.getboolean(section_name, 'is_broker')
         except Exception,e:
           pass
 
+        state = None
         try:
           state = config.get(section_name, 'state')
         except Exception,e:
@@ -146,28 +144,6 @@ def main():
 
     if section_name[:6] == 'broker':
       if not Broker.get_broker(session, config.getint(section_name, 'id')):
-        withdraw_structure_json = {}
-        if config.get(section_name, 'withdraw_structure') != 'ignore':
-          with open(config.get(section_name, 'withdraw_structure')  ) as data_file:
-            withdraw_structure_json = json.load(data_file)
-
-        crypto_currencies_json = {}
-        if config.get(section_name, 'crypto_currencies') != 'ignore':
-          with open(config.get(section_name, 'crypto_currencies')  ) as data_file:
-            crypto_currencies_json = json.load(data_file)
-
-        accept_customers_from_json = [['*'],[ "CU", "SO", "SD",  "NG", "IR", "KP" ]]
-        try:
-          with open(config.get(section_name, 'accept_customers_from')  ) as data_file:
-            accept_customers_from_json = json.load(data_file)
-        except Exception,e:
-          pass
-
-        fee_structure_json = []
-        if config.get(section_name, 'fee_structure') != 'ignore':
-          with open(config.get(section_name, 'fee_structure')  ) as data_file:
-            fee_structure_json = json.load(data_file)
-
         phone_number_1 = None
         try:
           phone_number_1 = config.get(section_name, 'phone_number_1')
@@ -216,16 +192,16 @@ def main():
                    verification_jotform     = config.get(section_name, 'verification_jotform'),
                    upload_jotform           = config.get(section_name, 'upload_jotform'),
                    currencies               = config.get(section_name, 'currencies'),
-                   withdraw_structure       = json.dumps(withdraw_structure_json),
-                   crypto_currencies        = json.dumps(crypto_currencies_json),
-                   accept_customers_from    = json.dumps(accept_customers_from_json),
+                   withdraw_structure       = json.dumps(json.loads(config.get(section_name, 'withdraw_structure', raw=True))).decode('utf-8'),
+                   crypto_currencies        = json.dumps(json.loads(config.get(section_name, 'crypto_currencies', raw=True))).decode('utf-8'),
+                   accept_customers_from    = json.dumps(json.loads(config.get(section_name, 'accept_customers_from', raw=True))).decode('utf-8'),
                    is_broker_hub            = config.getboolean(section_name, 'is_broker_hub'),
                    support_url              = config.get(section_name, 'support_url'),
                    tos_url                  = config.get(section_name, 'tos_url'),
-                   fee_structure            = json.dumps(fee_structure_json),
+                   fee_structure            = json.dumps(json.loads(config.get(section_name, 'fee_structure', raw=True))).decode('utf-8'),
                    transaction_fee_buy      = transaction_fee_buy,
                    transaction_fee_sell     = transaction_fee_sell,
-                   accounts                 = config.get(section_name, 'accounts'),
+                   accounts                 = json.dumps(json.loads(config.get(section_name, 'accounts', raw=True))).decode('utf-8'),
                    status                   = config.get(section_name, 'status'),
                    ranking                  = config.getint(section_name, 'ranking'))
         session.add(e)
@@ -233,24 +209,6 @@ def main():
 
 
     if section_name[:14] == 'deposit_method':
-      with open(config.get(section_name, 'parameters')  ) as data_file:
-        parameters_json = json.load(data_file)
-
-      html_template = None
-      try:
-        with open(config.get(section_name, 'html_template')  ) as data_file:
-          html_template = data_file.read()
-      except Exception,e:
-        pass
-
-      deposit_limits_json = {0: {"enabled": False},1: {"enabled": False}, 2: {"enabled": False }}
-      try:
-        with open(config.get(section_name, 'deposit_limits')  ) as data_file:
-          deposit_limits_json = json.load(data_file)
-      except Exception,e:
-        pass
-
-
       if not DepositMethods.get_deposit_method(session, config.getint(section_name, 'id')):
         e = DepositMethods(id                         = config.getint(section_name, 'id'),
                             broker_id                 = config.getint(section_name, 'broker_id'),
@@ -262,9 +220,9 @@ def main():
                             fixed_fee                 = config.getint(section_name, 'fixed_fee'),
                             broker_deposit_ctrl_num   = config.getint(section_name, 'broker_deposit_ctrl_num'),
                             currency                  = config.get(section_name, 'currency'),
-                            deposit_limits            = json.dumps(deposit_limits_json),
-                            html_template             = html_template.decode('utf-8'),
-                            parameters                = json.dumps(parameters_json).decode('utf-8') )
+                            deposit_limits            = json.dumps(json.loads(config.get(section_name, 'deposit_limits', raw=True))).decode('utf-8'),
+                            html_template             = config.get(section_name, 'html_template', raw=True).decode('utf-8'),
+                            parameters                = json.dumps(json.loads(config.get(section_name, 'parameters', raw=True))).decode('utf-8') )
         session.add(e)
         session.commit()
 

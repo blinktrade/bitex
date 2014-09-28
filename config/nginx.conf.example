@@ -39,8 +39,8 @@ http {
         #server_name  bitex.com.br;
 
         ssl                  on;
-        ssl_certificate     /Users/rodrigo/bitex/ssl/server.crt;
-        ssl_certificate_key /Users/rodrigo/bitex/ssl/server.key;
+        ssl_certificate     /Users/rodrigo/blinktrade/bitex/ssl/server.crt;
+        ssl_certificate_key /Users/rodrigo/blinktrade/bitex/ssl/server.key;
 
         ssl_session_timeout  5m;
 
@@ -50,7 +50,7 @@ http {
  
 
         location / { 
-            root  /Users/rodrigo/bitex/static/; 
+            root  /Users/rodrigo/blinktrade/bitex/static/;
             index  blinktrade.html;
 
             location ~ /(profile|ranking|market|broker_application|my_broker|set_new_password|signin|signup|forgot_password|tos|start|trading|offerbook|deposit|withdraw|account_activity|customers|account_overview|verification|enable_two_factor|ledger|withdraw_requests|deposit_requests)$ {
@@ -114,7 +114,7 @@ http {
 
             error_page  404             /404.html;
             location = /40x.html {
-              root /Users/rodrigo/bitex/static/;
+              root /Users/rodrigo/blinktrade/bitex/static/;
             }
 
 

@@ -6,6 +6,7 @@ import traceback
 
 from tornado.options import  options
 
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import json
 from bitex.json_encoder import JsonEncoder
@@ -24,7 +25,11 @@ class TradeApplication(object):
     self.publish_queue = []
     self.options = options
 
-    from models import engine, db_bootstrap
+    from models import Base, db_bootstrap
+    engine = create_engine( options.db_engine, echo=options.db_echo)
+    Base.metadata.create_all(engine)
+
+
     self.db_session = scoped_session(sessionmaker(bind=engine))
     db_bootstrap(self.db_session)
 
