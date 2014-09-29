@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from bitex.message import JsonMessage
-from bitex.json_encoder import  JsonEncoder
+from pyblinktrade.message import JsonMessage
+from pyblinktrade.json_encoder import  JsonEncoder
 from copy import deepcopy
 
 import json
@@ -15,7 +15,7 @@ from execution import OrderMatcher
 
 from decorators import *
 
-from trade_application import application
+from trade_application import TradeApplication
 
 def processTestRequest(session, msg):
   return json.dumps({
@@ -30,7 +30,7 @@ def processChangePassword(session, msg):
   need_second_factor = False
   user = None
   try:
-    user = User.authenticate(application.db_session,
+    user = User.authenticate(TradeApplication.instance().db_session,
                              msg.get('Username'),
                              msg.get('Password'),
                              msg.get('SecondFactor'))
@@ -64,7 +64,7 @@ def processChangePassword(session, msg):
 def getProfileMessage(user, profile=None):
   if not profile:
     if user.is_broker:
-      profile = Broker.get_broker( application.db_session,user.id)
+      profile = Broker.get_broker( TradeApplication.instance().db_session,user.id)
     else:
       profile = user
 
@@ -125,7 +125,7 @@ def processLogin(session, msg):
   # Authenticate the user
   need_second_factor = False
   try:
-    user = User.authenticate(application.db_session,
+    user = User.authenticate(TradeApplication.instance().db_session,
                              msg.get('Username'),
                              msg.get('Password'),
                              msg.get('SecondFactor'))
@@ -143,12 +143,12 @@ def processLogin(session, msg):
       'NeedSecondFactor': need_second_factor,
       'UserStatusText':   'MSG_LOGIN_ERROR_INVALID_USERNAME_OR_PASSWORD' if not need_second_factor else 'MSG_LOGIN_ERROR_INVALID_SECOND_STEP'
     }
-    application.db_session.rollback()
+    TradeApplication.instance().db_session.rollback()
     session.should_end = True
     return json.dumps(login_response, cls=JsonEncoder)
 
-  application.db_session.add(session.user)
-  application.db_session.commit()
+  TradeApplication.instance().db_session.add(session.user)
+  TradeApplication.instance().db_session.commit()
 
   # Send the login response
   login_response = {
@@ -212,18 +212,18 @@ def processNewOrderSingle(session, msg):
 
     client = None
     if msg.get('ClientID').isdigit():
-      client = User.get_user( application.db_session, user_id= int(msg.get('ClientID')))
+      client = User.get_user( TradeApplication.instance().db_session, user_id= int(msg.get('ClientID')))
 
     if not client:
-      client = User.get_user(application.db_session, username= msg.get('ClientID'))
+      client = User.get_user(TradeApplication.instance().db_session, username= msg.get('ClientID'))
 
     if not client:
-      client = User.get_user(application.db_session, email= msg.get('ClientID'))
+      client = User.get_user(TradeApplication.instance().db_session, email= msg.get('ClientID'))
 
     if not client:
-      if application.options.satoshi_mode:
+      if TradeApplication.instance().options.satoshi_mode:
         # create account on the fly when running on satoshi mode
-        client, broker = User.signup(application.db_session,
+        client, broker = User.signup(TradeApplication.instance().db_session,
                                     msg.get('ClientID'),
                                     msg.get('ClientID') + '@' + session.user.username + '.com',
                                     'abc12345',
@@ -231,7 +231,7 @@ def processNewOrderSingle(session, msg):
                                     session.user.country_code,
                                     session.user.id)
 
-        Ledger.transfer(application.db_session,
+        Ledger.transfer(TradeApplication.instance().db_session,
                         client.broker_id,            # from_account_id
                         client.broker_username,      # from_account_name
                         client.broker_id,            # from_broker_id
@@ -246,7 +246,7 @@ def processNewOrderSingle(session, msg):
                         'B'                          # descriptions
         )
 
-        Ledger.transfer(application.db_session,
+        Ledger.transfer(TradeApplication.instance().db_session,
                         client.broker_id,            # from_account_id
                         client.broker_username,      # from_account_name
                         client.broker_id,            # from_broker_id
@@ -291,7 +291,7 @@ def processNewOrderSingle(session, msg):
       fee = account_user.transaction_fee_sell
 
   # process the new order.
-  order = Order.create(application.db_session,
+  order = Order.create(TradeApplication.instance().db_session,
                        user_id              = session.user.id,
                        account_id           = msg.get('ClientID', account_id ),
                        user                 = session.user,
@@ -311,10 +311,10 @@ def processNewOrderSingle(session, msg):
                        fee_account_id       = fee_account[0],
                        fee_account_username = fee_account[1],
                        email_lang           = session.email_lang)
-  application.db_session.flush() # just to assign an ID for the order.
+  TradeApplication.instance().db_session.flush() # just to assign an ID for the order.
 
-  OrderMatcher.get(msg.get('Symbol')).match(application.db_session, order)
-  application.db_session.commit()
+  OrderMatcher.get(msg.get('Symbol')).match(TradeApplication.instance().db_session, order)
+  TradeApplication.instance().db_session.commit()
 
   return ""
 
@@ -322,11 +322,11 @@ def processNewOrderSingle(session, msg):
 def processCancelOrderRequest(session, msg):
   order_list = []
   if  msg.has('OrigClOrdID'):
-    order = Order.get_order_by_client_order_id(application.db_session, ("0","1"), session.user.id,  msg.get('OrigClOrdID') )
+    order = Order.get_order_by_client_order_id(TradeApplication.instance().db_session, ("0","1"), session.user.id,  msg.get('OrigClOrdID') )
     if order:
       order_list.append(order)
   elif msg.has('OrderID'):
-    order = Order.get_order_by_order_id(application.db_session, ("0","1"),  msg.get('OrderID') )
+    order = Order.get_order_by_order_id(TradeApplication.instance().db_session, ("0","1"),  msg.get('OrderID') )
 
     if order:
       if order.user_id == session.user.id:  # user/broker cancelling his own order
@@ -337,13 +337,13 @@ def processCancelOrderRequest(session, msg):
         order_list.append(order)
   else:
     # user cancelling all the orders he sent.
-    orders = Order.get_list_by_user_id( application.db_session, ("0","1"), session.user.id )
+    orders = Order.get_list_by_user_id( TradeApplication.instance().db_session, ("0","1"), session.user.id )
     for order in orders:
       order_list.append(order)
 
   for order in order_list:
-    OrderMatcher.get( order.symbol ).cancel(application.db_session, order)
-  application.db_session.commit()
+    OrderMatcher.get( order.symbol ).cancel(TradeApplication.instance().db_session, order)
+  TradeApplication.instance().db_session.commit()
 
   return ""
 
@@ -358,7 +358,7 @@ def convertCamelCase2Underscore(name):
 def processUpdateUserProfile(session, msg):
   fields  = msg.get('Fields',[])
   user_id = msg.get('UserID', session.user.id )
-  user = User.get_user(application.db_session,  user_id=user_id)
+  user = User.get_user(TradeApplication.instance().db_session,  user_id=user_id)
 
   is_updating_his_own_profile = True
   is_updating_his_customer_profile = False
@@ -383,7 +383,7 @@ def processUpdateUserProfile(session, msg):
 
   broker_profile = None
   if user.is_broker:
-    broker_profile = Broker.get_broker(application.db_session, user_id)
+    broker_profile = Broker.get_broker(TradeApplication.instance().db_session, user_id)
     if is_updating_his_own_profile:
       broker_model_fields_writable = [ 'PhoneNumber1','PhoneNumber2','Skype','Email',
                                        'VerificationJotform','UploadJotform','TosUrl','SupportUrl',
@@ -434,7 +434,7 @@ def processUpdateUserProfile(session, msg):
   if broker_model_update_fields:
     broker_profile.update(broker_model_update_fields)
 
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   response_msg = {
     "MsgType":"U39",
@@ -445,7 +445,7 @@ def processUpdateUserProfile(session, msg):
   profile_refresh_msg = deepcopy(response_msg )
   profile_refresh_msg['MsgType'] = 'U40'
   del profile_refresh_msg['UpdateReqID']
-  application.publish(user_id, profile_refresh_msg )
+  TradeApplication.instance().publish(user_id, profile_refresh_msg )
 
 
   return json.dumps(response_msg, cls=JsonEncoder)
@@ -458,7 +458,7 @@ def processTradersRankRequest(session, msg):
 
   columns = [ 'Rank', 'Trader',  'Broker', 'Amount' ]
 
-  traders_list = Balance.get_balances_by_rank( application.db_session )
+  traders_list = Balance.get_balances_by_rank( TradeApplication.instance().db_session )
 
   response_msg = {
     'MsgType'           : 'U37',
@@ -473,8 +473,8 @@ def processTradersRankRequest(session, msg):
 
 def processSecurityListRequest(session, msg):
   request_type = msg.get('SecurityListRequestType')
-  instruments =  Instrument.get_instruments(application.db_session, request_type)
-  currencies = Currency.get_currencies(application.db_session)
+  instruments =  Instrument.get_instruments(TradeApplication.instance().db_session, request_type)
+  currencies = Currency.get_currencies(TradeApplication.instance().db_session)
 
   response = {
     'MsgType': 'y', # SecurityList
@@ -511,7 +511,7 @@ def processSecurityListRequest(session, msg):
 
 def processSignup(session, msg):
   try:
-    u, broker = User.signup(application.db_session,
+    u, broker = User.signup(TradeApplication.instance().db_session,
                             msg.get('Username'),
                             msg.get('Email'),
                             msg.get('Password'),
@@ -526,7 +526,7 @@ def processSignup(session, msg):
       'UserStatus': 3,
       'UserStatusText': 'MSG_LOGIN_ERROR_INVALID_BROKER'
     }
-    application.db_session.rollback()
+    TradeApplication.instance().db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
   except UserAlreadyExistsException:
     login_response = {
@@ -536,7 +536,7 @@ def processSignup(session, msg):
       'UserStatus': 3,
       'UserStatusText': 'MSG_LOGIN_ERROR_USERNAME_ALREADY_TAKEN'
     }
-    application.db_session.rollback()
+    TradeApplication.instance().db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
   except Exception, e:
     login_response = {
@@ -546,11 +546,11 @@ def processSignup(session, msg):
       'UserStatus': 3,
       'UserStatusText': str(e)
     }
-    application.db_session.rollback()
+    TradeApplication.instance().db_session.rollback()
     return json.dumps(login_response, cls=JsonEncoder)
 
-  if application.options.test_mode:
-    Ledger.transfer(application.db_session,
+  if TradeApplication.instance().options.test_mode:
+    Ledger.transfer(TradeApplication.instance().db_session,
                     u.broker_id,            # from_account_id
                     u.broker_username,      # from_account_name
                     u.broker_id,            # from_broker_id
@@ -569,13 +569,13 @@ def processSignup(session, msg):
 @login_required
 @verified_user_required
 def processConfirmTrustedAddressRequest(session, msg):
-  TrustedAddress.user_confirm_trusted_address(application.db_session,
+  TrustedAddress.user_confirm_trusted_address(TradeApplication.instance().db_session,
                                               session.user.id,
                                               session.broker.id,
                                               msg.get('Address'),
                                               msg.get('Currency'),
                                               msg.get('Label') )
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   response = {
     'MsgType': 'U45',
@@ -590,7 +590,7 @@ def processConfirmTrustedAddressRequest(session, msg):
 def processRequestForPositions(session, msg):
   user = session.user
   if msg.has('ClientID'):
-    user = User.get_user(application.db_session,
+    user = User.get_user(TradeApplication.instance().db_session,
                          user_id= int(msg.get('ClientID')) )
 
     if not user:
@@ -599,7 +599,7 @@ def processRequestForPositions(session, msg):
     if user.broker_id  != session.user.id:
       raise NotAuthorizedError()
 
-  positions = Position.get_positions_by_account( application.db_session, user.account_id )
+  positions = Position.get_positions_by_account( TradeApplication.instance().db_session, user.account_id )
   response = {
     'MsgType': 'U43',
     'ClientID': user.id,
@@ -617,7 +617,7 @@ def processRequestForPositions(session, msg):
 def processRequestForBalances(session, msg):
   user = session.user
   if msg.has('ClientID'):
-    user = User.get_user(application.db_session,
+    user = User.get_user(TradeApplication.instance().db_session,
                          user_id= int(msg.get('ClientID')) )
 
     if not user:
@@ -627,7 +627,7 @@ def processRequestForBalances(session, msg):
       raise NotAuthorizedError()
 
 
-  balances = Balance.get_balances_by_account( application.db_session, user.account_id )
+  balances = Balance.get_balances_by_account( TradeApplication.instance().db_session, user.account_id )
   response = {
     'MsgType': 'U3',
     'ClientID': user.id,
@@ -648,9 +648,9 @@ def processRequestForOpenOrders(session, msg):
   offset      = page * page_size
 
   if session.user.is_broker:
-    orders = Order.get_list_by_user_id(application.db_session, status_list, session.user.id, page_size, offset)
+    orders = Order.get_list_by_user_id(TradeApplication.instance().db_session, status_list, session.user.id, page_size, offset)
   else:
-    orders = Order.get_list_by_account_id(application.db_session, status_list, session.user.id, page_size, offset)
+    orders = Order.get_list_by_account_id(TradeApplication.instance().db_session, status_list, session.user.id, page_size, offset)
 
   order_list = []
   columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',
@@ -690,11 +690,11 @@ def processRequestForOpenOrders(session, msg):
   return json.dumps(open_orders_response_msg, cls=JsonEncoder)
 
 def processRequestPasswordRequest(session, msg):
-  user  = User.get_user( application.db_session, email = msg.get('Email') )
+  user  = User.get_user( TradeApplication.instance().db_session, email = msg.get('Email') )
   success = 0
   if user:
-    user.request_reset_password( application.db_session, session.email_lang )
-    application.db_session.commit()
+    user.request_reset_password( TradeApplication.instance().db_session, session.email_lang )
+    TradeApplication.instance().db_session.commit()
     success = 1
 
   response = {
@@ -705,7 +705,7 @@ def processRequestPasswordRequest(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 def processPasswordRequest(session, msg):
-  if UserPasswordReset.change_user_password( application.db_session, msg.get('Token'), msg.get('NewPassword') ):
+  if UserPasswordReset.change_user_password( TradeApplication.instance().db_session, msg.get('Token'), msg.get('NewPassword') ):
     response = {
       'MsgType': 'U13',
       'UserStatus': 1,
@@ -713,7 +713,7 @@ def processPasswordRequest(session, msg):
       'UserStatusText': 'MSG_SUCCESS_PASSWORD_CHANGE'
     }
 
-    application.db_session.commit()
+    TradeApplication.instance().db_session.commit()
     return json.dumps(response, cls=JsonEncoder)
   else:
     response = {
@@ -736,7 +736,7 @@ def processEnableDisableTwoFactorAuth(session, msg):
     if enable:
       raise NotAuthorizedError()
 
-    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+    user = User.get_user(TradeApplication.instance().db_session, user_id= int(msg.get('ClientID')) )
 
     if not user:
       raise NotAuthorizedError()
@@ -746,8 +746,8 @@ def processEnableDisableTwoFactorAuth(session, msg):
 
 
   two_factor_secret = user.enable_two_factor(enable, secret, code)
-  application.db_session.add(user)
-  application.db_session.commit()
+  TradeApplication.instance().db_session.add(user)
+  TradeApplication.instance().db_session.commit()
 
   response = {'MsgType'         : 'U17',
               'EnableTwoFactorReqID': msg.get('EnableTwoFactorReqID'),
@@ -759,7 +759,7 @@ def processEnableDisableTwoFactorAuth(session, msg):
 def processRequestDepositMethod(session, msg):
   deposit_method_id = msg.get('DepositMethodID')
 
-  deposit_method = DepositMethods.get_deposit_method(application.db_session, deposit_method_id)
+  deposit_method = DepositMethods.get_deposit_method(TradeApplication.instance().db_session, deposit_method_id)
   if not deposit_method:
     response = {'MsgType':'U49', 'DepositMethodReqID': msg.get('DepositMethodReqID'), 'DepositMethodID':-1}
 
@@ -787,7 +787,7 @@ def processRequestDepositMethod(session, msg):
 
 @login_required
 def processRequestDepositMethods(session, msg):
-  deposit_options = DepositMethods.get_list(application.db_session,session.user.broker_id )
+  deposit_options = DepositMethods.get_list(TradeApplication.instance().db_session,session.user.broker_id )
 
   deposit_options_group = []
 
@@ -827,7 +827,7 @@ def processRequestDeposit(session, msg):
     if session.user is None :
       raise NotAuthorizedError()
 
-    deposit_option = DepositMethods.get_deposit_method(application.db_session, deposit_option_id)
+    deposit_option = DepositMethods.get_deposit_method(TradeApplication.instance().db_session, deposit_option_id)
     if not deposit_option:
       response = {'MsgType':'U19', 'DepositID': -1 }
       return json.dumps(response, cls=JsonEncoder)
@@ -858,15 +858,15 @@ def processRequestDeposit(session, msg):
     if max_deposit_value and value > max_deposit_value:
       raise NotAuthorizedError()
 
-    deposit = deposit_option.generate_deposit(  application.db_session,
+    deposit = deposit_option.generate_deposit(  TradeApplication.instance().db_session,
                                                 session.user,
                                                 value,
                                                 client_order_id,
                                                 instructions )
-    application.db_session.commit()
+    TradeApplication.instance().db_session.commit()
     should_broadcast = True
   elif currency:
-    deposit = Deposit.create_crypto_currency_deposit(application.db_session,
+    deposit = Deposit.create_crypto_currency_deposit(TradeApplication.instance().db_session,
                                                      session.user,
                                                      currency,
                                                      input_address,
@@ -875,10 +875,10 @@ def processRequestDeposit(session, msg):
                                                      client_order_id,
                                                      instructions,
                                                      value)
-    application.db_session.commit()
+    TradeApplication.instance().db_session.commit()
     should_broadcast = True
   else:
-    deposit = Deposit.get_deposit(application.db_session, deposit_id)
+    deposit = Deposit.get_deposit(TradeApplication.instance().db_session, deposit_id)
 
   if not deposit:
     response = {'MsgType':'U19', 'DepositID': -1 }
@@ -888,8 +888,8 @@ def processRequestDeposit(session, msg):
     deposit_refresh = depositRecordToDepositMessage(deposit)
     deposit_refresh['MsgType'] = 'U23'
     deposit_refresh['DepositReqID'] = msg.get('DepositReqID')
-    application.publish( deposit.account_id, deposit_refresh  )
-    application.publish( deposit.broker_id,  deposit_refresh  )
+    TradeApplication.instance().publish( deposit.account_id, deposit_refresh  )
+    TradeApplication.instance().publish( deposit.broker_id,  deposit_refresh  )
 
 
   response_msg = depositRecordToDepositMessage(deposit)
@@ -955,7 +955,7 @@ def processWithdrawRequest(session, msg):
   if max_amount and msg.get('Amount') > max_amount:
     raise NotAuthorizedError()
 
-  withdraw_record = Withdraw.create(application.db_session,
+  withdraw_record = Withdraw.create(TradeApplication.instance().db_session,
                                     session.user,
                                     session.broker,
                                     msg.get('Currency'),
@@ -965,12 +965,12 @@ def processWithdrawRequest(session, msg):
                                     client_order_id,
                                     session.email_lang)
 
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw_record)
   withdraw_refresh['MsgType'] = 'U9'
-  application.publish( withdraw_record.account_id, withdraw_refresh  )
-  application.publish( withdraw_record.broker_id,  withdraw_refresh  )
+  TradeApplication.instance().publish( withdraw_record.account_id, withdraw_refresh  )
+  TradeApplication.instance().publish( withdraw_record.broker_id,  withdraw_refresh  )
 
 
   response = {
@@ -1005,17 +1005,17 @@ def processWithdrawConfirmationRequest(session, msg):
   reqId = msg.get('WithdrawReqID')
   token = msg.get('ConfirmationToken')
 
-  withdraw_data = Withdraw.user_confirm(application.db_session, token)
+  withdraw_data = Withdraw.user_confirm(TradeApplication.instance().db_session, token)
   if not withdraw_data:
     response = {'MsgType':'U25', 'WithdrawReqID': reqId}
     return json.dumps(response, cls=JsonEncoder)
 
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw_data)
   withdraw_refresh['MsgType'] = 'U9'
-  application.publish( withdraw_data.account_id, withdraw_refresh  )
-  application.publish( withdraw_data.broker_id,  withdraw_refresh  )
+  TradeApplication.instance().publish( withdraw_data.account_id, withdraw_refresh  )
+  TradeApplication.instance().publish( withdraw_data.broker_id,  withdraw_refresh  )
 
 
   response_u25 = withdrawRecordToWithdrawMessage(withdraw_data)
@@ -1035,7 +1035,7 @@ def processWithdrawListRequest(session, msg):
 
   user = session.user
   if msg.has('ClientID') and int(msg.get('ClientID')) != session.user.id :
-    user = User.get_user(application.db_session, user_id= int(msg.get('ClientID')) )
+    user = User.get_user(TradeApplication.instance().db_session, user_id= int(msg.get('ClientID')) )
     if user.broker_id  != session.user.id:
       raise NotAuthorizedError()
     if not user:
@@ -1043,11 +1043,11 @@ def processWithdrawListRequest(session, msg):
 
   if user.is_broker:
     if msg.has('ClientID'):
-      withdraws = Withdraw.get_list(application.db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
+      withdraws = Withdraw.get_list(TradeApplication.instance().db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
     else:
-      withdraws = Withdraw.get_list(application.db_session, user.id, None, status_list, page_size, offset, filter  )
+      withdraws = Withdraw.get_list(TradeApplication.instance().db_session, user.id, None, status_list, page_size, offset, filter  )
   else:
-    withdraws = Withdraw.get_list(application.db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
+    withdraws = Withdraw.get_list(TradeApplication.instance().db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
 
   withdraw_list = []
   columns = [ 'WithdrawID'   , 'Method'   , 'Currency'     , 'Amount' , 'Data',
@@ -1092,7 +1092,7 @@ def processBrokerListRequest(session, msg):
   country     = msg.get('Country', None)
   offset      = page * page_size
 
-  brokers = Broker.get_list(application.db_session, status_list, country, page_size, offset)
+  brokers = Broker.get_list(TradeApplication.instance().db_session, status_list, country, page_size, offset)
 
   broker_list = []
   columns = [ 'BrokerID'        , 'ShortName'      , 'BusinessName'      , 'Address'            , 'City', 'State'     ,
@@ -1166,7 +1166,7 @@ def processRequestDatabaseQuery(session, msg):
   raw_sql += ' OFFSET ' + str(offset)
 
 
-  result_set = application.db_session.execute(raw_sql)
+  result_set = TradeApplication.instance().db_session.execute(raw_sql)
   result = {
     'MsgType' : 'A1',
     'Page': page,
@@ -1194,7 +1194,7 @@ def processCustomerListRequest(session, msg):
     if len(client_id) == 1:
       client_id = client_id[0]
 
-  user_list = User.get_list(application.db_session, session.user.id ,status_list, country, state, client_id, page_size, offset, sort_column, sort_order)
+  user_list = User.get_list(TradeApplication.instance().db_session, session.user.id ,status_list, country, state, client_id, page_size, offset, sort_column, sort_order)
 
   result_set = []
   columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,
@@ -1234,13 +1234,13 @@ def processCustomerListRequest(session, msg):
 def processCustomerDetailRequest(session, msg):
   client = None
   if msg.get('ClientID').isdigit():
-    client = User.get_user( application.db_session, user_id= int(msg.get('ClientID') ))
+    client = User.get_user( TradeApplication.instance().db_session, user_id= int(msg.get('ClientID') ))
 
   if not client:
-    client = User.get_user(application.db_session, username= msg.get('ClientID'))
+    client = User.get_user(TradeApplication.instance().db_session, username= msg.get('ClientID'))
 
   if not client:
-    client = User.get_user(application.db_session, email= msg.get('ClientID'))
+    client = User.get_user(TradeApplication.instance().db_session, email= msg.get('ClientID'))
 
   if not client:
     return
@@ -1267,14 +1267,14 @@ def processVerifyCustomer(session, msg):
 
     broker_id = session.user.id
 
-  client = User.get_user( application.db_session, user_id= msg.get('ClientID') )
+  client = User.get_user( TradeApplication.instance().db_session, user_id= msg.get('ClientID') )
   if not client:
     raise NotAuthorizedError()
 
   if client.broker_id != broker_id:
     raise NotAuthorizedError()
 
-  broker = Broker.get_broker(application.db_session, broker_id)
+  broker = Broker.get_broker(TradeApplication.instance().db_session, broker_id)
   broker_accounts  = json.loads(broker.accounts)
   bonus_account = None
   if 'bonus' in broker_accounts :
@@ -1286,9 +1286,9 @@ def processVerifyCustomer(session, msg):
   except :
     verification_data = { "data": verification_data}
 
-  client.set_verified(application.db_session, msg.get('Verify'), verification_data , bonus_account)
+  client.set_verified(TradeApplication.instance().db_session, msg.get('Verify'), verification_data , bonus_account)
 
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   response_msg = {
     'MsgType'             : 'B9',
@@ -1304,7 +1304,7 @@ def processVerifyCustomer(session, msg):
 @login_required
 @broker_user_required
 def processProcessWithdraw(session, msg):
-  withdraw = Withdraw.get_withdraw(application.db_session, msg.get('WithdrawID'))
+  withdraw = Withdraw.get_withdraw(TradeApplication.instance().db_session, msg.get('WithdrawID'))
 
   if withdraw.broker_id != session.user.id:
     raise  NotAuthorizedError()
@@ -1314,7 +1314,7 @@ def processProcessWithdraw(session, msg):
     if withdraw.status == '4' or withdraw == '8':
       raise NotAuthorizedError()  # trying to cancel a completed operation or a cancelled operation
 
-    result = withdraw.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
+    result = withdraw.cancel( TradeApplication.instance().db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
     percent_fee = msg.get('PercentFee',0.)
     fixed_fee   = msg.get('FixedFee',0.)
@@ -1325,21 +1325,21 @@ def processProcessWithdraw(session, msg):
     if fixed_fee > float(withdraw.fixed_fee):
       raise NotAuthorizedError() # Broker tried to raise their fees manually
 
-    result = withdraw.set_in_progress( application.db_session, percent_fee, fixed_fee)
+    result = withdraw.set_in_progress( TradeApplication.instance().db_session, percent_fee, fixed_fee)
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
 
     broker_fees_account = session.user_accounts['fees']
 
-    result = withdraw.set_as_complete( application.db_session, data, broker_fees_account)
+    result = withdraw.set_as_complete( TradeApplication.instance().db_session, data, broker_fees_account)
 
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   if result:
     withdraw_refresh = withdrawRecordToWithdrawMessage(withdraw)
     withdraw_refresh['MsgType'] = 'U9'
-    application.publish( withdraw.account_id, withdraw_refresh  )
-    application.publish( withdraw.broker_id,  withdraw_refresh  )
+    TradeApplication.instance().publish( withdraw.account_id, withdraw_refresh  )
+    TradeApplication.instance().publish( withdraw.broker_id,  withdraw_refresh  )
 
   response_msg = {
     'MsgType'             : 'B7',
@@ -1358,7 +1358,7 @@ def processProcessDeposit(session, msg):
 
   if not secret:
     deposit_id   = msg.get('DepositID')
-    deposit = Deposit.get_deposit(application.db_session, deposit_id=deposit_id)
+    deposit = Deposit.get_deposit(TradeApplication.instance().db_session, deposit_id=deposit_id)
 
     if session.user is None or session.user.is_broker == False:
       if msg.get('Action') != 'CONFIRM':
@@ -1368,7 +1368,7 @@ def processProcessDeposit(session, msg):
       if deposit.broker_id != session.user.id:
         raise NotAuthorizedError()
   else:
-    deposit = Deposit.get_deposit( application.db_session, secret=secret)
+    deposit = Deposit.get_deposit( TradeApplication.instance().db_session, secret=secret)
 
   if not deposit:
     return  json.dumps( { 'MsgType' : 'B1',
@@ -1377,12 +1377,12 @@ def processProcessDeposit(session, msg):
 
   if msg.get('Action') == 'CONFIRM':
     data        = msg.get('Data')
-    deposit.user_confirm(application.db_session, data )
+    deposit.user_confirm(TradeApplication.instance().db_session, data )
   if msg.get('Action') == 'CANCEL':
-    deposit.cancel( application.db_session, msg.get('ReasonID'), msg.get('Reason') )
+    deposit.cancel( TradeApplication.instance().db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
     data        = msg.get('Data')
-    deposit.set_in_progress(application.db_session, data)
+    deposit.set_in_progress(TradeApplication.instance().db_session, data)
   elif msg.get('Action') == 'COMPLETE':
     amount          = int(msg.get('Amount'))
     data            = msg.get('Data')
@@ -1395,13 +1395,13 @@ def processProcessDeposit(session, msg):
     if fixed_fee > deposit.fixed_fee:
       raise NotAuthorizedError() # Broker tried to raise their  fees manually
 
-    instruction_msg_after_deposit = deposit.process_confirmation(application.db_session,
+    instruction_msg_after_deposit = deposit.process_confirmation(TradeApplication.instance().db_session,
                                                                  amount,
                                                                  percent_fee,
                                                                  fixed_fee,
                                                                  data)
 
-  application.db_session.commit()
+  TradeApplication.instance().db_session.commit()
 
   if instruction_msg_after_deposit:
     msg = JsonMessage( json.dumps(instruction_msg_after_deposit) )
@@ -1409,7 +1409,7 @@ def processProcessDeposit(session, msg):
     if session.user:
       session.process_message(msg)
     else:
-      session.set_user(User.get_user( application.db_session, user_id=deposit.user_id))
+      session.set_user(User.get_user( TradeApplication.instance().db_session, user_id=deposit.user_id))
       session.process_message(msg)
       session.set_user(None)
 
@@ -1417,8 +1417,8 @@ def processProcessDeposit(session, msg):
   deposit_refresh = depositRecordToDepositMessage(deposit)
   deposit_refresh['MsgType'] = 'U23'
   deposit_refresh['DepositReqID'] = msg.get('DepositReqID')
-  application.publish( deposit.account_id, deposit_refresh  )
-  application.publish( deposit.broker_id,  deposit_refresh  )
+  TradeApplication.instance().publish( deposit.account_id, deposit_refresh  )
+  TradeApplication.instance().publish( deposit.broker_id,  deposit_refresh  )
 
 
   result = depositRecordToDepositMessage(deposit)
@@ -1452,7 +1452,7 @@ def processLedgerListRequest(session, msg):
       broker_id = int(msg.get('BrokerID'))
 
 
-  records = Ledger.get_list(application.db_session, broker_id, account_id, operation_list, page_size, offset, currency, filter  )
+  records = Ledger.get_list(TradeApplication.instance().db_session, broker_id, account_id, operation_list, page_size, offset, currency, filter  )
 
   record_list = []
   columns = [ 'LedgerID',       'Currency',     'Operation',
@@ -1503,11 +1503,11 @@ def processDepositListRequest(session, msg):
 
   if user.is_broker:
     if msg.has('ClientID'):
-      deposits = Deposit.get_list(application.db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
+      deposits = Deposit.get_list(TradeApplication.instance().db_session, user.id, int(msg.get('ClientID')), status_list, page_size, offset, filter  )
     else:
-      deposits = Deposit.get_list(application.db_session, user.id, None, status_list, page_size, offset, filter  )
+      deposits = Deposit.get_list(TradeApplication.instance().db_session, user.id, None, status_list, page_size, offset, filter  )
   else:
-    deposits = Deposit.get_list(application.db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
+    deposits = Deposit.get_list(TradeApplication.instance().db_session, user.broker_id, user.id, status_list, page_size, offset, filter  )
 
 
   deposit_list = []

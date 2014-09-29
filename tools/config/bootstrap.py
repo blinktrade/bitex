@@ -11,8 +11,6 @@ import json
 import base64
 import ConfigParser
 
-from tornado.options import options
-
 
 def main():
   candidates = ['bootstrap.ini']

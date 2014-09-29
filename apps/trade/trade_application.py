@@ -1,27 +1,25 @@
+import sys
 import logging
 import zmq
 import time
 import datetime
 import traceback
 
-from tornado.options import  options
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import json
-from bitex.json_encoder import JsonEncoder
+from pyblinktrade.json_encoder import JsonEncoder
 
 from errors import *
 
 class TradeApplication(object):
-
   @classmethod
   def instance(cls):
     if not hasattr(cls, "_instance"):
       cls._instance = cls()
     return cls._instance
 
-  def initialize(self):
+  def initialize(self, options):
     self.publish_queue = []
     self.options = options
 
@@ -44,12 +42,17 @@ class TradeApplication(object):
     self.publisher_socket.bind(self.options.trade_pub)
 
     input_log_file_handler = logging.handlers.TimedRotatingFileHandler( self.options.trade_log, when='MIDNIGHT')
-    formatter = logging.Formatter('%(asctime)s - %(message)s')
-    input_log_file_handler.setFormatter(formatter)
+    input_log_file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
     self.replay_logger = logging.getLogger("REPLAY")
     self.replay_logger.setLevel(logging.INFO)
     self.replay_logger.addHandler(input_log_file_handler)
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    self.replay_logger.addHandler(ch)
+
     self.replay_logger.info('START')
 
     self.log_start_data()
@@ -132,7 +135,7 @@ class TradeApplication(object):
     self.publish_queue.append([ key, data ])
 
   def run(self):
-    from bitex.message import JsonMessage, InvalidMessageException
+    from pyblinktrade.message import JsonMessage, InvalidMessageException
     from market_data_publisher import MarketDataPublisher
     from execution import OrderMatcher
     from models import Order
@@ -192,7 +195,7 @@ class TradeApplication(object):
             instrument = instruments[0]
 
             om = OrderMatcher.get(instrument)
-            response_message = MarketDataPublisher.generate_md_full_refresh( application.db_session, instrument, market_depth, om, entries, req_id, timestamp )
+            response_message = MarketDataPublisher.generate_md_full_refresh( self.db_session, instrument, market_depth, om, entries, req_id, timestamp )
             response_message = 'REP,' + json.dumps( response_message , cls=JsonEncoder)
           elif msg.isTradeHistoryRequest():
 
@@ -203,7 +206,7 @@ class TradeApplication(object):
               columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size',
                           'Buyer'             , 'Seller', 'Created' ]
 
-              trade_list = MarketDataPublisher.generate_trade_history(application.db_session, page_size, offset )
+              trade_list = MarketDataPublisher.generate_trade_history(self.db_session, page_size, offset )
 
               response_message = 'REP,' + json.dumps( {
                   'MsgType'           : 'U33', # TradeHistoryResponse
@@ -239,5 +242,3 @@ class TradeApplication(object):
         self.log('OUT', 'TRADE_PUB', str([key, message]) )
         self.publisher_socket.send_multipart( [str(key),  json.dumps(message, cls=JsonEncoder)] )
       self.publish_queue = []
-
-application = TradeApplication.instance()

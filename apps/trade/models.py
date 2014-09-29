@@ -7,8 +7,7 @@ import logging
 import hmac, base64, struct, hashlib, time, uuid
 
 import datetime
-from bitex.utils import smart_str
-from bitex.errors import OrderNotFound
+from pyblinktrade.utils import smart_str
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import desc, func
@@ -19,11 +18,11 @@ from sqlalchemy.ext.declarative import declarative_base
 import json
 
 from copy import deepcopy
-from bitex.json_encoder import JsonEncoder
+from pyblinktrade.json_encoder import JsonEncoder
 
 Base = declarative_base()
 
-from trade_application import application
+from trade_application import TradeApplication
 
 from tornado import template
 
@@ -357,8 +356,8 @@ class User(Base):
       verify_customer_refresh_msg['Verified'] = self.verified
       verify_customer_refresh_msg['VerificationData'] = verification_data
 
-      application.publish( self.id,  verify_customer_refresh_msg  )
-      application.publish( self.broker_id,  verify_customer_refresh_msg  )
+      TradeApplication.instance().publish( self.id,  verify_customer_refresh_msg  )
+      TradeApplication.instance().publish( self.broker_id,  verify_customer_refresh_msg  )
 
 
       if self.verified == 1:
@@ -480,7 +479,7 @@ class Position(Base):
     position_update_msg['MsgType'] = 'U43'
     position_update_msg['ClientID'] = account_id
     position_update_msg[broker_id] = { currency: obj.position }
-    application.publish( account_id,  position_update_msg  )
+    TradeApplication.instance().publish( account_id,  position_update_msg  )
 
     return obj.position
 
@@ -649,13 +648,13 @@ class Balance(Base):
     balance_update_msg['MsgType'] = 'U3'
     balance_update_msg['ClientID'] = account_id
     balance_update_msg[broker_id] = { currency: balance_obj.balance }
-    application.publish( account_id,  balance_update_msg  )
+    TradeApplication.instance().publish( account_id,  balance_update_msg  )
 
     try:
       broker_accounts = json.loads(Broker.get_broker(session, broker_id).accounts)
       for name, account_data in broker_accounts.iteritems():
         if account_id == account_data[0]:
-          application.publish( broker_id,  balance_update_msg  )
+          TradeApplication.instance().publish( broker_id,  balance_update_msg  )
           break
     except :
       pass
@@ -1054,7 +1053,7 @@ class TrustedAddress(Base):
         'Currency'      : rec.currency,
         'Address'       : rec.address
       }
-      application.publish( user_id, msg )
+      TradeApplication.instance().publish( user_id, msg )
 
       UserEmail.create(session  = session,
                        user_id  = user_id,
@@ -1224,7 +1223,7 @@ class UserEmail(Base):
       'Template'      : '',
       'Params'        : '{}'
     }
-    application.publish( user_id, user_msg )
+    TradeApplication.instance().publish( user_id, user_msg )
 
     msg = deepcopy( user_msg )
 
@@ -1241,7 +1240,7 @@ class UserEmail(Base):
     if params:
       msg['Params'] = params
 
-    application.publish( 'EMAIL' , msg )
+    TradeApplication.instance().publish( 'EMAIL' , msg )
     return  user_email
 
 class Withdraw(Base):

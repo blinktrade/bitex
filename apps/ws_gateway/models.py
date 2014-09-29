@@ -9,13 +9,9 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from tornado.options import options
+Base = declarative_base()
 
-ENGINE = create_engine(options.db_engine, echo=options.db_echo)
-BASE = declarative_base()
-
-
-class Trade(BASE):
+class Trade(Base):
     __tablename__ = 'trade'
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, nullable=False)
@@ -59,17 +55,12 @@ class Trade(BASE):
         return trades
 
     @staticmethod
-    def get_last_trade_id():
-
-        session = scoped_session(sessionmaker(bind=ENGINE))
+    def get_last_trade_id(session):
         res = session.query(func.max(Trade.id)).one()
-
         return res[0]
 
     @staticmethod
-    def get_last_trades(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
-        session = scoped_session(sessionmaker(bind=ENGINE))
-
+    def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
         today = datetime.now()
         timestamp = today - timedelta(days=1)
 
@@ -109,7 +100,7 @@ class Trade(BASE):
 
         return trade
 
-BASE.metadata.create_all(ENGINE)
+
 
 
 def db_bootstrap(session):

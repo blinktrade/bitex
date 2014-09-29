@@ -4,7 +4,7 @@ import os
 import zmq
 from zmq.eventloop.zmqstream import  ZMQStream
 
-from bitex.message import JsonMessage, InvalidMessageException
+from pyblinktrade.message import JsonMessage, InvalidMessageException
 
 class TradeClientException(Exception):
   def __init__(self, error_message, detail = None):

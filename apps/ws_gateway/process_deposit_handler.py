@@ -4,7 +4,7 @@ import tornado.httpclient
 import datetime
 import json
 
-from bitex.zmq_client import  TradeClientException
+from zmq_client import  TradeClientException
 
 class ProcessDepositHandler(tornado.web.RequestHandler):
   def __init__(self, application, request, **kwargs):

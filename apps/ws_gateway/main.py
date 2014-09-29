@@ -22,17 +22,15 @@ import os
 import sys
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-sys.path.insert(0, os.path.join(ROOT_PATH, 'libs'))
-sys.path.insert(0, os.path.join(ROOT_PATH, 'apps'))
 
-import base64
+import ConfigParser
+import argparse
+from appdirs import site_config_dir
 
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.template
-from tornado.options import define, options
-
 from tornado import websocket
 
 import logging
@@ -40,50 +38,20 @@ import urllib
 import urllib2
 import json
 import uuid
-from json import loads
-from bitex.json_encoder import JsonEncoder
+from pyblinktrade.json_encoder import JsonEncoder
 
 import zmq
-from bitex.message import JsonMessage, InvalidMessageException
-from bitex.zmq_client import TradeClient, TradeClientException
+from pyblinktrade.message import JsonMessage, InvalidMessageException
+from zmq_client import TradeClient, TradeClientException
+from pyblinktrade.project_options import ProjectOptions
 
-import calendar, time
 from time import mktime
-import datetime
-
 
 from zmq.eventloop.zmqstream import ZMQStream
-
-define("callback_url")
-define("port", type=int  ,help="port")
-define("gateway_log", help="logging" )
-define("trade_in", help="trade zmq queue")
-define("trade_pub",help="trade zmq publish queue")
-define("url_payment_processor",help="blockchain api_receive url", default='https://blockchain.info/api/receive')
-define("session_timeout_limit", default=0, help="Session timeout")
-define("db_echo",default=False, help="Prints every database command on the stdout")
-
-define("db_engine",help="SQLAlchemy database engine string")
-define("config", help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
-
-tornado.options.parse_command_line()
-if not options.trade_in or \
-   not options.trade_pub or \
-   not options.gateway_log or \
-   not options.callback_url or \
-   not options.port or \
-   not options.db_engine:
-  tornado.options.print_help()
-  exit(0)
-
-input_log_file_handler = logging.handlers.TimedRotatingFileHandler( options.gateway_log, when='MIDNIGHT')
-formatter = logging.Formatter('%(asctime)s - %(message)s')
-input_log_file_handler.setFormatter(formatter)
 
 
 from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history, SecurityStatusPublisher, generate_security_status
 
-#from withdraw_confirmation import WithdrawConfirmationHandler, WithdrawConfirmedHandler
 from deposit_hander import DepositHandler
 from process_deposit_handler import ProcessDepositHandler
 from verification_webhook_handler import VerificationWebHookHandler
@@ -91,6 +59,7 @@ from deposit_receipt_webhook_handler import  DepositReceiptWebHookHandler
 from rest_api_handler import RestApiHandler
 import datetime
 
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from models import Trade
@@ -109,7 +78,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.trade_client = TradeClient(
             self.application.zmq_context,
             self.application.trade_in_socket,
-            options.trade_pub)
+            self.application.options.trade_pub)
         self.md_subscriptions = {}
         self.sec_status_subscriptions = {}
 
@@ -210,7 +179,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
                 secret = uuid.uuid4().hex
                 cold_wallet = self.get_broker_wallet('cold', currency)
-                callback_url = options.callback_url + secret
+                callback_url = self.application.options.callback_url + secret
                 if not cold_wallet:
                     return
 
@@ -223,7 +192,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
 
                 try:
-                    url_payment_processor = options.url_payment_processor + '?' + parameters
+                    url_payment_processor = self.application.options.url_payment_processor + '?' + parameters
                     print "invoking .. ", url_payment_processor
                     response = urllib2.urlopen(url_payment_processor)
                     data = json.load(response)
@@ -309,7 +278,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size', 
                     'Buyer'             , 'Seller', 'Created' ]
 
-        trade_list = generate_trade_history(page_size, offset)
+        trade_list = generate_trade_history(self.application.db_session, page_size, offset)
 
         response_msg = {
             'MsgType'           : 'U33', # TradeHistoryResponse
@@ -397,6 +366,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
 class WebSocketGatewayApplication(tornado.web.Application):
 
     def __init__(self, opt):
+        self.options = opt
+
         handlers = [
             (r'/', WebSocketHandler),
             (r'/get_deposit(.*)', DepositHandler),
@@ -410,6 +381,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
+
+        input_log_file_handler = logging.handlers.TimedRotatingFileHandler( self.options.gateway_log, when='MIDNIGHT')
+        formatter = logging.Formatter('%(asctime)s - %(message)s')
+        input_log_file_handler.setFormatter(formatter)
+
         self.replay_logger = logging.getLogger("REPLAY")
         self.replay_logger.setLevel(logging.INFO)
         self.replay_logger.addHandler(input_log_file_handler)
@@ -417,15 +393,17 @@ class WebSocketGatewayApplication(tornado.web.Application):
         self.log_start_data()
 
 
-        from models import ENGINE, db_bootstrap
-        self.db_session = scoped_session(sessionmaker(bind=ENGINE))
+        from models import Base, db_bootstrap
+        engine = create_engine(self.options.db_engine, echo=self.options.db_echo)
+        Base.metadata.create_all(engine)
+        self.db_session = scoped_session(sessionmaker(bind=engine))
         db_bootstrap(self.db_session)
 
 
         self.zmq_context = zmq.Context()
 
         self.trade_in_socket = self.zmq_context.socket(zmq.REQ)
-        self.trade_in_socket.connect(opt.trade_in)
+        self.trade_in_socket.connect(self.options.trade_in)
 
         self.application_trade_client = TradeClient(
             self.zmq_context,
@@ -440,10 +418,10 @@ class WebSocketGatewayApplication(tornado.web.Application):
             self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol, self)
             self.md_subscriber[symbol].subscribe(
                 self.zmq_context,
-                options.trade_pub,
+                self.options.trade_pub,
                 self.application_trade_client)
 
-        last_trade_id = Trade.get_last_trade_id()
+        last_trade_id = Trade.get_last_trade_id(self.db_session)
         trade_list = self.application_trade_client.getLastTrades(last_trade_id)
 
         for trade in trade_list:
@@ -483,14 +461,14 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
     def log_start_data(self):
         self.log('PARAM','BEGIN')
-        self.log('PARAM','callback_url'         ,options.callback_url)
-        self.log('PARAM','port'                 ,options.port)
-        self.log('PARAM','trade_in'             ,options.trade_in)
-        self.log('PARAM','trade_pub'            ,options.trade_pub)
-        self.log('PARAM','url_payment_processor',options.url_payment_processor)
-        self.log('PARAM','session_timeout_limit',options.session_timeout_limit)
-        self.log('PARAM','db_echo'              ,options.db_echo)
-        self.log('PARAM','db_engine'            ,options.db_engine)
+        self.log('PARAM','callback_url'         ,self.options.callback_url)
+        self.log('PARAM','port'                 ,self.options.port)
+        self.log('PARAM','trade_in'             ,self.options.trade_in)
+        self.log('PARAM','trade_pub'            ,self.options.trade_pub)
+        self.log('PARAM','url_payment_processor',self.options.url_payment_processor)
+        self.log('PARAM','session_timeout_limit',self.options.session_timeout_limit)
+        self.log('PARAM','db_echo'              ,self.options.db_echo)
+        self.log('PARAM','db_engine'            ,self.options.db_engine)
         self.log('PARAM','END')
 
 
@@ -538,21 +516,49 @@ class WebSocketGatewayApplication(tornado.web.Application):
             self.connections[client_connection_id].trade_client.close()
         self.connections = []
 
+def run_application(options):
+  from zmq.eventloop import ioloop
+  ioloop.install()
+
+  application = WebSocketGatewayApplication(options)
+
+  server = tornado.httpserver.HTTPServer(application)
+  server.listen(options.port)
+
+  try:
+    tornado.ioloop.IOLoop.instance().start()
+  except KeyboardInterrupt:
+    application.clean_up()
+
+
 
 def main():
-    from zmq.eventloop import ioloop
-    ioloop.install()
+    parser = argparse.ArgumentParser(description="Blinktrade WebSocket Gateway application")
+    parser.add_argument('-i', "--instance", action="store", dest="instance", help='Instance name', type=str)
+    parser.add_argument('-c', "--config", action="store", dest="config", default=os.path.expanduser('~/.bitex/bitex.ini'), help='Configuration file', type=str)
+    arguments = parser.parse_args()
 
-    application = WebSocketGatewayApplication(options)
+    if not arguments.instance:
+      parser.print_help()
+      return
 
-    server = tornado.httpserver.HTTPServer(application)
-    server.listen(options.port)
+    candidates = [ os.path.join(ROOT_PATH, 'config/bitex.ini'),
+                   os.path.join(site_config_dir('bitex'), 'bitex.ini'),
+                   arguments.config]
+    config = ConfigParser.SafeConfigParser()
+    config.read( candidates )
 
-    try:
-        tornado.ioloop.IOLoop.instance().start()
-    except KeyboardInterrupt:
-        application.clean_up()
-        print 'END'
+    options = ProjectOptions(config, arguments.instance)
 
+    if not options.trade_in or\
+       not options.trade_pub or\
+       not options.gateway_log or\
+       not options.callback_url or\
+       not options.port or\
+       not options.db_engine:
+      raise RuntimeError("Invalid configuration file")
+
+
+    run_application(options)
 if __name__ == "__main__":
     main()

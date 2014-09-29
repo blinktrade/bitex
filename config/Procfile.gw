@@ -1,4 +1,0 @@
-gateway: python2.7 /home/bzero/devel/bitex/apps/ws_gateway/main.py --config=/home/bzero/devel/bitex/config/ws_devel_gw.conf
-gateway1: python2.7 /home/bzero/devel/bitex/apps/ws_gateway/main.py --config=/home/bzero/devel/bitex/config/ws_devel_gw1.conf
-gateway2: python2.7 /home/bzero/devel/bitex/apps/ws_gateway/main.py --config=/home/bzero/devel/bitex/config/ws_devel_gw2.conf
-gateway3: python2.7 /home/bzero/devel/bitex/apps/ws_gateway/main.py --config=/home/bzero/devel/bitex/config/ws_devel_gw3.conf

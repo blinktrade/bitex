@@ -3,4 +3,6 @@ crypto>=1.1.0
 tornado>=4.0.1
 sqlalchemy>=0.9.7
 requests>=2.3.0
-
+appdirs
+mailchimp
+pycountry

@@ -1,19 +1,10 @@
 import random
 
-if __name__ == '__main__':
-  import os
-  import sys
-
-  ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
-  sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
-  sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
-
-
 from ws4py.client.threadedclient import WebSocketClient
 import json
 import time
 
-from signals import Signal
+from pyblinktrade.signals import Signal
 
 class BitExThreadedClient(WebSocketClient):
   signal_heartbeat                = Signal()

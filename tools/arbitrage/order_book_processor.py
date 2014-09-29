@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, '../../libs')
 
-from bitex.signals import  Signal
+from pyblinktrade.signals import  Signal
 import datetime
 import time
 

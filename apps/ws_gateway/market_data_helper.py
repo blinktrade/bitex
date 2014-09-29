@@ -4,12 +4,12 @@ import json
 import time
 
 from instrument_helper import InstrumentStatusHelper, signal_publish_security_status
-from bitex.signals import Signal
+from pyblinktrade.signals import Signal
 
 import zmq
 from zmq.eventloop.zmqstream import ZMQStream
 
-from bitex.message import JsonMessage
+from pyblinktrade.message import JsonMessage
 
 from models import Trade
 
@@ -90,7 +90,7 @@ class MarketDataSubscriber(object):
 
     def get_last_trades(self):
         """" get_last_trades. """
-        return Trade.get_last_trades()
+        return Trade.get_last_trades(self.db_session)
 
     def get_trades(self, symbol, since):
         """" get_trades. """
@@ -360,8 +360,8 @@ class MarketDataPublisher(object):
             self.handler(sender, md)
             self.entry_list_order_depth = []
 
-def generate_trade_history(page_size = None, offset = None, sort_column = None, sort_order='ASC'):
-    trades = Trade.get_last_trades(page_size, offset, sort_column, sort_order)
+def generate_trade_history(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+    trades = Trade.get_last_trades(session, page_size, offset, sort_column, sort_order)
     trade_list = []
     for trade in  trades:
         trade_list.append([ 

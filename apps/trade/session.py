@@ -1,7 +1,7 @@
 
 from errors import *
 from views import *
-
+from trade_application import  TradeApplication
 
 class Session(object):
   def __init__(self, session_id, remote_ip=None, client_version=None):
@@ -36,13 +36,13 @@ class Session(object):
 
     from models import Broker
     if self.is_broker:
-      self.profile = Broker.get_broker( application.db_session,user.id)
+      self.profile = Broker.get_broker( TradeApplication.instance().db_session,user.id)
       self.user_accounts = json.loads(self.profile.accounts)
     else:
       self.profile = user
 
     if user.broker_id is not None:
-      self.broker           = Broker.get_broker( application.db_session,user.broker.id)
+      self.broker           = Broker.get_broker( TradeApplication.instance().db_session,user.broker.id)
       self.broker_accounts  = json.loads(self.broker.accounts)
 
 
