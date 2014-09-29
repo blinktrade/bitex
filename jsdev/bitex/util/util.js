@@ -126,7 +126,7 @@ bitex.util.getCountries = function() {
     "CF": "Central African Republic",
     "EA": "Ceuta and Melilla",
     "TD": "Chad",
-    "CL": "Chile",
+    "CL": ["Chile", "XV|I|II|III|IV|V|RM|VI|VII|VIII|IX|XIV|X|XI|XII", "Arica y Parinacota|Tarapacá|Antofagasta|Atacama|Coquimbo|Valparaíso|Metropolitana de Santiago|Libertador General Bernardo O'Higgins|Maule|Biobío|La Araucanía|Los Ríos|Los Lagos|Aysén del General Carlos Ibáñez del Campo|Magallanes y de la Antártica Chilena"],
     "CN": "China",
     "CX": "Christmas Island",
     "CP": "Clipperton Island",
