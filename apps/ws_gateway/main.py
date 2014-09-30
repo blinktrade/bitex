@@ -20,6 +20,7 @@
 
 import os
 import sys
+import logging
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 
@@ -33,7 +34,6 @@ import tornado.httpserver
 import tornado.template
 from tornado import websocket
 
-import logging
 import urllib
 import urllib2
 import json
@@ -193,27 +193,31 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
                 try:
                     url_payment_processor = self.application.options.url_payment_processor + '?' + parameters
-                    print "invoking .. ", url_payment_processor
+                    self.application.log('DEBUG', self.trade_client.connection_id, "invoking..."  + url_payment_processor )
                     response = urllib2.urlopen(url_payment_processor)
                     data = json.load(response)
+                    self.application.log('DEBUG', self.trade_client.connection_id, str(data) )
+
                     req_msg.set('InputAddress', data['input_address'])
                     req_msg.set('Destination', data['destination'])
                     req_msg.set('Secret', secret)
                 except urllib2.HTTPError as e:
-                    self.write_message(json.dumps({
-                        'MsgType': 'ERROR',
-                        'ReqID': req_msg.get('DepositReqID'),
-                        'Description': 'Blockchain.info is not available at this moment, please try again within few minutes',
-                        'Detail': str(e)
-                    }))
+                    out_message = json.dumps({
+                      'MsgType': 'ERROR',
+                      'ReqID': req_msg.get('DepositReqID'),
+                      'Description': 'Blockchain.info is not available at this moment, please try again within few minutes',
+                      'Detail': str(e)
+                    })
+                    self.write_message(out_message)
                     return
                 except Exception as e:
-                    self.write_message(json.dumps({
-                        'MsgType': 'ERROR',
-                        'ReqID': req_msg.get('DepositReqID'),
-                        'Description': 'Error retrieving a new deposit address from Blockchain.info. Please, try again',
-                        'Detail': str(e)
-                    }))
+                    out_message = json.dumps({
+                      'MsgType': 'ERROR',
+                      'ReqID': req_msg.get('DepositReqID'),
+                      'Description': 'Error retrieving a new deposit address from Blockchain.info. Please, try again',
+                      'Detail': str(e)
+                    })
+                    self.write_message(out_message)
                     return
 
         try:
@@ -365,8 +369,9 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
 class WebSocketGatewayApplication(tornado.web.Application):
 
-    def __init__(self, opt):
+    def __init__(self, opt, instance_name):
         self.options = opt
+        self.instance_name = instance_name
 
         handlers = [
             (r'/', WebSocketHandler),
@@ -386,12 +391,17 @@ class WebSocketGatewayApplication(tornado.web.Application):
         formatter = logging.Formatter('%(asctime)s - %(message)s')
         input_log_file_handler.setFormatter(formatter)
 
-        self.replay_logger = logging.getLogger("REPLAY")
+        self.replay_logger = logging.getLogger(self.instance_name)
         self.replay_logger.setLevel(logging.INFO)
         self.replay_logger.addHandler(input_log_file_handler)
+
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
+        ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        self.replay_logger.addHandler(ch)
+
         self.replay_logger.info('START')
         self.log_start_data()
-
 
         from models import Base, db_bootstrap
         engine = create_engine(self.options.db_engine, echo=self.options.db_echo)
@@ -473,6 +483,8 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 
     def log(self, command, key, value=None):
+        if len(logging.getLogger().handlers):
+          logging.getLogger().handlers = []  # workaround to avoid stdout logging from the root logger
         log_msg = command + ',' + key
         if value:
             try:
@@ -516,11 +528,11 @@ class WebSocketGatewayApplication(tornado.web.Application):
             self.connections[client_connection_id].trade_client.close()
         self.connections = []
 
-def run_application(options):
+def run_application(options, instance_name):
   from zmq.eventloop import ioloop
   ioloop.install()
 
-  application = WebSocketGatewayApplication(options)
+  application = WebSocketGatewayApplication(options, instance_name)
 
   server = tornado.httpserver.HTTPServer(application)
   server.listen(options.port)
@@ -559,6 +571,6 @@ def main():
       raise RuntimeError("Invalid configuration file")
 
 
-    run_application(options)
+    run_application(options, arguments.instance)
 if __name__ == "__main__":
     main()

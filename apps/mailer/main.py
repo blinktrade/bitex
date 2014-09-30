@@ -12,6 +12,7 @@ ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 import time
 from util import send_email
 
+from pyblinktrade.message_builder import MessageBuilder
 from pyblinktrade.message import JsonMessage
 from pyblinktrade.project_options import ProjectOptions
 
@@ -24,22 +25,20 @@ import mailchimp
 import mandrill
 
 
-def run_application(options):
-  input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
-    options.mailer_log, when='MIDNIGHT')
-  formatter = logging.Formatter(u"%(asctime)s - %(message)s")
-  input_log_file_handler.setFormatter(formatter)
+def run_application(options, instance_name):
+  input_log_file_handler = logging.handlers.TimedRotatingFileHandler(options.mailer_log, when='MIDNIGHT')
+  input_log_file_handler.setFormatter(logging.Formatter(u"%(asctime)s - %(message)s"))
 
-  mail_logger = logging.getLogger('mailer')
+  mail_logger = logging.getLogger(instance_name)
   mail_logger.setLevel(logging.INFO)
   mail_logger.addHandler(input_log_file_handler)
-  mail_logger.info('START')
 
   ch = logging.StreamHandler(sys.stdout)
   ch.setLevel(logging.DEBUG)
-  ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+  ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
   mail_logger.addHandler(ch)
 
+  mail_logger.info('START')
 
   mailchimp_api =  mailchimp.Mailchimp(options.mailchimp_apikey)
   try:
@@ -67,6 +66,9 @@ def run_application(options):
   socket = context.socket(zmq.SUB)
   socket.connect(options.trade_pub)
   socket.setsockopt(zmq.SUBSCRIBE, "EMAIL")
+
+
+
 
   while True:
     try:
@@ -182,7 +184,7 @@ def main():
      not options.mailer_log :
     raise RuntimeError("Invalid configuration file")
 
-  run_application(options)
+  run_application(options, arguments.instance)
 
 
 if __name__ == '__main__':

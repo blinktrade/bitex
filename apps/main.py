@@ -17,26 +17,20 @@ from pyblinktrade.project_options import ProjectOptions
 
 
 def trade_instance(instance_name, project_options):
-  print instance_name
   from trade.trade_application import  TradeApplication
   app = TradeApplication.instance()
-  app.initialize(project_options)
+  app.initialize(project_options, instance_name)
   app.run()
 
 
 def ws_gateway_instance( instance_name , project_options):
-  print instance_name
   from ws_gateway.main import run_application
-  run_application(project_options)
+  run_application(project_options, instance_name)
 
 def mailer_instance( instance_name , project_options):
-  print instance_name
   from mailer.main import run_application
-  run_application(project_options)
+  run_application(project_options,instance_name)
 
-def api_receive_instance( instance_name , project_options):
-  print instance_name
-  time.sleep(20)
 
 def main():
   candidates = [ os.path.join(ROOT_PATH, 'config/bitex.ini'), os.path.expanduser('~/.bitex/bitex.ini') ]
@@ -52,8 +46,6 @@ def main():
       p = multiprocessing.Process(name=section_name, target=partial(ws_gateway_instance,section_name, project_options )  )
     elif section_name[:6] == 'mailer':
       p = multiprocessing.Process(name=section_name, target=partial(mailer_instance,section_name, project_options )  )
-    elif section_name[:11] == 'api_receive':
-      p = multiprocessing.Process(name=section_name, target=partial(api_receive_instance,section_name, project_options )  )
     else:
       raise RuntimeError("Invalid section name")
     processes.append(p)

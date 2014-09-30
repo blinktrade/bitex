@@ -19,9 +19,10 @@ class TradeApplication(object):
       cls._instance = cls()
     return cls._instance
 
-  def initialize(self, options):
+  def initialize(self, options, instance_name):
     self.publish_queue = []
     self.options = options
+    self.instance_name = instance_name
 
     from models import Base, db_bootstrap
     engine = create_engine( options.db_engine, echo=options.db_echo)
@@ -44,13 +45,13 @@ class TradeApplication(object):
     input_log_file_handler = logging.handlers.TimedRotatingFileHandler( self.options.trade_log, when='MIDNIGHT')
     input_log_file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
-    self.replay_logger = logging.getLogger("REPLAY")
+    self.replay_logger = logging.getLogger(self.instance_name)
     self.replay_logger.setLevel(logging.INFO)
     self.replay_logger.addHandler(input_log_file_handler)
 
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
-    ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     self.replay_logger.addHandler(ch)
 
     self.replay_logger.info('START')
@@ -60,6 +61,9 @@ class TradeApplication(object):
 
 
   def log(self, command, key, value=None):
+    if len(logging.getLogger().handlers):
+      logging.getLogger().handlers = []  # workaround to avoid stdout logging from the root logger
+
     log_msg = command + ',' + key
     if value:
       try:

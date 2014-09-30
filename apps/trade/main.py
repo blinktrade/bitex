@@ -39,7 +39,7 @@ def main():
     raise RuntimeError("Invalid configuration file")
 
   application = TradeApplication.instance()
-  application.initialize(options)
+  application.initialize(options, arguments.instance)
   application.run()
 
 if __name__ == "__main__":
