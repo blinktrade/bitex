@@ -65,6 +65,14 @@ $ ./jsdev/build_release.sh  # recompile the application using the translated fil
 
 Bitex stands for Bitcoin EXchnage and it was the first that we came up it name of our platform, by mid 2014 a company called bitex.la was formed in Argentina and we were forced to change our name, this source code it is not related in any form to bitex.la.
 
+## Contributing
+ 
+1. Fork it!
+2. Create your feature branch: `git checkout -b my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin my-new-feature`
+5. Submit a pull request
+
 #License
 
 **Code released under [the GNU GPL license](https://github.com/pinhopro/bitex/blob/master/LICENSE).**
