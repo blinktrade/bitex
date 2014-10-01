@@ -8,6 +8,8 @@ import multiprocessing
 from functools import partial
 import  time
 import logging
+import argparse
+from appdirs import site_config_dir
 
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
@@ -33,7 +35,19 @@ def mailer_instance( instance_name , project_options):
 
 
 def main():
-  candidates = [ os.path.join(ROOT_PATH, 'config/bitex.ini'), os.path.expanduser('~/.bitex/bitex.ini') ]
+  parser = argparse.ArgumentParser(description="Blinktrade")
+  parser.add_argument('-c',
+                      "--config",
+                      action="store",
+                      dest="config",
+                      help='Configuration file', type=str)
+  arguments = parser.parse_args()
+
+
+  candidates = [ os.path.join(site_config_dir('bitex'), 'bitex.ini'),
+                 os.path.expanduser('~/.bitex/bitex.ini'),
+                 arguments.config]
+
   config = ConfigParser.SafeConfigParser()
   config.read( candidates )
 
