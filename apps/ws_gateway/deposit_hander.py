@@ -6,36 +6,45 @@ import tornado.httpclient
 import datetime
 import json
 
-from tornado import  template
+def convertCamelCase2Underscore(name):
+  import re
+  s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+  return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
-import os
-import sys
-ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
-sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
-sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
-
-DEPOSIT_TEMPLATE_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "templates/"))
+def generate_template(template, params, key=None ):
+  t = template
+  for k, v in params.iteritems():
+    if isinstance(v, dict):
+      if key:
+        t = generate_template(t, v, key + ':' + convertCamelCase2Underscore(k) )
+      else:
+        t = generate_template(t, v, convertCamelCase2Underscore(k) )
+    else:
+      if key:
+        t = t.replace('*|' + key + ':' + k + '|*', str(v) )
+        t = t.replace('*|' + key + ':' + k.upper() + '|*', str(v) )
+        t = t.replace('*|' + key + ':' + k.lower() + '|*', str(v) )
+        t = t.replace('*|' + key + ':' + convertCamelCase2Underscore(k) + '|*', str(v) )
+        t = t.replace('*|' + key + ':' + convertCamelCase2Underscore(k).upper() + '|*', str(v) )
+      else:
+        t = t.replace('*|' + k + '|*', str(v) )
+        t = t.replace('*|' + k.upper() + '|*', str(v) )
+        t = t.replace('*|' + k.lower() + '|*', str(v) )
+        t = t.replace('*|' + convertCamelCase2Underscore(k) + '|*', str(v) )
+        t = t.replace('*|' + convertCamelCase2Underscore(k).upper() + '|*', str(v) )
+  return t
 
 class DepositHandler(tornado.web.RequestHandler):
   def __init__(self, application, request, **kwargs):
     super(DepositHandler, self).__init__(application, request, **kwargs)
     self.remote_ip = request.headers.get('X-Forwarded-For', request.headers.get('X-Real-Ip', request.remote_ip))
 
-  def write_ws_gateway_template(self, deposit):
-    template_loader = template.Loader(DEPOSIT_TEMPLATE_PATH)
-    deposit_data = deposit.get('Data')
-    t_loader = template_loader.load( deposit_data['html_template']  )
-
-    deposit_html = t_loader.generate(**deposit_data).decode('utf-8')
-    self.write(deposit_html)
-
   def write_deposit_template(self, deposit_method, deposit):
-    t = template.Template( deposit_method.get('HtmlTemplate')  )
-    deposit_data = deposit.get('Data')
-
-    deposit_html = t.generate(**deposit_data).decode('utf-8')
+    raw_html_template =  deposit_method.get('HtmlTemplate')
+    deposit_data = deposit.toJSON()
+    deposit_data['Value'] = self.application.format_currency(deposit_data['Currency'],deposit_data['Value'])
+    deposit_html = generate_template(raw_html_template, deposit_data)
     self.write(deposit_html)
-
 
   def write_brazilian_deposit_system(self,deposit):
     deposit_data = deposit.get('Data')
@@ -93,19 +102,18 @@ class DepositHandler(tornado.web.RequestHandler):
       self.send_error(404)
       return
 
-    if not deposit_response_msg.get('Data'):
+    if not isinstance(deposit_response_msg.get('Data'), dict):
       self.send_error()
       return
 
     deposit_response_msg.get('Data')['remote_ip'] = self.remote_ip
 
     if download == 1:
-      self.set_header("Content-Disposition", "attachment; filename=%s"% deposit['download_filename'] )
+      self.set_header("Content-Disposition",
+                      "attachment; filename=%s"%deposit_method_response_msg['DepositMethodName'] + '.html')
 
     if deposit_response_msg.get('Type') == 'BBS':
       self.write_brazilian_deposit_system(deposit_response_msg)
-    elif deposit_response_msg.get('Type') == 'WTP':
-      self.write_ws_gateway_template(deposit_response_msg)
     elif deposit_response_msg.get('Type') == 'DTP':
       self.write_deposit_template(deposit_method_response_msg, deposit_response_msg)
 

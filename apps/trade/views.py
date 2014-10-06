@@ -117,7 +117,12 @@ def getProfileMessage(user, profile=None):
       'TwoFactorEnabled'   : profile.two_factor_enabled,
       'NeedWithdrawEmail'  : profile.withdraw_email_validation,
       'TransactionFeeBuy'  : profile.transaction_fee_buy,
-      'TransactionFeeSell' : profile.transaction_fee_sell
+      'TransactionFeeSell' : profile.transaction_fee_sell,
+      'DepositPercentFee'  : profile.deposit_percent_fee ,
+      'DepositFixedFee'    : profile.deposit_fixed_fee,
+      'WithdrawPercentFee' : profile.withdraw_percent_fee,
+      'WithdrawFixedFee'   : profile.withdraw_fixed_fee,
+      'IsMarketMaker'      : profile.is_market_maker
       }
   return profile_message
 
@@ -162,6 +167,11 @@ def processLogin(session, msg):
     'BrokerID'           : session.broker.id,
     'TransactionFeeBuy'  : session.user.transaction_fee_buy,
     'TransactionFeeSell' : session.user.transaction_fee_sell,
+    'DepositPercentFee'  : session.user.deposit_percent_fee ,
+    'DepositFixedFee'    : session.user.deposit_fixed_fee,
+    'WithdrawPercentFee' : session.user.withdraw_percent_fee,
+    'WithdrawFixedFee'   : session.user.withdraw_fixed_fee,
+    'IsMarketMaker'      : session.user.is_market_maker,
     'Broker': {
         'BrokerID'           : session.broker.id                   ,
         'ShortName'          : session.broker.short_name           ,
@@ -379,7 +389,15 @@ def processUpdateUserProfile(session, msg):
   broker_model_fields_writable = []
 
   if is_updating_his_customer_profile:
-    user_model_fields_writable = ['TransactionFeeBuy','TransactionFeeSell','WithdrawEmailValidation', 'TwoFactorEnabled']
+    user_model_fields_writable = ['TransactionFeeBuy',
+                                  'TransactionFeeSell',
+                                  'DepositPercentFee',
+                                  'DepositFixedFee',
+                                  'WithdrawPercentFee',
+                                  'WithdrawFixedFee',
+                                  'IsMarketMaker',
+                                  'WithdrawEmailValidation',
+                                  'TwoFactorEnabled']
 
   broker_profile = None
   if user.is_broker:
@@ -397,8 +415,6 @@ def processUpdateUserProfile(session, msg):
                                        'PhoneNumber1','PhoneNumber2','Skype','Email',
                                        'VerificationJotform','UploadJotform','TosUrl','SupportUrl',
                                        'WithdrawConfirmationEmail',
-                                       'WithdrawStructure','FeeStructure',
-                                       'TransactionFeeBuy','TransactionFeeSell',
                                        'AcceptCustomersFrom']
 
   user_model_update_fields = {}
@@ -439,6 +455,18 @@ def processUpdateUserProfile(session, msg):
   response_msg = {
     "MsgType":"U39",
     "UpdateReqID": msg.get("UpdateReqID"),
+    'UserID'             : user.id,
+    'Username'           : user.username,
+    'TwoFactorEnabled'   : user.two_factor_enabled,
+    'IsBroker'           : user.is_broker,
+    'BrokerID'           : user.broker.id,
+    'TransactionFeeBuy'  : user.transaction_fee_buy,
+    'TransactionFeeSell' : user.transaction_fee_sell,
+    'DepositPercentFee'  : user.deposit_percent_fee,
+    'DepositFixedFee'    : user.deposit_fixed_fee,
+    'WithdrawPercentFee' : user.withdraw_percent_fee,
+    'WithdrawFixedFee'   : user.withdraw_fixed_fee,
+    'IsMarketMaker'      : user.is_market_maker,
     "Profile": getProfileMessage(user, broker_profile)
   }
 
@@ -1199,7 +1227,8 @@ def processCustomerListRequest(session, msg):
   result_set = []
   columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,
               'Created'         , 'LastLogin'      , 'Verified'          , 'VerificationData'   , 'TwoFactorEnabled',
-              'TransactionFeeBuy', 'TransactionFeeSell', 'NeedWithdrawEmail' ]
+              'TransactionFeeBuy', 'TransactionFeeSell', 'NeedWithdrawEmail', 'DepositPercentFee', 'DepositFixedFee',
+              'WithdrawPercentFee', 'WithdrawFixedFee', 'IsMarketMaker' ]
 
   for entity in user_list:
     result_set.append([
@@ -1215,7 +1244,12 @@ def processCustomerListRequest(session, msg):
       entity.two_factor_enabled   ,
       entity.transaction_fee_buy  ,
       entity.transaction_fee_sell ,
-      entity.withdraw_email_validation
+      entity.withdraw_email_validation,
+      entity.deposit_percent_fee  ,
+      entity.deposit_fixed_fee    ,
+      entity.withdraw_percent_fee ,
+      entity.withdraw_fixed_fee   ,
+      entity.is_market_maker
     ])
 
 
@@ -1281,10 +1315,11 @@ def processVerifyCustomer(session, msg):
     bonus_account = broker_accounts['bonus']
 
   verification_data =  msg.get('VerificationData')
-  try:
-    verification_data = json.loads(verification_data)
-  except :
-    verification_data = { "data": verification_data}
+  if verification_data:
+    try:
+      verification_data = json.loads(verification_data)
+    except :
+      verification_data = { "data": verification_data}
 
   client.set_verified(TradeApplication.instance().db_session, msg.get('Verify'), verification_data , bonus_account)
 

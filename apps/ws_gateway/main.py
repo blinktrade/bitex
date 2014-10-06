@@ -420,10 +420,10 @@ class WebSocketGatewayApplication(tornado.web.Application):
             self.trade_in_socket)
         self.application_trade_client.connect()
 
-        instruments = self.application_trade_client.getSecurityList()
+        self.security_list = self.application_trade_client.getSecurityList()
         self.md_subscriber = {}
 
-        for instrument in instruments:
+        for instrument in self.security_list.get('Instruments'):
             symbol = instrument['Symbol']
             self.md_subscriber[symbol] = MarketDataSubscriber.get(symbol, self)
             self.md_subscriber[symbol].subscribe(
@@ -468,6 +468,16 @@ class WebSocketGatewayApplication(tornado.web.Application):
             self.send_heartbeat_to_trade,
             30000)
         self.heart_beat_timer.start()
+
+    def format_currency(self, currency_code, value, is_value_in_satoshis=True):
+      currencies = self.security_list.get('Currencies')
+      for currency_obj in currencies:
+        if currency_obj['Code'] == currency_code:
+          if is_value_in_satoshis:
+            return currency_obj['FormatPython'].format(value/1e8)
+          else:
+            return currency_obj['FormatPython'].format(value)
+      return value
 
     def log_start_data(self):
         self.log('PARAM','BEGIN')

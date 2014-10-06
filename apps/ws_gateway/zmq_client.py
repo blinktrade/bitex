@@ -115,7 +115,7 @@ class TradeClient(object):
                             'SecurityReqID': 'getSecurityList',
                             'SecurityListRequestType': 0})
 
-    return resp.get('Instruments')
+    return resp
 
 
   def sendString(self, string_msg):

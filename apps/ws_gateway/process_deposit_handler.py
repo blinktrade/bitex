@@ -16,7 +16,8 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
     if not secret:
       raise tornado.httpclient.HTTPError( 404 )
 
-    fee                     = int(self.get_argument("fwd_fee",            default=0, strip=False))
+    fwd_fee                 = int(self.get_argument("fwd_fee",            default=0, strip=False))
+    input_fee               = int(self.get_argument("input_fee",          default=0, strip=False))
     value                   = int(self.get_argument("value",              default=0, strip=False))
     input_address           = self.get_argument("input_address",          default=None, strip=False)
     input_transaction_hash  = self.get_argument("input_transaction_hash", default=None, strip=False)
@@ -50,8 +51,11 @@ class ProcessDepositHandler(tornado.web.RequestHandler):
       }
     }
 
-    if fee:
-      process_deposit_message['Data']['ForwardFee'] = fee
+    if fwd_fee:
+      process_deposit_message['Data']['ForwardFee'] = fwd_fee
+
+    if input_fee:
+      process_deposit_message['Data']['InputFee'] = input_fee
 
     if payee_addresses_json:
       process_deposit_message['Data']['PayeeAddresses'] = json.dumps(payee_addresses_json)

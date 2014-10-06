@@ -126,13 +126,15 @@ bitex.ui.Customers = function( opt_domHelper) {
           case 1:
             return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PENDING;
           case 2:
-            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PENDING;
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_PROGRESS;
           case 3:
             return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LI;
           case 4:
             return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LII;
           case 5:
             return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LIII;
+          case 6:
+            return MSG_CUSTOMER_TABLE_COLUMN_VERIFIED_YES_LIV;
         }
       },
       'classes': function() { return goog.getCssName(bitex.ui.Customers.CSS_CLASS, 'verified'); }

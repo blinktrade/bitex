@@ -142,6 +142,7 @@ class User(Base):
   is_staff        = Column(Boolean, nullable=False, default=False)
   is_system       = Column(Boolean, nullable=False, default=False)
   is_broker       = Column(Boolean, nullable=False, default=False)
+  is_market_maker = Column(Boolean, nullable=False, default=False)
 
   created         = Column(DateTime, default=datetime.datetime.now, nullable=False)
   last_login      = Column(DateTime, default=datetime.datetime.now, nullable=False)
@@ -149,6 +150,10 @@ class User(Base):
   two_factor_enabled  = Column(Boolean, nullable=False, default=False)
   two_factor_secret   = Column(String(50), nullable=True, index=False)
 
+  deposit_percent_fee   = Column(Numeric, nullable=True, default=None)
+  deposit_fixed_fee     = Column(Integer, nullable=True, default=None)
+  withdraw_percent_fee  = Column(Numeric, nullable=True, default=None)
+  withdraw_fixed_fee    = Column(Integer, nullable=True, default=None)
   transaction_fee_buy   = Column(Integer, nullable=True, default=None)
   transaction_fee_sell  = Column(Integer, nullable=True, default=None)
 
@@ -157,16 +162,20 @@ class User(Base):
   email_lang       = Column(String, nullable=False)
 
   def __repr__(self):
-    return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, " \
+    return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, broker_username=%r, "\
            u" password_algo=%r, password_salt=%r, password=%r,"\
            u" state=%r, country_code=%r, transaction_fee_buy=%r, transaction_fee_sell=%r,"\
-           u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, " \
-           u"last_login=%r,  email_lang=%r)>" \
-          % (self.id, self.username, self.email, self.broker_id,
-             self.password_algo, self.password_salt, self.password,
-             self.state, self.country_code, self.transaction_fee_buy, self.transaction_fee_sell,
-             self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created,
-             self.last_login, self.email_lang)
+           u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, "\
+           u" last_login=%r,  email_lang=%r, deposit_percent_fee=%r, deposit_fixed_fee=%r,"\
+           u" two_factor_enabled=%r, two_factor_secret=%r,withdraw_email_validation=%r"\
+           u" withdraw_percent_fee=%r, withdraw_fixed_fee=%r, is_market_maker=%r )>"\
+    % (self.id, self.username, self.email, self.broker_id, self.broker_username,
+       self.password_algo, self.password_salt, self.password,
+       self.state, self.country_code, self.transaction_fee_buy, self.transaction_fee_sell,
+       self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created,
+       self.last_login, self.email_lang, self.deposit_percent_fee, self.deposit_fixed_fee,
+       self.two_factor_enabled, self.two_factor_secret,self.withdraw_email_validation,
+       self.withdraw_percent_fee, self.withdraw_fixed_fee, self.is_market_maker)
 
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
@@ -580,7 +589,6 @@ class PositionLedger(Base):
                              description      = description )
     session.add(ledger)
 
-
 class Balance(Base):
   __tablename__         = 'balances'
   id                    = Column(Integer,       primary_key=True)
@@ -595,8 +603,8 @@ class Balance(Base):
   __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_balance_uc'), )
 
   def __repr__(self):
-    return u"<Balance(id=%r, account_id=%r, account_name=%r, broker_id=%r, broker_name=%r, currency=%r, balance=%r)>" % (
-      self.id, self.account_id, self.account_name,  self.broker_id, self.broker_name, self.currency, self.balance )
+    return u"<Balance(id=%r, account_id=%r, account_name=%r, broker_id=%r, broker_name=%r, currency=%r, balance=%r, last_update=%r)>" % (
+      self.id, self.account_id, self.account_name,  self.broker_id, self.broker_name, self.currency, self.balance, self.last_update )
 
   @staticmethod
   def get_balances_by_rank(session, currency = 'BTC'):
@@ -658,8 +666,6 @@ class Balance(Base):
           break
     except :
       pass
-
-
     return balance_obj.balance
 
 class Ledger(Base):
@@ -898,7 +904,6 @@ class Ledger(Base):
                       trade_id,                   # reference
                       'TF'                        # descriptions
       )
-
 
     order_fee_currency = to_symbol if order.is_buy else from_symbol
     order_fee_base_amount = qty if order.is_buy else total_value
@@ -1745,8 +1750,8 @@ class Trade(Base):
   trade_type        = Column(Integer,       nullable=False, default=0)  # regular trade
 
   def __repr__(self):
-    return "<Trade(id=%r, order_id:%r, counter_order_id:%r, buyer_username=%r,seller_username=%r,  " \
-           "side:%r, symbol=%r, size:%r, price:%r, created=%r, trade_type=%r )>"\
+    return "<Trade(id=%r, order_id=%r, counter_order_id=%r, buyer_username=%r,seller_username=%r,  " \
+           "side=%r, symbol=%r, size=%r, price=%r, created=%r, trade_type=%r )>"\
     % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
        self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
@@ -1828,16 +1833,16 @@ class Deposit(Base):
   email_lang              = Column(String,     nullable=False)
 
   def __repr__(self):
-    return u"<Deposit(id=%r, user_id=%r, account_id=%r, username=%r, broker_id=%r, deposit_option_id=%r, " \
-           u"deposit_option_name=%r, broker_deposit_ctrl_num=%r," \
-           u"secret=%r, type=%r, currency=%r, value=%r, created=%r, reason_id=%r, reason=%r, " \
-           u"fixed_fee=%r, percent_fee=%r, client_order_id=%r, data=%r, instructions=%r," \
-           u"email_lang=%r)>" % (
-      self.id,  self.user_id, self.account_id, self.username, self.broker_id, self.deposit_option_id,
-      self.deposit_option_name, self.broker_deposit_ctrl_num,
-      self.secret, self.type,  self.currency, self.value, self.created, self.reason_id, self.reason,
-      self.fixed_fee, self.percent_fee, self.client_order_id, self.data, self.instructions,
-      self.email_lang)
+    return u"<Deposit(id=%r, user_id=%r, account_id=%r, broker_id=%r, deposit_option_id=%r, "\
+           u"deposit_option_name=%r, username=%r, broker_username=%r,  broker_deposit_ctrl_num=%r,"\
+           u"secret=%r, type=%r, currency=%r, value=%r, paid_value=%r, status=%r, "\
+           u"data=%r, created=%r, reason_id=%r, reason=%r, "\
+           u"fixed_fee=%r, percent_fee=%r, client_order_id=%r, instructions=%r)>" % (
+      self.id,  self.user_id, self.account_id, self.broker_id, self.deposit_option_id,
+      self.deposit_option_name,  self.username, self.broker_username, self.broker_deposit_ctrl_num,
+      self.secret, self.type,  self.currency, self.value, self.paid_value, self.status,
+      self.data, self.created, self.reason_id, self.reason,
+      self.fixed_fee, self.percent_fee, self.client_order_id, self.instructions )
 
   @staticmethod
   def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret, client_order_id, instructions=None, value=None ):
@@ -2017,7 +2022,8 @@ class Deposit(Base):
                                                self.broker_id,
                                                payee_address,
                                                self.currency ):
-            should_start_a_loan_from_broker_to_the_user = True
+            if 'InputFee' in data and data['InputFee'] > 0:
+              should_start_a_loan_from_broker_to_the_user = True
           else:
             should_ask_the_user_to_trust_his_payee_address = True
 
@@ -2327,17 +2333,7 @@ class DepositMethods(Base):
     if instructions:
       deposit.instructions = json.dumps(instructions)
 
-    t = template.Template(self.parameters)
-
-    template_parameters = { 'id':deposit_id,
-                            'broker_deposit_ctrl_num': self.broker_deposit_ctrl_num,
-                            'user' : user,
-                            'client_order_id': client_order_id,
-                            'current_date': datetime.date.today(),
-                            'value' : value/1e8,
-                            'currency': self.currency,
-                            'broker_id': self.broker_id }
-    deposit.data = t.generate( **template_parameters )
+    deposit.data = self.parameters
 
     session.add(self)
     session.add(deposit)
@@ -2345,7 +2341,6 @@ class DepositMethods(Base):
 
     return deposit
 
-#Base.metadata.create_all(engine)
 
 def db_bootstrap(session):
   pass

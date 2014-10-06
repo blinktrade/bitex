@@ -6,3 +6,4 @@ requests>=2.3.0
 appdirs
 mailchimp
 pycountry
+pyboleto
