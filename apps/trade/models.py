@@ -1131,7 +1131,7 @@ class UserPasswordReset(Base):
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
   broker_id       = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('user_password_reset', order_by=id))
+  user            = relationship("User",  backref=backref('user_password_reset', order_by=id, foreign_keys=[user_id]))
   token           = Column(String,        nullable=False, index=True)
   used            = Column(Boolean,       default=False)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
@@ -1176,14 +1176,14 @@ class UserPasswordReset(Base):
     token = uuid.uuid4().hex
 
     req = UserPasswordReset( user_id = user_id,
-                             broker_id = u.broker_id,
+                             broker_id = broker_id,
                              token = token )
     session.add(req)
     session.flush()
 
     UserEmail.create( session = session,
                       user_id = user_id,
-                      broker_id = u.broker_id,
+                      broker_id = broker_id,
                       subject = "RP",
                       template= "password-reset",
                       language= email_lang,
