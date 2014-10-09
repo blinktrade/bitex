@@ -8,6 +8,7 @@ import ConfigParser
 from appdirs import site_config_dir
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path.insert(0, os.path.join( os.path.dirname(__file__), '../' ) )
 
 import time
 from util import send_email
@@ -24,6 +25,7 @@ import zmq
 import mailchimp
 import mandrill
 
+from trade.zmq_client  import TradeClient, TradeClientException
 
 def run_application(options, instance_name):
   input_log_file_handler = logging.handlers.TimedRotatingFileHandler(options.mailer_log, when='MIDNIGHT')
@@ -39,6 +41,57 @@ def run_application(options, instance_name):
   mail_logger.addHandler(ch)
 
   mail_logger.info('START')
+  def log(command, key, value=None):
+    log_msg = u'%s, %s, %s' %(command, key, value if value else None)
+    mail_logger.info(unicode(log_msg))
+
+
+  log('PARAM', 'BEGIN')
+  log('PARAM', 'trade_in',                      options.trade_in)
+  log('PARAM', 'trade_pub',                     options.trade_pub)
+  log('PARAM', 'mailer_log',                    options.mailer_log)
+  log('PARAM', 'mailchimp_apikey',              options.mailchimp_apikey)
+  log('PARAM', 'mandrill_apikey',               options.mandrill_apikey)
+  log('PARAM', 'mailchimp_newsletter_list_id',  options.mailchimp_newsletter_list_id)
+  log('PARAM', 'END')
+
+  context = zmq.Context()
+  socket = context.socket(zmq.SUB)
+  socket.connect(options.trade_pub)
+  socket.setsockopt(zmq.SUBSCRIBE, "EMAIL")
+
+  trade_in_socket = context.socket(zmq.REQ)
+  trade_in_socket.connect(options.trade_in)
+
+  application_trade_client = TradeClient( context, trade_in_socket)
+  application_trade_client.connect()
+
+  brokers = {}
+  broker_list, broker_list_columns = application_trade_client.getBrokerList(['1'])
+  for b in  broker_list:
+    brokers[b[0]] = { "params": b }
+
+  broker_mandrill_column_index = None
+  try:
+    broker_mandrill_column_index = broker_list_columns.index('MandrillApi')
+  except ValueError:
+    pass
+
+
+  for broker_id, broker_data  in brokers.iteritems():
+    if broker_mandrill_column_index:
+      broker_data['MandrillApi'] =  broker_data['params'][ broker_mandrill_column_index ]
+    else:
+      broker_data['MandrillApi'] = options.mandrill_apikey
+
+  for broker_id, broker_data  in brokers.iteritems():
+    print broker_id, broker_data['MandrillApi']
+
+  # [u'BrokerID', u'ShortName', u'BusinessName', u'Address', u'City', u'State',
+  #  u'ZipCode', u'Country', u'PhoneNumber1', u'PhoneNumber2', u'Skype', u'Currencies',
+  #  u'TosUrl', u'FeeStructure', u'TransactionFeeBuy', u'TransactionFeeSell', u'Status',
+  #  u'ranking', u'Email', u'CountryCode', u'CryptoCurrencies', u'WithdrawStructure',
+  #  u'SupportURL', u'SignupLabel', u'AcceptCustomersFrom', u'IsBrokerHub']
 
   mailchimp_api =  mailchimp.Mailchimp(options.mailchimp_apikey)
   try:
@@ -51,24 +104,6 @@ def run_application(options, instance_name):
     mandrill_api.users.ping()
   except mandrill.Error:
     raise RuntimeError("Invalid Mandrill API key")
-
-  def log(command, key, value=None):
-    log_msg = u'%s, %s, %s' %(command, key, value if value else None)
-    mail_logger.info(unicode(log_msg))
-    pass
-
-  log('PARAM', 'BEGIN')
-  log('PARAM', 'trade_pub', options.trade_pub)
-  log('PARAM', 'mailer_log', options.mailer_log)
-  log('PARAM', 'END')
-
-  context = zmq.Context()
-  socket = context.socket(zmq.SUB)
-  socket.connect(options.trade_pub)
-  socket.setsockopt(zmq.SUBSCRIBE, "EMAIL")
-
-
-
 
   while True:
     try:
@@ -84,11 +119,13 @@ def run_application(options, instance_name):
         continue
 
       try:
-        sender = u'BitEx Support <suporte@bitex.com.br>'
+        broker_id = msg.get('BrokerID')
+        sender =  brokers[broker_id][broker_list_columns.index('BusinessName')]  + \
+                  '<' + brokers[broker_id][broker_list_columns.index('Email')] + '>'
         body = ""
-        msg_to = msg.get('To')
-        subject = msg.get('Subject')
-        language = msg.get('Language')
+        msg_to    = msg.get('To')
+        subject   = msg.get('Subject')
+        language  = msg.get('Language')
         content_type = 'plain'
 
         if msg.has('Template') and msg.get('Template'):
@@ -117,9 +154,16 @@ def run_application(options, instance_name):
           for k,v in params.iteritems():
             template_content.append( { 'name': k, 'content': v  } )
 
+          for broker_column_key in broker_list_columns:
+            broker_column_value  = brokers[broker_id][broker_list_columns.index(broker_column_key)]
+            template_content.append( { 'name': broker_column_key, 'content': broker_column_value  } )
+
+
           message = {
-            'to': [ {'email': msg_to, 'name': params['username'],'type': 'to' }  ],
-            'metadata': {'website': 'www.bitex.com.br'},
+            'from_email': brokers[broker_id][broker_list_columns.index('Email')],
+            'from_name': brokers[broker_id][broker_list_columns.index('BusinessName')],
+            'to': [{'email': msg_to, 'name': params['username'],'type': 'to' }],
+            'metadata': {'website': 'www.blinktrade.com'},
             'global_merge_vars': template_content
           }
 
@@ -134,18 +178,15 @@ def run_application(options, instance_name):
         elif msg.has('RawData') and msg.get('RawData'):
           body = msg.get('RawData')
 
-        log('IN', 'LOGINDEBUG START', "")
-        log('DEBUG',
-            'EMAIL',
-            u'{"Sender":"%s","To":"%s","Subject":"%s", "Body":"%s" }' % (sender,
-                                                                         msg_to,
-                                                                         subject,
-                                                                         body))
-        log('IN', 'LOGINDEBUG END', "")
-        send_email(sender, msg_to, subject, body, content_type)
-        log('IN', 'SENT', "")
+          log('DEBUG', 'EMAIL',
+              u'{"Sender":"%s","To":"%s","Subject":"%s", "Body":"%s" }' % (sender,
+                                                                           msg_to,
+                                                                           subject,
+                                                                           body))
+          send_email(sender, msg_to, subject, body, content_type)
+          log('IN', 'SENT', "")
 
-        log('INFO', 'SUCCESS', msg.get('EmailThreadID'))
+          log('INFO', 'SUCCESS', msg.get('EmailThreadID'))
       except Exception as ex:
         traceback.print_exc()
         log('ERROR', 'EXCEPTION', str(ex))
@@ -177,12 +218,13 @@ def main():
 
   options = ProjectOptions(config, arguments.instance)
 
-  if not options.mailchimp_apikey or\
-     not options.mandrill_apikey or\
-     not options.mailchimp_newsletter_list_id or\
-     not options.trade_pub or\
-     not options.mailer_log :
-    raise RuntimeError("Invalid configuration file")
+  #if not options.mailchimp_apikey or\
+  #   not options.mandrill_apikey or\
+  #   not options.mailchimp_newsletter_list_id or\
+  #   not options.trade_in or \
+  #   not options.trade_pub or \
+  #   not options.mailer_log :
+  #  raise RuntimeError("Invalid configuration file")
 
   run_application(options, arguments.instance)
 

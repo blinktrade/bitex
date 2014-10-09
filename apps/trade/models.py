@@ -269,6 +269,7 @@ class User(Base):
 
     UserEmail.create( session = session,
                       user_id = u.id,
+                      broker_id = u.broker_id,
                       subject = 'W',
                       template= "welcome",
                       language= u.email_lang,
@@ -325,7 +326,7 @@ class User(Base):
       return ""
 
   def request_reset_password(self, session, email_lang):
-    UserPasswordReset.create( session, self.id , email_lang )
+    UserPasswordReset.create( session, self.id, self.broker_id , email_lang )
 
   def set_verified(self, session, verified, verification_data, bonus_account):
     just_became_verified = False
@@ -383,6 +384,7 @@ class User(Base):
         }
         UserEmail.create( session = session,
                           user_id = self.broker_id,
+                          broker_id = self.broker_id,
                           subject = "VS",
                           template= "customer-verification-submit",
                           language= self.email_lang,
@@ -415,6 +417,7 @@ class User(Base):
 
         UserEmail.create( session = session,
                           user_id = self.id,
+                          broker_id = self.broker_id,
                           subject = u"AV",
                           template= "your-account-has-been-verified",
                           language= self.email_lang,
@@ -1062,6 +1065,7 @@ class TrustedAddress(Base):
 
       UserEmail.create(session  = session,
                        user_id  = user_id,
+                       broker_id = broker_id,
                        subject  = 'CA',
                        template ='confirm_address',
                        language = email_lang,
@@ -1126,14 +1130,15 @@ class UserPasswordReset(Base):
   __tablename__   = 'user_password_reset'
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
+  broker_id       = Column(Integer,       ForeignKey('users.id'))
   user            = relationship("User",  backref=backref('user_password_reset', order_by=id))
   token           = Column(String,        nullable=False, index=True)
   used            = Column(Boolean,       default=False)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
 
   def __repr__(self):
-    return "<UserPasswordReset(id=%r, user_id=%r, token=%r, used=%r, created=%r)>" % (
-      self.id, self.user_id, self.token, self.used, self.created)
+    return "<UserPasswordReset(id=%r, user_id=%r,broker_id=%r, token=%r, used=%r, created=%r)>" % (
+      self.id, self.user_id, self.broker_id, self.token, self.used, self.created)
 
   @staticmethod
   def get_valid_token(session, token):
@@ -1166,17 +1171,19 @@ class UserPasswordReset(Base):
     return  True
 
   @staticmethod
-  def create( session, user_id, email_lang):
+  def create( session, user_id, broker_id, email_lang):
     import uuid
     token = uuid.uuid4().hex
 
     req = UserPasswordReset( user_id = user_id,
+                             broker_id = u.broker_id,
                              token = token )
     session.add(req)
     session.flush()
 
     UserEmail.create( session = session,
                       user_id = user_id,
+                      broker_id = u.broker_id,
                       subject = "RP",
                       template= "password-reset",
                       language= email_lang,
@@ -1186,6 +1193,7 @@ class UserEmail(Base):
   __tablename__   = 'user_email'
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
+  broker_id       = Column(Integer,       ForeignKey('users.id'))
   user            = relationship("User",  backref=backref('user_email', order_by=id))
   subject         = Column(String,        nullable=False)
   body            = Column(String,        nullable=True)
@@ -1196,13 +1204,14 @@ class UserEmail(Base):
 
 
   def __repr__(self):
-    return "<UserEmail(id=%r, user_id=%r, subject=%r, body=%r, template=%r, language=%r,params=%r, created=%r)>" % (
-      self.id, self.user_id, self.subject, self.body, self.template, self.language, self.params, self.created)
+    return "<UserEmail(id=%r, user_id=%r, broker_id=%r, subject=%r, body=%r, template=%r, language=%r,params=%r, created=%r)>" % (
+      self.id, self.user_id, self.broker_id, self.subject, self.body, self.template, self.language, self.params, self.created)
 
   @staticmethod
-  def create( session, user_id, subject, template=None, language=None, params=None, body = None ):
-    user_email = UserEmail( user_id = user_id,
-                            subject = subject)
+  def create( session, user_id, broker_id, subject, template=None, language=None, params=None, body = None ):
+    user_email = UserEmail( user_id   = user_id,
+                            broker_id = broker_id,
+                            subject   = subject)
     if template:
       user_email.template = template
     if language:
@@ -1217,6 +1226,8 @@ class UserEmail(Base):
 
     user_msg = {
       'MsgType'       : 'C',
+      'UserID'        : user_id,
+      'BrokerID'      : broker_id,
       'EmailThreadID' : user_email.id,
       'OrigTime'      : user_email.created,
       'To'            : user_email.user.email,
@@ -1423,6 +1434,7 @@ class Withdraw(Base):
 
     UserEmail.create( session = session,
                       user_id = self.user_id ,
+                      broker_id = self.broker_id,
                       subject = "WC",
                       template=template_name,
                       language= self.email_lang,
@@ -1501,6 +1513,7 @@ class Withdraw(Base):
 
       UserEmail.create( session  = session,
                         user_id  = user.id,
+                        broker_id = user.broker_id,
                         subject  = "CW",
                         template = template_name,
                         language = email_lang,

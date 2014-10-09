@@ -4,6 +4,7 @@ import os
 import zmq
 from zmq.eventloop.zmqstream import  ZMQStream
 
+from pyblinktrade.message_builder import MessageBuilder
 from pyblinktrade.message import JsonMessage, InvalidMessageException
 
 class TradeClientException(Exception):
@@ -80,6 +81,22 @@ class TradeClient(object):
   def isConnected(self):
     return self.connection_id is not None
 
+  def getBrokerList(self, status_list):
+    page = 0
+    page_size = 100
+
+    broker_list = []
+    columns = []
+    while True:
+      res = self.sendJSON(MessageBuilder.getBrokerList( status_list, None, page, page_size ))
+      columns = res.get('Columns')
+      broker_list.extend(res.get('BrokerListGrp'))
+      if len(res.get('BrokerListGrp')) < page_size:
+        break
+      page += 1
+
+    return broker_list, columns
+
   def getLastTrades(self, last_trade_id, page=0):
 
       if last_trade_id is None:
@@ -114,8 +131,8 @@ class TradeClient(object):
     resp =  self.sendJSON({  'MsgType' : 'x',
                             'SecurityReqID': 'getSecurityList',
                             'SecurityListRequestType': 0})
-
     return resp
+
 
 
   def sendString(self, string_msg):

@@ -23,6 +23,7 @@ import sys
 import logging
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path.insert(0, os.path.join( os.path.dirname(__file__), '../' ) )
 
 import ConfigParser
 import argparse
@@ -42,7 +43,8 @@ from pyblinktrade.json_encoder import JsonEncoder
 
 import zmq
 from pyblinktrade.message import JsonMessage, InvalidMessageException
-from zmq_client import TradeClient, TradeClientException
+from trade.zmq_client  import TradeClient, TradeClientException
+
 from pyblinktrade.project_options import ProjectOptions
 
 from time import mktime

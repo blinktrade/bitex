@@ -1,10 +1,14 @@
+import sys
+import os
+sys.path.insert(0, os.path.join( os.path.dirname(__file__), '../' ) )
+
 import tornado.ioloop
 import tornado.web
 import tornado.httpclient
 import datetime
 import json
 
-from zmq_client import  TradeClientException
+from trade.zmq_client import  TradeClientException
 
 class ProcessDepositHandler(tornado.web.RequestHandler):
   def __init__(self, application, request, **kwargs):
