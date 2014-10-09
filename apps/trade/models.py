@@ -1131,7 +1131,7 @@ class UserPasswordReset(Base):
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
   broker_id       = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('user_password_reset', order_by=id, foreign_keys=[user_id]))
+  user            = relationship("User",  backref=backref('user_password_reset', order_by=id), foreign_keys=[user_id])
   token           = Column(String,        nullable=False, index=True)
   used            = Column(Boolean,       default=False)
   created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
