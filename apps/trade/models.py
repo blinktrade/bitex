@@ -1194,7 +1194,6 @@ class UserEmail(Base):
   id              = Column(Integer,       primary_key=True)
   user_id         = Column(Integer,       ForeignKey('users.id'))
   broker_id       = Column(Integer,       ForeignKey('users.id'))
-  user            = relationship("User",  backref=backref('user_email', order_by=id))
   subject         = Column(String,        nullable=False)
   body            = Column(String,        nullable=True)
   template        = Column(String,        nullable=True)
