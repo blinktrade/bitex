@@ -929,6 +929,13 @@ class Broker(Base):
   short_name            = Column(String(30),    primary_key=True)
   business_name         = Column(String(30),    nullable=False)
   signup_label          = Column(String(30),    nullable=False)
+
+  mandrill_api_key      = Column(String(30))
+  mailer_from_name      = Column(String(30))
+  mailer_from_email     = Column(String(30))
+  mailer_signature      = Column(String(30))
+  mailchimp_list_id     = Column(String(30))
+
   address               = Column(String(255),   nullable=False)
   city                  = Column(String(30),    nullable=False)
   state                 = Column(String(30),    nullable=False)
@@ -1000,12 +1007,14 @@ class Broker(Base):
            u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
            u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
            u"fee_structure=%r, withdraw_structure=%r, " \
+           u"mandrill_api_key=%r, mailer_from_name=%r, mailer_from_email=%r, mailer_signature=%r, mailchimp_list_id=%r, " \
            u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
            u"status=%r, ranking=%r, support_url=%r, is_broker_hub=%r ,accept_customers_from=%r, lang=%r, accounts=%r )>"% (
       self.id, self.short_name, self.business_name,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure,
+      self.mandrill_api_key, self.mailer_from_name, self.mailer_from_email, self.mailer_signature, self.mailchimp_list_id,
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from, self.lang, self.accounts )
 
@@ -1288,7 +1297,7 @@ class Withdraw(Base):
 
   def as_dict(self):
     import json
-    obj = { c.name: getattr(self, c.name) for c in self.__table__.columns if c.name != 'data' }
+    obj = { c.name: getattr(self, c.name) for c in self.__table__.columns }
     obj.update(json.loads(self.data))
     return obj
 
@@ -1507,7 +1516,7 @@ class Withdraw(Base):
     if user.withdraw_email_validation:
       formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
 
-      template_name       = 'withdraw-confirmation-' + withdraw_record.method.lower()
+      template_name       = 'withdraw-confirmation'
       template_parameters = withdraw_record.as_dict()
       template_parameters['amount'] = formatted_amount
 

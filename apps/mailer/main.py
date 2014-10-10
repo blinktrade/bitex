@@ -27,6 +27,12 @@ import mandrill
 
 from trade.zmq_client  import TradeClient, TradeClientException
 
+def convertCamelCase2Underscore(name):
+  import re
+  s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+  return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
 def run_application(options, instance_name):
   input_log_file_handler = logging.handlers.TimedRotatingFileHandler(options.mailer_log, when='MIDNIGHT')
   input_log_file_handler.setFormatter(logging.Formatter(u"%(asctime)s - %(message)s"))
@@ -66,6 +72,10 @@ def run_application(options, instance_name):
   application_trade_client = TradeClient( context, trade_in_socket)
   application_trade_client.connect()
 
+  login_response = application_trade_client.sendJSON( MessageBuilder.login('mailer', 'abc12345' ) )
+  if login_response.get('UserStatus') != 1:
+    raise RuntimeError("Invalid user id")
+
   brokers = {}
   broker_list, broker_list_columns = application_trade_client.getBrokerList(['1'])
   for b in  broker_list:
@@ -73,19 +83,19 @@ def run_application(options, instance_name):
 
   broker_mandrill_column_index = None
   try:
-    broker_mandrill_column_index = broker_list_columns.index('MandrillApi')
+    broker_mandrill_column_index = broker_list_columns.index('MandrillApiKey')
   except ValueError:
     pass
 
 
   for broker_id, broker_data  in brokers.iteritems():
-    if broker_mandrill_column_index:
-      broker_data['MandrillApi'] =  broker_data['params'][ broker_mandrill_column_index ]
+    if broker_mandrill_column_index and broker_data['params'][ broker_mandrill_column_index ]:
+      broker_data['MandrillApiKey'] =  broker_data['params'][ broker_mandrill_column_index ]
     else:
-      broker_data['MandrillApi'] = options.mandrill_apikey
+      broker_data['MandrillApiKey'] = options.mandrill_apikey
 
   for broker_id, broker_data  in brokers.iteritems():
-    print broker_id, broker_data['MandrillApi']
+    print broker_id, broker_data['MandrillApiKey']
 
   # [u'BrokerID', u'ShortName', u'BusinessName', u'Address', u'City', u'State',
   #  u'ZipCode', u'Country', u'PhoneNumber1', u'PhoneNumber2', u'Skype', u'Currencies',
@@ -120,8 +130,8 @@ def run_application(options, instance_name):
 
       try:
         broker_id = msg.get('BrokerID')
-        sender =  brokers[broker_id][broker_list_columns.index('BusinessName')]  + \
-                  '<' + brokers[broker_id][broker_list_columns.index('Email')] + '>'
+        sender =  brokers[broker_id]['params'][broker_list_columns.index('MailerFromName')]  + \
+                  '<' + brokers[broker_id]['params'][broker_list_columns.index('MailerFromEmail')] + '>'
         body = ""
         msg_to    = msg.get('To')
         subject   = msg.get('Subject')
@@ -140,7 +150,7 @@ def run_application(options, instance_name):
             # user signup .... let's register him on mailchimp newsletter
             try:
               mailchimp_api.lists.subscribe(
-                id = options.mailchimp_newsletter_list_id ,
+                id =  brokers[broker_id]['params'][broker_list_columns.index('MailchimpListID')],
                 email = {'email': params['email'] },
                 merge_vars = {'EMAIL' : params['email'], 'FNAME': params['username'] } )
 
@@ -155,13 +165,14 @@ def run_application(options, instance_name):
             template_content.append( { 'name': k, 'content': v  } )
 
           for broker_column_key in broker_list_columns:
-            broker_column_value  = brokers[broker_id][broker_list_columns.index(broker_column_key)]
-            template_content.append( { 'name': broker_column_key, 'content': broker_column_value  } )
+            broker_column_value  = brokers[broker_id]['params'][broker_list_columns.index(broker_column_key)]
+            template_content.append( { 'name': 'broker_' + convertCamelCase2Underscore(broker_column_key),
+                                       'content': broker_column_value  } )
 
 
           message = {
-            'from_email': brokers[broker_id][broker_list_columns.index('Email')],
-            'from_name': brokers[broker_id][broker_list_columns.index('BusinessName')],
+            'from_email': brokers[broker_id]['params'][broker_list_columns.index('Email')],
+            'from_name': brokers[broker_id]['params'][broker_list_columns.index('BusinessName')],
             'to': [{'email': msg_to, 'name': params['username'],'type': 'to' }],
             'metadata': {'website': 'www.blinktrade.com'},
             'global_merge_vars': template_content

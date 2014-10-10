@@ -1129,8 +1129,11 @@ def processBrokerListRequest(session, msg):
               'Status'          , 'ranking'        , 'Email'             , 'CountryCode'        , 'CryptoCurrencies'  ,
               'WithdrawStructure','SupportURL'     , 'SignupLabel'       , 'AcceptCustomersFrom', 'IsBrokerHub']
 
+  if session.user and session.user.is_system:
+    columns.extend(['MandrillApiKey', 'MailerFromName', 'MailerFromEmail', 'MailerSignature', 'MailchimpListID'])
+
   for broker in brokers:
-    broker_list.append( [
+    broker_data = [
       broker.id                   ,
       broker.short_name           ,
       broker.business_name        ,
@@ -1157,7 +1160,12 @@ def processBrokerListRequest(session, msg):
       broker.signup_label         ,
       json.loads(broker.accept_customers_from),
       broker.is_broker_hub
-    ])
+    ]
+    if session.user and session.user.is_system:
+      broker_data.extend([ broker.mandrill_api_key, broker.mailer_from_name, broker.mailer_from_email,
+                           broker.mailer_signature, broker.mailchimp_list_id ])
+
+    broker_list.append(broker_data)
 
   response_msg = {
     'MsgType'           : 'U29',
