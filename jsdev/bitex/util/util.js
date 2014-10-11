@@ -252,7 +252,7 @@ bitex.util.getCountries = function() {
     "NO": "Norway",
     "OM": "Oman",
     "QO": "Outlying Oceania",
-    "PK": "Pakistan",
+    "PK": ["Pakistan", "Balochistan|KPK|Punjab|Sindh|Islamabad|FATA|AJ&K|Gilgit–Baltistan", "Balochistan|Khyber Pakhtunkhwa|Punjab|Sindh|Islamabad|FATA|Azad and Jamu Kashmir|Gilgit–Baltistan"],
     "PW": "Palau",
     "PS": "Palestinian Territories",
     "PA": "Panama",
