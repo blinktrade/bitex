@@ -7,8 +7,8 @@ sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 
 from order_book_processor import OrderBookProcessor
 from util import get_funded_entries, aggregate_orders
-from bitex.signals import Signal
-from bitex.client import BitExThreadedClient
+from pyblinktrade.signals import Signal
+from client import BitExThreadedClient
 import json
 import datetime
 import time

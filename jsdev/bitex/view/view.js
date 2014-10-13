@@ -57,14 +57,14 @@ bitex.view.View.EventType = {
   UPLOAD_RECEIPT: 'upload_receipt',
   SHOW_RECEIPT: 'show_receipt' ,
 
+  UPDATE_PROFILE: 'update_profile',
   SET_VERIFIED: 'set_verified',
-  SET_NOT_VERIFIED: 'set_not_verified',
   SET_WITHDRAW_EMAIL: 'set_withdraw_email',
 
-  ENABLE_TWOFACTOR: 'two_factor_enable',
-  DISABLE_TWOFACTOR: 'two_factor_disable',
-  RESET_TWOFACTOR: 'reset_two_factor'
+  FILE_VIEW: 'file_view',
 
+  ENABLE_TWOFACTOR: 'two_factor_enable',
+  DISABLE_TWOFACTOR: 'two_factor_disable'
 };
 
 
@@ -142,7 +142,6 @@ bitex.view.View.prototype.logger_ =
 /** @inheritDoc */
 bitex.view.View.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
-  var handler = this.getHandler();
 };
 
 

@@ -1,1 +1,0 @@
-engine: python2.7 apps/trade/main.py --config=/opt/surbitcoin/config/trade.conf

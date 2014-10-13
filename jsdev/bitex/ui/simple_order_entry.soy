@@ -9,7 +9,7 @@
  * @param formatted_fee
  */
 {template .SimpleOrderEntry}
-<div id="{$id}" class="simple-order-entry well" >
+<form id="{$id}" class="simple-order-entry well" >
   <div class="row-fluid">
     <div class="span10">
       <div class="row-fluid">
@@ -21,16 +21,28 @@
               {msg desc="I want to sell"}I want to sell{/msg}
             {/if}
           </span>
-          <div class="input-prepend">
+          <div class="input-prepend uniform-control-holder">
             <span class="add-on simple-order-entry-price-sign">{$crypto_currency_symbol}</span>
-            <input id="{$id}_qty" class="input-small simple-order-entry-qty" type="text" required/>
+            <input id="{$id}_qty"
+                   name="qty"
+                   data-uniform-label="{msg desc="I want to sell"}Quantity{/msg}"
+                   class="input-small simple-order-entry-qty"
+                   data-uniform-validators="validateNumber; required"
+                   data-uniform-filters="positive_number"
+                   type="text" required/>
           </div>
         </div>
         <div class="pull-left">
           <span class="simple-order-entry-text" >{msg desc="for a total of"} for a total of {/msg}</span>
-          <div class="input-prepend ">
+          <div class="input-prepend uniform-control-holder">
             <span class="add-on simple-order-entry-price-sign">{$currency_symbol}</span>
-            <input id="{$id}_total" class="input-small simple-order-entry-total" type="text" required/>
+            <input id="{$id}_total"
+                   name="total"
+                   data-uniform-label="{msg desc="I want to sell"}Total{/msg}"
+                   class="input-small simple-order-entry-total"
+                   data-uniform-validators="validateNumber; required"
+                   data-uniform-filters="positive_number"
+                   type="text" required/>
           </div>
         </div>
       </div>
@@ -53,7 +65,7 @@
       </div>
     </div>
   </div>
-</div>
+</form>
 
 {/template}
 

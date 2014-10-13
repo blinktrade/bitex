@@ -259,9 +259,20 @@ bitex.ui.WithdrawList = function( methodDescriptionObj, opt_broker_mode,  opt_sh
                  */
                 var MSG_WITHDRAW_TABLE_DETAILS_COLUMN_BTN_BLOCKCHAIN  = goog.getMsg('blockchain');
 
+
+                var block_explorer = 'https://blockchain.info';
+                switch (rowSet['Data']['Wallet'][0]) {
+                  case 'm':
+                  case 'n':
+                  case '2':
+                  case '9':
+                  case 'c':
+                    block_explorer = 'https://test-insight.bitpay.com';
+                }
+
                 var btn_blockchain = goog.dom.createDom( 'a', {
                   'class':'btn btn-mini btn-info btn-btc-blockchain',
-                  'href': 'https://blockchain.info/tx/' + value,
+                  'href': block_explorer + '/tx/' + value,
                   'target':'_blank'
                 },MSG_WITHDRAW_TABLE_DETAILS_COLUMN_BTN_BLOCKCHAIN,' ' ,goog.dom.createDom( 'i', ['icon-white', 'icon-share-alt']));
 

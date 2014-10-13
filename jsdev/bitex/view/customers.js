@@ -36,6 +36,7 @@ bitex.view.CustomersView.prototype.enterView = function() {
 
 bitex.view.CustomersView.prototype.exitView = function() {
   goog.base(this, 'exitView');
+  this.destroyComponents_();
 };
 
 /**
@@ -56,15 +57,12 @@ bitex.view.CustomersView.prototype.request_id_;
  */
 bitex.view.CustomersView.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
-  var model = this.getApplication().getModel();
-  var handler = this.getHandler();
 };
 
 /**
  * @override
  */
 bitex.view.CustomersView.prototype.disposeInternal = function() {
-  this.destroyComponents_();
   goog.base(this, 'disposeInternal');
 };
 
@@ -147,7 +145,7 @@ bitex.view.CustomersView.prototype.onCustomerListTableRequestData_ = function(e)
   var filter = e.options['Filter'];
 
   var conn = this.getApplication().getBitexConnection();
-  conn.requestCustomerList(this.request_id_, undefined, undefined, filter, page, limit, [0,1,2]);
+  conn.requestCustomerList(this.request_id_, undefined, undefined, filter, page, limit, [0,1,2,3,4,5]);
 };
 
 /**

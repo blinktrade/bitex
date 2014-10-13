@@ -12,9 +12,11 @@ uniform.Meta = function() {
   this.metaMap_ = new goog.structs.Map();
 
 
-  this.metaMap_.set('display',this.display_);
-  this.metaMap_.set('hide'   ,this.hide_);
-  this.metaMap_.set('assign' ,this.assign_);
+  this.metaMap_.set('display', this.display_);
+  this.metaMap_.set('enable' , this.enable_);
+  this.metaMap_.set('disable', this.disable_);
+  this.metaMap_.set('hide'   , this.hide_);
+  this.metaMap_.set('assign' , this.assign_);
 };
 goog.addSingletonGetter(uniform.Meta);
 
@@ -38,9 +40,33 @@ uniform.Meta.prototype.registerMetaFn = function(className,
  */ 
 uniform.Meta.prototype.runMeta = function(formElement) {
   uniform.util.executeFormMetaTags(formElement,
-      'uniform-meta', this.metaMap_);
+      'data-uniform-meta', this.metaMap_);
 };
 
+/**
+ * @param {Element} el
+ * @param {string} condition
+ */
+uniform.Meta.prototype.disable_ = function(el, condition) {
+  if (eval(condition)) {
+    el.disabled = true;
+  } else {
+    el.disabled = false;
+  }
+};
+
+
+/**
+ * @param {Element} el
+ * @param {string} condition
+ */
+uniform.Meta.prototype.enable_ = function(el, condition) {
+  if (eval(condition)) {
+    el.disabled = false;
+  } else {
+    el.disabled = true;
+  }
+};
 
 /**
  * @param {Element} el

@@ -8,11 +8,9 @@ import json
 import datetime
 from models import Trade, UserEmail
 
-from trade_application import application
+from trade_application import TradeApplication
 
 from market_data_publisher import MarketDataPublisher
-
-from tornado.options import  options
 
 matcher_dict  = {}
 
@@ -230,7 +228,7 @@ class OrderMatcher(object):
 
         def generate_email_subject_and_body( session, order, trade ):
           from json import  dumps
-          from bitex.json_encoder import  JsonEncoder
+          from pyblinktrade.json_encoder import  JsonEncoder
           from models import Currency
 
           qty_currency = order.symbol[:3]
@@ -256,18 +254,20 @@ class OrderMatcher(object):
 
         email_data = generate_email_subject_and_body(session, order, trade)
         UserEmail.create( session = session,
-                          user_id = order.user_id,
+                          user_id = order.account_id,
+                          broker_id = order.broker_id,
                           subject = email_data[0],
                           template= email_data[1],
-                          language= options.global_email_language,
+                          language= order.email_lang,
                           params  = email_data[2])
 
         email_data = generate_email_subject_and_body(session, counter_order, trade)
         UserEmail.create( session = session,
-                          user_id = counter_order.user_id,
+                          user_id = counter_order.account_id,
+                          broker_id = counter_order.broker_id,
                           subject = email_data[0],
                           template= email_data[1],
-                          language= options.global_email_language,
+                          language= counter_order.email_lang,
                           params  = email_data[2])
 
 
@@ -317,7 +317,7 @@ class OrderMatcher(object):
 
     # Publish all execution reports
     for user_id, execution_report in execution_reports:
-      application.publish( user_id, execution_report )
+      TradeApplication.instance().publish( user_id, execution_report )
 
     # Publish Market Data for the counter order
     if execution_counter:
@@ -379,10 +379,10 @@ class OrderMatcher(object):
 
     # Generate a cancel report
     cancel_rpt = ExecutionReport( order, '1' if order.is_buy else '2' )
-    application.publish(order.user_id, cancel_rpt.toJson() )
+    TradeApplication.instance().publish(order.user_id, cancel_rpt.toJson() )
 
     if order.user_id != order.account_id:
-      application.publish(order.account_id, cancel_rpt.toJson() )
+      TradeApplication.instance().publish(order.account_id, cancel_rpt.toJson() )
 
 
     # market data

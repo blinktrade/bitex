@@ -46,6 +46,11 @@ java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogM
 java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
   --shouldProvideRequireSoyNamespaces --codeStyle concat --cssHandlingScheme GOOG  \
   --outputPathFormat  './bitex/ui/{INPUT_FILE_NAME_NO_EXT}.soy.js' \
+  ./bitex/ui/advanced_order_entry.soy
+
+java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
+  --shouldProvideRequireSoyNamespaces --codeStyle concat --cssHandlingScheme GOOG  \
+  --outputPathFormat  './bitex/ui/{INPUT_FILE_NAME_NO_EXT}.soy.js' \
   ./bitex/ui/simple_order_entry.soy
 
 java -jar ./tools/SoyToJsSrcCompiler.jar --bidiGlobalDir 1 --shouldGenerateGoogMsgDefs \
@@ -134,7 +139,7 @@ python ./closure-library/closure/bin/build/closurebuilder.py  \
   --compiler_jar=./tools/compiler.jar \
   --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" \
   --compiler_flags="--define=goog.DEBUG=0" \
-  --compiler_flags="--define=goog.LOCALE='en_US'" \
+  --compiler_flags="--define=goog.LOCALE='es'" \
   --compiler_flags="--externs=./externs/google.js" \
   --compiler_flags="--externs=./externs/plusone.js" \
   --compiler_flags="--externs=./externs/jquery-1.9.js" \

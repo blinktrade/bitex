@@ -1,40 +1,45 @@
+#!/usr/bin/env python
 import os
 import sys
+import ConfigParser
+import argparse
+from appdirs import site_config_dir
+
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
 
-
-from tornado.options import define, options
-import tornado
-
-define("trade_in", help="zmq input queue")
-define("trade_pub",help="zmq publisher queue")
-define("trade_log", help="logging" )
-define("session_timeout_limit", type=int, help="Session timeout")
-define("db_echo", default=False,help="Prints every database command on the stdout" )
-define("db_engine",  help="SQLAlchemy database engine string")
-define("test_mode", default=False, help="Test mode")
-define("satoshi_mode", default=False, help="Satoshi mode")
-define("dev_mode", default=False, help="Dev mode")
-define("global_email_language", help="template email language")
-define("verification_bonus", type=dict, help="Verification bonus details")
-
-define("config", help="config file", callback=lambda path: tornado.options.parse_config_file(path, final=False))
-
-from trade_application import application
+from pyblinktrade.project_options import ProjectOptions
+from trade_application import TradeApplication
 
 def main():
-  tornado.options.parse_command_line()
+  parser = argparse.ArgumentParser(description="Blinktrade Trade application")
+  parser.add_argument('-i', "--instance", action="store", dest="instance", help='Instance name', type=str)
+  parser.add_argument('-c', "--config", action="store", dest="config", default=os.path.expanduser('~/.bitex/bitex.ini'), help='Configuration file', type=str)
+  arguments = parser.parse_args()
+
+  if not arguments.instance:
+    parser.print_help()
+    return
+
+
+  candidates = [ os.path.join(ROOT_PATH, 'config/bitex.ini'),
+                 os.path.join(site_config_dir('bitex'), 'bitex.ini'),
+                 arguments.config]
+  config = ConfigParser.SafeConfigParser()
+  config.read( candidates )
+
+  options = ProjectOptions(config, arguments.instance)
+
   if not options.trade_in or \
      not options.trade_pub or \
      not options.trade_log or \
      not options.global_email_language or \
      not options.db_engine:
-    tornado.options.print_help()
-    return
+    raise RuntimeError("Invalid configuration file")
 
-  application.initialize()
+  application = TradeApplication.instance()
+  application.initialize(options, arguments.instance)
   application.run()
 
 if __name__ == "__main__":

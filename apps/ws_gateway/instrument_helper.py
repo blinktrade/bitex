@@ -1,5 +1,5 @@
 from datetime import datetime
-from bitex.signals import Signal
+from pyblinktrade.signals import Signal
 
 import time
 

@@ -3,6 +3,9 @@ goog.provide('uniform.InputFilterFunction');
 
 goog.require('goog.structs.Map');
 goog.require('goog.array');
+goog.require('goog.dom.forms');
+
+goog.require('goog.i18n.NumberFormatSymbols');
 
 /**
  * @type {function(goog.events.KeyEvent, Array.<string>)}
@@ -22,11 +25,15 @@ uniform.InputFilters = function() {
   this.registerInputFilter( 'number',
                           [this.filterNumber_,0 ] );
 
+  //register all default InputFilters
+  this.registerInputFilter( 'positive_number',
+                            [this.filterPositiveNumber_,0 ] );
+
   this.registerInputFilter( 'integer',
                           [this.filterInteger_,0 ] );
 
   this.registerInputFilter( 'non_space',
-      [this.filterNonSpace_,0 ] );
+                          [this.filterNonSpace_,0 ] );
 
 
 
@@ -54,7 +61,7 @@ uniform.InputFilters.prototype.registerInputFilter = function(
 uniform.InputFilters.prototype.filter = function(e) {
   var element = e.target;
 
-  var InputFilterAttribute = element.getAttribute('uniform-filters');
+  var InputFilterAttribute = element.getAttribute('data-uniform-filters');
   var elClassesArray = InputFilterAttribute && 
     typeof InputFilterAttribute.split == 'function' ? 
       InputFilterAttribute.split(/\s+/) : [];
@@ -64,7 +71,7 @@ uniform.InputFilters.prototype.filter = function(e) {
 
     var InputFilterRecord = this.InputFilters_.get(cls,[goog.nullFunction,0 ]);
 
-    var InputFilterFn           = InputFilterRecord[0];
+    var InputFilterFn         = InputFilterRecord[0];
     var number_of_parameters  = 0;
     if (goog.isDefAndNotNull(InputFilterRecord[1] )) {
       number_of_parameters  = InputFilterRecord[1];
@@ -108,17 +115,104 @@ uniform.InputFilters.prototype.filter = function(e) {
  * @param {goog.events.KeyEvent} e
  */
 uniform.InputFilters.prototype.filterNumber_ = function(e) {
-  if ( e.ctrlKey || !e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO &&
-       e.keyCode <= goog.events.KeyCodes.NINE ||
-       e.keyCode >= goog.events.KeyCodes.NUM_ZERO &&
-       e.keyCode <= goog.events.KeyCodes.NUM_NINE || 
-       e.keyCode == goog.events.KeyCodes.NUM_MINUS  ||
-       e.keyCode == goog.events.KeyCodes.NUM_PERIOD  || 
-       e.keyCode == goog.events.KeyCodes.PERIOD ||
-       e.keyCode == goog.events.KeyCodes.COMMA   || 
-       e.keyCode == goog.events.KeyCodes.E ) {
+  var inputEl = e.target;
+
+  var inputValue = goog.dom.forms.getValue(inputEl);
+
+  if ( e.ctrlKey ) {
     return;  // allowed
-  } 
+  }
+
+  if ( (!e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO && e.keyCode <= goog.events.KeyCodes.NINE) ||
+       (e.keyCode >= goog.events.KeyCodes.NUM_ZERO && e.keyCode <= goog.events.KeyCodes.NUM_NINE)) {
+    if (inputEl.selectionStart == 0 && inputEl.selectionEnd == 0 && inputValue.indexOf('-') >= 0 ) {
+      e.preventDefault();
+      return;
+    }
+    return;  // allowed
+  }
+
+  switch(e.keyCode) {
+    case goog.events.KeyCodes.DASH:
+    case goog.events.KeyCodes.NUM_MINUS:
+      if (inputEl.selectionStart == 0 ) {
+        if (inputValue.indexOf('-') < 0) {
+          return;
+        }
+      }
+      break;
+    case goog.events.KeyCodes.NUM_PERIOD:
+    case goog.events.KeyCodes.PERIOD:
+      if (goog.i18n.NumberFormatSymbols.DECIMAL_SEP == '.') {
+        if (inputValue.indexOf('.') < 0) {
+          return;
+        }
+      }
+      break;
+
+    case goog.events.KeyCodes.COMMA:
+      if (goog.i18n.NumberFormatSymbols.DECIMAL_SEP == ',') {
+        if (inputValue.indexOf(',') < 0) {
+          return;
+        }
+      }
+      break;
+
+    case goog.events.KeyCodes.E:
+      if (inputValue.indexOf('e') >= 0 || inputValue.indexOf('E') >= 0 ) {
+        break;
+      }
+      return;
+    default:
+      break;
+  }
+
+
+  e.preventDefault();
+};
+
+
+/**
+ * Number is only valid value (integers and floats)
+ * @param {goog.events.KeyEvent} e
+ */
+uniform.InputFilters.prototype.filterPositiveNumber_ = function(e) {
+  var inputEl = e.target;
+
+  var inputValue = goog.dom.forms.getValue(inputEl);
+
+  if ( e.ctrlKey ||
+      (!e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO && e.keyCode <= goog.events.KeyCodes.NINE) ||
+      (e.keyCode >= goog.events.KeyCodes.NUM_ZERO && e.keyCode <= goog.events.KeyCodes.NUM_NINE)) {
+    return;  // allowed
+  }
+
+  switch(e.keyCode) {
+    case goog.events.KeyCodes.NUM_PERIOD:
+    case goog.events.KeyCodes.PERIOD:
+      if (goog.i18n.NumberFormatSymbols.DECIMAL_SEP == '.') {
+        if (inputValue.indexOf('.') < 0) {
+          return;
+        }
+      }
+      break;
+
+    case goog.events.KeyCodes.COMMA:
+      if (goog.i18n.NumberFormatSymbols.DECIMAL_SEP == ',') {
+        if (inputValue.indexOf(',') < 0) {
+          return;
+        }
+      }
+      break;
+
+    case goog.events.KeyCodes.E:
+      if (inputValue.indexOf('e') >= 0 || inputValue.indexOf('E') >= 0 ) {
+        break;
+      }
+      return;
+    default:
+      break;
+  }
 
   e.preventDefault();
 };
@@ -129,13 +223,24 @@ uniform.InputFilters.prototype.filterNumber_ = function(e) {
  * @param {goog.events.KeyEvent} e
  */
 uniform.InputFilters.prototype.filterInteger_ = function(e) {
+  var inputEl = e.target;
+  var inputValue = goog.dom.forms.getValue(inputEl);
 
-  if ( e.ctrlKey || !e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO &&
-       e.keyCode <= goog.events.KeyCodes.NINE ||
-       e.keyCode >= goog.events.KeyCodes.NUM_ZERO &&
-       e.keyCode <= goog.events.KeyCodes.NUM_NINE) {
+  if ( e.ctrlKey) {
+    return;
+  }
+
+  if ( !e.shiftKey && e.keyCode >= goog.events.KeyCodes.ZERO && e.keyCode <= goog.events.KeyCodes.NINE ||
+       e.keyCode == goog.events.KeyCodes.DASH  ||
+       e.keyCode >= goog.events.KeyCodes.NUM_ZERO && e.keyCode <= goog.events.KeyCodes.NUM_NINE) {
+
+    if (inputEl.selectionStart == 0 && inputEl.selectionEnd == 0 && inputValue.indexOf('-') >= 0 ) {
+      e.preventDefault();
+      return;
+    }
     return;  // allowed
-  } 
+  }
+
 
   e.preventDefault();
 };

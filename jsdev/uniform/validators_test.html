@@ -28,63 +28,63 @@ See the COPYING file for details.
 
 <input type="text"
        id="id_title"
-       uniform-validators="validateMinLength 10; validateMaxLength 20"/>
+       data-uniform-validators="validateMinLength 10; validateMaxLength 20"/>
 
 
 <input type="text"
        id="id_email"
-       uniform-validators="validateEmail"/>
+       data-uniform-validators="validateEmail"/>
 
 <input type="text"
        id="id_integer"
-       uniform-validators="validateInteger"/>
+       data-uniform-validators="validateInteger"/>
 
 
 <input type="text"
        id="id_alpha"
-       uniform-validators="validateAlpha"/>
+       data-uniform-validators="validateAlpha"/>
 
 
 
 <input type="text"
        id="id_min"
-       uniform-validators="validateMin 10"/>
+       data-uniform-validators="validateMin 10"/>
 
 <input type="text"
        id="id_max"
-       uniform-validators="validateMax 20"/>
+       data-uniform-validators="validateMax 20"/>
 
 
 
 <input type="text"
        id="id_number"
-       uniform-validators="validateNumber"/>
+       data-uniform-validators="validateNumber"/>
 
 
 <input type="text"
        id="id_alphaNum"
-       uniform-validators="validateAlphaNum"/>
+       data-uniform-validators="validateAlphaNum"/>
 
 
 <input type="text"
        id="id_phrase"
-       uniform-validators="validatePhrase"/>
+       data-uniform-validators="validatePhrase"/>
 
 
 <input type="text"
        id="id_required"
-       uniform-validators="required"/>
+       data-uniform-validators="required"/>
 
 <form id="metaform1">
           <input type="text" id="id_price_highseason_day" name="price_highseason_day" value="" size="35"
-                 uniform-meta="assign If id_price_highseason_day == ''  then 0 "
-                 uniform-filters="number"
+                 data-uniform-meta="assign If id_price_highseason_day == ''  then 0 "
+                 data-uniform-filters="number"
                  class="textInput"/>
 
           <input type="text" id="id_price_highseason_week" name="price_highseason_week" 
               value="" size="35"
-              uniform-meta="assign If id_price_highseason_week == '' or id_price_highseason_week == '0' then id_price_highseason_day * 7 "
-              uniform-filters="integer" class="textInput"/>
+              data-uniform-meta="assign If id_price_highseason_week == '' or id_price_highseason_week == '0' then id_price_highseason_day * 7 "
+              data-uniform-filters="integer" class="textInput"/>
 
 </form>
 

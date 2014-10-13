@@ -144,7 +144,7 @@ bitex.app.UrlRouter.prototype.setView = function(view_name) {
 
 
   var res = this.dispatchEvent(
-      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_id, view_args,view_url ));
+      new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_id, urlMapping.view, view_args,view_url ));
 
   if (!res) {
     return;
@@ -183,8 +183,23 @@ bitex.app.UrlRouter.prototype.getCurrentView = function() {
 bitex.app.UrlRouter.prototype.onNavigate_ = function(e){
   if (e.isNavigation) {
     var view_name = e.token;
+
+    var urlMapping =  goog.array.find(this.urls_, function( url_object  ) {
+      var re = new RegExp(url_object.re,"g");
+      if (goog.isDefAndNotNull(re.exec( view_name ))) {
+        return true;
+      }
+    });
+
+    var actual_view_name = goog.string.remove(view_name, this.base_url_ );
+    var view_data = new RegExp(urlMapping.re,"g").exec(actual_view_name);
+    var view_url = view_data[0];
+    var view_id = view_data[1];
+    var view_args = view_data.splice(2);
+
     var res = this.dispatchEvent(
-        new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_name ));
+        new bitex.app.UrlRouterEvent( bitex.app.UrlRouter.EventType.SET_VIEW, view_id, urlMapping.view, view_args,view_url ));
+
     if (res) {
       this.setViewInternal(view_name);
     }
@@ -194,18 +209,24 @@ bitex.app.UrlRouter.prototype.onNavigate_ = function(e){
 /**
  *
  * @param {bitex.app.UrlRouter.EventType} type
- * @param {string}  view_id
+ * @param {string} view_id
+ * @param {bitex.view.View} view
  * @param {Array.<string>}  view_args
  * @param {string}  view_url
  * @constructor
  */
-bitex.app.UrlRouterEvent = function(type,  view_id, view_args,view_url) {
+bitex.app.UrlRouterEvent = function(type,  view_id, view, view_args,view_url) {
   goog.events.Event.call(this, type);
 
   /**
    * @type {string}
    */
   this.view_id = view_id;
+
+  /**
+   * @type {bitex.view.View}
+   */
+  this.view = view;
 
   /**
    * @type {Array.<string>}

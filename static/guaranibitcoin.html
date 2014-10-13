@@ -52,7 +52,7 @@
 </head>
 
 <body class="ws-not-connected bitex-not-logged active-view-start" data-twttr-rendered="true">
-<div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top">
+<div id="id_toolbar" class="navbar navbar-inverse navbar-fixed-top bitex-view-always-show">
   <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="/start"><img src="/images/guaranibitcoinbeta2.png" style="
@@ -62,7 +62,8 @@
         "></a>
 
       <ul class="nav navbar-nav pull-right">
-        <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Mercado</a></li>
+        <li class="bitex-display-if-logged"><a href="" data-switch-view="offerbook">Negociaciones</a></li>
+        <li><a href="" data-switch-view="market">Mercado</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Ingresar</a></li>
         <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Registrarse</a></li>
         <li><button id="id_button_connect_ws" class="bitex-hide-if-ws-connected btn-link" style="padding: 6px 15px 10px;" >connect <i class="icon-white icon-repeat"></i></button></li>
@@ -402,58 +403,6 @@
   <div id="id_customers_well"></div>
 </div>
 
-<!--
-<div id="account_activity" class="bitex-view">
-  <div class="section-title">
-    <h3 class="bitex-view-title">History</h3>
-  </div>
-  <div class="bitex-view-content">
-    <div id="id_trade_history_well"></div>
-  </div>
-</div>
-
-<div id="enable_two_factor" class="bitex-view">
-  <div class="section-title">
-    <h3 class="bitex-view-title">Activar o Desactivar los metodos de verificacion</h3>
-  </div>
-
-  <div class="content bitex-view-content">
-
-    <div class="well span6">
-      <form id="id_enable_two_factor_div" class="form-horizontal ">
-
-        <div class="control-group">
-          <label class="control-label">Key</label>
-          <div class="controls">
-            <span id='secret' class="bitex-model" data-model-key="TwoFactorSecret"></span>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <div class="controls">
-            <img id="id_secret_qr" style="width: 100%; margin-top: -30px" src="">
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label class="control-label">codigo de verificacion</label>
-          <div class="controls">
-            <input id="id_second_step_verification" type="text" class="input-block-level" pattern="\d+" title="Código gerado pelo Google Authenticatior" placeholder="Ex. 555555" required>
-          </div>
-        </div>
-
-      </form>
-
-      <button id="id_btn_enable_two_factor" class="btn btn-primary">Activar</button>
-      <button id="id_btn_disable_two_factor" class="btn btn-danger">Desactivar</button>
-
-    </div>
-
-  </div>
-
-</div>
--->
-
 <div id="my_broker" class="bitex-view">
    <div  class="bitex-view-title"></div>
    <div class="bitex-view-content"></div>
@@ -485,7 +434,7 @@
 
 </div>
 
-<div id="withdraw">
+<div id="withdraw" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Retiro</h3>
   </div>
@@ -497,7 +446,7 @@
   </div>
 </div>
 
-<div id="withdraw_requests">
+<div id="withdraw_requests" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Solicitud de retiro</h3>
   </div>
@@ -507,7 +456,7 @@
   </div>
 </div>
 
-<div id="deposit">
+<div id="deposit" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Depositos</h3>
   </div>
@@ -519,7 +468,7 @@
   </div>
 </div>
 
-<div id="deposit_requests">
+<div id="deposit_requests" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">solicitud de deposito</h3>
   </div>
@@ -529,7 +478,7 @@
   </div>
 </div>
 
-<div id="ledger">
+<div id="ledger" class="bitex-view">
   <div class="section-title">
     <h3 class="bitex-view-title">Libro de cuentas</h3>
   </div>
@@ -589,7 +538,20 @@
 
 </div>
 
-<div id="id_sidebar" class="span3 sidebar bitex-view">
+<div id="id_sidebar" class="span3 sidebar bitex-view
+                                          bitex-view-profile
+                                          bitex-view-trading
+                                          bitex-view-offerbook
+                                          bitex-view-customers
+                                          bitex-view-account_overview
+                                          bitex-view-withdraw
+                                          bitex-view-withdraw_requests
+                                          bitex-view-deposit
+                                          bitex-view-deposit_requests
+                                          bitex-view-ledger
+                                          bitex-view-settings
+                                          bitex-view-my_broker
+                                          bitex-view-verification">
   <h3><span class="bitex-model bitex-view-title" data-model-key="Username"></span></h3>
   <div class="bitex-view-content">
       <div id="account_balance" style="">
@@ -623,14 +585,8 @@
         <li style=""><a href="" data-switch-view="deposit"><i data-switch-view="deposit" class="icon-plus"></i> Mi depósitos</a></li>
         <li style=""><a href="" data-switch-view="withdraw"><i data-switch-view="withdraw" class="icon-minus"></i> Mi retiradas</a></li>
 
-<!--
-        <li><a href="" class="bitex-display-if-non-broker" data-switch-view="account_activity"><i data-switch-view="account_activity" class="icon-list-alt"></i> History</a></li>
--->
-
         <li style="" class="bitex-display-if-non-broker" id="verification_menu_id"><a href="" data-switch-view="verification"><i data-switch-view="verification" class="icon-check"></i> Verifique su cuente</a></li>
-<!--
-        <li style="" ><a href="" data-switch-view="enable_two_factor"><i data-switch-view="enable_two_factor" class="icon-lock"></i> Asegure su cuenta</a></li>
--->
+
         <li style="">
             <a href="" class="bitex-support-link" target="_blank" >
                 <i class="icon-envelope"></i> Soporte y sugerencias</a>

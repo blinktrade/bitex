@@ -5,6 +5,7 @@ goog.require('uniform.util');
 goog.require('goog.structs.Map');
 goog.require('goog.array');
 goog.require('goog.dom.forms');
+goog.require('goog.i18n.NumberFormat');
 
 
 /**
@@ -50,7 +51,7 @@ uniform.Validators.prototype.registerValidatorFn = function(className, validator
  */
 uniform.Validators.prototype.runValidation = function(el, caption){
   uniform.util.executeElementMetaTags(el,
-                                      'uniform-validators',
+                                      'data-uniform-validators',
                                       this.metaMap_,
                                       caption);
 };
@@ -160,13 +161,34 @@ uniform.Validators.prototype.validateMax_ = function(el, condition,  maxValue, c
   if (condition && !eval(condition)) {
     return;
   }
+  /** @desc Error Validate max*/
+  var MSG_ERROR_VALIDATE_MAX =
+      goog.getMsg("{$c} should be less than or equal to {$d}", {c:caption, d:maxValue });
 
-  maxValue = parseInt(maxValue,10);
 
-  if (parseInt(goog.dom.forms.getValue(el)) > maxValue ){
-    /** @desc Error Validate max*/
-    var MSG_ERROR_VALIDATE_MAX =
-        goog.getMsg("{$c} should be less than or equal to {$d}", {c:caption, d:maxValue });
+  var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
+
+  maxValue = goog.string.trim(maxValue);
+
+  var pos = [0];
+  var maximum_value = valueFormatter.parse(maxValue, pos);
+
+  if (isNaN(maximum_value) || pos[0] != maxValue.length || isNaN(maximum_value)) {
+    // It is not a numeric.
+    if ( goog.dom.forms.getValue(el) > maxValue ){
+      throw MSG_ERROR_VALIDATE_MAX;
+    }
+    return;
+  }
+
+  pos = [0];
+  var field_value = valueFormatter.parse(goog.dom.forms.getValue(el), pos);
+  if (isNaN(field_value) || pos[0] != goog.dom.forms.getValue(el).length || isNaN(field_value)) {
+    // Entered data it no a number :/
+    throw MSG_ERROR_VALIDATE_MAX;
+  }
+
+  if ( field_value > maximum_value ){
     throw MSG_ERROR_VALIDATE_MAX;
   }
 };
@@ -183,13 +205,33 @@ uniform.Validators.prototype.validateMin_ = function(el,condition, minValue, cap
   if (condition && !eval(condition)) {
     return;
   }
-  minValue = parseInt(minValue,10);
+  /** @desc Error validate min*/
+  var MSG_ERROR_VALIDATE_MIN =
+      goog.getMsg("{$c} should be greater than or equal to {$d}", {c:caption, d:minValue });
 
-  var fieldValue = parseInt(goog.dom.forms.getValue(el));
-  if ( fieldValue > 0 && fieldValue < minValue ){
-    /** @desc Error validate min*/
-    var MSG_ERROR_VALIDATE_MIN =
-        goog.getMsg("{$c} should be greater than or equal to {$d}", {c:caption, d:minValue });
+  var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
+
+  minValue = goog.string.trim(minValue);
+
+  var pos = [0];
+  var minimum_value = valueFormatter.parse(minValue, pos);
+
+  if (isNaN(minimum_value) || pos[0] != minValue.length || isNaN(minimum_value)) {
+    // It is not a numeric.
+    if ( goog.dom.forms.getValue(el) < minValue ){
+      throw MSG_ERROR_VALIDATE_MIN;
+    }
+    return;
+  }
+
+  pos = [0];
+  var field_value = valueFormatter.parse(goog.dom.forms.getValue(el), pos);
+  if (isNaN(field_value) || pos[0] != goog.dom.forms.getValue(el).length || isNaN(field_value)) {
+    // Entered data it no a number :/
+    throw MSG_ERROR_VALIDATE_MIN;
+  }
+
+  if ( field_value < minimum_value ){
     throw MSG_ERROR_VALIDATE_MIN;
   }
 };
@@ -203,19 +245,30 @@ uniform.Validators.prototype.validateMin_ = function(el,condition, minValue, cap
  * @param {string} caption
  */
 uniform.Validators.prototype.validateNumber_ = function(el,condition, params, caption) {
-
   if (condition && !eval(condition)) {
     return;
   }
 
+  /** @desc Error validate number*/
+  var MSG_ERROR_VALIDATE_NUMBER =
+      goog.getMsg('{$c} needs to be a number', {c:caption});
+
+
   var elValue = goog.dom.forms.getValue(el);
-  if (elValue.match(/(^-?\d\d*\.\d*$)|(^-?\d\d*$)|(^-?\.\d\d*$)/) ||
-      goog.string.isEmpty(elValue)) {
-      return;
-  } else {
-    /** @desc Error validate number*/
-    var MSG_ERROR_VALIDATE_NUMBER =
-        goog.getMsg('{$c} needs to be a number', {c:caption});
+
+  if (goog.string.isEmpty(elValue)) {
+    return;
+  }
+
+  var valueFormatter = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
+  var pos = [0];
+  var value = valueFormatter.parse(elValue, pos);
+
+  if (isNaN(value)) {
+    throw MSG_ERROR_VALIDATE_NUMBER;
+  }
+
+  if (pos[0] != elValue.length || isNaN(value)) {
     throw MSG_ERROR_VALIDATE_NUMBER;
   }
 };

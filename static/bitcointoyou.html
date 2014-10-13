@@ -55,7 +55,8 @@
         "></a>
 
             <ul class="nav navbar-nav pull-right">
-                <li class="bitex-hide-if-logged"><a href="" data-switch-view="market">Mercado</a></li>
+                <li class="bitex-display-if-logged"><a href="" data-switch-view="offerbook">Negociações</a></li>
+                <li><a href="" data-switch-view="market">Mercado</a></li>
                 <li class="bitex-hide-if-logged"><a href="" data-switch-view="signin">Login</a></li>
                 <li class="bitex-hide-if-logged"><a href="" data-switch-view="signup">Criar conta</a></li>
                 <li>
@@ -514,7 +515,7 @@
 
 </div>
 
-<div id="withdraw">
+<div id="withdraw" class="bitex-view">
     <div class="section-title">
         <h3 class="bitex-view-title">Saques</h3>
     </div>
@@ -526,7 +527,7 @@
     </div>
 </div>
 
-<div id="withdraw_requests">
+<div id="withdraw_requests" class="bitex-view">
     <div class="section-title">
         <h3 class="bitex-view-title">Solicitações de saques</h3>
     </div>
@@ -536,7 +537,7 @@
     </div>
 </div>
 
-<div id="deposit">
+<div id="deposit" class="bitex-view">
     <div class="section-title">
         <h3 class="bitex-view-title">Depósitos</h3>
     </div>
@@ -548,7 +549,7 @@
     </div>
 </div>
 
-<div id="deposit_requests">
+<div id="deposit_requests" class="bitex-view">
     <div class="section-title">
         <h3 class="bitex-view-title">Solicitação de depósitos</h3>
     </div>
@@ -558,7 +559,7 @@
     </div>
 </div>
 
-<div id="ledger">
+<div id="ledger" class="bitex-view">
     <div class="section-title">
         <h3 class="bitex-view-title">Livro contábil</h3>
     </div>
@@ -621,7 +622,20 @@
 
 </div>
 
-<div id="id_sidebar" class="span3 sidebar bitex-view">
+<div id="id_sidebar" class="span3 sidebar bitex-view
+                                          bitex-view-profile
+                                          bitex-view-trading
+                                          bitex-view-offerbook
+                                          bitex-view-customers
+                                          bitex-view-account_overview
+                                          bitex-view-withdraw
+                                          bitex-view-withdraw_requests
+                                          bitex-view-deposit
+                                          bitex-view-deposit_requests
+                                          bitex-view-ledger
+                                          bitex-view-settings
+                                          bitex-view-my_broker
+                                          bitex-view-verification">
     <h3><span class="bitex-model bitex-view-title" data-model-key="Username"></span></h3>
 
     <div class="bitex-view-content">
@@ -684,7 +698,7 @@
 </div>
 </div>
 
-<div id="market" class="page row">
+<div id="market" class="page row bitex-view">
     <div class="row-fluid">
         <div class="page-header">
             <h2>Mercado</h2>
@@ -695,7 +709,7 @@
     </div>
 </div>
 
-<div id="tos" class="page row">
+<div id="tos" class="page row bitex-view">
     <div class="page-header">
         <h1 class="bitex-view-title" >Termos de uso</h1>
     </div>
@@ -704,7 +718,7 @@
 
 <div id="ranking" class="page row bitex-view">
     <div class="page-header">
-        <h1 class="bitex-view-title">Mejores corredores de bitcoin</h1>
+        <h1 class="bitex-view-title">Melhores</h1>
     </div>
     <div class="bitex-view-content well"></div>
 </div>

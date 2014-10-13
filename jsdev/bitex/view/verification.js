@@ -39,6 +39,9 @@ bitex.view.VerificationView.prototype.enterView = function() {
   verification_form_url = verification_form_url.replace('{{BrokerID}}', model.get('Broker')['BrokerID']);
   verification_form_url = verification_form_url.replace('{{BrokerUsername}}', model.get('Broker')['ShortName']);
   verification_form_url = verification_form_url.replace('{{Email}}', model.get('Email'));
+  if (goog.isDefAndNotNull(model.get('Profile')['State'])) {
+    verification_form_url = verification_form_url.replace('{{State}}', model.get('Profile')['State'] );
+  }
   var form_src = verification_form_url;
 
   var verificationIFrameForm = goog.dom.getElement("JotFormIFrame");

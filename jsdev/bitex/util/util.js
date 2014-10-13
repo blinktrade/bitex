@@ -6,6 +6,19 @@ goog.require('goog.crypt');
 goog.require('goog.crypt.Sha256');
 
 
+bitex.util.isTestNetAddress = function(address) {
+  switch(address[0]) {
+    case 'm':
+    case 'n':
+    case '2':
+    case '9':
+    case 'c':
+      return true;
+    default:
+      return false;
+  }
+};
+
 bitex.util.decimalPlaces = function(num) {
   var match = (''+num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
   if (!match) { return 0; }
@@ -79,7 +92,7 @@ bitex.util.getCountries = function() {
     "AM": "Armenia",
     "AW": "Aruba",
     "AC": "Ascension Island",
-    "AU": "Australia",
+    "AU": ["Australia", "ACT|NSW|NT|QLD|SA|TAS|VIC|WA", "Australian Capital Territory|New South Wales|Northern Territory|Queensland|South Australia|Tasmania|Victoria|Western Australia"],
     "AT": "Austria",
     "AZ": "Azerbaijan",
     "BS": "Bahamas",
@@ -113,7 +126,7 @@ bitex.util.getCountries = function() {
     "CF": "Central African Republic",
     "EA": "Ceuta and Melilla",
     "TD": "Chad",
-    "CL": "Chile",
+    "CL": ["Chile", "RM|XV|I|II|III|IV|V|VI|VII|VIII|IX|XIV|X|XI|XII", "Metropolitana de Santiago|Arica y Parinacota|Tarapacá|Antofagasta|Atacama|Coquimbo|Valparaíso|Libertador General Bernardo O'Higgins|Maule|Biobío|La Araucanía|Los Ríos|Los Lagos|Aysén del General Carlos Ibáñez del Campo|Magallanes y de la Antártica Chilena"],
     "CN": "China",
     "CX": "Christmas Island",
     "CP": "Clipperton Island",
@@ -239,7 +252,7 @@ bitex.util.getCountries = function() {
     "NO": "Norway",
     "OM": "Oman",
     "QO": "Outlying Oceania",
-    "PK": "Pakistan",
+    "PK": ["Pakistan", "Balochistan|KPK|Punjab|Sindh|Islamabad|FATA|AJ&K|Gilgit–Baltistan", "Balochistan|Khyber Pakhtunkhwa|Punjab|Sindh|Islamabad|FATA|Azad and Jamu Kashmir|Gilgit–Baltistan"],
     "PW": "Palau",
     "PS": "Palestinian Territories",
     "PA": "Panama",

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import tornado.ioloop
 import tornado.web
 import tornado.httpclient
@@ -5,6 +6,13 @@ import datetime
 from time import mktime
 
 import json
+from util import get_country_code
+
+def camel_to_underscore(name):
+  import re
+  s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+  return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
 
 class VerificationWebHookHandler(tornado.web.RequestHandler):
   def __init__(self, application, request, **kwargs):
@@ -17,8 +25,9 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
     dt = datetime.datetime.now()
     createdAt = int(mktime(dt.timetuple()) + dt.microsecond/1000000.0)
 
-
     raw_request = json.loads(self.get_argument('rawRequest'))
+    print raw_request
+
     broker_id             = None
     user_id               = None
     first_name            = None
@@ -36,19 +45,20 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
     address_state         = None
     address_postal        = None
     address_country       = None
-    identification_ssn    = None
-    identification_tax_id = None
+    address_country_code  = None
 
+    photo_fields          = []
+    id_fields             = []
 
     for key, value in raw_request.iteritems():
       if 'broker_id' in key:
         broker_id = int(value)
       if 'user_id' in key:
         user_id = int(value)
-      if 'ssn' in key:
-        identification_ssn = str(value)
-      if 'taxId' in key:
-        identification_tax_id = str(value)
+      if 'photo_fields' in key:
+        photo_fields = value.split(',')
+      if 'id_fields' in key:
+        id_fields = value.split(',')
 
       if 'name' in key and isinstance(value, dict ) and 'first' in value:
         first_name = value['first']
@@ -83,10 +93,51 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
         address_postal = value['postal']
       if 'address' in key and isinstance(value, dict ) and 'country' in value:
         address_country = value['country']
+        address_country_code = get_country_code(address_country)
+
+    uploaded_files = []
+    for field in photo_fields:
+      for key, value in raw_request.iteritems():
+        if field in key:
+          if isinstance(value, list ):
+            uploaded_files.extend(value)
+          else:
+            uploaded_files.append(value)
 
 
     import random
     req_id = random.randrange(600000,900000)
+
+    if birth_date_month[:3].upper() in ['JAN', 'GEN']:
+      birth_date_month = '01'
+    elif birth_date_month[:3].upper() in ['FEV', 'FEB']:
+      birth_date_month = '02'
+    elif birth_date_month[:3].upper() in ['MAR', u'MÄR']:
+      birth_date_month = '03'
+    elif birth_date_month[:3].upper() in ['ABR', 'APR', 'AVR']:
+      birth_date_month = '04'
+    elif birth_date_month[:3].upper() in ['MAY', 'MAI', 'MAG']:
+      birth_date_month = '05'
+    elif birth_date_month[:3].upper() in ['JUN', 'GIU']:
+      birth_date_month = '06'
+    elif birth_date_month[:3] in ['jui']:
+      birth_date_month = '06'
+    elif birth_date_month[:3] in ['Jui']:
+      birth_date_month = '07'
+    elif birth_date_month[:3].upper() in ['JUL', 'LUG']:
+      birth_date_month = '07'
+    elif birth_date_month[:3].upper() in ['AGO', 'AUG', 'AOU']:
+      birth_date_month = '08'
+    elif birth_date_month[:3].upper() in ['SET', 'SEP']:
+      birth_date_month = '09'
+    elif birth_date_month[:3].upper() in ['OUT', 'OCT', 'OTT', 'OKT']:
+      birth_date_month = '10'
+    elif birth_date_month[:3].upper() in ['NOV']:
+      birth_date_month = '11'
+    elif birth_date_month[:3].upper() in ['DEZ', 'DEC', 'DIC']:
+      birth_date_month = '12'
+    else:
+      birth_date_month = birth_date_month[:3].upper()
 
     verify_request_message = {
       'MsgType': 'B8',
@@ -108,26 +159,25 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
           'city': address_city,
           'state': address_state,
           'postal_code': address_postal,
-          'country_code': address_country,
+          'country': address_country,
+          'country_code': address_country_code,
         },
-        'phone_number': str(phone_number_country) + str(phone_number_area) + str(phone_number_phone),
-        'date_of_birth': str(birth_date_year) + '-' +  str(birth_date_month) + '-' + str(birth_date_day),
+        'phone_number': phone_number_country + phone_number_area + phone_number_phone,
+        'date_of_birth': birth_date_year + '-' +  birth_date_month + '-' + birth_date_day,
+        'uploaded_files': uploaded_files
       },
       'Verify': 1
     }
 
-    if identification_ssn:
-      if 'identification' in verify_request_message['VerificationData']:
-        verify_request_message['VerificationData']['identification']['ssn'] = identification_ssn
-      else:
-        verify_request_message['VerificationData']['identification'] = {'ssn': identification_ssn}
+    for field in id_fields:
+      for key, value in raw_request.iteritems():
+        if field in key:
+          field_name = camel_to_underscore(field)
+          if 'identification' not in verify_request_message['VerificationData']:
+            verify_request_message['VerificationData']['identification'] = {}
+          verify_request_message['VerificationData']['identification'][ field_name ] = value
 
-    if identification_tax_id:
-      if 'identification' in verify_request_message['VerificationData']:
-        verify_request_message['VerificationData']['identification']['tax_id'] = identification_tax_id
-      else:
-        verify_request_message['VerificationData']['identification'] = {'tax_id': identification_tax_id}
-
+    verify_request_message['VerificationData'] = json.dumps(verify_request_message['VerificationData'])
 
     self.application.application_trade_client.sendJSON(verify_request_message)
     self.write('*ok*')

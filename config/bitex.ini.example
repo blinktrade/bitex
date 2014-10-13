@@ -1,0 +1,60 @@
+[DEFAULT]
+project_root_demo=/Users/rodrigo/blinktrade/bitex
+host_demo = 127.0.0.1
+trade_in_demo = tcp://127.0.0.1:5757
+trade_pub_demo = tcp://127.0.0.1:5758
+url_payment_processor = http://127.0.0.1:9943/api/receive
+
+[trade_demo]
+project_root=%(project_root_demo)s
+db_echo = False
+db_engine = sqlite:///%(project_root)s/db/bitex.demo.sqlite
+trade_in = %(trade_in_demo)s
+trade_pub = %(trade_pub_demo)s
+trade_log = %(project_root)s/logs/dev/trade_demo.log
+session_timeout_limit = 0
+test_mode = False
+dev_mode = False
+satoshi_mode = False
+global_email_language = en-US
+
+[ws_gateway_8445_demo]
+port = 8445
+project_root=%(project_root_demo)s
+session_timeout_limit = 0
+callback_url = http://%(host_demo)s/process_deposit?s=
+trade_in = %(trade_in_demo)s
+trade_pub = %(trade_pub_demo)s
+db_engine = sqlite:///%(project_root)s/db/ws_gateway_demo_%(port)s.sqlite
+db_echo = False
+gateway_log = %(project_root)s/logs/ws_gateway_demo_%(port)s.log
+
+[ws_gateway_8444_demo]
+port = 8444
+project_root=%(project_root_demo)s
+session_timeout_limit = 0
+callback_url = http://%(host_demo)s/process_deposit?s=
+trade_in = %(trade_in_demo)s
+trade_pub = %(trade_pub_demo)s
+db_engine = sqlite:///%(project_root)s/db/ws_gateway_demo_%(port)s.sqlite
+db_echo = False
+gateway_log = %(project_root)s/logs/ws_gateway_demo_%(port)s.log
+
+[ws_gateway_8443_demo]
+port = 8443
+project_root=%(project_root_demo)s
+session_timeout_limit = 0
+callback_url = http://%(host_demo)s/process_deposit?s=
+trade_in = %(trade_in_demo)s
+trade_pub = %(trade_pub_demo)s
+db_engine = sqlite:///%(project_root)s/db/ws_gateway_demo_%(port)s.sqlite
+db_echo = False
+gateway_log = %(project_root)s/logs/ws_gateway_demo_%(port)s.log
+
+[mailer_demo]
+project_root=%(project_root_demo)s
+trade_pub = %(trade_pub_demo)s
+mailer_log = %(project_root)s/logs/mailer_demo.log
+mailchimp_apikey =
+mailchimp_newsletter_list_id =
+mandrill_apikey =

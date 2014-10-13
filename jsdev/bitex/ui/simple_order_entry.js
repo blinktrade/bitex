@@ -11,6 +11,9 @@ goog.require('goog.string');
 goog.require('bitex.util');
 goog.require('bitex.util.PriceAmountCalculatorVerb');
 
+goog.require('uniform.Uniform');
+
+
 /**
  * @param {number} opt_blinkDelay. Defaults to 700 milliseconds
  * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper.
@@ -22,8 +25,16 @@ bitex.ui.SimpleOrderEntry = function(opt_blinkDelay, opt_domHelper) {
   goog.base(this, opt_domHelper);
 
   this.order_depth_ = [];
+  this.uniform_ = new uniform.Uniform( { 'control_holder_class' : 'uniform-control-holder' } );
 };
 goog.inherits(bitex.ui.SimpleOrderEntry, goog.ui.Component);
+
+/**
+ * @type {uniform.Uniform}
+ * @private
+ */
+bitex.ui.SimpleOrderEntry.prototype.uniform_;
+
 
 /**
  * @type {.Array<.Array<Object>>}
@@ -125,15 +136,18 @@ bitex.ui.SimpleOrderEntry.prototype.enterDocument = function() {
   var handler = this.getHandler();
   var dom  = this.getDomHelper();
 
+  this.uniform_.decorate( goog.dom.getElement( this.makeId('order_entry') ) );
+
   this.qty_element_ = goog.dom.getElement( this.makeId('order_entry_qty') );
   this.total_element_ = goog.dom.getElement( this.makeId('order_entry_total') );
-
+  /*
   handler.listen(new goog.events.KeyHandler( this.total_element_ ),
                  goog.events.KeyHandler.EventType.KEY,
                  this.onBlockNonNumberKeys_);
   handler.listen(new goog.events.KeyHandler( this.qty_element_ ),
                  goog.events.KeyHandler.EventType.KEY,
                  this.onBlockNonNumberKeys_);
+  */
 
   handler.listen( new goog.events.InputHandler( this.total_element_ ),
                   goog.events.InputHandler.EventType.INPUT,
@@ -251,11 +265,16 @@ bitex.ui.SimpleOrderEntry.prototype.onBlockNonNumberKeys_ = function(e) {
  */
 bitex.ui.SimpleOrderEntry.prototype.onActionSimple_ = function(e) {
   e.preventDefault();
-  this.dispatchEvent( bitex.ui.SimpleOrderEntry.EventType.SUBMIT);
+
+  var error_list = this.uniform_.validate();
+  if (error_list.length > 0) {
+    e.stopPropagation();
+  } else {
+    this.dispatchEvent( bitex.ui.SimpleOrderEntry.EventType.SUBMIT);
+  }
 };
 
 bitex.ui.SimpleOrderEntry.prototype.disableActions_ = function(enabled) {
-
   var action_button = new goog.ui.Button();
   action_button.decorate(goog.dom.getElement( this.makeId('order_entry_action_simple')));
   action_button.setEnabled(enabled);
@@ -267,11 +286,11 @@ bitex.ui.SimpleOrderEntry.prototype.disableActions_ = function(enabled) {
       /**
        * @desc no orders available to provide market liquidity ( simple order entry )
       */
-      var MSG_NO_LIQUIDITY_ERROR = goog.getMsg('  ** No liquidity, please switch to advanced mode');
+      var MSG_NO_LIQUIDITY_ERROR = goog.getMsg('  ** No liquidity to complete this transaction **');
 
       goog.dom.setTextContent(  goog.dom.getElement( this.makeId('order_entry_avg_price') ), MSG_NO_LIQUIDITY_ERROR );
   }
-}
+};
 
 /**
  * @param {goog.events.Event} e
@@ -292,15 +311,23 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
     return;
   }
 
-  var inputValue = goog.dom.forms.getValue( this.qty_element_ );
-  var total = goog.string.toNumber(inputValue);
-  if (isNaN(total)) {
+  var value_fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
+  value_fmt.setMaximumFractionDigits(8);
+  value_fmt.setMinimumFractionDigits(2);
+
+  var form_values = this.uniform_.getAsJSON();
+  var pos = [0];
+  var value = value_fmt.parse(form_values['qty'], pos);
+  if (pos[0] != form_values['qty'].length || isNaN(value) || value <= 0 ) {
+    e.stopPropagation();
+    e.preventDefault();
     return;
   }
-  total = total * 1e8;
+  value = value * 1e8;
+
 
   var price_amount_fee;
-  price_amount_fee = bitex.util.calculatePriceAmountAndFee( total,
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee( value,
                                                             bitex.util.PriceAmountCalculatorVerb.GET,
                                                             this.order_depth_,
                                                             this.getModel().username,
@@ -311,17 +338,24 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeQty_ = function(e) {
     return;
   }
   this.getModel().price = price_amount_fee[0];
-  this.getModel().amount = total;
+  this.getModel().amount = value;
+
   var order_fee =  price_amount_fee[2];
   var vwap = price_amount_fee[3];
 
   var currency_formatter = new goog.i18n.NumberFormat( this.getModel().currency_format,
-                                                this.getModel().currency_code );
+                                                       this.getModel().currency_code );
+  currency_formatter.setMaximumFractionDigits(8);
+  currency_formatter.setMinimumFractionDigits(2);
+
 
   var crypto_currency_formatter = new goog.i18n.NumberFormat( this.getModel().crypto_currency_format,
-                                                  this.getModel().crypto_currency_code );
+                                                              this.getModel().crypto_currency_code );
+  crypto_currency_formatter.setMaximumFractionDigits(8);
+  crypto_currency_formatter.setMinimumFractionDigits(2);
 
-  goog.dom.forms.setValue( this.total_element_, price_amount_fee[1]/1e8 );
+  goog.dom.forms.setValue( this.total_element_, currency_formatter.format(price_amount_fee[1]/1e8) );
+
 
   var formatted_fee = crypto_currency_formatter.format(order_fee/1e8);
   goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_fee') ), formatted_fee );
@@ -352,9 +386,22 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
     return;
   }
 
-  var total = this.getTotal() * 1e8;
+  var value_fmt = new goog.i18n.NumberFormat(goog.i18n.NumberFormat.Format.DECIMAL);
+  value_fmt.setMaximumFractionDigits(8);
+  value_fmt.setMinimumFractionDigits(2);
+
+  var form_values = this.uniform_.getAsJSON();
+  var pos = [0];
+  var value = value_fmt.parse(form_values['total'], pos);
+  if (pos[0] != form_values['total'].length || isNaN(value) || value <= 0 ) {
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+  }
+  value = value * 1e8;
+
   var price_amount_fee;
-  price_amount_fee = bitex.util.calculatePriceAmountAndFee(total,
+  price_amount_fee = bitex.util.calculatePriceAmountAndFee(value,
                                                            bitex.util.PriceAmountCalculatorVerb.SPEND,
                                                            this.order_depth_ ,
                                                            this.getModel().username,
@@ -384,8 +431,11 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
     receive_formatter = new goog.i18n.NumberFormat( this.getModel().currency_format,
                                                     this.getModel().currency_code );
   }
+  spend_formatter.setMaximumFractionDigits(8);
+  receive_formatter.setMinimumFractionDigits(2);
 
-  goog.dom.forms.setValue( this.qty_element_, this.getModel().amount/1e8 );
+
+  goog.dom.forms.setValue( this.qty_element_, value_fmt.format(this.getModel().amount/1e8) );
 
   var formatted_fee = spend_formatter.format(order_fee/1e8);
   goog.dom.setTextContent( goog.dom.getElement( this.makeId('order_entry_fee') ), formatted_fee );
@@ -401,7 +451,6 @@ bitex.ui.SimpleOrderEntry.prototype.onChangeTotal_ = function(e) {
  * @param {.Array<.Array>} order_depth
  */
 bitex.ui.SimpleOrderEntry.prototype.setOrderDepth = function(order_depth) {
-  // order_depth = [ [ price, size, username ], [price, size, username ] ... ]
   this.order_depth_ = order_depth;
 
   if (this.last_changed_field_ == 'total') {
@@ -410,20 +459,6 @@ bitex.ui.SimpleOrderEntry.prototype.setOrderDepth = function(order_depth) {
     this.onChangeQty_();
   }
 };
-
-
-/**
- * @return {number|null}
- */
-bitex.ui.SimpleOrderEntry.prototype.getTotal = function(){
-  var inputValue = goog.dom.forms.getValue( this.total_element_ );
-  var res = goog.string.toNumber(inputValue);
-  if (isNaN(res)) {
-    res = 0;
-  }
-  return res;
-};
-
 
 /**
  * @return {string}

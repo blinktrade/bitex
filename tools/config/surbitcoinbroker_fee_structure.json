@@ -1,4 +1,0 @@
-[
-  { "Operation" : "Transferencia electronica",      "Fee":"2.95%"            , "Terms":"Hecho al final del día" },
-  { "Operation" : "Transferencia Banco Mercantil",  "Fee":"1.65%"            , "Terms":"Hecho al final del día" }
-]

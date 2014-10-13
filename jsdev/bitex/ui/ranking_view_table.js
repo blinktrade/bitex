@@ -63,13 +63,8 @@ bitex.ui.RankingViewTable = function (opt_domHelper) {
 
   this.selected_trade_ = null;
 
-  /**
-   * @desc last trades table title
-   */
-  var MSG_RANKING_TABLE_TITLE  = goog.getMsg('Best Traders Ranking');
 
   var options = {
-    'title': MSG_RANKING_TABLE_TITLE,
     'rowIDFn':this.getRowId,
     'columns': grid_columns,
     'show_search': false

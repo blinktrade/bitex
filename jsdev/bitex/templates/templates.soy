@@ -23,6 +23,12 @@
   </dl>
 {/template}
 
+/**
+  * @param filename
+  */
+{template .FileViewDialogContent}
+  <img src="{$filename}" style="width:500px"/>
+{/template}
 
 
 /**
@@ -213,7 +219,12 @@
                   <td>{$wallets['type'] }</td>
                   <td>
                   {if $crypto_currencies['CurrencyCode'] == 'BTC' }
-                    <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                    {switch $wallets['address'][0]}
+                      {case 'm','n','2','9','c'}
+                        <a href="https://test-insight.bitpay.com/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                      {default}
+                        <a href="https://blockchain.info/address/{$wallets['address']}/" target="_blank">{$wallets['address'] }</a>
+                    {/switch}
                   {else}
                     {$wallets['address'] }
                   {/if}
@@ -305,35 +316,43 @@
 {/template}
 
 /**
-  * @param id
   */
 {template .GoogleAuthenticationCodeDialogContent}
-  <div class="ctrlHolder">
-    {msg desc="Google Authentitcator code dialog label"}Google Authenticator code:{/msg}
-    <input id="{$id}" placeholder="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}" size="10">
-  </div>
+  <form class="form-horizontal" data-deposit-status="prepare" data-uniform-control-holder-class="control-group">
+    <fieldset>
+      <div class="control-group">
+        <label>
+          {msg desc="Google Authenticator code dialog label"}Google Authenticator code:{/msg}
+        </label>
+        <input name="token"
+               data-uniform-validators="required"
+               data-uniform-label="{msg desc="Limit table field header"}Google authenticator code{/msg}"
+               label="{msg desc="Google Authenticator code placeholder"}eg. 555555{/msg}"
+               class="input-large"
+               type="text"
+               size="10">
+      </div>
+    </fieldset>
+  </form>
 {/template}
 
 /**
-  * @param id
   */
 {template .WithdrawConfirmationDialogContent}
-  <form class="form-horizontal" data-deposit-status="prepare">
-  <fieldset>
+  <form class="form-horizontal" data-deposit-status="prepare" data-uniform-control-holder-class="control-group">
+    <fieldset>
+      <p>
+        {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
+      </p>
 
-  <p>
-    {msg desc="Withdraw confirmation dialog message"}We just sent a confirmation code to your email.{/msg}
-  </p>
-
-  <div class="ctrlHolder">
-  <label>Confirmation Code</label>
-  <input id="{$id}" uniform-validators="required" placeholder="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
-  </div>
-  <p>
-    <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
-  </p>
-
-  </fieldset>
+      <div class="control-group">
+        <label>Confirmation Code</label>
+        <input name="confirmation_code" type="text" data-uniform-validators="required" label="{msg desc="Confirmation code placeholder on withdraw confirmation dialog"}Confirmation code{/msg}" class="input-block-level">
+      </div>
+      <p>
+        <i>{msg desc="Withdraw confirmation dialog security disclaimer"}This is security measure to improve your account security{/msg}</i>
+      </p>
+    </fieldset>
   </form>
 {/template}
 
@@ -351,7 +370,7 @@
 
       <label class="control-label" for="{$id}_buy_fee">{msg desc="Buy fee"}Buy fee {/msg}</label>
       <div class="controls">
-        <input id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
+        <input type="text" id="{$id}_buy_fee"  style="text-align: right;" value="{$buy_fee}"/>
         <div class="checkbox">
           <label>
             <input type="checkbox" id="{$id}_broker_buy_fee"> Use Broker Fee
@@ -363,7 +382,7 @@
     <div class="control-group">
       <label class="control-label" for="{$id}_sell_fee">{msg desc="Buy fee"}Sell fee{/msg}</label>
       <div class="controls">
-        <input id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
+        <input type="text" id="{$id}_sell_fee"  style="text-align: right;" value="{$sell_fee}"/>
           <div class="checkbox">
             <label>
               <input type="checkbox" id="{$id}_broker_sell_fee"> Use Broker Fee
@@ -544,7 +563,10 @@
 
     <h5 class="text-center">{$data['Address'] }</h5>
     <div class="text-center">
-      <input type="text" class="confirm-trusted-address-label" size="30" placeholder="{msg desc="confirm trusted label placeholder"}Enter a label for this address.{/msg}"></input>
+      <input type="text"
+             class="confirm-trusted-address-label"
+             size="30"
+             placeholder="{msg desc="confirm trusted label placeholder"}Enter a label for this address.{/msg}"></input>
     </div>
 
     <h4 class="text-center">
@@ -671,7 +693,7 @@
 {template .FeesForm}
   <form class="form-horizontal" data-deposit-status="prepare">
     <input type="hidden" name="Currency" value="{$currency}">
-    <input id="{$amountID}" type="hidden" name="Amount" value="{$amount / 1e8}">
+    <input id="{$amountID}" type="hidden" name="Amount" value="{$amount}">
 
     <div class="control-group">
       <label class="control-label">{msg desc="requested amount"}Requested Amount{/msg}</label>
@@ -708,9 +730,10 @@
   * @param totalFeesID
   * @param netValueID
   * @param hideNetAmount
+  * @param? verificationLevel
   */
 {template .DepositWithdrawDialogContent}
-  <form class="form-horizontal" data-deposit-status="prepare">
+  <form class="form-horizontal" data-deposit-status="prepare" data-uniform-control-holder-class="control-group">
   <fieldset>
 
     <input type="hidden" name="Currency" value="{$currency}">
@@ -757,28 +780,29 @@
           {if $method['method'] == $force_method}
 
             {if $side == 'client'}
-              <div class="control-group ctrlHolder">
+              <div class="control-group">
                 <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
                 <div class="controls">
                   <div class="input-prepend">
                     <span class="add-on">{$currencySign}</span>
                     <input id="{$method['method']}_{$amountID}"
-                        uniform-validators="required; validateNumber {if $method['limits']['enabled']} {if $method['limits']['min']}; validateMin {$method['limits']['min'] }{/if}{if $method['limits']['max']}; validateMax {$method['limits']['max'] } {/if} {/if}"
+                        data-uniform-validators="required; validateNumber {if $method['limits'][$verificationLevel]['enabled']} {if $method['limits'][$verificationLevel]['min']}; validateMin {$method['limits'][$verificationLevel]['formatted_min_value'] }{/if}{if $method['limits'][$verificationLevel]['max']}; validateMax {$method['limits'][$verificationLevel]['formatted_max_value'] } {/if} {/if}"
+                        data-uniform-filters="positive_number"
                         type="text"
                         class="withdraw-field input-small"
                         size="16"
                         name="Amount">
                   </div>
-                  {if $method['limits']['enabled']}
+                  {if $method['limits'][$verificationLevel]['enabled']}
                     <div>
                       <em>
                         <small>
-                          {if $method['limits']['min']}
-                            {msg desc="amount help block"} Maximum: {$method['limits']['formatted_max'] } per day.  {/msg}
+                          {if $method['limits'][$verificationLevel]['min']}
+                            {msg desc="amount help block"} Maximum: {$method['limits'][$verificationLevel]['formatted_max'] } per day.  {/msg}
                             <br>
                           {/if}
-                          {if $method['limits']['max']}
-                            {msg desc="amount help block"} Minimum: {$method['limits']['formatted_min'] } per transaction.  {/msg}
+                          {if $method['limits'][$verificationLevel]['max']}
+                            {msg desc="amount help block"} Minimum: {$method['limits'][$verificationLevel]['formatted_min'] } per transaction.  {/msg}
                           {/if}
                         </small>
                       </em>
@@ -794,7 +818,11 @@
                 <div class="control-group">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}"/>
+                    <input class="withdraw-field"
+                            data-uniform-validators="{$field['validator']}" type="{$field['type']}"
+                            name="{$field['name']}"
+                            label="{$field['placeholder']}"
+                            value="{$field['value']}"/>
                   </div>
                 </div>
               {/if}
@@ -847,28 +875,29 @@
           <div class="withdraw-method" data-withdraw-method="{$method['method']}" style="{if not isFirst($method)}display:none;{/if}" >
 
             {if $side == 'client'}
-              <div class="control-group ctrlHolder">
+              <div class="control-group">
                 <label class="control-label">{msg desc="amount"}Amount{/msg}</label>
                 <div class="controls">
                   <div class="input-prepend">
                     <span class="add-on">{$currencySign}</span>
                     <input id="{$method['method']}_{$amountID}"
-                        uniform-validators="required; validateNumber {if $method['limits']['enabled']} {if $method['limits']['min']}; validateMin {$method['limits']['min'] }{/if}{if $method['limits']['max']}; validateMax {$method['limits']['max'] } {/if} {/if}"
+                        data-uniform-validators="required; validateNumber {if $method['limits'][$verificationLevel]['enabled']} {if $method['limits'][$verificationLevel]['min']}; validateMin {$method['limits'][$verificationLevel]['formatted_min_value'] }{/if}{if $method['limits'][$verificationLevel]['max']}; validateMax {$method['limits'][$verificationLevel]['formatted_max_value'] } {/if} {/if}"
+                        data-uniform-filters="positive_number"
                         type="text"
                         class="withdraw-field input-small"
                         size="16"
                         name="Amount" {if not isFirst($method)}disabled{/if}>
                   </div>
-                  {if $method['limits']['enabled']}
+                  {if $method['limits'][$verificationLevel]['enabled']}
                     <div>
                       <em>
                         <small>
-                          {if $method['limits']['min']}
-                            {msg desc="amount help block"} Maximum: {$method['limits']['formatted_max'] } per day.  {/msg}
+                          {if $method['limits'][$verificationLevel]['min']}
+                            {msg desc="amount help block"} Maximum: {$method['limits'][$verificationLevel]['formatted_max'] } per day.  {/msg}
                             <br>
                           {/if}
-                          {if $method['limits']['max']}
-                            {msg desc="amount help block"} Minimum: {$method['limits']['formatted_min'] } per transaction.  {/msg}
+                          {if $method['limits'][$verificationLevel]['max']}
+                            {msg desc="amount help block"} Minimum: {$method['limits'][$verificationLevel]['formatted_min'] } per transaction.  {/msg}
                           {/if}
                         </small>
                       </em>
@@ -902,12 +931,16 @@
             {foreach $field in $method['fields'] }
               {if $field['side'] == $side}
                 <div class="control-group">
-                <div class="ctrlHolder">
                   <label class="control-label">{$field['label']}</label>
                   <div class="controls">
-                    <input class="withdraw-field" uniform-validators="{$field['validator']}" type="{$field['type']}" name="{$field['name']}" placeholder="{$field['placeholder']}" value="{$field['value']}" {if not isFirst($method)}disabled{/if} />
+                    <input class="withdraw-field"
+                           data-uniform-validators="{$field['validator']}"
+                           type="{$field['type']}"
+                           name="{$field['name']}"
+                           label="{$field['placeholder']}"
+                           value="{$field['value']}"
+                           {if not isFirst($method)}disabled{/if} />
                   </div>
-                </div>
                 </div>
               {/if}
             {/foreach}
@@ -933,10 +966,8 @@
   * @param sell_fee
   */
 {template .YourFeesBalances}
-  <table class="table table-striped">
+  <table class="table table-striped table-condensed">
     <tbody>
-
-
       <tr>
         <td>
           <strong>
@@ -944,7 +975,13 @@
           </strong>
         </td>
         <td>
-          <span class="bitex-model">{$buy_fee}</span>
+          <span class="bitex-model">
+            {if $buy_fee }
+              {$buy_fee}
+            {else}
+              {msg desc="Using broker fee data"}-{/msg}
+            {/if}
+          </span>
         </td>
       </tr>
 
@@ -955,10 +992,15 @@
           </strong>
         </td>
         <td>
-          <span class="bitex-model">{$sell_fee}</span>
+          <span class="bitex-model">
+            {if $sell_fee}
+              {$sell_fee}
+            {else}
+              {msg desc="Using broker fee data"}-{/msg}
+            {/if}
+          </span>
         </td>
       </tr>
-
     </tbody>
   </table>
 {/template}
@@ -986,25 +1028,21 @@
   </table>
 {/template}
 
+
 /**
   * @param msg_customer_detail
   */
-{template .AccountOverviewHeaderVerifiedData}
- {if $msg_customer_detail['Verified'] == 2 }
-    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
-    {$msg_customer_detail['VerificationData']}
- {else}
-    {if $msg_customer_detail['Verified'] == 1 }
-      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span>
-      <a href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>
-      <a href="#" class="btn btn-danger btn-mini" data-action="SET_NOT_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as NOT verified{/msg}<i class="icon-white icon-remove"></i></a>
-      {$msg_customer_detail['VerificationData']}
-    {else}
-      <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span> <a
-        href="#" class="btn btn-primary btn-mini" data-action="SET_VERIFIED" data-row="{$msg_customer_detail['ID']}">{msg desc="label on  overview header"}Set as verified{/msg}<i class="icon-white icon-ok"></i></a>
-    {/if}
- {/if}
+{template .AccountOverviewHeaderVerified}
+  <select id="id_select_new_verification_level" data-profile-change="Verified" >
+    <option value=0 {if $msg_customer_detail['Verified']==0}selected{/if}>{msg desc="label on  overview header"}No{/msg}</option>
+    <option value=1 {if $msg_customer_detail['Verified']==1}selected{/if}>{msg desc="label on  overview header"}Pending{/msg}</option>
+    <option value=2 {if $msg_customer_detail['Verified']==2}selected{/if}>{msg desc="label on  overview header"}Progress{/msg}</option>
+    <option value=3 {if $msg_customer_detail['Verified']==3}selected{/if}>{msg desc="label on  overview header"}Yes - Level I {/msg}</option>
+    <option value=4 {if $msg_customer_detail['Verified']==4}selected{/if}>{msg desc="label on  overview header"}Yes - Level II {/msg}</option>
+    <option value=5 {if $msg_customer_detail['Verified']==5}selected{/if}>{msg desc="label on  overview header"}Yes - Level III {/msg}</option>
+  </select>
 {/template}
+
 
 /**
   * @param msg_customer_detail
@@ -1031,11 +1069,12 @@
     {/if}
 {/template}
 
+
 /**
   * @param msg_customer_detail
   */
 {template .AccountOverviewHeader}
-  <table class="table table-striped account-overview-table" style="width: 350px">
+  <table class="table table-striped table-condensed account-overview-table" style="width: 350px">
     <tbody>
       <tr>
         <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
@@ -1064,11 +1103,12 @@
       <tr>
          <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
          <td class="account-overview-val account-overview-verified">
-          {call .AccountOverviewHeaderVerifiedData}
+          {call .AccountOverviewHeaderVerified}
             {param msg_customer_detail: $msg_customer_detail /}
           {/call}
          </td>
       </tr>
+
       <tr>
          <td><strong>{msg desc="label on  overview header"}Has two step authentication{/msg}</strong></td>
          <td class="account-overview-val account-overview-two-factors" >
@@ -1099,7 +1139,7 @@
   * @param msg_customer_detail
   */
 {template .AccountOverviewUser}
-  <table class="table table-striped account-overview-table" style="width: 350px">
+  <table class="table table-striped table-condensed account-overview-table" style="width: 350px">
     <tbody>
       <tr>
         <td><strong>{msg desc="label on overview header"}ID{/msg}</strong></td>
@@ -1124,17 +1164,20 @@
       <tr>
          <td><strong>{msg desc="label on  overview header"}Is verified{/msg}</strong></td>
          <td class="account-overview-val account-overview-verified">
-
- {if $msg_customer_detail['Verified'] == 2 }
-    <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
- {else}
-    {if $msg_customer_detail['Verified'] == 1 }
-      <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span>
-    {else}
-      <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span>
-    {/if}
- {/if}
-
+            {switch $msg_customer_detail['Verified'] }
+              {case 0}
+                <span class="label label-important">{msg desc="label on  overview header"}No{/msg}</span>
+              {case 1}
+                <span class="label label-important">{msg desc="label on  overview header"}Pending{/msg}</span>
+              {case 2}
+                <span class="label label-success">{msg desc="label on  overview header"}Yes{/msg}</span>
+              {case 3}
+                <span class="label label-success">{msg desc="label on  overview header"}Yes - Level II{/msg}</span>
+              {case 4}
+                <span class="label label-success">{msg desc="label on  overview header"}Yes - Level III{/msg}</span>
+              {case 5}
+                <span class="label label-success">{msg desc="label on  overview header"}Yes - Level IV{/msg}</span>
+            {/switch}
          </td>
       </tr>
     </tbody>
@@ -1212,7 +1255,7 @@
       </div>
       <div class="row-fluid">
         <div class="span5">
-          <input class="input-block-level order-entry-client-id" placeholder="{msg desc="'Client ID' label in Order Entry"}Client ID{/msg}" {if $hide_client_id}style="display:none"{/if} />
+          <input class="input-block-level order-entry-client-id" label="{msg desc="'Client ID' label in Order Entry"}Client ID{/msg}" {if $hide_client_id}style="display:none"{/if} />
         </div>
         <div class="span5">
           <button class="btn {if $side == 1}btn-success{else}btn-danger{/if} btn-execution order-entry-action">{if $side == 1}{msg desc="Buy button in Order Entry"}BUY{/msg}{else}{msg desc="Sell button in Order Entry"}SELL{/msg}{/if}</button>
