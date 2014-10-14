@@ -171,8 +171,8 @@ def run_application(options, instance_name):
 
 
           message = {
-            'from_email': brokers[broker_id]['params'][broker_list_columns.index('Email')],
-            'from_name': brokers[broker_id]['params'][broker_list_columns.index('BusinessName')],
+            'from_email': brokers[broker_id]['params'][broker_list_columns.index('MailerFromEmail')],
+            'from_name': brokers[broker_id]['params'][broker_list_columns.index('MailerFromName')],
             'to': [{'email': msg_to, 'name': params['username'],'type': 'to' }],
             'metadata': {'website': 'www.blinktrade.com'},
             'global_merge_vars': template_content
