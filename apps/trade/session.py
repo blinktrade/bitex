@@ -16,7 +16,7 @@ class Session(object):
     self.should_end       = False
     self.user_accounts    = None
     self.broker_accounts  = None
-    self.email_lang       = 'en'
+    self.email_lang       = TradeApplication.instance().options.global_email_language
 
   def set_user(self, user):
     if user is None:
@@ -24,7 +24,7 @@ class Session(object):
       self.is_broker = False
       self.profile = None
       self.should_end = False
-      self.email_lang = 'en'
+      self.email_lang = TradeApplication.instance().options.global_email_language
       return
 
     if self.user:
