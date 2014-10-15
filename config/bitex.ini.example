@@ -1,9 +1,9 @@
 [DEFAULT]
-project_root_demo=/Users/rodrigo/blinktrade/bitex
-host_demo = 127.0.0.1
+project_root_demo=/opt/blinktrade/bitex
+host_demo = yourexchange.com
 trade_in_demo = tcp://127.0.0.1:5757
 trade_pub_demo = tcp://127.0.0.1:5758
-url_payment_processor = http://127.0.0.1:9943/api/receive
+url_payment_processor = http://host_of_api_receive.com/api/receive
 
 [trade_demo]
 project_root=%(project_root_demo)s
@@ -16,7 +16,7 @@ session_timeout_limit = 0
 test_mode = False
 dev_mode = False
 satoshi_mode = False
-global_email_language = en-US
+global_email_language = en
 
 [ws_gateway_8445_demo]
 port = 8445

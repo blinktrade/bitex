@@ -44,8 +44,8 @@ def main():
   arguments = parser.parse_args()
 
 
-  candidates = [ os.path.join(site_config_dir('bitex'), 'bitex.ini'),
-                 os.path.expanduser('~/.bitex/bitex.ini'),
+  candidates = [ os.path.join(site_config_dir('blinktrade'), 'bitex.ini'),
+                 os.path.expanduser('~/.blinktrade/bitex.ini'),
                  arguments.config]
 
   config = ConfigParser.SafeConfigParser()

@@ -1,4 +1,5 @@
 import sys
+import os
 import logging
 import zmq
 import time
@@ -25,7 +26,9 @@ class TradeApplication(object):
     self.instance_name = instance_name
 
     from models import Base, db_bootstrap
-    engine = create_engine( options.db_engine, echo=options.db_echo)
+    db_engine = options.sqlalchemy_engine + ':///' + \
+                os.path.expanduser(options.sqlalchemy_connection_string)
+    engine = create_engine( db_engine, echo=options.db_echo)
     Base.metadata.create_all(engine)
 
 
@@ -42,7 +45,8 @@ class TradeApplication(object):
     self.publisher_socket = self.context.socket(zmq.PUB)
     self.publisher_socket.bind(self.options.trade_pub)
 
-    input_log_file_handler = logging.handlers.TimedRotatingFileHandler( self.options.trade_log, when='MIDNIGHT')
+    input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
+      os.path.expanduser(self.options.trade_log), when='MIDNIGHT')
     input_log_file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 
     self.replay_logger = logging.getLogger(self.instance_name)
@@ -81,16 +85,17 @@ class TradeApplication(object):
 
   def log_start_data(self):
     self.log('PARAM','BEGIN')
-    self.log('PARAM','trade_in'              ,self.options.trade_in)
-    self.log('PARAM','trade_pub'             ,self.options.trade_pub)
-    self.log('PARAM','trade_log'             ,self.options.trade_log)
-    self.log('PARAM','session_timeout_limit' ,self.options.session_timeout_limit)
-    self.log('PARAM','db_echo'               ,self.options.db_echo)
-    self.log('PARAM','db_engine'             ,self.options.db_engine)
-    self.log('PARAM','test_mode'             ,self.options.test_mode)
-    self.log('PARAM','dev_mode'              ,self.options.dev_mode)
-    self.log('PARAM','satoshi_mode'          ,self.options.satoshi_mode)
-    self.log('PARAM','global_email_language' ,self.options.global_email_language)
+    self.log('PARAM','trade_in'                     ,self.options.trade_in)
+    self.log('PARAM','trade_pub'                    ,self.options.trade_pub)
+    self.log('PARAM','trade_log'                    ,self.options.trade_log)
+    self.log('PARAM','session_timeout_limit'        ,self.options.session_timeout_limit)
+    self.log('PARAM','db_echo'                      ,self.options.db_echo)
+    self.log('PARAM','sqlalchemy_engine'            ,self.options.sqlalchemy_engine)
+    self.log('PARAM','sqlalchemy_connection_string' ,self.options.sqlalchemy_connection_string)
+    self.log('PARAM','test_mode'                    ,self.options.test_mode)
+    self.log('PARAM','dev_mode'                     ,self.options.dev_mode)
+    self.log('PARAM','satoshi_mode'                 ,self.options.satoshi_mode)
+    self.log('PARAM','global_email_language'        ,self.options.global_email_language)
     self.log('PARAM','END')
 
 

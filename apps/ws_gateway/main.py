@@ -389,7 +389,8 @@ class WebSocketGatewayApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-        input_log_file_handler = logging.handlers.TimedRotatingFileHandler( self.options.gateway_log, when='MIDNIGHT')
+        input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
+          os.path.expanduser(self.options.gateway_log), when='MIDNIGHT')
         formatter = logging.Formatter('%(asctime)s - %(message)s')
         input_log_file_handler.setFormatter(formatter)
 
@@ -406,7 +407,9 @@ class WebSocketGatewayApplication(tornado.web.Application):
         self.log_start_data()
 
         from models import Base, db_bootstrap
-        engine = create_engine(self.options.db_engine, echo=self.options.db_echo)
+        db_engine = self.options.sqlalchemy_engine + ':///' +\
+                    os.path.expanduser(self.options.sqlalchemy_connection_string)
+        engine = create_engine( db_engine, echo=self.options.db_echo)
         Base.metadata.create_all(engine)
         self.db_session = scoped_session(sessionmaker(bind=engine))
         db_bootstrap(self.db_session)
@@ -483,14 +486,15 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
     def log_start_data(self):
         self.log('PARAM','BEGIN')
-        self.log('PARAM','callback_url'         ,self.options.callback_url)
-        self.log('PARAM','port'                 ,self.options.port)
-        self.log('PARAM','trade_in'             ,self.options.trade_in)
-        self.log('PARAM','trade_pub'            ,self.options.trade_pub)
-        self.log('PARAM','url_payment_processor',self.options.url_payment_processor)
-        self.log('PARAM','session_timeout_limit',self.options.session_timeout_limit)
-        self.log('PARAM','db_echo'              ,self.options.db_echo)
-        self.log('PARAM','db_engine'            ,self.options.db_engine)
+        self.log('PARAM','callback_url'                 ,self.options.callback_url)
+        self.log('PARAM','port'                         ,self.options.port)
+        self.log('PARAM','trade_in'                     ,self.options.trade_in)
+        self.log('PARAM','trade_pub'                    ,self.options.trade_pub)
+        self.log('PARAM','url_payment_processor'        ,self.options.url_payment_processor)
+        self.log('PARAM','session_timeout_limit'        ,self.options.session_timeout_limit)
+        self.log('PARAM','db_echo'                      ,self.options.db_echo)
+        self.log('PARAM','sqlalchemy_engine'            ,self.options.sqlalchemy_engine)
+        self.log('PARAM','sqlalchemy_connection_string' ,self.options.sqlalchemy_connection_string)
         self.log('PARAM','END')
 
 
@@ -559,15 +563,19 @@ def run_application(options, instance_name):
 def main():
     parser = argparse.ArgumentParser(description="Blinktrade WebSocket Gateway application")
     parser.add_argument('-i', "--instance", action="store", dest="instance", help='Instance name', type=str)
-    parser.add_argument('-c', "--config", action="store", dest="config", default=os.path.expanduser('~/.bitex/bitex.ini'), help='Configuration file', type=str)
+    parser.add_argument('-c', "--config",
+                        action="store",
+                        dest="config",
+                        default=os.path.expanduser('~/.blinktrade/bitex.ini'),
+                        help='Configuration file', type=str)
     arguments = parser.parse_args()
 
     if not arguments.instance:
       parser.print_help()
       return
 
-    candidates = [ os.path.join(ROOT_PATH, 'config/bitex.ini'),
-                   os.path.join(site_config_dir('bitex'), 'bitex.ini'),
+    candidates = [ os.path.join(site_config_dir('blinktrade'), 'bitex.ini'),
+                   os.path.expanduser('~/.blinktrade/bitex.ini'),
                    arguments.config]
     config = ConfigParser.SafeConfigParser()
     config.read( candidates )
@@ -579,7 +587,8 @@ def main():
        not options.gateway_log or\
        not options.callback_url or\
        not options.port or\
-       not options.db_engine:
+       not options.sqlalchemy_connection_string or \
+       not options.sqlalchemy_engine:
       raise RuntimeError("Invalid configuration file")
 
 

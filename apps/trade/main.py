@@ -14,8 +14,16 @@ from trade_application import TradeApplication
 
 def main():
   parser = argparse.ArgumentParser(description="Blinktrade Trade application")
-  parser.add_argument('-i', "--instance", action="store", dest="instance", help='Instance name', type=str)
-  parser.add_argument('-c', "--config", action="store", dest="config", default=os.path.expanduser('~/.bitex/bitex.ini'), help='Configuration file', type=str)
+  parser.add_argument('-i', "--instance",
+                      action="store",
+                      dest="instance",
+                      help='Instance name',
+                      type=str)
+  parser.add_argument('-c', "--config",
+                      action="store",
+                      dest="config",
+                      default=os.path.expanduser('~/.blinktrade/bitex.ini'),
+                      help='Configuration file', type=str)
   arguments = parser.parse_args()
 
   if not arguments.instance:
@@ -23,8 +31,8 @@ def main():
     return
 
 
-  candidates = [ os.path.join(ROOT_PATH, 'config/bitex.ini'),
-                 os.path.join(site_config_dir('bitex'), 'bitex.ini'),
+  candidates = [ os.path.join(site_config_dir('blinktrade'), 'bitex.ini'),
+                 os.path.expanduser('~/.blinktrade/bitex.ini'),
                  arguments.config]
   config = ConfigParser.SafeConfigParser()
   config.read( candidates )
@@ -35,7 +43,8 @@ def main():
      not options.trade_pub or \
      not options.trade_log or \
      not options.global_email_language or \
-     not options.db_engine:
+     not options.sqlalchemy_connection_string or \
+     not options.sqlalchemy_engine:
     raise RuntimeError("Invalid configuration file")
 
   application = TradeApplication.instance()
