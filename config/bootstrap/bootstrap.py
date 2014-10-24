@@ -63,19 +63,20 @@ def main():
         session.commit()
 
     if section_name[:4] == 'user':
-      if not User.get_user(session, config.get(section_name, 'username')):
-        broker_id = None
-        try:
-          broker_id = config.getint(section_name, 'broker_id')
-        except Exception,e:
-          pass
+      broker_id = None
+      try:
+        broker_id = config.getint(section_name, 'broker_id')
+      except Exception,e:
+        pass
 
-        broker_username = None
-        try:
-          broker_username = config.get(section_name, 'broker_username')
-        except Exception,e:
-          pass
+      broker_username = None
+      try:
+        broker_username = config.get(section_name, 'broker_username')
+      except Exception,e:
+        pass
 
+
+      if not User.get_user(session,broker_id, config.get(section_name, 'username')):
         password = base64.b32encode(os.urandom(10))
         try:
           password = config.get(section_name, 'password')

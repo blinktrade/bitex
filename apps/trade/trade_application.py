@@ -212,19 +212,20 @@ class TradeApplication(object):
               page_size   = msg.get('PageSize', 100)
               offset      = page * page_size
 
-              columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size',
-                          'Buyer'             , 'Seller', 'Created' ]
+              columns = [ 'TradeID' , 'Market',   'Side',          'Price',          'Size',
+                          'BuyerID' , 'SellerID', 'BuyerUsername' ,'SellerUsername', 'Created',
+                          'OrderId' , 'CounterOrderID']
 
               trade_list = MarketDataPublisher.generate_trade_history(self.db_session, page_size, offset )
 
-              response_message = 'REP,' + json.dumps( {
+              response_message = 'REP,' + json.dumps({
                   'MsgType'           : 'U33', # TradeHistoryResponse
                   'TradeHistoryReqID' : -1,
                   'Page'              : page,
                   'PageSize'          : page_size,
                   'Columns'           : columns,
                   'TradeHistoryGrp'   : trade_list
-              }, cls=JsonEncoder )
+              }, cls=JsonEncoder)
 
           else:
             response_message = self.session_manager.process_message( msg_header, session_id, msg )

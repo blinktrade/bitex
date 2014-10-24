@@ -16,6 +16,8 @@ class Trade(Base):
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, nullable=False)
     counter_order_id = Column(Integer, nullable=False)
+    buyer_id = Column(Integer, nullable=False)
+    seller_id = Column(Integer, nullable=False)
     buyer_username = Column(String(15), nullable=False)
     seller_username = Column(String(15), nullable=False)
     side = Column(String(1), nullable=False)
@@ -26,9 +28,9 @@ class Trade(Base):
     trade_type = Column(Integer, nullable=False, default=0)  # regular trade
 
     def __repr__(self):
-        return "<Trade(id=%r, order_id=%r, counter_order_id=%r, buyer_username=%r,seller_username=%r,  " \
+        return "<Trade(id=%r, order_id=%r, counter_order_id=%r,buyer_id=%r,seller_id=%r, buyer_username=%r,seller_username=%r,  " \
                "side=%r, symbol=%r, size=%r, price=%r, created=%r, trade_type=%r )>"\
-            % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
+            % (self.id, self.order_id, self.counter_order_id, self.buyer_id, self.seller_id, self.buyer_username, self.seller_username,
                self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
     @staticmethod
@@ -87,6 +89,8 @@ class Trade(Base):
             trade = Trade(id=msg['id'],
                           order_id=msg['order_id'],
                           counter_order_id=msg['counter_order_id'],
+                          buyer_id=msg['buyer_id'],
+                          seller_id=msg['seller_id'],
                           buyer_username=msg['buyer_username'],
                           seller_username=msg['seller_username'],
                           side=msg['side'],

@@ -31,6 +31,7 @@ def processChangePassword(session, msg):
   user = None
   try:
     user = User.authenticate(TradeApplication.instance().db_session,
+                             msg.get('BrokerID'),
                              msg.get('Username'),
                              msg.get('Password'),
                              msg.get('SecondFactor'))
@@ -131,6 +132,7 @@ def processLogin(session, msg):
   need_second_factor = False
   try:
     user = User.authenticate(TradeApplication.instance().db_session,
+                             msg.get('BrokerID'),
                              msg.get('Username'),
                              msg.get('Password'),
                              msg.get('SecondFactor'))
@@ -222,13 +224,13 @@ def processNewOrderSingle(session, msg):
 
     client = None
     if msg.get('ClientID').isdigit():
-      client = User.get_user( TradeApplication.instance().db_session, user_id= int(msg.get('ClientID')))
+      client = User.get_user( TradeApplication.instance().db_session, session.user.id, user_id= int(msg.get('ClientID')))
 
     if not client:
-      client = User.get_user(TradeApplication.instance().db_session, username= msg.get('ClientID'))
+      client = User.get_user(TradeApplication.instance().db_session, session.user.id, username= msg.get('ClientID'))
 
     if not client:
-      client = User.get_user(TradeApplication.instance().db_session, email= msg.get('ClientID'))
+      client = User.get_user(TradeApplication.instance().db_session, session.user.id, email= msg.get('ClientID'))
 
     if not client:
       if TradeApplication.instance().options.satoshi_mode:
@@ -367,8 +369,15 @@ def convertCamelCase2Underscore(name):
 @login_required
 def processUpdateUserProfile(session, msg):
   fields  = msg.get('Fields',[])
-  user_id = msg.get('UserID', session.user.id )
-  user = User.get_user(TradeApplication.instance().db_session,  user_id=user_id)
+  user_id = msg.get('UserID' )
+  
+  if user_id:
+    broker_id = session.user.id
+  else:
+    user_id = session.user.id
+    broker_id = session.broker.id
+
+  user = User.get_user(TradeApplication.instance().db_session, broker_id,user_id=user_id)
 
   is_updating_his_own_profile = True
   is_updating_his_customer_profile = False
@@ -619,6 +628,7 @@ def processRequestForPositions(session, msg):
   user = session.user
   if msg.has('ClientID'):
     user = User.get_user(TradeApplication.instance().db_session,
+                         session.user.id,
                          user_id= int(msg.get('ClientID')) )
 
     if not user:
@@ -646,6 +656,7 @@ def processRequestForBalances(session, msg):
   user = session.user
   if msg.has('ClientID'):
     user = User.get_user(TradeApplication.instance().db_session,
+                         session.user.id,
                          user_id= int(msg.get('ClientID')) )
 
     if not user:
@@ -718,7 +729,7 @@ def processRequestForOpenOrders(session, msg):
   return json.dumps(open_orders_response_msg, cls=JsonEncoder)
 
 def processRequestPasswordRequest(session, msg):
-  user  = User.get_user( TradeApplication.instance().db_session, email = msg.get('Email') )
+  user  = User.get_user( TradeApplication.instance().db_session, msg.get('BrokerID') ,email = msg.get('Email') )
   success = 0
   if user:
     user.request_reset_password( TradeApplication.instance().db_session, session.email_lang )
@@ -764,7 +775,7 @@ def processEnableDisableTwoFactorAuth(session, msg):
     if enable:
       raise NotAuthorizedError()
 
-    user = User.get_user(TradeApplication.instance().db_session, user_id= int(msg.get('ClientID')) )
+    user = User.get_user(TradeApplication.instance().db_session, session.user.id, user_id= int(msg.get('ClientID')) )
 
     if not user:
       raise NotAuthorizedError()
@@ -1063,7 +1074,7 @@ def processWithdrawListRequest(session, msg):
 
   user = session.user
   if msg.has('ClientID') and int(msg.get('ClientID')) != session.user.id :
-    user = User.get_user(TradeApplication.instance().db_session, user_id= int(msg.get('ClientID')) )
+    user = User.get_user(TradeApplication.instance().db_session, session.user.id, user_id= int(msg.get('ClientID')) )
     if user.broker_id  != session.user.id:
       raise NotAuthorizedError()
     if not user:
@@ -1276,13 +1287,13 @@ def processCustomerListRequest(session, msg):
 def processCustomerDetailRequest(session, msg):
   client = None
   if msg.get('ClientID').isdigit():
-    client = User.get_user( TradeApplication.instance().db_session, user_id= int(msg.get('ClientID') ))
+    client = User.get_user( TradeApplication.instance().db_session, session.user.id ,user_id= int(msg.get('ClientID') ))
 
   if not client:
-    client = User.get_user(TradeApplication.instance().db_session, username= msg.get('ClientID'))
+    client = User.get_user(TradeApplication.instance().db_session, session.user.id, username= msg.get('ClientID'))
 
   if not client:
-    client = User.get_user(TradeApplication.instance().db_session, email= msg.get('ClientID'))
+    client = User.get_user(TradeApplication.instance().db_session, session.user.id ,email= msg.get('ClientID'))
 
   if not client:
     return
@@ -1309,7 +1320,7 @@ def processVerifyCustomer(session, msg):
 
     broker_id = session.user.id
 
-  client = User.get_user( TradeApplication.instance().db_session, user_id= msg.get('ClientID') )
+  client = User.get_user( TradeApplication.instance().db_session, broker_id, user_id= msg.get('ClientID') )
   if not client:
     raise NotAuthorizedError()
 
@@ -1452,7 +1463,7 @@ def processProcessDeposit(session, msg):
     if session.user:
       session.process_message(msg)
     else:
-      session.set_user(User.get_user( TradeApplication.instance().db_session, user_id=deposit.user_id))
+      session.set_user(User.get_user( TradeApplication.instance().db_session, deposit.broker_id, user_id=deposit.user_id))
       session.process_message(msg)
       session.set_user(None)
 
@@ -1495,17 +1506,27 @@ def processLedgerListRequest(session, msg):
       broker_id = int(msg.get('BrokerID'))
 
 
-  records = Ledger.get_list(TradeApplication.instance().db_session, broker_id, account_id, operation_list, page_size, offset, currency, filter  )
+  records = Ledger.get_list(TradeApplication.instance().db_session,
+                            broker_id,
+                            account_id,
+                            operation_list,
+                            page_size,
+                            offset,
+                            currency,
+                            filter  )
 
   record_list = []
   columns = [ 'LedgerID',       'Currency',     'Operation',
               'AccountID',      'BrokerID',     'PayeeID',
               'PayeeBrokerID',  'Amount',       'Balance',
               'Reference',      'Created',      'Description',
-              'PayeeName',      'AccountName']
+              'AccountName']
+
+  if user.is_broker:
+    columns.append('PayeeName')
 
   for rec in records:
-    record_list.append([
+    data = [
       rec.id,
       rec.currency,
       rec.operation,
@@ -1518,9 +1539,12 @@ def processLedgerListRequest(session, msg):
       rec.reference,
       rec.created,
       rec.description,
-      rec.payee_name,
       rec.account_name
-    ])
+    ]
+    if user.is_broker:
+      data.append(rec.payee_name)
+
+    record_list.append(data)
 
   response_msg = {
     'MsgType'           : 'U35', # LedgerListResponse

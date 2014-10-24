@@ -89,6 +89,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
     def on_trade_publish(self, message):
         self.write_message(str(message[1]))
 
+    def check_origin(self, origin):
+      print origin
+      return True
+
     def open(self):
         try:
             self.trade_client.connect()
@@ -251,6 +255,12 @@ class WebSocketHandler(websocket.WebSocketHandler):
             return False
         return self.user_response.get('UserStatus') == 1
 
+    def is_broker(self):
+      if not self.is_user_logged():
+        return False
+      return self.user_response.get('IsBroker') == 1
+
+
     def get_broker_wallet(self, type, currency):
         if not self.user_response:
             return
@@ -281,10 +291,15 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
         offset      = page * page_size
 
-        columns = [ 'TradeID'           , 'Market',  'Side', 'Price', 'Size', 
-                    'Buyer'             , 'Seller', 'Created' ]
+        if self.is_broker():
+          columns = [ 'TradeID' , 'Market',  'Side', 'Price', 'Size',
+                      'Buyer'   , 'Seller', 'Created', 'BuyerUsername' ,'SellerUsername' ]
+        else:
+          columns = [ 'TradeID' , 'Market',  'Side', 'Price', 'Size',
+                      'Buyer'   , 'Seller', 'Created' ]
 
-        trade_list = generate_trade_history(self.application.db_session, page_size, offset)
+
+        trade_list = generate_trade_history(self.application.db_session, page_size, offset, show_username=self.is_broker())
 
         response_msg = {
             'MsgType'           : 'U33', # TradeHistoryResponse
@@ -351,7 +366,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 instrument,
                 market_depth,
                 entries,
-                req_id)
+                req_id,
+                self.is_broker())
             self.write_message(str(json.dumps(md, cls=JsonEncoder)))
 
             # Snapshot + Updates
@@ -362,7 +378,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
                         market_depth,
                         entries,
                         instrument,
-                        self.on_send_json_msg_to_user))
+                        self.on_send_json_msg_to_user,
+                        self.is_broker()))
 
     def on_send_json_msg_to_user(self, sender, json_msg):
         s = json.dumps(json_msg, cls=JsonEncoder)
@@ -446,13 +463,15 @@ class WebSocketGatewayApplication(tornado.web.Application):
             msg['side']             = trade[2]
             msg['price']            = trade[3]
             msg['size']             = trade[4]
-            msg['buyer_username']   = trade[5]
-            msg['seller_username']  = trade[6]
-            msg['created']          = trade[7]
-            msg['trade_date']       = trade[7][:10]
-            msg['trade_time']       = trade[7][11:]
-            msg['order_id']         = trade[8]
-            msg['counter_order_id'] = trade[9]
+            msg['buyer_id']         = trade[5]
+            msg['seller_id']        = trade[6]
+            msg['buyer_username']   = trade[7]
+            msg['seller_username']  = trade[8]
+            msg['created']          = trade[9]
+            msg['trade_date']       = trade[9][:10]
+            msg['trade_time']       = trade[9][11:]
+            msg['order_id']         = trade[10]
+            msg['counter_order_id'] = trade[11]
             Trade.create( self.db_session, msg)
 
         all_trades = Trade.get_all_trades(self.db_session)
@@ -499,8 +518,6 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
 
     def log(self, command, key, value=None):
-        if len(logging.getLogger().handlers):
-          logging.getLogger().handlers = []  # workaround to avoid stdout logging from the root logger
         log_msg = command + ',' + key
         if value:
             try:

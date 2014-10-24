@@ -215,6 +215,7 @@ class MarketDataSubscriber(object):
             'price': msg.get('MDEntryPx'),
             'qty': msg.get('MDEntrySize'),
             'username': msg.get('Username'),
+            'user_id': msg.get('UserID'),
             'broker': msg.get('Broker'),
             'order_id': msg.get('OrderID'),
             'side': msg.get('MDEntryType'),
@@ -240,6 +241,7 @@ class MarketDataSubscriber(object):
             'price': msg.get('MDEntryPx'),
             'qty': msg.get('MDEntrySize'),
             'username': msg.get('Username'),
+            'user_id': msg.get('UserID'),
             'broker': msg.get('Broker'),
             'order_id': msg.get('OrderID'),
             'side': msg.get('MDEntryType'),
@@ -272,6 +274,8 @@ class MarketDataSubscriber(object):
             "side": msg.get('Side'),
             "counter_order_id": msg.get('SecondaryOrderID'),
             "id": msg.get('TradeID'),
+            "buyer_id": msg.get('MDEntryBuyerID'),
+            "seller_id": msg.get('MDEntrySellerID'),
             "buyer_username": msg.get('MDEntryBuyer'),
             "seller_username": msg.get('MDEntrySeller'),
         }
@@ -328,9 +332,10 @@ class SecurityStatusPublisher(object):
 
 class MarketDataPublisher(object):
 
-    def __init__(self, req_id, market_depth, entries, instrument, handler):
+    def __init__(self, req_id, market_depth, entries, instrument, handler, show_username=False):
         self.handler = handler
         self.req_id = req_id
+        self.show_username = show_username
 
         self.entry_list_order_depth = []
         for entry in entries:
@@ -357,23 +362,39 @@ class MarketDataPublisher(object):
             md["MDReqID"] = self.req_id
             md["MDBkTyp"] = '3'
             md["MDIncGrp"] = self.entry_list_order_depth
+
+            if not self.show_username:
+              for entry in self.entry_list_order_depth:
+                if 'Username' in entry:
+                  del entry['Username']
+
+                if 'MDEntryBuyer' in entry:
+                  del entry['MDEntryBuyer']
+
+                if 'MDEntrySeller' in entry:
+                  del entry['MDEntrySeller']
+
             self.handler(sender, md)
             self.entry_list_order_depth = []
 
-def generate_trade_history(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+def generate_trade_history(session, page_size = None, offset = None, sort_column = None, sort_order='ASC', show_username=False):
     trades = Trade.get_last_trades(session, page_size, offset, sort_column, sort_order)
     trade_list = []
     for trade in  trades:
-        trade_list.append([ 
+        rec = [
           trade.id,
           trade.symbol,
           trade.side,
           trade.price,
           trade.size,
-          trade.buyer_username,
-          trade.seller_username,
+          trade.buyer_id,
+          trade.seller_id,
           trade.created
-        ])
+        ]
+        if show_username:
+          rec.append(trade.buyer_username)
+          rec.append(trade.seller_username)
+        trade_list.append(rec)
     return trade_list
 
 
@@ -395,7 +416,7 @@ def generate_security_status(symbol, req_id):
 
     return ss
 
-def generate_md_full_refresh(symbol, market_depth, entries, req_id):
+def generate_md_full_refresh(symbol, market_depth, entries, req_id, show_username=False):
     entry_list = []
     md_subscriber = MarketDataSubscriber.get(symbol)
 
@@ -410,38 +431,45 @@ def generate_md_full_refresh(symbol, market_depth, entries, req_id):
             for order in orders:
                 entry_position += 1
 
-                entry_list.append({
-                    "MDEntryType": entry_type,
-                    "MDEntryPositionNo": entry_position,
-                    "MDEntryID": order['order_id'],
-                    "MDEntryPx": order['price'],
-                    "MDEntrySize": order['qty'],
-                    "MDEntryDate": order['order_date'],
-                    "MDEntryTime": order['order_time'],
-                    "OrderID": order['order_id'],
-                    "Username": order['username'],
-                    'Broker': order['broker']
-                })
+                md_record = {
+                  "MDEntryType": entry_type,
+                  "MDEntryPositionNo": entry_position,
+                  "MDEntryID": order['order_id'],
+                  "MDEntryPx": order['price'],
+                  "MDEntrySize": order['qty'],
+                  "MDEntryDate": order['order_date'],
+                  "MDEntryTime": order['order_time'],
+                  "OrderID": order['order_id'],
+                  "UserID": order['user_id'],
+                  'Broker': order['broker']
+                }
+                if show_username:
+                    md_record['Username'] = order['username']
+                entry_list.append(md_record)
 
                 if entry_position >= market_depth > 0:
                     break
         elif entry_type == '2':
             trade_list = []
             for trade in md_subscriber.get_last_trades():
-                trade_list.append({
-                    "MDEntryType": "2",  # Trade
-                    "Symbol": symbol,
-                    "MDEntryPx": trade.price,
-                    "MDEntrySize": trade.size,
-                    "MDEntryDate": trade.created.date(),
-                    "MDEntryTime": trade.created.time(),
-                    "OrderID": trade.order_id,
-                    "Side": trade.side,
-                    "SecondaryOrderID": trade.counter_order_id,
-                    "TradeID": trade.id,
-                    "MDEntryBuyer": trade.buyer_username,
-                    "MDEntrySeller": trade.seller_username,
-                })
+                md_record = {
+                  "MDEntryType": "2",  # Trade
+                  "Symbol": symbol,
+                  "MDEntryPx": trade.price,
+                  "MDEntrySize": trade.size,
+                  "MDEntryDate": trade.created.date(),
+                  "MDEntryTime": trade.created.time(),
+                  "OrderID": trade.order_id,
+                  "Side": trade.side,
+                  "SecondaryOrderID": trade.counter_order_id,
+                  "TradeID": trade.id,
+                  "MDEntryBuyerID": trade.buyer_id,
+                  "MDEntrySellerID": trade.seller_id
+                }
+                if show_username:
+                  md_record["MDEntryBuyer"] = trade.buyer_username
+                  md_record["MDEntrySeller"] = trade.seller_username
+                trade_list.append(md_record)
 
             volume_dict = {}
 

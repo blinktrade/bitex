@@ -42,7 +42,7 @@ class AlchemyJSONEncoder(json.JSONEncoder):
           fields[field] = data
         except TypeError:
           fields[field] = None
-        # a json-encodable dict
+          # a json-encodable dict
       return fields
 
     return json.JSONEncoder.default(self, obj)
@@ -101,7 +101,7 @@ class Currency(Base):
   def __repr__(self):
     return u"<Currency(code=%r, sign=%r, description=%r, is_crypto=%r, pip=%r, format_python=%r, format_js=%r, human_format_python=%r, human_format_js=%r)>" % (
       self.code, self.sign, self.description, self.is_crypto, self.pip, self.format_python, self.format_js, self.human_format_python, self.human_format_js
-    )
+      )
 
 class Instrument(Base):
   __tablename__   = 'instruments'
@@ -123,8 +123,8 @@ class Instrument(Base):
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
-  username        = Column(String(15), nullable=False, index=True, unique=True )
-  email           = Column(String(75), nullable=False, index=True, unique=True)
+  username        = Column(String(15), nullable=False, index=True )
+  email           = Column(String(75), nullable=False, index=True )
 
   broker_id       = Column(Integer, ForeignKey('users.id'), index=True )
   broker          = relationship("User", remote_side=[id])
@@ -161,13 +161,16 @@ class User(Base):
 
   email_lang       = Column(String, nullable=False)
 
+  __table_args__ = (UniqueConstraint('broker_id', 'username', name='_username_uc'), )
+  __table_args__ = (UniqueConstraint('broker_id', 'email', name='_email_uc'), )
+
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, broker_username=%r, "\
            u" password_algo=%r, password_salt=%r, password=%r,"\
            u" state=%r, country_code=%r, transaction_fee_buy=%r, transaction_fee_sell=%r,"\
            u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, "\
            u" last_login=%r,  email_lang=%r, deposit_percent_fee=%r, deposit_fixed_fee=%r,"\
-           u" two_factor_enabled=%r, two_factor_secret=%r,withdraw_email_validation=%r"\
+           u" two_factor_enabled=%r, two_factor_secret=%r,withdraw_email_validation=%r,"\
            u" withdraw_percent_fee=%r, withdraw_fixed_fee=%r, is_market_maker=%r )>"\
     % (self.id, self.username, self.email, self.broker_id, self.broker_username,
        self.password_algo, self.password_salt, self.password,
@@ -198,7 +201,7 @@ class User(Base):
     return self.password == get_hexdigest(self.password_algo, self.password_salt, raw_password)
 
   @staticmethod
-  def get_user( session, username=None, email=None, user_id=None ):
+  def get_user( session, broker_id, username=None, email=None, user_id=None ):
     if username:
       username = username.lower().strip()
     if email:
@@ -215,7 +218,7 @@ class User(Base):
       filter_obj = or_( func.lower(User.email)==email )
     else:
       return  None
-    user = session.query(User).filter(filter_obj).first()
+    user = session.query(User).filter(User.broker_id == broker_id).filter(filter_obj).first()
     if user:
       return  user
     return None
@@ -246,7 +249,7 @@ class User(Base):
 
   @staticmethod
   def signup(session, username, email, password, state, country_code, broker_id):
-    if User.get_user( session, username=username , email=email):
+    if User.get_user( session, broker_id=broker_id, username=username , email=email):
       raise UserAlreadyExistsException()
 
     broker = Broker.get_broker( session, broker_id)
@@ -284,8 +287,8 @@ class User(Base):
     return u, broker
 
   @staticmethod
-  def authenticate(session, user, password, second_factor=None):
-    user = User.get_user( session, user, user)
+  def authenticate(session, broker_id, user, password, second_factor=None):
+    user = User.get_user( session, broker_id, user, user)
 
     if user and  user.two_factor_enabled and second_factor is None:
       raise NeedSecondFactorException
@@ -312,7 +315,7 @@ class User(Base):
 
   def enable_two_factor(self, enable, secret, second_factor):
     if enable:
-      if secret and second_factor is not None and second_factor.isdigit() and \
+      if secret and second_factor is not None and second_factor.isdigit() and\
          onetimepass.valid_totp(token=int(second_factor), secret=secret):
         self.two_factor_enabled = True
         self.two_factor_secret = secret
@@ -615,8 +618,8 @@ class Balance(Base):
 
     result_rank = []
     for i, balance in enumerate(entries):
-        if balance.balance > 0:
-            result_rank.append([i+1, balance.account_name, balance.broker_name, balance.balance])
+      if balance.balance > 0:
+        result_rank.append([i+1, balance.account_name, balance.broker_name, balance.balance])
 
     return result_rank
 
@@ -691,9 +694,9 @@ class Ledger(Base):
   description           = Column(String(255),   index=True)
 
   def __repr__(self):
-    return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payee_broker_id=%r," \
-                    u"operation=%r,amount=%r,balance=%r,reference=%r, created=%r,description=%r," \
-                    u"account_name=%r,broker_name=%r,payee_name=%r,payee_broker_name=%r)>" % (
+    return u"<Ledger(id=%r, currency=%r, account_id=%r, broker_id=%r, payee_id=%r, payee_broker_id=%r,"\
+           u"operation=%r,amount=%r,balance=%r,reference=%r, created=%r,description=%r,"\
+           u"account_name=%r,broker_name=%r,payee_name=%r,payee_broker_name=%r)>" % (
       self.id, self.currency, self.account_id, self.broker_id, self.payee_id, self.payee_broker_id,
       self.operation, self.amount, self.balance, self.reference, self.created, self.description,
       self.account_name, self.broker_name, self.payee_name, self.payee_broker_name)
@@ -719,14 +722,14 @@ class Ledger(Base):
                                      Ledger.reference == filter,
                                      Ledger.amount == int(filter),
                                      Ledger.balance == int(filter)
-                                     ))
+          ))
         else:
           query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
                                      Ledger.payee_name == filter,
                                      Ledger.account_name == filter,
                                      Ledger.broker_name == filter,
                                      Ledger.reference == filter
-                                     ))
+          ))
 
     query = query.order_by(desc(Ledger.created))
 
@@ -738,7 +741,7 @@ class Ledger(Base):
     return query
 
   @staticmethod
-  def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None):
+  def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None, timestamp=datetime.datetime.now() ):
     balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
     ledger = Ledger(currency          = currency,
                     account_id        = from_account_id,
@@ -753,7 +756,8 @@ class Ledger(Base):
                     amount            = amount,
                     balance           = balance,
                     reference         = reference,
-                    description       = description)
+                    description       = description,
+                    created           = timestamp)
     session.add(ledger)
 
     balance = Balance.update_balance(session, 'CREDIT', to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount)
@@ -770,7 +774,8 @@ class Ledger(Base):
                      amount           = amount,
                      balance          = balance,
                      reference        = reference,
-                     description      = description )
+                     description      = description,
+                     created           = timestamp)
     session.add(ledger)
 
 
@@ -815,10 +820,10 @@ class Ledger(Base):
 
 
   @staticmethod
-  def execute_order(session, order, counter_order, symbol, qty, price, trade_id):
+  def execute_order(session, order, counter_order, symbol, qty, price, trade_id, timestamp=datetime.datetime.now() ):
     total_value = int(float(price) * float(qty)/1e8)
 
-      # adjust balances
+    # adjust balances
     to_symbol = symbol[:3].upper()   #BTC
     from_symbol = symbol[3:].upper() #USD
 
@@ -836,7 +841,8 @@ class Ledger(Base):
                                  amount           = total_value,
                                  balance          = balance,
                                  reference        = trade_id,
-                                 description      = 'T')
+                                 description      = 'T',
+                                 created          = timestamp)
     session.add(order_record_debit)
 
 
@@ -854,7 +860,8 @@ class Ledger(Base):
                                          amount       = total_value,
                                          balance      = balance,
                                          reference    = trade_id,
-                                         description  = 'T')
+                                         description  = 'T',
+                                         created      = timestamp)
     session.add(counter_order_record_credit)
 
 
@@ -872,7 +879,8 @@ class Ledger(Base):
                                  amount       = qty,
                                  balance      = balance,
                                  reference    = trade_id,
-                                 description  = 'T')
+                                 description  = 'T',
+                                 created      = timestamp)
     session.add(order_record_credit)
 
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', counter_order.account_id, counter_order.account_username, counter_order.broker_id, counter_order.broker_username, to_symbol, qty )
@@ -889,10 +897,11 @@ class Ledger(Base):
                                         amount       = qty,
                                         balance      = balance,
                                         reference    = trade_id,
-                                        description  = 'T')
+                                        description  = 'T',
+                                        created      = timestamp)
     session.add(counter_order_record_debit)
 
-    def process_execution_fee(session,trade_id, order, currency, amount ):
+    def process_execution_fee(session,trade_id, order, currency, amount, timestamp ):
       Ledger.transfer(session,
                       order.account_id,           # from_account_id
                       order.account_username,     # from_account_name
@@ -905,21 +914,22 @@ class Ledger(Base):
                       currency,                   # currency
                       amount,                     # amount
                       trade_id,                   # reference
-                      'TF'                        # descriptions
+                      'TF',                        # descriptions
+                      timestamp
       )
 
     order_fee_currency = to_symbol if order.is_buy else from_symbol
     order_fee_base_amount = qty if order.is_buy else total_value
     order_fee_amount =  order_fee_base_amount * (order.fee / 10000.)
     if order_fee_amount:
-      process_execution_fee(session, trade_id, order,order_fee_currency, order_fee_amount )
+      process_execution_fee(session, trade_id, order,order_fee_currency, order_fee_amount, timestamp )
 
 
     counter_order_fee_currency = to_symbol if counter_order.is_buy else from_symbol
     counter_order_fee_base_amount = qty if counter_order.is_buy else total_value
     counter_order_fee_amount =  counter_order_fee_base_amount * (counter_order.fee / 10000.)
     if counter_order_fee_amount:
-      process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount )
+      process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount, timestamp )
 
 
 class Broker(Base):
@@ -1003,14 +1013,14 @@ class Broker(Base):
         setattr(self, field, field_value)
 
   def __repr__(self):
-    return u"<Broker(id=%r, short_name=%r, business_name=%r,  " \
-           u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r," \
-           u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, " \
-           u"fee_structure=%r, withdraw_structure=%r, " \
-           u"mandrill_api_key=%r, mailer_from_name=%r, mailer_from_email=%r, mailer_signature=%r, mailchimp_list_id=%r, " \
-           u"transaction_fee_buy=%r,transaction_fee_sell=%r, " \
+    return u"<Broker(id=%r, short_name=%r, business_name=%r,signup_label=%r,  "\
+           u"address=%r, city=%r, state=%r, zip_code=%r, country_code=%r,country=%r, phone_number_1=%r, phone_number_2=%r, skype=%r, email=%r,"\
+           u"verification_jotform=%r,upload_jotform=%r, currencies=%r, crypto_currencies=%r, tos_url=%r, "\
+           u"fee_structure=%r, withdraw_structure=%r, "\
+           u"mandrill_api_key=%r, mailer_from_name=%r, mailer_from_email=%r, mailer_signature=%r, mailchimp_list_id=%r, "\
+           u"transaction_fee_buy=%r,transaction_fee_sell=%r, "\
            u"status=%r, ranking=%r, support_url=%r, is_broker_hub=%r ,accept_customers_from=%r, lang=%r, accounts=%r )>"% (
-      self.id, self.short_name, self.business_name,
+      self.id, self.short_name, self.business_name, self.signup_label,
       self.address, self.city, self.state, self.zip_code, self.country_code, self.country, self.phone_number_1, self.phone_number_2, self.skype,self.email,
       self.verification_jotform, self.upload_jotform, self.currencies, self.crypto_currencies,  self.tos_url,
       self.fee_structure , self.withdraw_structure,
@@ -1034,7 +1044,7 @@ class TrustedAddress(Base):
   __table_args__ = (UniqueConstraint('user_id', 'broker_id', 'currency', 'address', name='_trusted_address_uc'), )
 
   def __repr__(self):
-    return "<TrustedAddress(id=%r, user_id=%r, username=%r, " \
+    return "<TrustedAddress(id=%r, user_id=%r, username=%r, "\
            "broker_id=%r, broker_username=%r,address=%r, created=%r, status=%r, label=%r)>" % (
       self.id, self.user_id, self.username, self.broker_id,
       self.broker_username, self.address, self.created, self.status, self.label)
@@ -1043,9 +1053,9 @@ class TrustedAddress(Base):
   @staticmethod
   def suggest_address(session, user_id, username, broker_id, broker_username, address, currency, email_lang):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-                                                  filter_by(broker_id = broker_id).\
-                                                  filter_by(currency = currency).\
-                                                  filter_by(address = address ).first()
+    filter_by(broker_id = broker_id).\
+    filter_by(currency = currency).\
+    filter_by(address = address ).first()
 
     if not rec:
       id = uuid.uuid4().hex
@@ -1079,21 +1089,21 @@ class TrustedAddress(Base):
                        template ='confirm_address',
                        language = email_lang,
                        params   = json.dumps({
-                                     'trusted_address_id': rec.id,
-                                     'user_id': user_id,
-                                     'username':username,
-                                     'broker_id': broker_id,
-                                     'broker_username':broker_username,
-                                     'currency': currency,
-                                     'address':address} ) )
+                         'trusted_address_id': rec.id,
+                         'user_id': user_id,
+                         'username':username,
+                         'broker_id': broker_id,
+                         'broker_username':broker_username,
+                         'currency': currency,
+                         'address':address} ) )
     return rec
 
   @staticmethod
   def user_confirm_trusted_address(session, user_id, broker_id, address, currency, label=None):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-                                                  filter_by(broker_id = broker_id).\
-                                                  filter_by(currency = currency).\
-                                                  filter_by(address = address ).first()
+    filter_by(broker_id = broker_id).\
+    filter_by(currency = currency).\
+    filter_by(address = address ).first()
 
     if not rec:
       return None
@@ -1109,9 +1119,9 @@ class TrustedAddress(Base):
   @staticmethod
   def broker_confirm_trusted_address(session, user_id, broker_id, address, currency, label=None):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-                                                  filter_by(broker_id = broker_id).\
-                                                  filter_by(currency = currency).\
-                                                  filter_by(address = address ).first()
+    filter_by(broker_id = broker_id).\
+    filter_by(currency = currency).\
+    filter_by(address = address ).first()
 
     if not rec:
       return None
@@ -1127,9 +1137,9 @@ class TrustedAddress(Base):
   @staticmethod
   def is_trusted_address(session, user_id, broker_id, address, currency):
     rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-                                      filter_by(broker_id = broker_id).\
-                                      filter_by(currency = currency).\
-                                      filter_by(address = address ).first()
+    filter_by(broker_id = broker_id).\
+    filter_by(currency = currency).\
+    filter_by(address = address ).first()
     if not rec:
       return  False
     return rec.status > 0
@@ -1392,7 +1402,7 @@ class Withdraw(Base):
                       total_fees,             # amount
                       str(self.id),           # reference
                       'WF'                    # descriptions
-                      )
+      )
 
 
     session.add(self)
@@ -1537,8 +1547,8 @@ class Withdraw(Base):
     return withdraw_record
 
   def __repr__(self):
-    return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount='%r', " \
-           u"broker_username=%r, data=%r, percent_fee=%r, fixed_fee-%r, "\
+    return u"<Withdraw(id=%r, user_id=%r, account_id=%r, broker_id=%r, username=%r, currency=%r, method=%r, amount=%r, "\
+           u"broker_username=%r, data=%r, percent_fee=%r, fixed_fee=%r, "\
            u"confirmation_token=%r, status=%r, created=%r, reason_id=%r, reason=%r, paid_amount=%r, email_lang=%r)>" % (
       self.id, self.user_id, self.account_id, self.broker_id, self.username, self.currency, self.method,self.amount,
       self.broker_username, self.data, self.percent_fee, self.fixed_fee,
@@ -1587,16 +1597,16 @@ class Order(Base):
 
 
   def __repr__(self):
-    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r, client_order_id=%r, " \
-           "broker_id=%r, broker_username=%r, time_in_force=%r, " \
-           "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, " \
-           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r, " \
-           "fee_account_id=%r, fee_account_username=%r, email_lang=%r)>" \
-            % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
-               self.broker_id, self.broker_username, self.time_in_force,
-               self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
-               self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee,
-               self.fee_account_id, self.fee_account_username, self.email_lang)
+    return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r, client_order_id=%r, "\
+           "broker_id=%r, broker_username=%r, time_in_force=%r, "\
+           "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, "\
+           "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r, "\
+           "fee_account_id=%r, fee_account_username=%r, email_lang=%r)>"\
+    % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
+       self.broker_id, self.broker_username, self.time_in_force,
+       self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
+       self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee,
+       self.fee_account_id, self.fee_account_username, self.email_lang)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
@@ -1631,9 +1641,9 @@ class Order(Base):
         return True  # if one of the orders is a market order
 
     if self.is_buy and other.is_sell and self.price >= other.price:
-        return True
+      return True
     elif self.is_sell and other.is_buy and self.price <= other.price:
-        return True
+      return True
     return  False
 
   @staticmethod
@@ -1762,6 +1772,8 @@ class Trade(Base):
   id                = Column(Integer,        primary_key=True)
   order_id          = Column(Integer,       ForeignKey('orders.id'))
   counter_order_id  = Column(Integer,       ForeignKey('orders.id'))
+  buyer_id          = Column(Integer,       nullable=False)
+  seller_id         = Column(Integer,       nullable=False)
   buyer_username    = Column(String(15),    nullable=False)
   seller_username   = Column(String(15),    nullable=False)
   side              = Column(String(1),     nullable=False)
@@ -1772,33 +1784,47 @@ class Trade(Base):
   trade_type        = Column(Integer,       nullable=False, default=0)  # regular trade
 
   def __repr__(self):
-    return "<Trade(id=%r, order_id=%r, counter_order_id=%r, buyer_username=%r,seller_username=%r,  " \
+    return "<Trade(id=%r, order_id=%r, counter_order_id=%r,buyer_id=%r,seller_id=%r, buyer_username=%r,seller_username=%r,  "\
            "side=%r, symbol=%r, size=%r, price=%r, created=%r, trade_type=%r )>"\
-    % (self.id, self.order_id, self.counter_order_id, self.buyer_username, self.seller_username,
+    % (self.id, self.order_id, self.counter_order_id, self.buyer_id, self.seller_id, self.buyer_username, self.seller_username,
        self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
   @staticmethod
-  def create(session, order,counter_order, symbol, size,price):
+  def create(session, order,counter_order, symbol, size, price, trade_date_time=datetime.datetime.now()):
+    buyer_id = order.account_id
     buyer_username = order.account_user.username
+    seller_id = counter_order.account_id
     seller_username = counter_order.account_user.username
     if order.is_sell:
       tmp_username = buyer_username
       buyer_username = seller_username
       seller_username = tmp_username
+      tmp_id = buyer_id
+      buyer_id = seller_id
+      seller_id = tmp_id
 
-    trade =  Trade( #id                = str(order.id) + '.' + str(counter_order.id),
-                    order_id          = order.id,
+
+    trade =  Trade( order_id          = order.id,
                     counter_order_id  = counter_order.id,
+                    buyer_id          = buyer_id,
+                    seller_id         = seller_id,
                     buyer_username    = buyer_username,
                     seller_username   = seller_username,
                     side              = order.side,
                     symbol            = symbol,
                     size              = size,
                     price             = price,
-                    created           = datetime.datetime.now())
+                    created           = trade_date_time)
     session.add(trade)
 
-    Ledger.execute_order(session, order, counter_order, symbol, size, price, str(order.id) + '.' + str(counter_order.id))
+    Ledger.execute_order(session,
+                         order,
+                         counter_order,
+                         symbol,
+                         size,
+                         price,
+                         str(order.id) + '.' + str(counter_order.id),
+                         trade_date_time)
 
     return trade
 
@@ -1807,17 +1833,17 @@ class Trade(Base):
   def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
 
     trades = session.query(Trade).order_by(
-        Trade.created.desc())
+      Trade.created.desc())
 
     if page_size:
-        trades = trades.limit(page_size)
+      trades = trades.limit(page_size)
     if offset:
-        trades = trades.offset(offset)
+      trades = trades.offset(offset)
     if sort_column:
-        if sort_order == 'ASC':
-            trades = trades.order(sort_column)
-        else:
-            trades = trades.order(sort_column).desc()
+      if sort_order == 'ASC':
+        trades = trades.order(sort_column)
+      else:
+        trades = trades.order(sort_column).desc()
 
     return trades
 
@@ -1858,12 +1884,12 @@ class Deposit(Base):
     return u"<Deposit(id=%r, user_id=%r, account_id=%r, broker_id=%r, deposit_option_id=%r, "\
            u"deposit_option_name=%r, username=%r, broker_username=%r,  broker_deposit_ctrl_num=%r,"\
            u"secret=%r, type=%r, currency=%r, value=%r, paid_value=%r, status=%r, "\
-           u"data=%r, created=%r, reason_id=%r, reason=%r, "\
+           u"data=%r, created=%r, reason_id=%r, reason=%r, email_lang=%r,"\
            u"fixed_fee=%r, percent_fee=%r, client_order_id=%r, instructions=%r)>" % (
       self.id,  self.user_id, self.account_id, self.broker_id, self.deposit_option_id,
       self.deposit_option_name,  self.username, self.broker_username, self.broker_deposit_ctrl_num,
       self.secret, self.type,  self.currency, self.value, self.paid_value, self.status,
-      self.data, self.created, self.reason_id, self.reason,
+      self.data, self.created, self.reason_id, self.reason, self.email_lang,
       self.fixed_fee, self.percent_fee, self.client_order_id, self.instructions )
 
   @staticmethod
@@ -1872,21 +1898,21 @@ class Deposit(Base):
     deposit_id = uuid.uuid4().hex
 
     deposit = Deposit(
-        id                      = deposit_id,
-        deposit_option_name     = 'deposit_' + currency.lower(),
-        user_id                 = user.id,
-        account_id              = user.id,
-        username                = user.username,
-        broker_username         = user.broker_username,
-        broker_id               = user.broker_id,
-        email_lang              = user.email_lang,
-        type                    = 'CRY',
-        currency                = currency,
-        secret                  = secret,
-        percent_fee             = 0.,
-        fixed_fee               = 0,
-        data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } ),
-    )
+      id                      = deposit_id,
+      deposit_option_name     = 'deposit_' + currency.lower(),
+      user_id                 = user.id,
+      account_id              = user.id,
+      username                = user.username,
+      broker_username         = user.broker_username,
+      broker_id               = user.broker_id,
+      email_lang              = user.email_lang,
+      type                    = 'CRY',
+      currency                = currency,
+      secret                  = secret,
+      percent_fee             = 0.,
+      fixed_fee               = 0,
+      data                    = json.dumps( { 'InputAddress':input_address, 'Destination':destination } ),
+      )
 
     if instructions:
       deposit.instructions = json.dumps(instructions)
@@ -2274,7 +2300,7 @@ class Deposit(Base):
           if 'PaidValue' in filter and  filter['PaidValue'] != self.paid_value:
             continue
 
-              # check if the instruction is a valid instruction
+            # check if the instruction is a valid instruction
         msg = instruction['Msg']
 
         if msg['MsgType'] != 'D':
@@ -2312,8 +2338,8 @@ class DepositMethods(Base):
 
 
   def __repr__(self):
-    return u"<DepositMethods(id=%r, broker_id=%r, name=%r description=%r, disclaimer=%r ," \
-           u"type=%r, broker_deposit_ctrl_num=%r, currency=%r,percent_fee=%r, fixed_fee=%r, " \
+    return u"<DepositMethods(id=%r, broker_id=%r, name=%r, description=%r, disclaimer=%r ,"\
+           u"type=%r, broker_deposit_ctrl_num=%r, currency=%r, percent_fee=%r, fixed_fee=%r, "\
            u"deposit_limits=%r, html_template=%r, parameters=%r)>"\
     % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type,
        self.broker_deposit_ctrl_num, self.currency, self.percent_fee, self.fixed_fee,

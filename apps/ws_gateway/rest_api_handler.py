@@ -63,10 +63,16 @@ class RestApiHandler(tornado.web.RequestHandler):
         self.write(json.dumps(trades))
 
     def _process_request(self, version, symbol, resource):
-        currency = self.get_argument("crypto_currency", default='BTC', strip=False)
-        since = self.get_argument("since", default=0, strip=False)
+        currency  = self.get_argument("crypto_currency", default='BTC', strip=False)
+        since     = self.get_argument("since", default=0, strip=False)
+        callback  = self.get_argument("callback", default='', strip=False)
+        if not callback:
+          callback  = self.get_argument("jsonp", default='', strip=False)
+
         instrument = '%s%s'%(currency,  symbol)
 
+        if callback:
+          self.write( callback + '(' )
         if version == 'v1':
             if resource == 'orderbook':
                 self._send_order_book(instrument)
@@ -79,3 +85,5 @@ class RestApiHandler(tornado.web.RequestHandler):
         else:
             self.send_error(404)
 
+        if callback:
+          self.write( ');' )
