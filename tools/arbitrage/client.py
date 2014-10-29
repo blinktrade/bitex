@@ -63,13 +63,14 @@ class BitExThreadedClient(WebSocketClient):
       self.signal_send(self, payload)
       super(BitExThreadedClient, self).send(payload, binary)
 
-  def login(self, user, password):
+  def login(self, broker_id, user, password):
     if not user or not password:
       raise ValueError('Invalid parameters')
 
     loginMsg = {
       'UserReqID': 'initial',
       'MsgType' : 'BE',
+      'BrokerID': broker_id,
       'Username': user,
       'Password':password,
       'UserReqTyp': '1'

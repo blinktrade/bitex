@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 import os
 import sys
 import logging
@@ -19,12 +19,13 @@ from ws4py.exc import HandshakeError
 
 
 class BitStampClient(object):
-  def __init__(self, username,password,websocket_url, bid_fee=0., ask_fee=0., api_key=None, api_secret=None):
+  def __init__(self, broker_id,username,password,websocket_url, bid_fee=0., ask_fee=0., api_key=None, api_secret=None):
     self.api_key = api_key
     self.api_secret = api_secret
     self.bid_fee = bid_fee
     self.ask_fee = ask_fee
 
+    self.broker_id = broker_id 
     self.username = username
     self.password = password
     self.websocket_url = websocket_url
@@ -33,7 +34,7 @@ class BitStampClient(object):
     self.pusher.connection.bind('pusher:connection_established', self.on_bitstamp_connect_handler)
     self.pusher.connection.bind('pusher:connection_failed', self.on_bitstamp_connect_failed_handler)
 
-    self.arbitrator = BlinkTradeArbitrator(self.username,self.password,self.websocket_url, 'BTCAUD' ) #'BTCUSD')
+    self.arbitrator = BlinkTradeArbitrator( self.broker_id, self.username,self.password,self.websocket_url, 'BTCUSD')
     self.arbitrator.signal_order.connect(self.on_send_order_to_bitstamp)
     self.arbitrator.signal_logged.connect(self.on_blinktrade_logged)
     self.arbitrator.signal_disconnected.connect(self.on_blinktrade_discconnected)
@@ -114,6 +115,7 @@ def main():
 
   config = ConfigParser.SafeConfigParser({
     'websocket_url': 'wss://127.0.0.1/trade/',
+    'broker_id': 5,
     'username': '',
     'password': '',
     'buy_fee': 0,
@@ -124,6 +126,7 @@ def main():
   config.read( candidates )
 
   websocket_url = config.get('bitstamp', 'websocket_url')
+  broker_id     = config.getint('bitstamp',  'broker_id')
   username      = config.get('bitstamp', 'username')
   password      = config.get('bitstamp', 'password')
   buy_fee       = float(config.get('bitstamp', 'buy_fee'))
@@ -132,11 +135,12 @@ def main():
   api_secret    = config.get('bitstamp', 'api_secret')
 
   print 'websocket_url:', websocket_url
+  print 'broker_id:', broker_id 
   print 'username:', username
   print 'buy_fee:', buy_fee
   print 'sell_fee:', sell_fee
 
-  bitstamp_blinktrade_arbitrator = BitStampClient(username,password,websocket_url,buy_fee,sell_fee,api_key,api_secret)
+  bitstamp_blinktrade_arbitrator = BitStampClient(broker_id,username,password,websocket_url,buy_fee,sell_fee,api_key,api_secret)
   bitstamp_blinktrade_arbitrator.connect()
 
   while True:

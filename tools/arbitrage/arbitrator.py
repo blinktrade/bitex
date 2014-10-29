@@ -14,13 +14,14 @@ import datetime
 import time
 
 class BlinkTradeArbitrator(object):
-  def __init__(self, blinktrade_username, blinktrade_password,  blinktrade_ws_url='wss://api.blinktrade.com/trade/', symbol='BTCUSD'):
+  def __init__(self, blinktrade_broker_id,  blinktrade_username, blinktrade_password,  blinktrade_ws_url='wss://api.blinktrade.com/trade/', symbol='BTCUSD'):
     self.fiat_currency = symbol[3:]
     self.crypto_currency = symbol[:3]
     self.fiat_balance = 0
     self.crypto_balance = 0
     self.latency = 0
     self.blinktrade_ws_url = blinktrade_ws_url
+    self.blinktrade_broker_id = blinktrade_broker_id 
     self.blinktrade_username = blinktrade_username
     self.blinktrade_password = blinktrade_password
     self.blinktrade_broker = None
@@ -61,7 +62,7 @@ class BlinkTradeArbitrator(object):
 
   def on_ws_open(self, sender, msg):
     self.signal_connected(self)
-    self.ws.login(self.blinktrade_username, self.blinktrade_password )
+    self.ws.login(self.blinktrade_broker_id,  self.blinktrade_username, self.blinktrade_password )
 
   def on_ws_closed(self, sender, code_reason):
     self.signal_disconnected(self, code_reason)
