@@ -24,8 +24,6 @@ Base = declarative_base()
 
 from trade_application import TradeApplication
 
-from tornado import template
-
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 import onetimepass
@@ -386,7 +384,7 @@ class User(Base):
           'broker_username': self.broker_username
         }
         UserEmail.create( session = session,
-                          user_id = self.broker_id,
+                          user_id = self.id,
                           broker_id = self.broker_id,
                           subject = "VS",
                           template= "customer-verification-submit",
@@ -1447,7 +1445,25 @@ class Withdraw(Base):
     template_parameters = self.as_dict()
     template_parameters['amount'] = formatted_amount
     template_parameters['reason_id'] = reason_id
-    template_parameters['reason'] = reason
+    if reason_id == -1:
+      template_parameters['reason'] = 'INSUFFICIENT_FUNDS'
+    elif reason_id == -2:
+      template_parameters['reason'] = 'ACCOUNT_NOT_VERIFIED'
+    elif reason_id == -3:
+      template_parameters['reason'] = 'SUSPICION_OF_FRAUD'
+    elif reason_id == -4:
+      template_parameters['reason'] = 'DIFFERENT_ACCOUNT'
+    elif reason_id == -5:
+      template_parameters['reason'] = 'INVALID_WALLET'
+    elif reason_id == -6:
+      template_parameters['reason'] = 'INVALID_BANK_ACCOUNT'
+    elif reason_id == -7:
+      template_parameters['reason'] = 'OVER_LIMIT'
+    elif reason_id == -8:
+      template_parameters['reason'] = 'HAS_UNCONFIRMED_DEPOSITS'
+    else:
+      template_parameters['reason'] = reason if reason is not None else ''
+
     template_parameters['balance'] = formatted_balance
 
 
@@ -1529,6 +1545,7 @@ class Withdraw(Base):
       template_name       = 'withdraw-confirmation'
       template_parameters = withdraw_record.as_dict()
       template_parameters['amount'] = formatted_amount
+      template_parameters['created'] = datetime.datetime.now()
 
       UserEmail.create( session  = session,
                         user_id  = user.id,
@@ -1594,7 +1611,6 @@ class Order(Base):
       kwargs['username'] = kwargs.get('user').username
 
     super(Order, self).__init__(*args, **kwargs)
-
 
   def __repr__(self):
     return "<Order(id=%r, user_id=%r, username=%r,account_id=%r,account_username=%r, client_order_id=%r, "\
@@ -2031,6 +2047,7 @@ class Deposit(Base):
     should_ask_the_user_to_trust_his_payee_address = False
     payee_address = None
     broker = None
+    user = None
 
     new_data = {}
     new_data.update(json.loads(self.data))
@@ -2055,6 +2072,12 @@ class Deposit(Base):
         return
 
       if not data['Confirmations'] and self.status == '0':
+        if not user:
+          user = User.get_user(session, broker_id=self.broker_id, user_id=self.user_id)
+
+        if user.verified >= 3 and data['InputFee'] >=  10000: # Higher than the minimum fee
+          should_start_a_loan_from_broker_to_the_user = True
+
         if 'PayeeAddresses' in data:
           try:
             payee_addresses = json.loads(data['PayeeAddresses'])
@@ -2072,7 +2095,7 @@ class Deposit(Base):
                                                self.currency ):
             if 'InputFee' in data and data['InputFee'] > 0:
               should_start_a_loan_from_broker_to_the_user = True
-          else:
+          elif not should_start_a_loan_from_broker_to_the_user:
             should_ask_the_user_to_trust_his_payee_address = True
 
       for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:

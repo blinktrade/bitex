@@ -232,12 +232,12 @@ class OrderMatcher(object):
           from models import Currency
 
           qty_currency = order.symbol[:3]
-          formatted_qty = Currency.format_number( session, qty_currency, order.order_qty / 1.e8 )
+          formatted_qty = Currency.format_number( session, qty_currency, trade.size / 1.e8 )
 
           price_currency = order.symbol[3:]
-          formatted_price = Currency.format_number( session, price_currency, order.price / 1.e8 )
+          formatted_price = Currency.format_number( session, price_currency, trade.price / 1.e8 )
 
-          formatted_total_price = Currency.format_number( session, price_currency, order.order_qty/1.e8 * order.price / 1.e8 )
+          formatted_total_price = Currency.format_number( session, price_currency, trade.size/1.e8 * trade.price/1.e8 )
 
           email_subject =  'E'
           email_template = "order-execution"

@@ -233,49 +233,7 @@ def processNewOrderSingle(session, msg):
       client = User.get_user(TradeApplication.instance().db_session, session.user.id, email= msg.get('ClientID'))
 
     if not client:
-      if TradeApplication.instance().options.satoshi_mode:
-        # create account on the fly when running on satoshi mode
-        client, broker = User.signup(TradeApplication.instance().db_session,
-                                    msg.get('ClientID'),
-                                    msg.get('ClientID') + '@' + session.user.username + '.com',
-                                    'abc12345',
-                                    '',
-                                    session.user.country_code,
-                                    session.user.id)
-
-        Ledger.transfer(TradeApplication.instance().db_session,
-                        client.broker_id,            # from_account_id
-                        client.broker_username,      # from_account_name
-                        client.broker_id,            # from_broker_id
-                        client.broker_username,      # from_broker_name
-                        client.id,                   # to_account_id
-                        client.username,             # to_account_name
-                        client.broker_id,            # to_broker_id
-                        client.broker_username,      # to_broker_name
-                        'BTC',                       # currency
-                        100e8,                       # amount
-                        str(client.id),              # reference
-                        'B'                          # descriptions
-        )
-
-        Ledger.transfer(TradeApplication.instance().db_session,
-                        client.broker_id,            # from_account_id
-                        client.broker_username,      # from_account_name
-                        client.broker_id,            # from_broker_id
-                        client.broker_username,      # from_broker_name
-                        client.id,                   # to_account_id
-                        client.username,             # to_account_name
-                        client.broker_id,            # to_broker_id
-                        client.broker_username,      # to_broker_name
-                        'USD',                       # currency
-                        60000e8,                     # amount
-                        str(client.id),              # reference
-                        'B'                          # descriptions
-        )
-      else:
-        raise InvalidClientIDError()
-
-
+      raise InvalidClientIDError()
 
     account_user  = client
     account_id    = client.account_id
