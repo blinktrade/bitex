@@ -90,8 +90,14 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.write_message(str(message[1]))
 
     def check_origin(self, origin):
-      application.log('INFO', 'ORIGIN', origin)
-      return True
+      self.application.log('INFO', 'ORIGIN', origin)
+      if origin in [ 'https://surbitcoin.com',
+                     'https://www.surbitcoin.com',
+                     'https://www.urdubit.com',
+                     'https://urdubit.com',
+                     'https://surbitcoin.github.io']:
+        return True
+      return False
 
     def open(self):
         try:
