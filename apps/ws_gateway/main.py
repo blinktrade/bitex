@@ -90,7 +90,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.write_message(str(message[1]))
 
     def check_origin(self, origin):
-      print origin
+      application.log('INFO', 'ORIGIN', origin)
       return True
 
     def open(self):
