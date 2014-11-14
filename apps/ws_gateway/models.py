@@ -52,7 +52,6 @@ class Trade(Base):
     def get_trades(session, symbol, since):
         if since > 1000000000:
           since_timestamp = datetime.utcfromtimestamp(since)
-          print 'get_trades since', since_timestamp, since
           trades = session.query(Trade).filter(
             Trade.created >= since_timestamp).filter(Trade.symbol == symbol).order_by(Trade.id.desc())
         else:

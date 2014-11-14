@@ -739,7 +739,9 @@ class Ledger(Base):
     return query
 
   @staticmethod
-  def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None, timestamp=datetime.datetime.now() ):
+  def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None, timestamp=None ):
+    if timestamp is None:
+      timestamp = datetime.datetime.now()
     balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
     ledger = Ledger(currency          = currency,
                     account_id        = from_account_id,
@@ -818,7 +820,10 @@ class Ledger(Base):
 
 
   @staticmethod
-  def execute_order(session, order, counter_order, symbol, qty, price, trade_id, timestamp=datetime.datetime.now() ):
+  def execute_order(session, order, counter_order, symbol, qty, price, trade_id, timestamp=None ):
+    if timestamp is None:
+      timestamp = datetime.datetime.now()
+
     total_value = int(float(price) * float(qty)/1e8)
 
     # adjust balances
@@ -1806,7 +1811,10 @@ class Trade(Base):
        self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
   @staticmethod
-  def create(session, order,counter_order, symbol, size, price, trade_date_time=datetime.datetime.now()):
+  def create(session, order,counter_order, symbol, size, price, trade_date_time=None):
+    if trade_date_time is None:
+      trade_date_time = datetime.datetime.now()
+
     buyer_id = order.account_id
     buyer_username = order.account_user.username
     seller_id = counter_order.account_id
