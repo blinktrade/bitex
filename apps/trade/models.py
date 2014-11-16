@@ -2066,7 +2066,7 @@ class Deposit(Base):
 
     should_confirm = False
     self.paid_value = amount
-
+    loan_amount = self.paid_value
     if self.type == 'CRY' and data:
       if not broker:
         broker = Broker.get_broker( session, self.broker_id  )
@@ -2082,6 +2082,14 @@ class Deposit(Base):
       if not data['Confirmations'] and self.status == '0':
         if not user:
           user = User.get_user(session, broker_id=self.broker_id, user_id=self.user_id)
+
+        max_loan_amount = 0
+        for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
+          if confirmations >= 1:
+            max_loan_amount = amount_end
+            break
+        if loan_amount > max_loan_amount:
+          loan_amount = max_loan_amount
 
         if user.verified >= 3 and data['InputFee'] >=  10000: # Higher than the minimum fee
           should_start_a_loan_from_broker_to_the_user = True
@@ -2162,7 +2170,7 @@ class Deposit(Base):
                               self.broker_id,         # to_broker_id
                               self.broker_username,   # to_broker_name
                               self.currency,          # currency
-                              self.paid_value,        # amount
+                              loan_amount,            # amount
                               str(self.id),           # reference
                               'D'                     # descriptions
       )
@@ -2176,7 +2184,6 @@ class Deposit(Base):
         if position < 0:
           should_payback_the_loan_from_broker_to_the_user = True
           position *= -1
-
 
       if should_payback_the_loan_from_broker_to_the_user:
         val = self.paid_value - position
@@ -2225,30 +2232,8 @@ class Deposit(Base):
                           str(self.id),           # reference
                           'D'                     # descriptions
           )
-
-          total_percent_fee_value = ((val - self.fixed_fee) * (float(self.percent_fee)/100.0))
-          total_fees = total_percent_fee_value + self.fixed_fee
-          if total_fees:
-            if not broker:
-              broker = Broker.get_broker( session, self.broker_id  )
-            fee_account =  json.loads(broker.accounts)['fees']
-
-            Ledger.transfer(session,
-                            self.account_id,        # from_account_id
-                            self.username,          # from_account_name
-                            self.broker_id,         # from_broker_id
-                            self.broker_username,   # from_broker_name
-                            fee_account[0],         # to_account_id
-                            fee_account[1],         # to_account_name
-                            self.broker_id,         # to_broker_id
-                            self.broker_username,   # to_broker_name
-                            self.currency,          # currency
-                            total_fees,             # amount
-                            str(self.id),           # reference
-                            'DF'                    # descriptions
-            )
-
       else:
+        val = loan_amount if should_start_a_loan_from_broker_to_the_user else self.paid_value
         Ledger.transfer(session,
                         self.broker_id,         # from_account_id
                         self.broker_username,   # from_account_name
@@ -2259,32 +2244,32 @@ class Deposit(Base):
                         self.broker_id,         # to_broker_id
                         self.broker_username,   # to_broker_name
                         self.currency,          # currency
-                        self.paid_value,        # amount
+                        val,                    # amount
                         str(self.id),           # reference
                         'D'                     # descriptions
         )
 
-        total_percent_fee_value = ((self.paid_value - self.fixed_fee) * (float(self.percent_fee)/100.0))
-        total_fees = total_percent_fee_value + self.fixed_fee
-        if total_fees:
-          if not broker:
-            broker = Broker.get_broker( session, self.broker_id  )
-          fee_account =  json.loads(broker.accounts)['fees']
+      total_percent_fee_value = ((val - self.fixed_fee) * (float(self.percent_fee)/100.0))
+      total_fees = total_percent_fee_value + self.fixed_fee
+      if total_fees:
+        if not broker:
+          broker = Broker.get_broker( session, self.broker_id  )
+        fee_account =  json.loads(broker.accounts)['fees']
 
-          Ledger.transfer(session,
-                          self.account_id,        # from_account_id
-                          self.username,          # from_account_name
-                          self.broker_id,         # from_broker_id
-                          self.broker_username,   # from_broker_name
-                          fee_account[0],         # to_account_id
-                          fee_account[1],         # to_account_name
-                          self.broker_id,         # to_broker_id
-                          self.broker_username,   # to_broker_name
-                          self.currency,          # currency
-                          total_fees,             # amount
-                          str(self.id),           # reference
-                          'DF'                    # descriptions
-          )
+        Ledger.transfer(session,
+                        self.account_id,        # from_account_id
+                        self.username,          # from_account_name
+                        self.broker_id,         # from_broker_id
+                        self.broker_username,   # from_broker_name
+                        fee_account[0],         # to_account_id
+                        fee_account[1],         # to_account_name
+                        self.broker_id,         # to_broker_id
+                        self.broker_username,   # to_broker_name
+                        self.currency,          # currency
+                        total_fees,             # amount
+                        str(self.id),           # reference
+                        'DF'                    # descriptions
+        )
 
     instruction_to_execute = None
     if should_execute_instructions:
