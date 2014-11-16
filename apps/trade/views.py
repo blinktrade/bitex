@@ -283,7 +283,7 @@ def processNewOrderSingle(session, msg):
                        email_lang           = session.email_lang)
   TradeApplication.instance().db_session.flush() # just to assign an ID for the order.
 
-  OrderMatcher.get(msg.get('Symbol')).match(TradeApplication.instance().db_session, order)
+  OrderMatcher.get(msg.get('Symbol')).match(TradeApplication.instance().db_session, order, TradeApplication.instance().order_matcher_disabled)
   TradeApplication.instance().db_session.commit()
 
   return ""

@@ -26,6 +26,10 @@ class TradeApplication(object):
     self.options = options
     self.instance_name = instance_name
 
+    self.order_matcher_disabled = False
+    if options.has_option('order_matcher_disabled'):
+      self.order_matcher_disabled = True
+
     from models import Base, db_bootstrap
     db_engine = options.sqlalchemy_engine + ':///' + \
                 os.path.expanduser(options.sqlalchemy_connection_string)
@@ -96,6 +100,7 @@ class TradeApplication(object):
     self.log('PARAM','test_mode'                    ,self.options.test_mode)
     self.log('PARAM','dev_mode'                     ,self.options.dev_mode)
     self.log('PARAM','satoshi_mode'                 ,self.options.satoshi_mode)
+    self.log('PARAM','order_matcher_disabled'       ,self.order_matcher_disabled)
     self.log('PARAM','global_email_language'        ,self.options.global_email_language)
     self.log('PARAM','END')
 
@@ -152,7 +157,7 @@ class TradeApplication(object):
 
     orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
-      OrderMatcher.get( order.symbol  ).match(self.db_session, order)
+      OrderMatcher.get( order.symbol  ).match(self.db_session, order, self.order_matcher_disabled)
 
     while True:
       raw_message = self.input_socket.recv()
