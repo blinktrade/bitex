@@ -2091,7 +2091,7 @@ class Deposit(Base):
         if loan_amount > max_loan_amount:
           loan_amount = max_loan_amount
 
-        if user.verified >= 3 and data['InputFee'] >=  10000: # Higher than the minimum fee
+        if user.verified >= 3 and 'InputFee' in data and data['InputFee'] >=  10000: # Higher than the minimum fee
           should_start_a_loan_from_broker_to_the_user = True
 
         if 'PayeeAddresses' in data:
