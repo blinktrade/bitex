@@ -59,6 +59,7 @@ def run_application(options, instance_name):
   log('PARAM', 'mailer_log',                    options.mailer_log)
   log('PARAM', 'mailchimp_apikey',              options.mailchimp_apikey)
   log('PARAM', 'mandrill_apikey',               options.mandrill_apikey)
+  log('PARAM', 'mailer_username',               options.mailer_username)
   log('PARAM', 'mailchimp_newsletter_list_id',  options.mailchimp_newsletter_list_id)
   log('PARAM', 'END')
 
@@ -73,7 +74,9 @@ def run_application(options, instance_name):
   application_trade_client = TradeClient( context, trade_in_socket)
   application_trade_client.connect()
 
-  login_response = application_trade_client.sendJSON( MessageBuilder.login('mailer', 'abc12345' ) )
+  login_response = application_trade_client.sendJSON( MessageBuilder.login( 8999999,
+                                                                            options.mailer_username,
+                                                                            options.mailer_password))
   if login_response.get('UserStatus') != 1:
     raise RuntimeError("Invalid user id")
 
@@ -237,7 +240,9 @@ def main():
   if not options.mailchimp_apikey or\
      not options.mandrill_apikey or\
      not options.mailchimp_newsletter_list_id or\
-     not options.trade_in or \
+     not options.trade_in or\
+     not options.mailer_username or\
+     not options.mailer_password or\
      not options.trade_pub or \
      not options.mailer_log :
     raise RuntimeError("Invalid configuration file")
