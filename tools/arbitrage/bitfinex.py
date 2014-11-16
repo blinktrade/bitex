@@ -59,8 +59,10 @@ def main():
   sell_fee      = int(config.get('bitfinex', 'sell_fee'))
   api_key       = config.get('bitfinex', 'api_key')
   api_secret    = config.get('bitfinex', 'api_secret')
+  broker_id     = config.getint('bitfinex',  'broker_id')
+  dest_market   = config.get('bitfinex',  'dest_market')
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCUSD')
+  arbitrator = BlinkTradeArbitrator(broker_id, username,password,websocket_url, dest_market)
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order_to_bitfinex)

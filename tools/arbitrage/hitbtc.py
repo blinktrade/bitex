@@ -60,9 +60,11 @@ def main():
   sell_fee      = int(config.get('hitbtc', 'sell_fee'))
   api_key       = config.get('hitbtc', 'api_key')
   api_secret    = config.get('hitbtc', 'api_secret')
+  broker_id     = config.getint('hitbtc',  'broker_id')
+  dest_market   = config.get('hitbtc',  'dest_market')
 
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCUSD')
+  arbitrator = BlinkTradeArbitrator(broker_id, username,password,websocket_url, dest_market)
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order)

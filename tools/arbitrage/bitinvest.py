@@ -63,9 +63,11 @@ def main():
   api_key       = config.get('bitinvest', 'api_key')
   api_secret    = config.get('bitinvest', 'api_secret')
   subscription_api_key = config.get('bitinvest', 'subscription_api_key')
+  broker_id     = config.getint('bitinvest',  'broker_id')
+  dest_market   = config.get('bitinvest',  'dest_market')
 
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCBRL')
+  arbitrator = BlinkTradeArbitrator(broker_id, username,password,websocket_url, dest_market)
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order_to_BINVEST)
