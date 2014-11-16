@@ -60,13 +60,15 @@ def main():
   sell_fee      = int(config.get('mb', 'sell_fee'))
   api_key       = config.get('mb', 'api_key')
   api_secret    = config.get('mb', 'api_secret')
+  broker_id     = config.getint('mb',  'broker_id')
+  dest_market   = config.get('mb',  'dest_market')
 
   print 'websocket_url:', websocket_url
   print 'username:', username
   print 'buy_fee:', buy_fee
   print 'sell_fee:', sell_fee
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCUSD' ) #'BTCBRL')
+  arbitrator = BlinkTradeArbitrator(broker_id, username,password,websocket_url, dest_market)
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order_to_MB)

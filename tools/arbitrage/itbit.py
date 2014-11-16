@@ -60,8 +60,10 @@ def main():
   sell_fee      = float(config.get('itbit', 'sell_fee'))
   api_key       = config.get('itbit', 'api_key')
   api_secret    = config.get('itbit', 'api_secret')
+  broker_id     = config.getint('itbit',  'broker_id')
+  dest_market   = config.get('itbit',  'dest_market')
 
-  arbitrator = BlinkTradeArbitrator(username,password,websocket_url, 'BTCAUD' ) #'BTCUSD')
+  arbitrator = BlinkTradeArbitrator(broker_id,username,password,websocket_url, dest_market )
   arbitrator.connect()
 
   arbitrator.signal_order.connect(send_order)
