@@ -34,10 +34,10 @@ class RestApiHandler(tornado.web.RequestHandler):
        asks = []
 
        for order in md_subscriber.buy_side:
-           bids.append([order['price']/1e8, order['qty']/1e8, order['username']])
+           bids.append([order['price']/1e8, order['qty']/1e8, order['user_id']])
 
        for order in md_subscriber.sell_side:
-           asks.append([order['price']/1e8, order['qty']/1e8, order['username']])
+           asks.append([order['price']/1e8, order['qty']/1e8, order['user_id']])
 
        self.write(
             {
@@ -49,7 +49,6 @@ class RestApiHandler(tornado.web.RequestHandler):
 
     def _send_trades(self, symbol, since):
         md_subscriber = MarketDataSubscriber.get(symbol, self.application)
-
         trades = []
 
         for trade in md_subscriber.get_trades(symbol, since):
@@ -77,7 +76,7 @@ class RestApiHandler(tornado.web.RequestHandler):
             if resource == 'orderbook':
                 self._send_order_book(instrument)
             elif resource == 'trades':
-                self._send_trades(instrument, since)
+                self._send_trades(instrument, float(since))
             elif resource == 'ticker':
                 self._send_tiker(instrument)
             else:

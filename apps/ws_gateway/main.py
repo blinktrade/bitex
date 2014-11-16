@@ -90,8 +90,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.write_message(str(message[1]))
 
     def check_origin(self, origin):
-      print origin
-      return True
+      self.application.log('INFO', 'ORIGIN', origin)
+      return self.application.is_origin_allowed(origin)
 
     def open(self):
         try:
@@ -406,6 +406,9 @@ class WebSocketGatewayApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
+        self.allowed_origins = json.loads(self.options.allowed_origins)
+        self.allow_all_origins = self.allowed_origins[0] == '*'
+
         input_log_file_handler = logging.handlers.TimedRotatingFileHandler(
           os.path.expanduser(self.options.gateway_log), when='MIDNIGHT')
         formatter = logging.Formatter('%(asctime)s - %(message)s')
@@ -503,6 +506,15 @@ class WebSocketGatewayApplication(tornado.web.Application):
             return currency_obj['FormatPython'].format(value)
       return value
 
+    def is_origin_allowed(self, origin):
+      if self.allow_all_origins:
+        return  True
+
+      if origin in self.allowed_origins:
+        return True
+      return False
+
+
     def log_start_data(self):
         self.log('PARAM','BEGIN')
         self.log('PARAM','callback_url'                 ,self.options.callback_url)
@@ -514,6 +526,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
         self.log('PARAM','db_echo'                      ,self.options.db_echo)
         self.log('PARAM','sqlalchemy_engine'            ,self.options.sqlalchemy_engine)
         self.log('PARAM','sqlalchemy_connection_string' ,self.options.sqlalchemy_connection_string)
+        self.log('PARAM','allowed_origins'              ,self.options.allowed_origins)
         self.log('PARAM','END')
 
 
@@ -604,6 +617,7 @@ def main():
        not options.gateway_log or\
        not options.callback_url or\
        not options.port or\
+       not options.allowed_origins or\
        not options.sqlalchemy_connection_string or \
        not options.sqlalchemy_engine:
       raise RuntimeError("Invalid configuration file")
