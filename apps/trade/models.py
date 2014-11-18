@@ -28,6 +28,11 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 import onetimepass
 
+def get_datetime_now(timezone=None):
+  #this is just a workaround, so we can test datetime.datetime.now()
+  from trade import get_now
+  return get_now(timezone)
+
 class AlchemyJSONEncoder(json.JSONEncoder):
   def default(self, obj):
     if isinstance(obj.__class__, DeclarativeMeta):
@@ -142,8 +147,8 @@ class User(Base):
   is_broker       = Column(Boolean, nullable=False, default=False)
   is_market_maker = Column(Boolean, nullable=False, default=False)
 
-  created         = Column(DateTime, default=datetime.datetime.now, nullable=False)
-  last_login      = Column(DateTime, default=datetime.datetime.now, nullable=False)
+  created         = Column(DateTime, default=get_datetime_now, nullable=False)
+  last_login      = Column(DateTime, default=get_datetime_now, nullable=False)
 
   two_factor_enabled  = Column(Boolean, nullable=False, default=False)
   two_factor_secret   = Column(String(50), nullable=True, index=False)
@@ -301,7 +306,7 @@ class User(Base):
           raise NeedSecondFactorException
 
       # update the last login
-      user.last_login = datetime.datetime.now()
+      user.last_login = get_datetime_now()
 
       return user
     return None
@@ -445,7 +450,7 @@ class Position(Base):
   broker_name           = Column(String(30),    nullable=False)
   currency              = Column(String(4),     ForeignKey('currencies.code') ,nullable=False )
   position              = Column(Integer,       nullable=False, default=0)
-  last_update           = Column(DateTime, default=datetime.datetime.now, nullable=False)
+  last_update           = Column(DateTime, default=get_datetime_now, nullable=False)
 
   __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_position_uc'), )
 
@@ -513,7 +518,7 @@ class PositionLedger(Base):
   amount                = Column(Integer,       nullable=False)
   position              = Column(Integer,       nullable=False)
   reference             = Column(String(25),    nullable=False)
-  created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created               = Column(DateTime,      default=get_datetime_now, nullable=False)
   description           = Column(String(255))
 
   def __repr__(self):
@@ -602,7 +607,7 @@ class Balance(Base):
   broker_name           = Column(String(30),    nullable=False)
   currency              = Column(String(4),     ForeignKey('currencies.code') ,nullable=False )
   balance               = Column(Integer,       nullable=False, default=0)
-  last_update           = Column(DateTime, default=datetime.datetime.now, nullable=False)
+  last_update           = Column(DateTime, default=get_datetime_now, nullable=False)
 
   __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_balance_uc'), )
 
@@ -688,7 +693,7 @@ class Ledger(Base):
   amount                = Column(Integer,       nullable=False,  index=True)
   balance               = Column(Integer,       nullable=False,  index=True)
   reference             = Column(String(25),    nullable=False,  index=True)
-  created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created               = Column(DateTime,      default=get_datetime_now, nullable=False)
   description           = Column(String(255),   index=True)
 
   def __repr__(self):
@@ -741,7 +746,7 @@ class Ledger(Base):
   @staticmethod
   def transfer(session, from_account_id, from_account_name, from_broker_id, from_broker_name, to_account_id, to_account_name, to_broker_id, to_broker_name, currency, amount, reference=None, description=None, timestamp=None ):
     if timestamp is None:
-      timestamp = datetime.datetime.now()
+      timestamp = get_datetime_now()
     balance = Balance.update_balance(session, 'DEBIT', from_account_id, from_account_name, from_broker_id, from_broker_name, currency, amount)
     ledger = Ledger(currency          = currency,
                     account_id        = from_account_id,
@@ -822,7 +827,7 @@ class Ledger(Base):
   @staticmethod
   def execute_order(session, order, counter_order, symbol, qty, price, trade_id, timestamp=None ):
     if timestamp is None:
-      timestamp = datetime.datetime.now()
+      timestamp = get_datetime_now()
 
     total_value = int(float(price) * float(qty)/1e8)
 
@@ -1041,7 +1046,7 @@ class TrustedAddress(Base):
   currency              = Column(String,        default='BTC', nullable=False, index=True)
   address               = Column(String,        nullable=False, index=True )
   label                 = Column(String(25) )
-  created               = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created               = Column(DateTime,      default=get_datetime_now, nullable=False)
   status                = Column(Integer,       nullable=False, default=0)
 
   __table_args__ = (UniqueConstraint('user_id', 'broker_id', 'currency', 'address', name='_trusted_address_uc'), )
@@ -1156,7 +1161,7 @@ class UserPasswordReset(Base):
   user            = relationship("User",  backref=backref('user_password_reset', order_by=id), foreign_keys=[user_id])
   token           = Column(String,        nullable=False, index=True)
   used            = Column(Boolean,       default=False)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created         = Column(DateTime,      default=get_datetime_now, nullable=False)
 
   def __repr__(self):
     return "<UserPasswordReset(id=%r, user_id=%r,broker_id=%r, token=%r, used=%r, created=%r)>" % (
@@ -1222,7 +1227,7 @@ class UserEmail(Base):
   template        = Column(String,        nullable=True)
   language        = Column(String,        nullable=True)
   params          = Column(String,        nullable=True)
-  created         = Column(DateTime,      default=datetime.datetime.now, nullable=False)
+  created         = Column(DateTime,      default=get_datetime_now, nullable=False)
 
 
   def __repr__(self):
@@ -1297,7 +1302,7 @@ class Withdraw(Base):
 
   confirmation_token = Column(String,     index=True, unique=True)
   status          = Column(String(1),     nullable=False, default='0', index=True)
-  created         = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
+  created         = Column(DateTime,      nullable=False, default=get_datetime_now, index=True)
   reason_id       = Column(Integer)
   reason          = Column(String)
   email_lang      = Column(String)
@@ -1550,7 +1555,7 @@ class Withdraw(Base):
       template_name       = 'withdraw-confirmation'
       template_parameters = withdraw_record.as_dict()
       template_parameters['amount'] = formatted_amount
-      template_parameters['created'] = datetime.datetime.now()
+      template_parameters['created'] = get_datetime_now()
 
       UserEmail.create( session  = session,
                         user_id  = user.id,
@@ -1598,7 +1603,7 @@ class Order(Base):
   order_qty             = Column(Integer,       nullable=False)
   cum_qty               = Column(Integer,       nullable=False, default=0)
   leaves_qty            = Column(Integer,       nullable=False, default=0)
-  created               = Column(DateTime,      nullable=False, default=datetime.datetime.now, index=True)
+  created               = Column(DateTime,      nullable=False, default=get_datetime_now, index=True)
   last_price            = Column(Integer,       nullable=False, default=0)
   last_qty              = Column(Integer,       nullable=False, default=0)
   average_price         = Column(Integer,       nullable=False, default=0)
@@ -1692,8 +1697,6 @@ class Order(Base):
                    email_lang           = email_lang)
     session.add(order)
     return order
-
-
 
   @staticmethod
   def get_order_by_client_order_id(session, status_list, user_id, client_order_id):
@@ -1813,7 +1816,7 @@ class Trade(Base):
   @staticmethod
   def create(session, order,counter_order, symbol, size, price, trade_date_time=None):
     if trade_date_time is None:
-      trade_date_time = datetime.datetime.now()
+      trade_date_time = get_datetime_now()
 
     buyer_id = order.account_id
     buyer_username = order.account_user.username
@@ -1892,7 +1895,7 @@ class Deposit(Base):
   paid_value              = Column(Integer,    nullable=False, default=0, index=True)
   status                  = Column(String(1),  nullable=False, default='0', index=True) # 0-Pending, 1-Unconfirmed, 2-In-progress, 4-Complete, 8-Cancelled
   data                    = Column(Text,       nullable=False, index=True)
-  created                 = Column(DateTime,   nullable=False, default=datetime.datetime.now, index=True)
+  created                 = Column(DateTime,   nullable=False, default=get_datetime_now, index=True)
   instructions            = Column(Text)
 
   client_order_id         = Column(String(30), index=True)
@@ -2287,7 +2290,7 @@ class Deposit(Base):
       return None
 
     try:
-      now = datetime.datetime.now()
+      now = get_datetime_now()
       instruction_age_in_seconds = (now - self.created).seconds
 
       instructions_list = json.loads(self.instructions)

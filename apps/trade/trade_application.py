@@ -147,6 +147,7 @@ class TradeApplication(object):
       self.log('DB_ENTITY','ORDER',order)
 
   def publish(self, key, data):
+    print key, data
     self.publish_queue.append([ key, data ])
 
   def run(self):

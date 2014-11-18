@@ -7,3 +7,4 @@ appdirs
 mailchimp
 pycountry
 pyboleto
+mock
