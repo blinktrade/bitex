@@ -1002,10 +1002,24 @@ def processWithdrawConfirmationRequest(session, msg):
   reqId = msg.get('WithdrawReqID')
   token = msg.get('ConfirmationToken')
 
-  withdraw_data = Withdraw.user_confirm(TradeApplication.instance().db_session, token)
-  if not withdraw_data:
-    response = {'MsgType':'U25', 'WithdrawReqID': reqId}
-    return json.dumps(response, cls=JsonEncoder)
+  withdraw_id = msg.get('WithdrawID')
+  second_factor = msg.get('SecondFactor')
+
+  if second_factor:
+    if not session.user.check_second_factor(second_factor):
+      raise NotAuthorizedError()
+    withdraw_data = Withdraw.get_withdraw(TradeApplication.instance().db_session, withdraw_id)
+    if not withdraw_data:
+      raise InvalidParameter()
+
+    if not withdraw_data.confirm_using_second_factor(TradeApplication.instance().db_session):
+      response = {'MsgType':'U25', 'WithdrawReqID': reqId}
+      return json.dumps(response, cls=JsonEncoder)
+  else:
+    withdraw_data = Withdraw.user_confirm(TradeApplication.instance().db_session, token)
+    if not withdraw_data:
+      response = {'MsgType':'U25', 'WithdrawReqID': reqId}
+      return json.dumps(response, cls=JsonEncoder)
 
   TradeApplication.instance().db_session.commit()
 
@@ -1328,6 +1342,7 @@ def processProcessWithdraw(session, msg):
 
     result = withdraw.cancel( TradeApplication.instance().db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
+    data        = msg.get('Data')
     percent_fee = msg.get('PercentFee',0.)
     fixed_fee   = msg.get('FixedFee',0.)
 
@@ -1337,7 +1352,7 @@ def processProcessWithdraw(session, msg):
     if fixed_fee > float(withdraw.fixed_fee):
       raise NotAuthorizedError() # Broker tried to raise their fees manually
 
-    result = withdraw.set_in_progress( TradeApplication.instance().db_session, percent_fee, fixed_fee)
+    result = withdraw.set_in_progress( TradeApplication.instance().db_session, percent_fee, fixed_fee, data)
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
 

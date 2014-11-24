@@ -316,6 +316,11 @@ class User(Base):
       if hasattr(self, field):
         setattr(self, field, field_value)
 
+  def check_second_factor(self, second_factor):
+    if not onetimepass.valid_totp(token=int(second_factor), secret=self.two_factor_secret):
+      return False
+    return True
+
   def enable_two_factor(self, enable, secret, second_factor):
     if enable:
       if secret and second_factor is not None and second_factor.isdigit() and\
@@ -1319,9 +1324,18 @@ class Withdraw(Base):
     obj.update(json.loads(self.data))
     return obj
 
+  def confirm_using_second_factor(self, session):
+    if self.status != '0':
+      return False
+
+    self.status = '1'
+    session.add(self)
+    session.flush()
+
+    return True
 
   @staticmethod
-  def user_confirm(session, confirmation_token):
+  def user_confirm(session, confirmation_token=None):
     withdraw_data = session.query(Withdraw).filter_by(confirmation_token=confirmation_token).filter_by( status = 0 ).first()
     if not withdraw_data:
       return  None
@@ -1332,17 +1346,22 @@ class Withdraw(Base):
 
     return  withdraw_data
 
-  def set_in_progress(self, session, percent_fee=0., fixed_fee=0):
+  def set_in_progress(self, session, percent_fee=0., fixed_fee=0, data=None):
     if self.status != '1':
       return False
+
+    new_data = {}
+    new_data.update(json.loads(self.data))
+    if data:
+      new_data.update( data )
+      if self.data != json.dumps(new_data):
+        self.data = json.dumps(new_data)
 
     self.percent_fee = percent_fee
     self.fixed_fee = fixed_fee
 
-    total_percent_fee_value = ((self.amount - self.fixed_fee) * (float(self.percent_fee)/100.0))
-    total_fees = total_percent_fee_value + self.fixed_fee
-    self.paid_amount = self.amount + total_fees
 
+    self.paid_amount = (self.amount / ( 100.0 - float(self.percent_fee) ) * 100.0) + self.fixed_fee
 
     current_balance = Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
     if self.paid_amount > current_balance:
@@ -1393,8 +1412,7 @@ class Withdraw(Base):
 
     self.status = '4' # COMPLETE
 
-    total_percent_fee_value = ((self.amount - self.fixed_fee) * (float(self.percent_fee)/100.0))
-    total_fees = total_percent_fee_value + self.fixed_fee
+    total_fees = self.paid_amount - self.amount
 
     if total_fees:
       Ledger.transfer(session,

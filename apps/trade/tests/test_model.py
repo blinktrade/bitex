@@ -23,7 +23,7 @@ class BaseTest(unittest.TestCase):
   def setUp(self):
     from models import Base, db_bootstrap
 
-    self.engine = create_engine('sqlite://', echo=False)
+    self.engine = create_engine('sqlite://', echo=True)
     Base.metadata.create_all(self.engine)
 
     self.db_session = scoped_session(sessionmaker(bind=self.engine))
@@ -36,7 +36,7 @@ class BaseTest(unittest.TestCase):
       [ "USD" , u"$"       , "Dollar"   ,  False, 100  , "{:,.2f}", u"¤ #,##0.00;(¤ #,##0.00)"              , "{:,.2f}", u"¤ #,##0.00;(¤ #,##0.00)"            ]
     ]
 
-    from models import Currency, Instrument, Broker, User
+    from models import Currency, Instrument, Broker, User, DepositMethods
     for c in currencies:
       e = Currency(code                 = c[0],
                    sign                 = c[1],
@@ -110,7 +110,41 @@ class BaseTest(unittest.TestCase):
     self.db_session.add(e)
     self.db_session.commit()
 
+    # user exchange bonus
+    e = User(id                   = 90000000,
+             username             = 'exchange_bonus',
+             email                = 'bonus@blinktrade.com',
+             broker_id            = 5,
+             broker_username      = 'exchange',
+             password             = 'abc12345',
+             country_code         = 'US',
+             state                = 'NY',
+             transaction_fee_buy  = 0,
+             transaction_fee_sell = 0,
+             verified             = 5,
+             is_broker            = True,
+             email_lang           = 'en')
+    self.db_session.add(e)
+    self.db_session.commit()
+    self.user_exchange_bonus = e
 
+    # user exchange fees
+    e = User(id                   = 90000001,
+             username             = 'exchange_fees',
+             email                = 'fee@blinktrade.com',
+             broker_id            = 5,
+             broker_username      = 'exchange',
+             password             = 'abc12345',
+             country_code         = 'US',
+             state                = 'NY',
+             transaction_fee_buy  = 0,
+             transaction_fee_sell = 0,
+             verified             = 5,
+             is_broker            = True,
+             email_lang           = 'en')
+    self.db_session.add(e)
+    self.db_session.commit()
+    self.user_exchange_fees = e
 
     # broker exchange
     e = Broker(id                       = 5,
@@ -230,6 +264,87 @@ class BaseTest(unittest.TestCase):
     self.db_session.add(e)
     self.db_session.commit()
 
+    
+    e = DepositMethods(id                         = 501,
+                        broker_id                 = 5,
+                        name                      = 'usps',
+                        description               = 'USPS Money order',
+                        disclaimer                = '1 business day',
+                        type                      = 'DTP',
+                        percent_fee               = 0,
+                        fixed_fee                 = 500000000,
+                        broker_deposit_ctrl_num   = 501000001,
+                        currency                  = 'USD',
+                        deposit_limits            = json.dumps({
+                          "0": {"enabled": False},
+                          "1": {"enabled": False},
+                          "2": {"enabled": False},
+                          "3": {"enabled": True, "min" : 1000000000, "max":  280000000000 },
+                          "4": {"enabled": True, "min" : 1000000000, "max": 5000000000000 },
+                          "5": {"enabled": True, "min" : 1000000000 }
+                        }).decode('utf-8'),
+                        html_template             = """
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/2.3.0/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body style="background-color: #ffffff">
+    <div class="container">
+      <div class="content-fluid">
+        <table class="table table-condensed">
+          <tr>
+            <td>Order ID:</td>
+            <td>*|control_number|*</td>
+          </tr>
+          <tr>
+            <td>Created:</td>
+            <td>*|created|*</td>
+          </tr>
+          <tr>
+            <td>Deposit Method:</td>
+            <td>Money Order</td>
+          </tr>
+          <tr>
+            <td>Instructions:</td>
+            <td>
+              1. Head to your local United States Postal Service and purchase a money order slip for the correct amount. Learn more about USPS money orders <a href="https://www.usps.com/shop/money-orders.htm">here</a><br/>
+              2. Fill out the money order form. <b>Important: Make sure to write your confirmation code directly on it!</b><br/>
+              3. Take a picture of the filled out money order<br/>
+              4. Upload the photo of the money order in the system<br/>
+              5. Send the money order to :
+              <strong>Satoshi Nakamoto<strong><br/>
+              <strong>21 Bitcoin Street<strong><br/>
+              <strong>New York - NY - 10001<strong><br/>
+            </td>
+          </tr>
+          <tr>
+            <td>Total Deposit:</td>
+            <td>$ *|value|*</td>
+          </tr>
+          <tr>
+            <td>Notes:</td>
+            <td> <small>
+              Please complete your deposit according to your preferred method. Be sure to send a copy of the Order ID with the receipt of completed payment to us.
+            </small> </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
+                        """,
+                        parameters                = '{}')
+    self.db_session.add(e)
+    self.db_session.commit()
+    self.deposit_method_501 = e
+
+    self.deposit_method_501.generate_deposit(self.db_session, 
+                                             self.user_exchange_bonus,
+                                             100000000000,
+                                             None)
+                                             
 
 class UserTest(BaseTest):
   @mock.patch('trade.get_now')
@@ -245,10 +360,10 @@ class UserTest(BaseTest):
     TradeApplication.instance().publish.assert_called_with('EMAIL', {
       'Language': u'en',
       'EmailType': '0',
-      'UserID': 9000000,
+      'UserID': 90000002,
       'OrigTime': datetime.datetime(2014, 1, 1, 10, 10, 10),
       'To': u'r@blinktrade.com',
-      'Params': '{"username": "rodrigo", "id": 9000000, "state": "NY", "broker_id": 5, "broker_username": "exchange", "country_code": "US", "email": "r@blinktrade.com"}',
+      'Params': '{"username": "rodrigo", "id": 90000002, "state": "NY", "broker_id": 5, "broker_username": "exchange", "country_code": "US", "email": "r@blinktrade.com"}',
       'RawData': '',
       'Template': 'welcome',
       'BrokerID': 5,
@@ -262,5 +377,4 @@ class UserTest(BaseTest):
     from models import User
     User.signup(self.db_session, 'rodrigo', 'r@blinktrade.com', 'abc12345', 'NY', 'US', 5)
     self.assertTrue( User.authenticate(self.db_session, 5, 'rodrigo', 'abc12345', None) is not None)
-
 
