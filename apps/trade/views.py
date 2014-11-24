@@ -1006,19 +1006,18 @@ def processWithdrawConfirmationRequest(session, msg):
   second_factor = msg.get('SecondFactor')
 
   if second_factor:
-    if not session.user.check_second_factor(second_factor):
-      raise NotAuthorizedError()
     withdraw_data = Withdraw.get_withdraw(TradeApplication.instance().db_session, withdraw_id)
     if not withdraw_data:
       raise InvalidParameter()
 
-    if not withdraw_data.confirm_using_second_factor(TradeApplication.instance().db_session):
-      response = {'MsgType':'U25', 'WithdrawReqID': reqId}
+    if not session.user.check_second_factor(second_factor) or \
+       not withdraw_data.confirm_using_second_factor(TradeApplication.instance().db_session):
+      response = {'MsgType':'U25', 'WithdrawReqID': reqId, 'WithdrawID':withdraw_data.id, 'Status':withdraw_data.status}
       return json.dumps(response, cls=JsonEncoder)
   else:
     withdraw_data = Withdraw.user_confirm(TradeApplication.instance().db_session, token)
     if not withdraw_data:
-      response = {'MsgType':'U25', 'WithdrawReqID': reqId}
+      response = {'MsgType':'U25', 'WithdrawReqID': reqId, 'Status':'0'}
       return json.dumps(response, cls=JsonEncoder)
 
   TradeApplication.instance().db_session.commit()
@@ -1032,7 +1031,8 @@ def processWithdrawConfirmationRequest(session, msg):
   response_u25 = withdrawRecordToWithdrawMessage(withdraw_data)
   response_u25['MsgType'] = 'U25'
   response_u25['WithdrawReqID'] = reqId
-  response_u25['ConfirmationToken'] = withdraw_data.confirmation_token,
+  response_u25['WithdrawID'] = withdraw_data.id
+  response_u25['Status'] = withdraw_data.status
 
   return json.dumps(response_u25, cls=JsonEncoder)
 
