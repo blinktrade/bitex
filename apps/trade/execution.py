@@ -123,6 +123,9 @@ class OrderMatcher(object):
         if execution_counter == len(other_side):
           break # workaround to make the execution_counter be counted until the last order.
 
+        if not order.has_leaves_qty:
+          break
+
         counter_order = other_side[execution_counter]
 
         if not order.has_match(counter_order):
