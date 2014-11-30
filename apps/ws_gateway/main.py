@@ -285,6 +285,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.trade_client.close()
 
     def on_trade_history_request(self, msg):
+        since       = msg.get('Since') 
         page        = msg.get('Page', 0)
         page_size   = msg.get('PageSize', 100)
         filter      = msg.get('Filter')
@@ -299,7 +300,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
                       'Buyer'   , 'Seller', 'Created' ]
 
 
-        trade_list = generate_trade_history(self.application.db_session, page_size, offset, show_username=self.is_broker())
+        trade_list = generate_trade_history(self.application.db_session, page_size, offset, show_username=self.is_broker(), since=since)
 
         response_msg = {
             'MsgType'           : 'U33', # TradeHistoryResponse
@@ -309,6 +310,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
             'Columns'           : columns,
             'TradeHistoryGrp'   : trade_list
         }
+        if since:
+          response_msg['Since'] = since
 
         self.write_message(str(json.dumps(response_msg, cls=JsonEncoder)))
 

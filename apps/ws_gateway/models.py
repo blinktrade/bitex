@@ -4,7 +4,7 @@
 from datetime import datetime, timedelta
 
 from sqlalchemy import create_engine, func
-from sqlalchemy.sql.expression import or_
+from sqlalchemy.sql.expression import or_, and_
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -66,13 +66,19 @@ class Trade(Base):
         return res[0]
 
     @staticmethod
-    def get_last_trades(session, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
-        today = datetime.now()
-        timestamp = today - timedelta(days=1)
+    def get_last_trades(session, since = None, page_size = None, offset = None, sort_column = None, sort_order='ASC'):
+        if since is not None:
+          if since > 1000000000:
+            since = datetime.utcfromtimestamp(since)
+            filter_obj  = and_(Trade.created >= since)
+          else:
+            filter_obj  = and_(Trade.id > int(since))
+        else:
+          today = datetime.now()
+          since = today - timedelta(days=1)
+          filter_obj  = and_(Trade.created >= since)
 
-        trades = session.query(Trade).filter(
-            Trade.created >= timestamp).order_by(
-            Trade.created.desc())
+        trades = session.query(Trade).filter(filter_obj).order_by( Trade.id.desc())
 
         if page_size:
             trades = trades.limit(page_size)

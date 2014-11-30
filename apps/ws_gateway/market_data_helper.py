@@ -377,8 +377,8 @@ class MarketDataPublisher(object):
             self.handler(sender, md)
             self.entry_list_order_depth = []
 
-def generate_trade_history(session, page_size = None, offset = None, sort_column = None, sort_order='ASC', show_username=False):
-    trades = Trade.get_last_trades(session, page_size, offset, sort_column, sort_order)
+def generate_trade_history(session, page_size = None, offset = None, sort_column = None, sort_order='ASC', show_username=False, since=None):
+    trades = Trade.get_last_trades(session, since, page_size, offset, sort_column, sort_order)
     trade_list = []
     for trade in  trades:
         rec = [
