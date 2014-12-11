@@ -184,14 +184,30 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 currency = req_msg.get('Currency')
 
                 secret = uuid.uuid4().hex
-                cold_wallet = self.get_broker_wallet('cold', currency)
                 callback_url = self.application.options.callback_url + secret
-                if not cold_wallet:
+
+                hot_wallet  = self.get_broker_wallet('hot', currency)
+                cold_wallet = self.get_broker_wallet('cold', currency)
+                if not hot_wallet and not cold_wallet:
+                    return
+
+                if not hot_wallet and cold_wallet:
+                    dest_wallet = cold_wallet
+                elif hot_wallet and not cold_wallet:
+                    dest_wallet = hot_wallet
+                else:
+                    # 62.5% of all deposits go to the cold wallet, and 37.5% go to the hot wallet
+                    dest_wallet = hot_wallet
+                    if secret[0] in ('0','1','2','3','4','5','6','7','8','9'):
+                        dest_wallet = cold_wallet
+
+
+                if not dest_wallet:
                     return
 
                 parameters = urllib.urlencode({
                     'method': 'create',
-                    'address': cold_wallet,
+                    'address': dest_wallet,
                     'callback': callback_url,
                     'currency': currency
                 })
