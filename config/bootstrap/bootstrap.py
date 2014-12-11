@@ -15,7 +15,7 @@ import ConfigParser
 def main():
   candidates = ['bootstrap.ini']
   if len(sys.argv) > 1:
-    candidates.append(sys.argv[1])
+    candidates.append(os.path.expanduser(sys.argv[1]))
 
   config = ConfigParser.SafeConfigParser()
   config.read( candidates )
@@ -23,6 +23,7 @@ def main():
   from trade.models import Base, Currency, Instrument, User, Broker, DepositMethods
   db_engine = config.get('database','sqlalchemy_engine') + ':///' + os.path.expanduser(config.get('database','sqlalchemy_connection_string'))
   engine = create_engine( db_engine, echo=True)
+  #engine.raw_connection().connection.text_factory = str
 
   Base.metadata.create_all(engine)
 
