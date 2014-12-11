@@ -183,7 +183,7 @@ def run_application(options, instance_name):
           }
 
           result = mandrill_api.messages.send_template(
-            template_name= (template_name + '-' + language).lower(),
+            template_name= (template_name + '-' + language.replace('_','-') ).lower(),
             template_content=template_content,
             message=message)
 
