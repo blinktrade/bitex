@@ -4,7 +4,7 @@ import datetime
 from pyblinktrade.message import JsonMessage
 from pyblinktrade.json_encoder import  JsonEncoder
 from copy import deepcopy
-
+import math
 import json
 
 from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
@@ -260,6 +260,12 @@ def processNewOrderSingle(session, msg):
     else:
       fee = account_user.transaction_fee_sell
 
+  # Adjust the price according to the PIP
+  price_currency = msg.get('Symbol')[3:]
+  pip = Currency.get_currency(TradeApplication.instance().db_session,price_currency).pip
+  price = msg.get('Price', 0)
+  price = int(math.floor( float(price)/ float(pip) ) * pip)
+
   # process the new order.
   order = Order.create(TradeApplication.instance().db_session,
                        user_id              = session.user.id,
@@ -274,7 +280,7 @@ def processNewOrderSingle(session, msg):
                        symbol               = msg.get('Symbol'),
                        side                 = msg.get('Side'),
                        type                 = msg.get('OrdType'),
-                       price                = msg.get('Price', 0),
+                       price                = price,
                        order_qty            = msg.get('OrderQty'),
                        time_in_force        = msg.get('TimeInForce', '1'),
                        fee                  = fee,

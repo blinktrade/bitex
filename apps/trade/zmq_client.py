@@ -174,7 +174,7 @@ class TradeClient(object):
         self.is_logged = True
 
         if self.trade_pub_socket:
-          self.trade_pub_socket.setsockopt(zmq.SUBSCRIBE, str(self.user_id))
+          self.trade_pub_socket.setsockopt(zmq.SUBSCRIBE, '^' + str(self.user_id) + '$')
 
     return rep_msg
 

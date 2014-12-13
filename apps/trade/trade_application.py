@@ -256,6 +256,6 @@ class TradeApplication(object):
 
       # publish all publications
       for key, message in self.publish_queue:
-        self.log('OUT', 'TRADE_PUB', str([key, message]) )
-        self.publisher_socket.send_multipart( [str(key),  json.dumps(message, cls=JsonEncoder)] )
+        self.log('OUT', 'TRADE_PUB', str([ key, message]) )
+        self.publisher_socket.send_multipart( [ '^' + str(key) + '$' ,  json.dumps(message, cls=JsonEncoder)] )
       self.publish_queue = []

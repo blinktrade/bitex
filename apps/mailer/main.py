@@ -66,7 +66,7 @@ def run_application(options, instance_name):
   context = zmq.Context()
   socket = context.socket(zmq.SUB)
   socket.connect(options.trade_pub)
-  socket.setsockopt(zmq.SUBSCRIBE, "EMAIL")
+  socket.setsockopt(zmq.SUBSCRIBE, "^EMAIL$")
 
   trade_in_socket = context.socket(zmq.REQ)
   trade_in_socket.connect(options.trade_in)
