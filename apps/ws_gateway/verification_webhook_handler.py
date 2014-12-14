@@ -60,6 +60,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       if 'id_fields' in key:
         id_fields = value.split(',')
 
+      # jotform
       if 'name' in key and isinstance(value, dict ) and 'first' in value:
         first_name = value['first']
       if 'name' in key and isinstance(value, dict ) and 'middle' in value:
@@ -94,6 +95,30 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
       if 'address' in key and isinstance(value, dict ) and 'country' in value:
         address_country = value['country']
         address_country_code = get_country_code(address_country)
+
+
+      #form stack
+      if 'name-first' in key:
+        first_name = value
+      if 'name-middle' in key:
+        middle_name = value
+      if 'name-last' in key:
+        last_name = value
+
+      if 'address-address' in key:
+        address_addr_line1 = value
+      if 'address-address2' in key:
+        address_addr_line2 = value
+      if 'address-city' in key:
+        address_city = value
+      if 'address-state' in key:
+        address_state = value
+      if 'address-zip' in key:
+        address_postal = value
+      if 'address-country' in key:
+        address_country = value
+        address_country_code = get_country_code(address_country)
+
 
     uploaded_files = []
     for field in photo_fields:
