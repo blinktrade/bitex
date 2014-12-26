@@ -1397,6 +1397,20 @@ class Withdraw(Base):
     session.add(self)
     session.flush()
 
+    formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
+    template_name       = "withdraw-progress"
+    template_parameters = self.as_dict()
+    template_parameters['amount'] = formatted_amount
+
+    UserEmail.create( session = session,
+                      user_id = self.user_id ,
+                      broker_id = self.broker_id,
+                      subject = "WP",
+                      template=template_name,
+                      language= self.email_lang,
+                      params  = json.dumps(template_parameters, cls=JsonEncoder))
+
+
     return True
 
   def set_as_complete(self, session, data, broker_fees_account):
@@ -1433,6 +1447,21 @@ class Withdraw(Base):
 
     session.add(self)
     session.flush()
+
+    formatted_amount = Currency.format_number( session, self.currency, self.amount / 1.e8 )
+    template_name       = "withdraw-complete"
+    template_parameters = self.as_dict()
+    template_parameters['amount'] = formatted_amount
+
+    UserEmail.create( session = session,
+                      user_id = self.user_id ,
+                      broker_id = self.broker_id,
+                      subject = "WF",
+                      template=template_name,
+                      language= self.email_lang,
+                      params  = json.dumps(template_parameters, cls=JsonEncoder))
+
+
 
     return True
 
@@ -2069,6 +2098,25 @@ class Deposit(Base):
     session.add(self)
     session.flush()
 
+    template_name       = "deposit-progress"
+    template_parameters = self.as_dict()
+
+    if self.value:
+      formatted_value = Currency.format_number( session, self.currency, self.value / 1.e8 )
+      template_parameters['value'] = formatted_value
+
+    if self.paid_value:
+      formatted_paid_value = Currency.format_number( session, self.currency, self.paid_value / 1.e8 )
+      template_parameters['paid_value'] = formatted_paid_value
+
+    UserEmail.create( session = session,
+                      user_id = self.user_id ,
+                      broker_id = self.broker_id,
+                      subject = "DP",
+                      template=template_name,
+                      language= self.email_lang,
+                      params  = json.dumps(template_parameters, cls=JsonEncoder))
+
 
   def process_confirmation(self, session, amount, percent_fee=0., fixed_fee=0, data=None ):
     should_update = False
@@ -2300,6 +2348,28 @@ class Deposit(Base):
       self.data = json.dumps(new_data)
       session.add(self)
       session.flush()
+
+    if self.status == '4':
+      template_name       = "deposit-complete"
+      template_parameters = self.as_dict()
+
+      if self.value:
+        formatted_value = Currency.format_number( session, self.currency, self.value / 1.e8 )
+        template_parameters['value'] = formatted_value
+
+      if self.paid_value:
+        formatted_paid_value = Currency.format_number( session, self.currency, self.paid_value / 1.e8 )
+        template_parameters['paid_value'] = formatted_paid_value
+
+
+      UserEmail.create( session = session,
+                        user_id = self.user_id ,
+                        broker_id = self.broker_id,
+                        subject = "DF",
+                        template=template_name,
+                        language= self.email_lang,
+                        params  = json.dumps(template_parameters, cls=JsonEncoder))
+
 
     return instruction_to_execute
 

@@ -696,7 +696,7 @@ def processRequestPasswordRequest(session, msg):
   user  = User.get_user( TradeApplication.instance().db_session, msg.get('BrokerID') ,email = msg.get('Email') )
   success = 0
   if user:
-    user.request_reset_password( TradeApplication.instance().db_session, session.email_lang )
+    user.request_reset_password( TradeApplication.instance().db_session, user.email_lang )
     TradeApplication.instance().db_session.commit()
     success = 1
 
