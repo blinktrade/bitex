@@ -393,9 +393,10 @@ class User(Base):
           'verification_data': verification_data,
           'broker_username': self.broker_username
         }
+        broker = Broker.get_broker( session, self.broker_id)
         UserEmail.create( session = session,
-                          user_id = self.id,
-                          broker_id = self.broker_id,
+                          user_id = self.broker_id,
+                          broker_id = broker.user.broker_id,
                           subject = "VS",
                           template= "customer-verification-submit",
                           language= self.email_lang,
@@ -1597,20 +1598,21 @@ class Withdraw(Base):
                                data               = data )
 
     if user.withdraw_email_validation:
-      formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
+      if not user.two_factor_enabled:
+        formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
 
-      template_name       = 'withdraw-confirmation'
-      template_parameters = withdraw_record.as_dict()
-      template_parameters['amount'] = formatted_amount
-      template_parameters['created'] = get_datetime_now()
+        template_name       = 'withdraw-confirmation'
+        template_parameters = withdraw_record.as_dict()
+        template_parameters['amount'] = formatted_amount
+        template_parameters['created'] = get_datetime_now()
 
-      UserEmail.create( session  = session,
-                        user_id  = user.id,
-                        broker_id = user.broker_id,
-                        subject  = "CW",
-                        template = template_name,
-                        language = email_lang,
-                        params   = json.dumps(template_parameters, cls=JsonEncoder))
+        UserEmail.create( session  = session,
+                          user_id  = user.id,
+                          broker_id = user.broker_id,
+                          subject  = "CW",
+                          template = template_name,
+                          language = email_lang,
+                          params   = json.dumps(template_parameters, cls=JsonEncoder))
 
     else:
       withdraw_record.status = '1'
@@ -2098,30 +2100,30 @@ class Deposit(Base):
     session.add(self)
     session.flush()
 
-    template_name       = "deposit-progress"
-    template_parameters = self.as_dict()
+    if self.type != 'CRY':  # Send deposit-progress email only for Non crypto currencies deposits.
+      template_name       = "deposit-progress"
+      template_parameters = self.as_dict()
 
-    if self.value:
-      formatted_value = Currency.format_number( session, self.currency, self.value / 1.e8 )
-      template_parameters['value'] = formatted_value
+      if self.value:
+        formatted_value = Currency.format_number( session, self.currency, self.value / 1.e8 )
+        template_parameters['value'] = formatted_value
 
-    if self.paid_value:
-      formatted_paid_value = Currency.format_number( session, self.currency, self.paid_value / 1.e8 )
-      template_parameters['paid_value'] = formatted_paid_value
+      if self.paid_value:
+        formatted_paid_value = Currency.format_number( session, self.currency, self.paid_value / 1.e8 )
+        template_parameters['paid_value'] = formatted_paid_value
 
-    UserEmail.create( session = session,
-                      user_id = self.user_id ,
-                      broker_id = self.broker_id,
-                      subject = "DP",
-                      template=template_name,
-                      language= self.email_lang,
-                      params  = json.dumps(template_parameters, cls=JsonEncoder))
+      UserEmail.create( session = session,
+                        user_id = self.user_id ,
+                        broker_id = self.broker_id,
+                        subject = "DP",
+                        template=template_name,
+                        language= self.email_lang,
+                        params  = json.dumps(template_parameters, cls=JsonEncoder))
 
 
   def process_confirmation(self, session, amount, percent_fee=0., fixed_fee=0, data=None ):
     should_update = False
     should_start_a_loan_from_broker_to_the_user = False
-    should_ask_the_user_to_trust_his_payee_address = False
     payee_address = None
     broker = None
     user = None
@@ -2180,14 +2182,11 @@ class Deposit(Base):
                                                self.currency ):
             if 'InputFee' in data and data['InputFee'] > 0:
               should_start_a_loan_from_broker_to_the_user = True
-          elif not should_start_a_loan_from_broker_to_the_user:
-            should_ask_the_user_to_trust_his_payee_address = True
 
       for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
         if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
           should_confirm = True
           should_start_a_loan_from_broker_to_the_user = False
-          should_ask_the_user_to_trust_his_payee_address = False
           break
 
       if self.status == '0' or self.status == '1':
@@ -2195,16 +2194,6 @@ class Deposit(Base):
         should_update = True
     else:
       should_confirm = True
-
-    if should_ask_the_user_to_trust_his_payee_address:
-      TrustedAddress.suggest_address(session,
-                                     self.user_id,
-                                     self.username,
-                                     self.broker_id,
-                                     self.broker_username,
-                                     payee_address,
-                                     self.currency,
-                                     self.email_lang )
 
     if should_confirm and self.status == '4':
       # The user probably saved the deposit address and he is sending to the same address
