@@ -1968,6 +1968,12 @@ class Deposit(Base):
       self.data, self.created, self.reason_id, self.reason, self.email_lang,
       self.fixed_fee, self.percent_fee, self.client_order_id, self.instructions )
 
+  def as_dict(self):
+    import json
+    obj = { c.name: getattr(self, c.name) for c in self.__table__.columns }
+    obj.update(json.loads(self.data))
+    return obj
+
   @staticmethod
   def create_crypto_currency_deposit(session, user, currency, input_address, destination, secret, client_order_id, instructions=None, value=None ):
     import uuid
