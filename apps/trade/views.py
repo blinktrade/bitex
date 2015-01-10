@@ -502,6 +502,7 @@ def processSecurityListRequest(session, msg):
       'Description': currency.description,
       'IsCrypto': currency.is_crypto,
       'Pip': currency.pip,
+      'NumberOfDecimals': currency.number_of_decimals,
       'FormatPython': currency.format_python,
       'FormatJS': currency.format_js,
       'HumanFormatPython': currency.human_format_python,

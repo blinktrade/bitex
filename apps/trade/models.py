@@ -76,16 +76,17 @@ class BrokerDoesNotExistsException(Exception):
   pass
 
 class Currency(Base):
-  __tablename__   = 'currencies'
-  code            = Column(String(4), primary_key=True)
-  sign            = Column(String(2))
-  description     = Column(String(15), nullable=False)
-  is_crypto       = Column(Boolean, nullable=False)
-  pip             = Column(Integer, default=10000000)
-  format_python   = Column(String(25))
-  format_js       = Column(String(25))
-  human_format_python   = Column(String(25))
-  human_format_js       = Column(String(25))
+  __tablename__       = 'currencies'
+  code                = Column(String(4), primary_key=True)
+  sign                = Column(String(2))
+  description         = Column(String(15), nullable=False)
+  is_crypto           = Column(Boolean, nullable=False)
+  pip                 = Column(Integer, default=10000000)
+  format_python       = Column(String(25))
+  format_js           = Column(String(25))
+  human_format_python = Column(String(25))
+  human_format_js     = Column(String(25))
+  number_of_decimals  = Column(Integer, default=2)
 
   @staticmethod
   def get_currencies(session):
@@ -102,8 +103,8 @@ class Currency(Base):
     return currency.format_python.format( number )
 
   def __repr__(self):
-    return u"<Currency(code=%r, sign=%r, description=%r, is_crypto=%r, pip=%r, format_python=%r, format_js=%r, human_format_python=%r, human_format_js=%r)>" % (
-      self.code, self.sign, self.description, self.is_crypto, self.pip, self.format_python, self.format_js, self.human_format_python, self.human_format_js
+    return u"<Currency(code=%r, sign=%r, description=%r, is_crypto=%r, pip=%r, format_python=%r, format_js=%r, human_format_python=%r, human_format_js=%r, number_of_decimals=%r)>" % (
+      self.code, self.sign, self.description, self.is_crypto, self.pip, self.format_python, self.format_js, self.human_format_python, self.human_format_js, self.number_of_decimals
       )
 
 class Instrument(Base):
@@ -661,9 +662,9 @@ class Balance(Base):
                             balance     = 0)
 
     if operation == 'CREDIT':
-      balance_obj.balance = balance_obj.balance + value
+      balance_obj.balance = int(balance_obj.balance + value)
     elif operation == 'DEBIT':
-      balance_obj.balance = balance_obj.balance - value
+      balance_obj.balance = int(balance_obj.balance - value)
 
     session.add(balance_obj)
 
@@ -934,14 +935,14 @@ class Ledger(Base):
 
     order_fee_currency = to_symbol if order.is_buy else from_symbol
     order_fee_base_amount = qty if order.is_buy else total_value
-    order_fee_amount =  order_fee_base_amount * (order.fee / 10000.)
+    order_fee_amount =  int(order_fee_base_amount * (order.fee / 10000.))
     if order_fee_amount:
       process_execution_fee(session, trade_id, order,order_fee_currency, order_fee_amount, timestamp )
 
 
     counter_order_fee_currency = to_symbol if counter_order.is_buy else from_symbol
     counter_order_fee_base_amount = qty if counter_order.is_buy else total_value
-    counter_order_fee_amount =  counter_order_fee_base_amount * (counter_order.fee / 10000.)
+    counter_order_fee_amount =  int(counter_order_fee_base_amount * (counter_order.fee / 10000.))
     if counter_order_fee_amount:
       process_execution_fee(session, trade_id, counter_order,counter_order_fee_currency, counter_order_fee_amount, timestamp )
 

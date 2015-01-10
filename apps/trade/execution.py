@@ -239,6 +239,7 @@ class OrderMatcher(object):
             qty_currency = order.symbol[:3]
             formatted_qty = Currency.format_number( session, qty_currency, trade.size / 1.e8 )
 
+
             price_currency = order.symbol[3:]
             formatted_price = Currency.format_number( session, price_currency, trade.price / 1.e8 )
 
@@ -250,6 +251,7 @@ class OrderMatcher(object):
               'username': order.user.username,
               'order_id': order.id,
               'trade_id': trade.id,
+              'side': order.side,
               'executed_when': trade.created,
               'qty': formatted_qty,
               'price': formatted_price,
