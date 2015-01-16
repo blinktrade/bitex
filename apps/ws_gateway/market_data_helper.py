@@ -290,10 +290,7 @@ class MarketDataSubscriber(object):
         if size_currency not in self.volume_dict:
             self.volume_dict[size_currency] = 0
 
-        volume_price = int(
-            msg.get('MDEntryPx') *
-            msg.get('MDEntrySize') /
-            1.e8)
+        volume_price = int( msg.get('MDEntryPx') * msg.get('MDEntrySize') / 1.e8)
 
         volume_size = msg.get('MDEntrySize')
         self.volume_dict[price_currency] += volume_price

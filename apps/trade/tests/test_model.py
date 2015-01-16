@@ -16,6 +16,7 @@ import  datetime
 import mock
 
 from trade_application import  TradeApplication
+from models import Instrument, Currency, Broker, User, DepositMethods
 
 TradeApplication.instance().publish = mock.MagicMock()
 
@@ -23,7 +24,7 @@ class BaseTest(unittest.TestCase):
   def setUp(self):
     from models import Base, db_bootstrap
 
-    self.engine = create_engine('sqlite://', echo=True)
+    self.engine = create_engine('sqlite://', echo=False)
     Base.metadata.create_all(self.engine)
 
     self.db_session = scoped_session(sessionmaker(bind=self.engine))
@@ -36,7 +37,7 @@ class BaseTest(unittest.TestCase):
       [ "USD" , u"$"       , "Dollar"   ,  False, 100  , "{:,.2f}", u"¤ #,##0.00;(¤ #,##0.00)"              , "{:,.2f}", u"¤ #,##0.00;(¤ #,##0.00)"            ]
     ]
 
-    from models import Currency, Instrument, Broker, User, DepositMethods
+
     for c in currencies:
       e = Currency(code                 = c[0],
                    sign                 = c[1],

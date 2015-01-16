@@ -52,7 +52,7 @@ from time import mktime
 from zmq.eventloop.zmqstream import ZMQStream
 
 
-from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history, SecurityStatusPublisher, generate_security_status
+from market_data_helper import MarketDataPublisher, MarketDataSubscriber, generate_md_full_refresh, generate_trade_history, SecurityStatusPublisher, generate_security_status, signal_publish_md_status, signal_publish_md_order_depth_incremental
 
 from deposit_hander import DepositHandler
 from process_deposit_handler import ProcessDepositHandler
@@ -86,6 +86,15 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
         self.user_response = None
 
+
+    def on_close(self):
+        self.md_subscriptions = {}
+        self.sec_status_subscriptions = {}
+        self.application.log('INFO', 'CONNECTION_CLOSE', self.remote_ip )
+        self.application.unregister_connection(self)
+        self.trade_client.close()
+        self.trade_client = None
+
     def on_trade_publish(self, message):
         self.write_message(str(message[1]))
 
@@ -108,10 +117,9 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.close()
 
     def write_message(self, message, binary=False):
-        self.application.log('OUT', self.trade_client.connection_id, message )
         super(WebSocketHandler, self).write_message(message, binary)
 
-    def close(self):
+    def close(self, code=None, reason=None):
       self.application.log('DEBUG', self.remote_ip, 'WebSocketHandler.close() invoked' )
       super(WebSocketHandler, self).close()
 
@@ -131,16 +139,15 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.close()
             return
 
+        req_msg.set('RemoteIP' ,self.remote_ip)
 
         if req_msg.isUserRequest():
             if req_msg.has('Password'):
                 raw_message = raw_message.replace(req_msg.get('Password'), '*')
             if req_msg.has('NewPassword'):
                 raw_message = raw_message.replace(req_msg.get('NewPassword'), '*')
-
             self.application.log('IN', self.trade_client.connection_id ,raw_message )
-        else:
-            self.application.log('IN', self.trade_client.connection_id, raw_message )
+
 
 
         if req_msg.isTestRequest() or req_msg.isHeartbeat():
@@ -249,6 +256,11 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
             if resp_message and resp_message.isUserResponse():
                 self.user_response = resp_message
+                if self.is_user_logged():
+                    self.application.log('LOGIN_OK', self.trade_client.connection_id, raw_message )
+                else:
+                    self.application.log('LOGIN_FAILED', self.trade_client.connection_id, raw_message )
+
 
             if not self.trade_client.isConnected():
                 self.application.log('DEBUG', self.trade_client.connection_id, 'not self.trade_client.isConnected()' )
@@ -294,11 +306,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 for wallet in crypto_currency['Wallets']:
                     if wallet['type'] == type:
                         return wallet['address']
-
-    def on_close(self):
-        self.application.log('DEBUG', self.trade_client.connection_id, 'WebSocketHandler.on_close' )
-        self.application.unregister_connection(self)
-        self.trade_client.close()
 
     def on_trade_history_request(self, msg):
         since       = msg.get('Since') 
