@@ -112,6 +112,7 @@ class Instrument(Base):
   symbol          = Column(String(12), primary_key=True)
   currency        = Column(String(4) , ForeignKey('currencies.code'))
   description     = Column(String(12), nullable=False )
+  brokers         = Column(Text)
 
   @staticmethod
   def get_instruments(session, request_type=None) :
@@ -122,7 +123,8 @@ class Instrument(Base):
     return  session.query(Instrument).filter_by(symbol=symbol).first()
 
   def __repr__(self):
-    return u"<Instrument(symbol=%r, currency=%r, description=%r)>" % (self.symbol, self.currency, self.description)
+    return u"<Instrument(symbol=%r, currency=%r, description=%r, brokers=%r)>" % (
+        self.symbol, self.currency, self.description, self.brokers)
 
 class User(Base):
   __tablename__   = 'users'

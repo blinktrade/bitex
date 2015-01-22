@@ -59,7 +59,7 @@ from process_deposit_handler import ProcessDepositHandler
 from verification_webhook_handler import VerificationWebHookHandler
 from deposit_receipt_webhook_handler import  DepositReceiptWebHookHandler
 from rest_api_handler import RestApiHandler
-import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -85,7 +85,11 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.sec_status_subscriptions = {}
 
         self.user_response = None
+        self.last_order_datetime = datetime.now()
+        self.open_orders = {}
 
+    def process_execution_report(self):
+        pass
 
     def on_close(self):
         self.md_subscriptions = {}
@@ -151,7 +155,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
 
         if req_msg.isTestRequest() or req_msg.isHeartbeat():
-            dt = datetime.datetime.now()
+            dt = datetime.now()
             response_msg = {
                 'MsgType'           : '0',
                 'TestReqID'         : req_msg.get('TestReqID'),
@@ -184,6 +188,41 @@ class WebSocketHandler(websocket.WebSocketHandler):
         if req_msg.isSecurityStatusRequest():
             self.on_security_status_request(req_msg)
             return
+
+        if req_msg.isNewOrderSingle():
+            if self.last_order_datetime:
+                order_time = datetime.now()
+                order_time_less_one_second = order_time - timedelta(milliseconds=200) # max of 5 orders per second 
+                if self.last_order_datetime > order_time_less_one_second:
+                    self.application.log('ORDER_REJECT', self.trade_client.connection_id, raw_message )
+                    reject_message = {
+                        "MsgType": "8",
+                        "OrderID": None,
+                        "ExecID": None,
+                        "ExecType": "8",
+                        "OrdStatus": "8",
+                        "CumQty": 0,
+                        "Symbol":  req_msg.get("Symbol"),
+                        "OrderQty": req_msg.get("Qty"),
+                        "LastShares": 0,
+                        "LastPx": 0,
+                        "Price": req_msg.get("Price"),
+                        "TimeInForce": "1",
+                        "LeavesQty": 0,
+                        "ExecSide": req_msg.get("Side"),
+                        "Side": req_msg.get("Side"),
+                        "OrdType": req_msg.get("OrdType"),
+                        "CxlQty": req_msg.get("Qty"),
+                        "ClOrdID": req_msg.get("ClOrdID"),
+                        "AvgPx": 0,
+                        "OrdRejReason": "Exceeded the maximum number of orders sent per second.",
+                        "Volume": 0
+                    }
+                    self.write_message(str(json.dumps(reject_message, cls=JsonEncoder)))
+                    return
+
+            self.last_order_datetime = datetime.now()
+            
 
         if req_msg.isDepositRequest():
             if not req_msg.get('DepositMethodID') and not req_msg.get('DepositID'):
@@ -258,6 +297,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 self.user_response = resp_message
                 if self.is_user_logged():
                     self.application.log('LOGIN_OK', self.trade_client.connection_id, raw_message )
+                    #TODO: Request open order list 
+                    #self.trade_client.
+
+ 
                 else:
                     self.application.log('LOGIN_FAILED', self.trade_client.connection_id, raw_message )
 

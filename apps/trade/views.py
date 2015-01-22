@@ -266,6 +266,11 @@ def processNewOrderSingle(session, msg):
   price = msg.get('Price', 0)
   price = int(math.floor( float(price)/ float(pip) ) * pip)
 
+  instrument = Instrument.get_instrument( TradeApplication.instance().db_session, msg.get('Symbol') )
+  instrument_brokers = json.loads( instrument.brokers ) 
+  if account_user.broker_id not in instrument_brokers:
+    raise NotAuthorizedError()
+
   # process the new order.
   order = Order.create(TradeApplication.instance().db_session,
                        user_id              = session.user.id,
