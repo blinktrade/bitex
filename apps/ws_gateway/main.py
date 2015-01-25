@@ -194,7 +194,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 order_time = datetime.now()
                 order_time_less_one_second = order_time - timedelta(milliseconds=200) # max of 5 orders per second 
                 if self.last_order_datetime > order_time_less_one_second:
-                    self.application.log('ORDER_REJECT', self.trade_client.connection_id, raw_message )
+                    #self.application.log('ORDER_REJECT', self.trade_client.connection_id, raw_message )
                     reject_message = {
                         "MsgType": "8",
                         "OrderID": None,
@@ -218,8 +218,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
                         "OrdRejReason": "Exceeded the maximum number of orders sent per second.",
                         "Volume": 0
                     }
-                    self.write_message(str(json.dumps(reject_message, cls=JsonEncoder)))
-                    return
+                    #self.write_message(str(json.dumps(reject_message, cls=JsonEncoder)))
+                    #return
 
             self.last_order_datetime = datetime.now()
             
@@ -388,7 +388,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         # Disable previous Snapshot + Update Request
         if int(msg.get('SubscriptionRequestType')) == 2:
             if req_id in self.sec_status_subscriptions:
-                self.sec_status_subscriptions[req_id].release()
+                self.sec_status_subscriptions[req_id] = []
                 del self.sec_status_subscriptions[req_id]
             return
 
@@ -420,7 +420,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         # Disable previous Snapshot + Update Request
         if int(msg.get('SubscriptionRequestType')) == 2:
             if req_id in self.md_subscriptions:
-                self.md_subscriptions[req_id].release()
+                self.md_subscriptions[req_id] = []
                 del self.md_subscriptions[req_id]
             return
 

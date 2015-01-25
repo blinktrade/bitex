@@ -309,10 +309,7 @@ class SecurityStatusPublisher(object):
         self.symbol = instrument
 
         signal_publish_security_status.connect(self.signal_security_status, 'SECURITY_STATUS')
-        self.application.log('DEBUG', 'SECURITY_STATUS_PUBLISHER', 'release' )
 
-    def release(self):
-        self.application.log('DEBUG', 'SECURITY_STATUS_PUBLISHER', 'release' )
 
     def signal_security_status(self, sender, helper):
         if helper.symbol == self.symbol:
@@ -352,12 +349,6 @@ class MarketDataPublisher(object):
             instrument + '.3')
 
         signal_publish_md_status.connect(self.signal_md_status, 'MD_STATUS')
-        self.application.log('DEBUG', 'MARKET_DATA_PUBLISHER', '__init__' )
-
-    def release(self):
-        self.entry_list_order_depth = []
-        self.application.log('DEBUG', 'MARKET_DATA_PUBLISHER', 'release' )
-        
 
     def signal_md_status(self, sender, entry):
         self.entry_list_order_depth.append(entry)
