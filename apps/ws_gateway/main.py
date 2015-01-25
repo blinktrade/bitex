@@ -388,6 +388,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         # Disable previous Snapshot + Update Request
         if int(msg.get('SubscriptionRequestType')) == 2:
             if req_id in self.sec_status_subscriptions:
+                self.sec_status_subscriptions[req_id].release()
                 del self.sec_status_subscriptions[req_id]
             return
 
@@ -419,6 +420,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
         # Disable previous Snapshot + Update Request
         if int(msg.get('SubscriptionRequestType')) == 2:
             if req_id in self.md_subscriptions:
+                self.md_subscriptions[req_id].release()
                 del self.md_subscriptions[req_id]
             return
 
