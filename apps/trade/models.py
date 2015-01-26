@@ -1759,14 +1759,14 @@ class Order(Base):
     return session.query(Order).filter(Order.status.in_( status_list  )).filter_by( id = order_id  ).first()
 
   @staticmethod
-  def get_list_by_user_id(session, status_list, user_id, page_size=None, offset=None ):
+  def get_list_by_user_id(session, status_list, filter, user_id, page_size=None, offset=None ):
     if not page_size:
       return session.query(Order).filter(Order.status.in_(status_list)).filter_by( user_id = user_id ).order_by(Order.created.desc())
     else:
       return session.query(Order).filter(Order.status.in_(status_list)).filter_by( user_id = user_id ).order_by(Order.created.desc()).limit( page_size ).offset( offset )
 
   @staticmethod
-  def get_list_by_account_id(session, status_list, user_id, page_size=None, offset=None ):
+  def get_list_by_account_id(session, status_list, filter, user_id, page_size=None, offset=None ):
     if not page_size:
       return session.query(Order).filter(Order.status.in_(status_list)).filter_by( account_id = user_id ).order_by(Order.created.desc())
     else:
