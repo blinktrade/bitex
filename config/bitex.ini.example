@@ -1,60 +1,45 @@
 [DEFAULT]
 project_root_demo=/opt/blinktrade/bitex
 host_demo = yourexchange.com
-trade_in_demo = tcp://127.0.0.1:5757
-trade_pub_demo = tcp://127.0.0.1:5758
-url_payment_processor = http://host_of_api_receive.com/api/receive
+trade_in_demo = ipc:///tmp/trade_in_api_testnet
+trade_pub_demo = ipc:///tmp/trade_pub_api_testnet
 
 [trade_demo]
 project_root=%(project_root_demo)s
 db_echo = False
-db_engine = sqlite:///%(project_root)s/db/bitex.demo.sqlite
 trade_in = %(trade_in_demo)s
 trade_pub = %(trade_pub_demo)s
-trade_log = %(project_root)s/logs/dev/trade_demo.log
+trade_log = %(project_root)s/logs/trade_testnet.log
 session_timeout_limit = 0
 test_mode = False
 dev_mode = False
 satoshi_mode = False
 global_email_language = en
+sqlalchemy_engine=sqlite
+sqlalchemy_connection_string=%(project_root)s/db/bitex.sqlite
+url_payment_processor = http://host_of_api_receive.com/api/receive
 
 [ws_gateway_8445_demo]
 port = 8445
 project_root=%(project_root_demo)s
 session_timeout_limit = 0
-callback_url = http://%(host_demo)s/process_deposit?s=
+callback_url = https://%(host_demo)s/process_deposit?s=
 trade_in = %(trade_in_demo)s
 trade_pub = %(trade_pub_demo)s
-db_engine = sqlite:///%(project_root)s/db/ws_gateway_demo_%(port)s.sqlite
 db_echo = False
-gateway_log = %(project_root)s/logs/ws_gateway_demo_%(port)s.log
+gateway_log = %(project_root)s/logs/ws_gateway_testnet_%(port)s.log
+sqlalchemy_engine=sqlite
+sqlalchemy_connection_string=%(project_root)s/db/bitex.ws_gateway_%(port)s_testnet.sqlite
+allowed_origins=["*"]
 
-[ws_gateway_8444_demo]
-port = 8444
-project_root=%(project_root_demo)s
-session_timeout_limit = 0
-callback_url = http://%(host_demo)s/process_deposit?s=
-trade_in = %(trade_in_demo)s
-trade_pub = %(trade_pub_demo)s
-db_engine = sqlite:///%(project_root)s/db/ws_gateway_demo_%(port)s.sqlite
-db_echo = False
-gateway_log = %(project_root)s/logs/ws_gateway_demo_%(port)s.log
-
-[ws_gateway_8443_demo]
-port = 8443
-project_root=%(project_root_demo)s
-session_timeout_limit = 0
-callback_url = http://%(host_demo)s/process_deposit?s=
-trade_in = %(trade_in_demo)s
-trade_pub = %(trade_pub_demo)s
-db_engine = sqlite:///%(project_root)s/db/ws_gateway_demo_%(port)s.sqlite
-db_echo = False
-gateway_log = %(project_root)s/logs/ws_gateway_demo_%(port)s.log
 
 [mailer_demo]
 project_root=%(project_root_demo)s
+trade_in = %(trade_in_demo)s
 trade_pub = %(trade_pub_demo)s
-mailer_log = %(project_root)s/logs/mailer_demo.log
-mailchimp_apikey =
-mailchimp_newsletter_list_id =
-mandrill_apikey =
+mailer_username=mailer
+mailer_password=password_for_the_mailer_user_here
+mailer_log = %(project_root)s/logs/mailer_testnet.log
+mailchimp_apikey = your_key
+mailchimp_newsletter_list_id = your_list_id
+mandrill_apikey = your_key
