@@ -1759,18 +1759,40 @@ class Order(Base):
     return session.query(Order).filter(Order.status.in_( status_list  )).filter_by( id = order_id  ).first()
 
   @staticmethod
-  def get_list_by_user_id(session, status_list, filter, user_id, page_size=None, offset=None ):
-    if not page_size:
-      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( user_id = user_id ).order_by(Order.created.desc())
-    else:
-      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( user_id = user_id ).order_by(Order.created.desc()).limit( page_size ).offset( offset )
+  def prepare_filter_query(session, filter_list):
+    q = session.query(Order)
+    if filter_list:
+      for f in filter_list:
+        filter_data = f.split(" ")
+        if len(filter_data) == 3:
+          if filter_data[0] == "user_id" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.id == int(filter_data[2])))
+          elif filter_data[0] == "account_id" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.account_id == int(filter_data[2])))
+          elif filter_data[0] == "cum_qty" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.cum_qty == int(filter_data[2])))
+          elif filter_data[0] == "cum_qty" and filter_data[1] == "gt":
+            q =  q.filter(and_(Order.cum_qty > int(filter_data[2])))
+          elif filter_data[0] == "cum_qty" and filter_data[1] == "lt":
+            q =  q.filter(and_(Order.cum_qty < int(filter_data[2])))
+          elif filter_data[0] == "cum_qty" and filter_data[1] == "ge":
+            q =  q.filter(and_(Order.cum_qty >= int(filter_data[2])))
+          elif filter_data[0] == "cum_qty" and filter_data[1] == "le":
+            q =  q.filter(and_(Order.cum_qty <= int(filter_data[2])))
+          elif filter_data[0] == "cum_qty" and filter_data[1] == "ne":
+            q =  q.filter(and_(Order.cum_qty != int(filter_data[2])))
+    return q
 
   @staticmethod
-  def get_list_by_account_id(session, status_list, filter, user_id, page_size=None, offset=None ):
-    if not page_size:
-      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( account_id = user_id ).order_by(Order.created.desc())
-    else:
-      return session.query(Order).filter(Order.status.in_(status_list)).filter_by( account_id = user_id ).order_by(Order.created.desc()).limit( page_size ).offset( offset )
+  def get_list(session, status_list, filter_list, page_size=None, offset=None ):
+    if not filter_list:
+      filter_list = []
+    q = Order.prepare_filter_query(session, filter_list)
+    q = q.filter(Order.status.in_(status_list)).order_by(Order.created.desc())
+    if page_size:
+      q = q.limit( page_size ).offset( offset )
+    return q
+
 
   def match(self, other, execute_qty):
     if (self.is_buy and other.is_sell) or (self.is_sell and other.is_buy):
