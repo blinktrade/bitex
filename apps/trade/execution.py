@@ -22,11 +22,11 @@ class ExecutionReport(object):
 
     self.order_id = order.id
     self.client_order_id = order.client_order_id
-    if order.has_leaves_qty and order.cum_qty == 0:
+    if order.leaves_qty > 0 and order.cum_qty == 0:
       self.execution_type  = '0'  # New
-    elif order.has_leaves_qty and order.cum_qty > 0 :
+    elif order.leaves_qty > 0 and order.cum_qty > 0 :
       self.execution_type  = '1'  # Partial fill
-    elif not order.has_leaves_qty and (order.cum_qty == order.order_qty ) :
+    elif not order.leaves_qty > 0 and (order.cum_qty == order.order_qty ) :
       self.execution_type  = '2'  # fill
     else :
       self.execution_type  = '4'  # Cancel
@@ -123,7 +123,7 @@ class OrderMatcher(object):
         if execution_counter == len(other_side):
           break # workaround to make the execution_counter be counted until the last order.
 
-        if not order.has_leaves_qty:
+        if not order.leaves_qty > 0:
           break
 
         counter_order = other_side[execution_counter]
@@ -303,7 +303,7 @@ class OrderMatcher(object):
           if counter_order.user_id != counter_order.account_id:
             execution_reports.append( ( counter_order.account_id, cancel_rpt_counter_order.toJson() )  )
 
-        if counter_order.has_leaves_qty:
+        if counter_order.leaves_qty > 0:
           is_last_match_a_partial_execution_on_counter_order = True
 
 
@@ -311,7 +311,7 @@ class OrderMatcher(object):
     counter_md_entry_type = '1' if order.is_buy else '0'
 
     # let's include the order in the book if the order is not fully executed.
-    if order.has_leaves_qty:
+    if order.leaves_qty > 0:
       insert_pos = bisect.bisect_right(self_side, order)
       self_side.insert( insert_pos, order )
 

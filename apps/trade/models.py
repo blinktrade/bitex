@@ -1633,6 +1633,7 @@ class Withdraw(Base):
       self.broker_username, self.data, self.percent_fee, self.fixed_fee,
       self.confirmation_token, self.status, self.created, self.reason_id, self.reason, self.paid_amount, self.email_lang)
 
+
 class Order(Base):
   __tablename__   = 'orders'
 
@@ -1664,16 +1665,18 @@ class Order(Base):
   fee_account_id        = Column(Integer,       ForeignKey('users.id'), nullable=False)
   fee_account_username  = Column(String(15),    nullable=False)
   email_lang            = Column(String,        nullable=False)
+  has_leaves_qty        = Column(Boolean,       default=1, index=True)
+  has_cum_qty           = Column(Boolean,       default=0, index=True)
+  has_cxl_qty           = Column(Boolean,       default=0, index=True)
 
   __table_args__ = (Index('idx_orders_user_id_client_order_id', "user_id", "client_order_id"),
                     Index('idx_orders_account_id_client_order_id', "account_id", "client_order_id"),
-                    Index('idx_orders_user_id_leaves_qty', "user_id", "leaves_qty"),
-                    Index('idx_orders_user_id_cum_qty', "user_id", "cum_qty"),
-                    Index('idx_orders_user_id_cxl_qty', "user_id", "cxl_qty"),
-                    Index('idx_orders_account_id_client_order_id', "account_id", "client_order_id"),
-                    Index('idx_orders_account_id_leaves_qty', "account_id", "leaves_qty"),
-                    Index('idx_orders_account_id_cum_qty', "account_id", "cum_qty"),
-                    Index('idx_orders_account_id_cxl_qty', "account_id", "cxl_qty"),)
+                    Index('idx_orders_user_id_leaves_qty', "user_id", "has_leaves_qty", "created" ),
+                    Index('idx_orders_user_id_cum_qty', "user_id", "has_cum_qty", "created" ),
+                    Index('idx_orders_user_id_cxl_qty', "user_id", "has_cxl_qty", "created" ),
+                    Index('idx_orders_account_id_leaves_qty', "account_id", "has_leaves_qty", "created" ),
+                    Index('idx_orders_account_id_cum_qty', "account_id", "has_cum_qty", "created" ),
+                    Index('idx_orders_account_id_cxl_qty', "account_id", "has_cxl_qty", "created" ),)
 
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
@@ -1689,12 +1692,14 @@ class Order(Base):
            "broker_id=%r, broker_username=%r, time_in_force=%r, "\
            "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, "\
            "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r, "\
-           "fee_account_id=%r, fee_account_username=%r, email_lang=%r)>"\
+           "fee_account_id=%r, fee_account_username=%r, email_lang=%r, has_leaves_qty=%r, " \
+           "has_cum_qty=%r,has_cxl_qty=%r)>"\
     % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
        self.broker_id, self.broker_username, self.time_in_force,
        self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
        self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee,
-       self.fee_account_id, self.fee_account_username, self.email_lang)
+       self.fee_account_id, self.fee_account_username, self.email_lang, self.has_leaves_qty, 
+       self.has_cum_qty, self.has_cxl_qty)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
@@ -1779,18 +1784,12 @@ class Order(Base):
             q =  q.filter(and_(Order.user_id == int(filter_data[2])))
           elif filter_data[0] == "account_id" and filter_data[1] == "eq":
             q =  q.filter(and_(Order.account_id == int(filter_data[2])))
-          elif filter_data[0] == "cum_qty" and filter_data[1] == "eq":
-            q =  q.filter(and_(Order.cum_qty == int(filter_data[2])))
-          elif filter_data[0] == "cum_qty" and filter_data[1] == "ne":
-            q =  q.filter(and_(Order.cum_qty != int(filter_data[2])))
-          elif filter_data[0] == "leaves_qty" and filter_data[1] == "eq":
-            q =  q.filter(and_(Order.leaves_qty == int(filter_data[2])))
-          elif filter_data[0] == "leaves_qty" and filter_data[1] == "ne":
-            q =  q.filter(and_(Order.leaves_qty != int(filter_data[2])))
-          elif filter_data[0] == "cxl_qty" and filter_data[1] == "eq":
-            q =  q.filter(and_(Order.cxl_qty == int(filter_data[2])))
-          elif filter_data[0] == "cxl_qty" and filter_data[1] == "ne":
-            q =  q.filter(and_(Order.cxl_qty != int(filter_data[2])))
+          elif filter_data[0] == "has_cum_qty" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.has_cum_qty == int(filter_data[2])))
+          elif filter_data[0] == "has_leaves_qty" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.has_leaves_qty == int(filter_data[2])))
+          elif filter_data[0] == "has_cxl_qty" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.has_cxl_qty == int(filter_data[2])))
     return q
 
   @staticmethod
@@ -1847,6 +1846,11 @@ class Order(Base):
     else:
       self.status = '0' # New Order
 
+    self.has_cxl_qty = (self.cxl_qty > 0)
+    self.has_cum_qty = (self.cum_qty > 0)
+    self.has_leaves_qty = (self.leaves_qty > 0)
+      
+
   def execute(self, qty, price ):
     if qty == 0:
       return
@@ -1861,10 +1865,6 @@ class Order(Base):
   @property
   def is_cancelled(self):
     return self.status == '4'
-
-  @property
-  def has_leaves_qty(self):
-    return self.leaves_qty > 0
 
 
   @property
