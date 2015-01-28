@@ -1472,7 +1472,6 @@ def processProcessDeposit(session, msg):
 def processLedgerListRequest(session, msg):
   page            = msg.get('Page', 0)
   page_size       = msg.get('PageSize', 100)
-  operation_list  = msg.get('OperationList', ['C', 'D'] )
   currency        = msg.get('Currency')
   filter          = msg.get('Filter',[])
   offset          = page * page_size
@@ -1497,7 +1496,6 @@ def processLedgerListRequest(session, msg):
   records = Ledger.get_list(TradeApplication.instance().db_session,
                             broker_id,
                             account_id,
-                            operation_list,
                             page_size,
                             offset,
                             currency,

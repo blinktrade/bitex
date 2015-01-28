@@ -715,8 +715,8 @@ class Ledger(Base):
 
 
   @staticmethod
-  def get_list(session, broker_id, account_id, operation_list, page_size, offset, currency=None, filter_array=[]):
-    query = session.query(Ledger).filter( Ledger.operation.in_( operation_list ) ).filter(Ledger.broker_id==broker_id)
+  def get_list(session, broker_id, account_id,  page_size, offset, currency=None, filter_array=[]):
+    query = session.query(Ledger).filter(Ledger.broker_id==broker_id)
 
     if currency:
       query = query.filter( Ledger.currency == currency)
@@ -727,8 +727,7 @@ class Ledger(Base):
     for filter in filter_array:
       if filter:
         if filter.isdigit():
-          query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
-                                     Ledger.payee_name == filter,
+          query = query.filter( or_( Ledger.payee_name == filter,
                                      Ledger.account_name == filter,
                                      Ledger.broker_name == filter,
                                      Ledger.reference == filter,
@@ -736,8 +735,7 @@ class Ledger(Base):
                                      Ledger.balance == int(filter)
           ))
         else:
-          query = query.filter( or_( Ledger.description.like('%' + filter + '%' ),
-                                     Ledger.payee_name == filter,
+          query = query.filter( or_( Ledger.payee_name == filter,
                                      Ledger.account_name == filter,
                                      Ledger.broker_name == filter,
                                      Ledger.reference == filter
