@@ -1781,38 +1781,14 @@ class Order(Base):
             q =  q.filter(and_(Order.account_id == int(filter_data[2])))
           elif filter_data[0] == "cum_qty" and filter_data[1] == "eq":
             q =  q.filter(and_(Order.cum_qty == int(filter_data[2])))
-          elif filter_data[0] == "cum_qty" and filter_data[1] == "gt":
-            q =  q.filter(and_(Order.cum_qty > int(filter_data[2])))
-          elif filter_data[0] == "cum_qty" and filter_data[1] == "lt":
-            q =  q.filter(and_(Order.cum_qty < int(filter_data[2])))
-          elif filter_data[0] == "cum_qty" and filter_data[1] == "ge":
-            q =  q.filter(and_(Order.cum_qty >= int(filter_data[2])))
-          elif filter_data[0] == "cum_qty" and filter_data[1] == "le":
-            q =  q.filter(and_(Order.cum_qty <= int(filter_data[2])))
           elif filter_data[0] == "cum_qty" and filter_data[1] == "ne":
             q =  q.filter(and_(Order.cum_qty != int(filter_data[2])))
           elif filter_data[0] == "leaves_qty" and filter_data[1] == "eq":
             q =  q.filter(and_(Order.leaves_qty == int(filter_data[2])))
-          elif filter_data[0] == "leaves_qty" and filter_data[1] == "gt":
-            q =  q.filter(and_(Order.leaves_qty > int(filter_data[2])))
-          elif filter_data[0] == "leaves_qty" and filter_data[1] == "lt":
-            q =  q.filter(and_(Order.leaves_qty < int(filter_data[2])))
-          elif filter_data[0] == "leaves_qty" and filter_data[1] == "ge":
-            q =  q.filter(and_(Order.leaves_qty >= int(filter_data[2])))
-          elif filter_data[0] == "leaves_qty" and filter_data[1] == "le":
-            q =  q.filter(and_(Order.leaves_qty <= int(filter_data[2])))
           elif filter_data[0] == "leaves_qty" and filter_data[1] == "ne":
             q =  q.filter(and_(Order.leaves_qty != int(filter_data[2])))
           elif filter_data[0] == "cxl_qty" and filter_data[1] == "eq":
             q =  q.filter(and_(Order.cxl_qty == int(filter_data[2])))
-          elif filter_data[0] == "cxl_qty" and filter_data[1] == "gt":
-            q =  q.filter(and_(Order.cxl_qty > int(filter_data[2])))
-          elif filter_data[0] == "cxl_qty" and filter_data[1] == "lt":
-            q =  q.filter(and_(Order.cxl_qty < int(filter_data[2])))
-          elif filter_data[0] == "cxl_qty" and filter_data[1] == "ge":
-            q =  q.filter(and_(Order.cxl_qty >= int(filter_data[2])))
-          elif filter_data[0] == "cxl_qty" and filter_data[1] == "le":
-            q =  q.filter(and_(Order.cxl_qty <= int(filter_data[2])))
           elif filter_data[0] == "cxl_qty" and filter_data[1] == "ne":
             q =  q.filter(and_(Order.cxl_qty != int(filter_data[2])))
     return q
