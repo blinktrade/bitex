@@ -1768,7 +1768,7 @@ class Order(Base):
         filter_data = f.split(" ")
         if len(filter_data) == 3:
           if filter_data[0] == "user_id" and filter_data[1] == "eq":
-            q =  q.filter(and_(Order.id == int(filter_data[2])))
+            q =  q.filter(and_(Order.user_id == int(filter_data[2])))
           elif filter_data[0] == "account_id" and filter_data[1] == "eq":
             q =  q.filter(and_(Order.account_id == int(filter_data[2])))
           elif filter_data[0] == "cum_qty" and filter_data[1] == "eq":
