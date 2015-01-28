@@ -303,11 +303,11 @@ def processNewOrderSingle(session, msg):
 def processCancelOrderRequest(session, msg):
   order_list = []
   if  msg.has('OrigClOrdID'):
-    order = Order.get_order_by_client_order_id(TradeApplication.instance().db_session, ("0","1"), session.user.id,  msg.get('OrigClOrdID') )
+    order = Order.get_order_by_client_order_id(TradeApplication.instance().db_session, session.user.id,  msg.get('OrigClOrdID') )
     if order:
       order_list.append(order)
   elif msg.has('OrderID'):
-    order = Order.get_order_by_order_id(TradeApplication.instance().db_session, ("0","1"),  msg.get('OrderID') )
+    order = Order.get_order_by_order_id(TradeApplication.instance().db_session,   msg.get('OrderID') )
 
     if order:
       if order.user_id == session.user.id:  # user/broker cancelling his own order

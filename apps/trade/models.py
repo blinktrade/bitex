@@ -12,7 +12,7 @@ from pyblinktrade.utils import smart_str
 from sqlalchemy import ForeignKey
 from sqlalchemy import desc, func
 from sqlalchemy.sql.expression import and_, or_, exists
-from sqlalchemy import Column, Integer, Unicode, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint, UnicodeText
+from sqlalchemy import Column, Integer, Unicode, String, DateTime, Boolean, Numeric, Text, Date, UniqueConstraint, UnicodeText, Index
 from sqlalchemy.orm import  relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 import json
@@ -167,8 +167,8 @@ class User(Base):
 
   email_lang       = Column(String, nullable=False)
 
-  __table_args__ = (UniqueConstraint('broker_id', 'username', name='_username_uc'), )
-  __table_args__ = (UniqueConstraint('broker_id', 'email', name='_email_uc'), )
+  __table_args__ = (UniqueConstraint('broker_id', 'username', name='_username_uc'),
+                    UniqueConstraint('broker_id', 'email', name='_email_uc'),  )
 
   def __repr__(self):
     return u"<User(id=%r, username=%r, email=%r,  broker_id=%r, broker_username=%r, "\
@@ -1665,6 +1665,8 @@ class Order(Base):
   fee_account_username  = Column(String(15),    nullable=False)
   email_lang            = Column(String,        nullable=False)
 
+  __table_args__ = (Index('idx_orders_user_id_client_order_id', "user_id", "client_order_id"), )
+
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
       kwargs['leaves_qty'] = kwargs.get('order_qty')
@@ -1751,12 +1753,12 @@ class Order(Base):
     return order
 
   @staticmethod
-  def get_order_by_client_order_id(session, status_list, user_id, client_order_id):
-    return session.query(Order).filter(Order.status.in_( status_list  )).filter_by( user_id = user_id ).filter_by( client_order_id =  client_order_id  ).first()
+  def get_order_by_client_order_id(session, user_id, client_order_id):
+    return session.query(Order).filter_by( user_id = user_id ).filter_by( client_order_id =  client_order_id  ).first()
 
   @staticmethod
-  def get_order_by_order_id(session, status_list, order_id):
-    return session.query(Order).filter(Order.status.in_( status_list  )).filter_by( id = order_id  ).first()
+  def get_order_by_order_id(session, order_id):
+    return session.query(Order).filter_by( id = order_id  ).first()
 
   @staticmethod
   def prepare_filter_query(session, filter_list):
