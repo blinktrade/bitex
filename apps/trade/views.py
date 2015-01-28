@@ -319,7 +319,7 @@ def processCancelOrderRequest(session, msg):
   else:
     # user cancelling all the orders he sent.
     orders = Order.get_list(TradeApplication.instance().db_session,
-                            [ "user_id eq " + str(session.user.id), "leaves_qty gt 0"])
+                            [ "user_id eq " + str(session.user.id), "leaves_qty ne 0"])
     for order in orders:
       order_list.append(order)
 
