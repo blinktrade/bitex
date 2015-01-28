@@ -1818,11 +1818,11 @@ class Order(Base):
     return q
 
   @staticmethod
-  def get_list(session, status_list, filter_list, page_size=None, offset=None ):
+  def get_list(session, filter_list, page_size=None, offset=None ):
     if not filter_list:
       filter_list = []
     q = Order.prepare_filter_query(session, filter_list)
-    q = q.filter(Order.status.in_(status_list)).order_by(Order.created.desc())
+    q = q.order_by(Order.created.desc())
     if page_size:
       q = q.limit( page_size ).offset( offset )
     return q
