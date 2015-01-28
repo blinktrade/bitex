@@ -4,10 +4,9 @@ sys.path.insert(0, '../../libs')
 from pyblinktrade.signals import  Signal
 import datetime
 import time
-
+import random
 
 class OrderBookProcessor():
-  order_id_generator = 0
   def __init__(self, side, symbol):
     self.side = side
     self.symbol = symbol
@@ -24,11 +23,10 @@ class OrderBookProcessor():
     return None
 
   def _send_new_order(self, price, volume):
-    OrderBookProcessor.order_id_generator += 1
-    order_id = OrderBookProcessor.order_id_generator
-
     now = datetime.datetime.now()
     timestamp = time.mktime(now.timetuple())*1e3 + now.microsecond/1e3
+
+    order_id = str(int(timestamp)) + str(int(random.random()*100000))
 
     order = { 'id': order_id, 'price': price, 'vol': volume , 'ts': timestamp }
     self.orders_by_price[price] = order
