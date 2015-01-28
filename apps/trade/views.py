@@ -318,7 +318,8 @@ def processCancelOrderRequest(session, msg):
         order_list.append(order)
   else:
     # user cancelling all the orders he sent.
-    orders = Order.get_list(TradeApplication.instance().db_session, ("0","1"), [ "user_id eq " + str(session.user.id) ])
+    orders = Order.get_list(TradeApplication.instance().db_session,
+                            [ "user_id eq " + str(session.user.id), "leaves_qty gt 0"])
     for order in orders:
       order_list.append(order)
 
@@ -653,7 +654,6 @@ def processRequestForBalances(session, msg):
 def processRequestForOpenOrders(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
-  status_list = msg.get('StatusList', ['0', '1'] )
   filter_list = msg.get('Filter', [])
   offset      = page * page_size
 
@@ -662,7 +662,7 @@ def processRequestForOpenOrders(session, msg):
   else:
     filter_list.append("account_id eq " + str(session.user.id))
 
-  orders = Order.get_list(TradeApplication.instance().db_session, status_list, filter_list, page_size, offset)
+  orders = Order.get_list(TradeApplication.instance().db_session, filter_list, page_size, offset)
 
   order_list = []
   columns = [ 'ClOrdID','OrderID','CumQty','OrdStatus','LeavesQty','CxlQty','AvgPx',

@@ -1653,19 +1653,27 @@ class Order(Base):
   time_in_force         = Column(String(1),     nullable=False, default='1')
   price                 = Column(Integer,       nullable=False, default=0)
   order_qty             = Column(Integer,       nullable=False)
-  cum_qty               = Column(Integer,       nullable=False, default=0)
-  leaves_qty            = Column(Integer,       nullable=False, default=0)
+  cum_qty               = Column(Integer,       nullable=False, default=0, index=True)
+  leaves_qty            = Column(Integer,       nullable=False, default=0, index=True)
   created               = Column(DateTime,      nullable=False, default=get_datetime_now, index=True)
   last_price            = Column(Integer,       nullable=False, default=0)
   last_qty              = Column(Integer,       nullable=False, default=0)
   average_price         = Column(Integer,       nullable=False, default=0)
-  cxl_qty               = Column(Integer,       nullable=False, default=0)
+  cxl_qty               = Column(Integer,       nullable=False, default=0, index=True)
   fee                   = Column(Integer,       nullable=False, default=0)
   fee_account_id        = Column(Integer,       ForeignKey('users.id'), nullable=False)
   fee_account_username  = Column(String(15),    nullable=False)
   email_lang            = Column(String,        nullable=False)
 
-  __table_args__ = (Index('idx_orders_user_id_client_order_id', "user_id", "client_order_id"), )
+  __table_args__ = (Index('idx_orders_user_id_client_order_id', "user_id", "client_order_id"),
+                    Index('idx_orders_account_id_client_order_id', "account_id", "client_order_id"),
+                    Index('idx_orders_user_id_leaves_qty', "user_id", "leaves_qty"),
+                    Index('idx_orders_user_id_cum_qty', "user_id", "cum_qty"),
+                    Index('idx_orders_user_id_cxl_qty', "user_id", "cxl_qty"),
+                    Index('idx_orders_account_id_client_order_id', "account_id", "client_order_id"),
+                    Index('idx_orders_account_id_leaves_qty', "account_id", "leaves_qty"),
+                    Index('idx_orders_account_id_cum_qty', "account_id", "cum_qty"),
+                    Index('idx_orders_account_id_cxl_qty', "account_id", "cxl_qty"),)
 
   def __init__(self, *args, **kwargs):
     if 'order_qty' in kwargs and 'leaves_qty' not in kwargs:
@@ -1783,6 +1791,30 @@ class Order(Base):
             q =  q.filter(and_(Order.cum_qty <= int(filter_data[2])))
           elif filter_data[0] == "cum_qty" and filter_data[1] == "ne":
             q =  q.filter(and_(Order.cum_qty != int(filter_data[2])))
+          elif filter_data[0] == "leaves_qty" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.leaves_qty == int(filter_data[2])))
+          elif filter_data[0] == "leaves_qty" and filter_data[1] == "gt":
+            q =  q.filter(and_(Order.leaves_qty > int(filter_data[2])))
+          elif filter_data[0] == "leaves_qty" and filter_data[1] == "lt":
+            q =  q.filter(and_(Order.leaves_qty < int(filter_data[2])))
+          elif filter_data[0] == "leaves_qty" and filter_data[1] == "ge":
+            q =  q.filter(and_(Order.leaves_qty >= int(filter_data[2])))
+          elif filter_data[0] == "leaves_qty" and filter_data[1] == "le":
+            q =  q.filter(and_(Order.leaves_qty <= int(filter_data[2])))
+          elif filter_data[0] == "leaves_qty" and filter_data[1] == "ne":
+            q =  q.filter(and_(Order.leaves_qty != int(filter_data[2])))
+          elif filter_data[0] == "cxl_qty" and filter_data[1] == "eq":
+            q =  q.filter(and_(Order.cxl_qty == int(filter_data[2])))
+          elif filter_data[0] == "cxl_qty" and filter_data[1] == "gt":
+            q =  q.filter(and_(Order.cxl_qty > int(filter_data[2])))
+          elif filter_data[0] == "cxl_qty" and filter_data[1] == "lt":
+            q =  q.filter(and_(Order.cxl_qty < int(filter_data[2])))
+          elif filter_data[0] == "cxl_qty" and filter_data[1] == "ge":
+            q =  q.filter(and_(Order.cxl_qty >= int(filter_data[2])))
+          elif filter_data[0] == "cxl_qty" and filter_data[1] == "le":
+            q =  q.filter(and_(Order.cxl_qty <= int(filter_data[2])))
+          elif filter_data[0] == "cxl_qty" and filter_data[1] == "ne":
+            q =  q.filter(and_(Order.cxl_qty != int(filter_data[2])))
     return q
 
   @staticmethod
