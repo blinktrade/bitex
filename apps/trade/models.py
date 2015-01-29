@@ -1641,7 +1641,7 @@ class Order(Base):
   username              = Column(String(15),    nullable=False )
   account_id            = Column(Integer,       ForeignKey('users.id'))
   account_user          = relationship("User",  foreign_keys=[account_id] )
-  account_username      = Column(String(15),    nullable=False )
+  account_username      = Column(String(15),    nullable=False, index=True )
   broker_id             = Column(Integer,       ForeignKey('users.id'), nullable=False)
   broker_username       = Column(String(15),    nullable=False )
   client_order_id       = Column(String(30),    nullable=False, index=True)
@@ -1652,13 +1652,13 @@ class Order(Base):
   time_in_force         = Column(String(1),     nullable=False, default='1')
   price                 = Column(Integer,       nullable=False, default=0)
   order_qty             = Column(Integer,       nullable=False)
-  cum_qty               = Column(Integer,       nullable=False, default=0, index=True)
-  leaves_qty            = Column(Integer,       nullable=False, default=0, index=True)
+  cum_qty               = Column(Integer,       nullable=False, default=0)
+  leaves_qty            = Column(Integer,       nullable=False, default=0)
   created               = Column(DateTime,      nullable=False, default=get_datetime_now, index=True)
   last_price            = Column(Integer,       nullable=False, default=0)
   last_qty              = Column(Integer,       nullable=False, default=0)
   average_price         = Column(Integer,       nullable=False, default=0)
-  cxl_qty               = Column(Integer,       nullable=False, default=0, index=True)
+  cxl_qty               = Column(Integer,       nullable=False, default=0)
   fee                   = Column(Integer,       nullable=False, default=0)
   fee_account_id        = Column(Integer,       ForeignKey('users.id'), nullable=False)
   fee_account_username  = Column(String(15),    nullable=False)
@@ -1667,7 +1667,8 @@ class Order(Base):
   has_cum_qty           = Column(Boolean,       default=0, index=True)
   has_cxl_qty           = Column(Boolean,       default=0, index=True)
 
-  __table_args__ = (Index('idx_orders_user_id_client_order_id', "user_id", "client_order_id"),
+  __table_args__ = (Index('idx_orders_account_id_created', 'account_id' , 'created' ),
+                    Index('idx_orders_user_id_client_order_id', "user_id", "client_order_id"),
                     Index('idx_orders_account_id_client_order_id', "account_id", "client_order_id"),
                     Index('idx_orders_user_id_leaves_qty', "user_id", "has_leaves_qty", "created" ),
                     Index('idx_orders_user_id_cum_qty', "user_id", "has_cum_qty", "created" ),
