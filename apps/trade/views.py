@@ -291,7 +291,9 @@ def processNewOrderSingle(session, msg):
                        fee                  = fee,
                        fee_account_id       = fee_account[0],
                        fee_account_username = fee_account[1],
-                       email_lang           = session.email_lang)
+                       email_lang           = session.email_lang,
+                       is_from_market_maker = account_user.is_market_maker,
+                       gui_id               = None )
   TradeApplication.instance().db_session.flush() # just to assign an ID for the order.
 
   OrderMatcher.get(msg.get('Symbol')).match(TradeApplication.instance().db_session, order, TradeApplication.instance().order_matcher_disabled)

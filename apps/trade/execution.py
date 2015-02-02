@@ -259,15 +259,6 @@ class OrderMatcher(object):
             }
             return  email_subject, email_template, dumps(email_params, cls=JsonEncoder)
 
-          email_data = generate_email_subject_and_body(session, order, trade)
-          UserEmail.create( session = session,
-                            user_id = order.account_id,
-                            broker_id = order.broker_id,
-                            subject = email_data[0],
-                            template= email_data[1],
-                            language= order.email_lang,
-                            params  = email_data[2])
-
           email_data = generate_email_subject_and_body(session, counter_order, trade)
           UserEmail.create( session = session,
                             user_id = counter_order.account_id,
