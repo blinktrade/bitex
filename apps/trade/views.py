@@ -1434,7 +1434,9 @@ def processProcessDeposit(session, msg):
       # deposit record based on the last deposit we found and process it.
 
       # ONLY VERIFIED USERS CAN REUSE THE SAME ADDRESS.
-      user = User.get_user(session, broker_id=deposit.broker_id, user_id=deposit.user_id)
+      user = User.get_user(TradeApplication.instance().db_session,
+                           broker_id=deposit.broker_id,
+                           user_id=deposit.user_id)
       deposit_data = json.loads(deposit.data)
 
       instructions = None
