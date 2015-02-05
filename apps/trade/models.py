@@ -2227,11 +2227,6 @@ class Deposit(Base):
       if self.paid_value != amount:
         return False
 
-      if 'TransactionHash' in current_data and  \
-         'TransactionHash' in new_data and  \
-          current_data['TransactionHash'] != new_data['TransactionHash']:
-        return False
-
       if 'InputTransactionHash' in current_data and  \
          'InputTransactionHash' in new_data and  \
           current_data['InputTransactionHash'] != new_data['InputTransactionHash']:
