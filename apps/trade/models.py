@@ -2127,6 +2127,10 @@ class Deposit(Base):
 
     return query
 
+  @staticmethod
+  def get_deposit_list_by_secret(session, secret):
+    q = session.query(Deposit).filter_by(secret=secret)
+    return q
 
   @staticmethod
   def get_deposit(session, deposit_id=None, secret=None, broker_id=None, broker_control_number=None ):
@@ -2211,86 +2215,130 @@ class Deposit(Base):
                         params  = json.dumps(template_parameters, cls=JsonEncoder))
 
 
+  def match_deposit_data(self, session, amount, data):
+    # let's compute the new data
+    new_data = {}
+    current_data = json.loads(self.data)
+    new_data.update(current_data)
+    if data:
+      new_data.update( data )
+
+    if self.status != '0' and self.type == 'CRY':
+      if self.paid_value != amount:
+        return False
+
+      if 'TransactionHash' in current_data and  \
+         'TransactionHash' in new_data and  \
+          current_data['TransactionHash'] != new_data['TransactionHash']:
+        return False
+
+      if 'InputTransactionHash' in current_data and  \
+         'InputTransactionHash' in new_data and  \
+          current_data['InputTransactionHash'] != new_data['InputTransactionHash']:
+        return False
+
+    return True
+
+
+
   def process_confirmation(self, session, amount, percent_fee=0., fixed_fee=0, data=None ):
     should_update = False
+    should_confirm = False
     should_start_a_loan_from_broker_to_the_user = False
-    payee_address = None
     broker = None
     user = None
+    broker_crypto_currencies = None
+    crypto_currency_param = None
 
+
+    # let's compute the new data
     new_data = {}
-    new_data.update(json.loads(self.data))
+    current_data = json.loads(self.data)
+    new_data.update(current_data)
     if data:
       new_data.update( data )
       if self.data != json.dumps(new_data):
+        # let's update the deposit record in case the data section has changed.
         should_update = True
 
-    should_confirm = False
+
+    # let's check if the crypto currency confirmation data is valid and if we should confirm
+    if self.type == 'CRY':
+      if not broker:
+        broker = Broker.get_broker( session, self.broker_id  )
+      if broker_crypto_currencies is None:
+        broker_crypto_currencies = json.loads(broker.crypto_currencies)
+
+      # check if the broker has a wallet for this crypto currency
+      for crypto_currency_param in broker_crypto_currencies:
+        if crypto_currency_param["CurrencyCode"] == self.currency:
+          break
+
+      if crypto_currency_param is None:
+        return  # The broker doesn't have a wallet for this crypto currency. This is probably an attack.
+
+
+      for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
+        if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
+          should_confirm = True
+
+    else:
+      should_confirm = True
+
+
+    # let's check if the user is reusing the same bitcoin in the same address
+    if self.status == '4' and self.type == 'CRY':
+      # the deposit has been already confirmed .... nothing to do here. This is probably an attack
+      return
+
+
     self.paid_value = amount
     loan_amount = self.paid_value
     if self.type == 'CRY' and data:
       if not broker:
         broker = Broker.get_broker( session, self.broker_id  )
-      broker_crypto_currencies = json.loads(broker.crypto_currencies)
-      crypto_currency_param = None
-      for crypto_currency_param in broker_crypto_currencies:
-        if crypto_currency_param["CurrencyCode"] == self.currency:
-          break
 
-      if not crypto_currency_param:
-        return
-
+      # Check if we should give a loan to the user on the 0 confirmation.
       if not data['Confirmations'] and self.status == '0':
         if not user:
           user = User.get_user(session, broker_id=self.broker_id, user_id=self.user_id)
 
         max_loan_amount = 0
-        for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
+        for amount_start, amount_end, confirmations in crypto_currency_param["Confirmations"]:
           if confirmations >= 1:
             max_loan_amount = amount_end
             break
         if loan_amount > max_loan_amount:
           loan_amount = max_loan_amount
 
-        if user.verified >= 3 and 'InputFee' in data and data['InputFee'] >=  10000: # Higher than the minimum fee
-          should_start_a_loan_from_broker_to_the_user = True
+        if not should_confirm:
+          # Give a loan to verified users who included a miners fee
+          if user.verified >= 3 and 'InputFee' in data and data['InputFee'] >=  10000: # Higher than the minimum fee
+            should_start_a_loan_from_broker_to_the_user = True
 
-        if 'PayeeAddresses' in data:
-          try:
-            payee_addresses = json.loads(data['PayeeAddresses'])
+          # or in case the deposit is coming from a green address
+          elif 'PayeeAddresses' in data:
+            try:
+              payee_addresses = json.loads(data['PayeeAddresses'])
 
-            if len(payee_addresses) == 1:
-              payee_address = payee_addresses[0]
-          except Exception:
-            pass
+              if len(payee_addresses) == 1:
+                payee_address = payee_addresses[0]
 
-        if payee_address:
-          if TrustedAddress.is_trusted_address(session,
-                                               self.user_id,
-                                               self.broker_id,
-                                               payee_address,
-                                               self.currency ):
-            if 'InputFee' in data and data['InputFee'] > 0:
-              should_start_a_loan_from_broker_to_the_user = True
-
-      for amount_start, amount_end, confirmations  in  crypto_currency_param["Confirmations"]:
-        if amount_start < amount <= amount_end and data['Confirmations'] >= confirmations:
-          should_confirm = True
-          should_start_a_loan_from_broker_to_the_user = False
-          break
+                if payee_address:
+                  if TrustedAddress.is_trusted_address(session,
+                                                       self.user_id,
+                                                       self.broker_id,
+                                                       payee_address,
+                                                       self.currency ):
+                    if 'InputFee' in data and data['InputFee'] > 0:
+                      should_start_a_loan_from_broker_to_the_user = True
+            except Exception:
+              pass
 
       if self.status == '0' or self.status == '1':
         self.status = '2'
         should_update = True
-    else:
-      should_confirm = True
 
-    if should_confirm and self.status == '4':
-      # The user probably saved the deposit address and he is sending to the same address
-      if self.type == 'CRY' and self.paid_value != amount:
-        # TODO: Create another deposit
-        # and process the deposit
-        return
 
     should_execute_instructions = False
     should_adjust_ledger = False

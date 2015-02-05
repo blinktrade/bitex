@@ -1398,7 +1398,10 @@ def processProcessWithdraw(session, msg):
 
 def processProcessDeposit(session, msg):
   secret       = msg.get('Secret')
+  data         = msg.get('Data')
+
   instruction_msg_after_deposit = None
+  deposit = None
 
   if not secret:
     deposit_id   = msg.get('DepositID')
@@ -1412,7 +1415,53 @@ def processProcessDeposit(session, msg):
       if deposit.broker_id != session.user.id:
         raise NotAuthorizedError()
   else:
-    deposit = Deposit.get_deposit( TradeApplication.instance().db_session, secret=secret)
+    amount          = int(msg.get('Amount'))
+    deposit_list = Deposit.get_deposit_list_by_secret(TradeApplication.instance().db_session, secret)
+    found_deposit_by_secret = False
+    for deposit in deposit_list:
+
+      if deposit.status == '0':
+        found_deposit_by_secret = True
+        break  # get the first deposit that hasn't been confirmed yet
+
+      if deposit.match_deposit_data(TradeApplication.instance().db_session, amount, data):
+        found_deposit_by_secret = True
+        break
+
+    if not found_deposit_by_secret and deposit_list:
+      # we found deposits using the same secret, but with different data.
+      # this means that the user reused the deposit address. Let's create another
+      # deposit record based on the last deposit we found and process it.
+
+      # ONLY VERIFIED USERS CAN REUSE THE SAME ADDRESS.
+      user = User.get_user(session, broker_id=deposit.broker_id, user_id=deposit.user_id)
+      deposit_data = json.loads(deposit.data)
+
+      instructions = None
+      if deposit.instructions:
+        instructions = json.loads(deposit.instructions)
+
+      if user.verified >= 3:
+        deposit = Deposit.create_crypto_currency_deposit(
+          session = TradeApplication.instance().db_session,
+          user = user,
+          currency = deposit.currency,
+          input_address = deposit_data['InputAddress'],
+          destination = deposit_data['Destination'],
+          secret = deposit.secret,
+          client_order_id = deposit.client_order_id,
+          instructions=instructions,
+          value=amount
+        )
+        deposit_refresh = depositRecordToDepositMessage(deposit)
+        deposit_refresh['MsgType'] = 'U23'
+        deposit_refresh['DepositReqID'] = msg.get('ProcessDepositReqID')
+        TradeApplication.instance().publish( deposit.account_id, deposit_refresh  )
+        TradeApplication.instance().publish( deposit.broker_id,  deposit_refresh  )
+      else:
+        deposit = None
+
+
 
   if not deposit:
     return  json.dumps( { 'MsgType' : 'B1',
@@ -1420,16 +1469,13 @@ def processProcessDeposit(session, msg):
                           'ReasonID':'-1'} , cls=JsonEncoder)
 
   if msg.get('Action') == 'CONFIRM':
-    data        = msg.get('Data')
     deposit.user_confirm(TradeApplication.instance().db_session, data )
-  if msg.get('Action') == 'CANCEL':
+  elif msg.get('Action') == 'CANCEL':
     deposit.cancel( TradeApplication.instance().db_session, msg.get('ReasonID'), msg.get('Reason') )
   elif msg.get('Action') == 'PROGRESS':
-    data        = msg.get('Data')
     deposit.set_in_progress(TradeApplication.instance().db_session, data)
   elif msg.get('Action') == 'COMPLETE':
     amount          = int(msg.get('Amount'))
-    data            = msg.get('Data')
     percent_fee     = msg.get('PercentFee', 0.)
     fixed_fee       = msg.get('FixedFee', 0)
 
