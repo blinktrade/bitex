@@ -8,3 +8,4 @@ mailchimp
 pycountry
 pyboleto
 mock
+yowsup2

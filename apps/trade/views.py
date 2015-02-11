@@ -942,6 +942,9 @@ def processWithdrawRequest(session, msg):
 
   verification_level = session.user.verified
 
+  user_withdraw_percent_fee = session.user.withdraw_percent_fee
+  user_withdraw_fixed_fee = session.user.withdraw_fixed_fee
+
   withdraw_structure = json.loads(session.broker.withdraw_structure)
   limits = None
   for withdraw_method in withdraw_structure[msg.get('Currency')]:
@@ -977,7 +980,9 @@ def processWithdrawRequest(session, msg):
                                     msg.get('Method'),
                                     msg.get('Data', {} ),
                                     client_order_id,
-                                    session.email_lang)
+                                    session.email_lang,
+                                    user_withdraw_percent_fee,
+                                    user_withdraw_fixed_fee)
 
   TradeApplication.instance().db_session.commit()
 
@@ -1428,7 +1433,7 @@ def processProcessDeposit(session, msg):
         found_deposit_by_secret = True
         break
 
-    if not found_deposit_by_secret and deposit_list:
+    if not found_deposit_by_secret and deposit is not None:
       # we found deposits using the same secret, but with different data.
       # this means that the user reused the deposit address. Let's create another
       # deposit record based on the last deposit we found and process it.

@@ -46,6 +46,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
     address_postal        = None
     address_country       = None
     address_country_code  = None
+    finger_print          = None
 
     photo_fields          = []
     id_fields             = []
@@ -96,6 +97,8 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
         address_country = value['country']
         address_country_code = get_country_code(address_country)
 
+      if 'finger_print' in key:
+        finger_print = value
 
       #form stack
       if 'name-first' in key:
@@ -173,6 +176,7 @@ class VerificationWebHookHandler(tornado.web.RequestHandler):
         'formID': formID,
         'submissionID': submissionID,
         'created_at': createdAt,
+        'browser_finger_print': finger_print,
         'name': {
           'first': first_name,
           'middle': middle_name,

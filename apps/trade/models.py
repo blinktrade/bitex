@@ -449,6 +449,15 @@ class User(Base):
       return True
     return False
 
+class FingerPrints(Base):
+  __tablename__         = 'finger_prints'
+  id                    = Column(Integer,       primary_key=True)
+  user_id               = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  finger_print          = Column(Integer,       nullable=False)
+  remote_ip             = Column(String,        nullable=False)
+
+
 
 class Position(Base):
   __tablename__         = 'position'
@@ -1615,7 +1624,8 @@ class Withdraw(Base):
     return query
 
   @staticmethod
-  def create(session, user, broker,  currency, amount, method, data, client_order_id, email_lang):
+  def create(session, user, broker,  currency, amount, method, data, client_order_id, email_lang,
+             user_withdraw_percent_fee=None, user_withdraw_fixed_fee=None):
     import uuid
     confirmation_token = uuid.uuid4().hex
 
@@ -1628,6 +1638,12 @@ class Withdraw(Base):
         percent_fee = withdraw_method['percent_fee']
         fixed_fee = withdraw_method['fixed_fee']
         break
+
+    if user_withdraw_percent_fee is not None:
+      percent_fee = min(percent_fee, user_withdraw_percent_fee)
+
+    if user_withdraw_fixed_fee is not None:
+      fixed_fee = min(fixed_fee, user_withdraw_fixed_fee)
 
     withdraw_record = Withdraw(user_id            = user.id,
                                account_id         = user.id,
