@@ -25,6 +25,17 @@ $ pip install -r requirements.txt
 
 #Build and Run
 
+Download and install the pyblinktrade package from https://github.com/blinktrade/pyblinktrade
+
+```
+cd ~
+cd pyblinktrade
+chmod +x setup.py
+sudo ./setup.py install
+```
+
+Download and install the frontend project from https://github.com/blinktrade/frontend.git
+
 ```
 $ cd ./jsdev
 $ ./build_release.sh  # Or ./build_release.bat [Windows]
