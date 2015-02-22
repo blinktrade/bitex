@@ -34,7 +34,9 @@ def processChangePassword(session, msg):
                              msg.get('BrokerID'),
                              msg.get('Username'),
                              msg.get('Password'),
-                             msg.get('SecondFactor'))
+                             msg.get('SecondFactor'),
+                             msg.get('FingerPrint'),
+                             msg.get('RemoteIP'))
   except NeedSecondFactorException:
     need_second_factor = True
 
@@ -135,7 +137,9 @@ def processLogin(session, msg):
                              msg.get('BrokerID'),
                              msg.get('Username'),
                              msg.get('Password'),
-                             msg.get('SecondFactor'))
+                             msg.get('SecondFactor'),
+                             msg.get('FingerPrint'),
+                             msg.get('RemoteIP'))
     session.set_user(user)
   except NeedSecondFactorException:
     need_second_factor = True
@@ -942,15 +946,34 @@ def processWithdrawRequest(session, msg):
 
   verification_level = session.user.verified
 
-  user_withdraw_percent_fee = session.user.withdraw_percent_fee
-  user_withdraw_fixed_fee = session.user.withdraw_fixed_fee
+  percent_fee = 0.
+  fixed_fee = 0
 
   withdraw_structure = json.loads(session.broker.withdraw_structure)
   limits = None
   for withdraw_method in withdraw_structure[msg.get('Currency')]:
     if msg.get('Method') == withdraw_method['method']:
       limits = withdraw_method['limits']
+      withdraw_method_percent_fee = withdraw_method['percent_fee']
+      if withdraw_method_percent_fee is not None:
+        percent_fee = withdraw_method_percent_fee
+
+      withdraw_method_fixed_fee = withdraw_method['fixed_fee']
+      if withdraw_method_fixed_fee is not None:
+        fixed_fee = withdraw_method_fixed_fee
       break
+
+  if session.user.withdraw_percent_fee is not None:
+    if percent_fee:
+      percent_fee = min(session.user.withdraw_percent_fee, percent_fee)
+    else:
+      percent_fee = session.user.withdraw_percent_fee
+
+  if session.user.withdraw_fixed_fee is not None:
+    if fixed_fee:
+      fixed_fee = min(session.user.withdraw_fixed_fee, fixed_fee)
+    else:
+      fixed_fee = session.user.withdraw_fixed_fee
 
   if not limits:
     raise NotAuthorizedError()
@@ -981,8 +1004,8 @@ def processWithdrawRequest(session, msg):
                                     msg.get('Data', {} ),
                                     client_order_id,
                                     session.email_lang,
-                                    user_withdraw_percent_fee,
-                                    user_withdraw_fixed_fee)
+                                    percent_fee,
+                                    fixed_fee)
 
   TradeApplication.instance().db_session.commit()
 
@@ -1362,7 +1385,8 @@ def processProcessWithdraw(session, msg):
     if withdraw.status == '4' or withdraw == '8':
       raise NotAuthorizedError()  # trying to cancel a completed operation or a cancelled operation
 
-    result = withdraw.cancel( TradeApplication.instance().db_session, msg.get('ReasonID'), msg.get('Reason') )
+    broker_fees_account = session.user_accounts['fees']
+    result = withdraw.cancel( TradeApplication.instance().db_session, msg.get('ReasonID'), msg.get('Reason'),broker_fees_account )
   elif msg.get('Action') == 'PROGRESS':
     data        = msg.get('Data')
     percent_fee = msg.get('PercentFee',0.)
@@ -1374,7 +1398,9 @@ def processProcessWithdraw(session, msg):
     if fixed_fee > float(withdraw.fixed_fee):
       raise NotAuthorizedError() # Broker tried to raise their fees manually
 
-    result = withdraw.set_in_progress( TradeApplication.instance().db_session, percent_fee, fixed_fee, data)
+    broker_fees_account = session.user_accounts['fees']
+
+    result = withdraw.set_in_progress( TradeApplication.instance().db_session, percent_fee, fixed_fee, data, broker_fees_account)
   elif msg.get('Action') == 'COMPLETE':
     data        = msg.get('Data')
 

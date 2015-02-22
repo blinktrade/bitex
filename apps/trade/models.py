@@ -167,6 +167,8 @@ class User(Base):
 
   email_lang       = Column(String, nullable=False)
 
+  has_instant_withdrawal  = Column(Boolean, nullable=False, default=True)
+
   __table_args__ = (UniqueConstraint('broker_id', 'username', name='_username_uc'),
                     UniqueConstraint('broker_id', 'email', name='_email_uc'),  )
 
@@ -177,14 +179,14 @@ class User(Base):
            u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, "\
            u" last_login=%r,  email_lang=%r, deposit_percent_fee=%r, deposit_fixed_fee=%r,"\
            u" two_factor_enabled=%r, two_factor_secret=%r,withdraw_email_validation=%r,"\
-           u" withdraw_percent_fee=%r, withdraw_fixed_fee=%r, is_market_maker=%r )>"\
+           u" withdraw_percent_fee=%r, withdraw_fixed_fee=%r, is_market_maker=%r, has_instant_withdrawal=%r )>"\
     % (self.id, self.username, self.email, self.broker_id, self.broker_username,
        self.password_algo, self.password_salt, self.password,
        self.state, self.country_code, self.transaction_fee_buy, self.transaction_fee_sell,
        self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created,
        self.last_login, self.email_lang, self.deposit_percent_fee, self.deposit_fixed_fee,
        self.two_factor_enabled, self.two_factor_secret,self.withdraw_email_validation,
-       self.withdraw_percent_fee, self.withdraw_fixed_fee, self.is_market_maker)
+       self.withdraw_percent_fee, self.withdraw_fixed_fee, self.is_market_maker, self.has_instant_withdrawal)
 
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
@@ -293,7 +295,7 @@ class User(Base):
     return u, broker
 
   @staticmethod
-  def authenticate(session, broker_id, user, password, second_factor=None):
+  def authenticate(session, broker_id, user, password, second_factor=None, finger_print=None, remote_ip=None):
     user = User.get_user( session, broker_id, user, user)
 
     if user and  user.two_factor_enabled and second_factor is None:
@@ -311,7 +313,11 @@ class User(Base):
       # update the last login
       user.last_login = get_datetime_now()
 
+      if finger_print or remote_ip:
+        AccessLog.login(session, user ,finger_print, remote_ip)
+
       return user
+
     return None
 
   def update(self, fields):
@@ -449,14 +455,88 @@ class User(Base):
       return True
     return False
 
-class FingerPrints(Base):
-  __tablename__         = 'finger_prints'
+  def disable_instant_withdrawals(self, session, reason):
+    if self.has_instant_withdrawal:
+      self.has_instant_withdrawal = False
+      session.add(self)
+
+      email_params = {
+        'id': self.id,
+        'username': self.username,
+        'email': self.email,
+        'verified': self.verified,
+        'verification_data': self.verification_data,
+        'reason': reason
+      }
+
+      broker = Broker.get_broker( session, self.broker_id)
+
+      UserEmail.create( session = session,
+                        user_id = self.broker_id,
+                        broker_id = broker.user.broker_id,
+                        subject = "DI",
+                        template= "disable_instant_withdrawals",
+                        language= self.email_lang,
+                        params=  json.dumps(email_params))
+
+
+class AccessLog(Base):
+  __tablename__         = 'access_log'
   id                    = Column(Integer,       primary_key=True)
   user_id               = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
+  username              = Column(String(15),    nullable=False)
   broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
-  finger_print          = Column(Integer,       nullable=False)
-  remote_ip             = Column(String,        nullable=False)
+  finger_print          = Column(Integer,       nullable=False, index=True)
+  remote_ip             = Column(String,        nullable=False, index=True)
+  number_of_logins      = Column(Integer,       nullable=False, default=1)
+  created               = Column(DateTime,      default=get_datetime_now,     nullable=False)
 
+  __table_args__ = (Index('idx_access_log_broker_id_remote_ip_finger_print', 'broker_id', 'remote_ip', 'finger_print' ), )
+
+  @staticmethod
+  def login(session, user, finger_print, remote_ip ):
+    set_of_users_that_will_have_instant_withdrawal_disabled = set()
+    q = session.query(AccessLog).filter_by(broker_id=user.broker_id).\
+                                 filter_by(finger_print = finger_print).\
+                                 filter_by(remote_ip = remote_ip )
+
+    found_previous_record = False
+    for log_record in q:
+      if log_record.user_id == user.id:
+        found_previous_record = True
+        log_record.number_of_logins += 1
+        session.add(log_record)
+      else:
+        u = User.get_user(session, broker_id=log_record.broker_id, user_id=log_record.user_id)
+        set_of_users_that_will_have_instant_withdrawal_disabled.add(u)
+    
+
+    if not found_previous_record:
+      log_record = AccessLog(user_id       = user.id,
+                             username      = user.username,
+                             broker_id     = user.broker_id,
+                             finger_print  = finger_print,
+                             remote_ip     = remote_ip)
+      session.add(log_record)
+
+
+    if set_of_users_that_will_have_instant_withdrawal_disabled:
+      set_of_users_that_will_have_instant_withdrawal_disabled.add(user)
+
+    username_list = []
+    for u in set_of_users_that_will_have_instant_withdrawal_disabled:
+      username_list.append(u.username)
+
+    for u in set_of_users_that_will_have_instant_withdrawal_disabled:
+      reason = {
+        "code": "MULTIPLE_ACCOUNTS_FOR_SAME_IP",
+        "other_accounts": username_list,
+        "ip":  remote_ip,
+        "finger_print": finger_print,
+        "username": user.username
+      }
+      u.disable_instant_withdrawals(session, reason)
+      session.add(u)
 
 
 class Position(Base):
@@ -1348,6 +1428,8 @@ class UserEmail(Base):
     TradeApplication.instance().publish( 'EMAIL' , msg )
     return  user_email
 
+
+# noinspection PyPackageRequirements
 class Withdraw(Base):
   __tablename__   = 'withdraws'
   id              = Column(Integer,       primary_key=True)
@@ -1403,7 +1485,7 @@ class Withdraw(Base):
 
     return  withdraw_data
 
-  def set_in_progress(self, session, percent_fee=0., fixed_fee=0, data=None):
+  def set_in_progress(self, session, percent_fee, fixed_fee, data, broker_fees_account):
     if self.status != '1':
       return False
 
@@ -1417,8 +1499,9 @@ class Withdraw(Base):
     self.percent_fee = percent_fee
     self.fixed_fee = fixed_fee
 
-
-    self.paid_amount = (self.amount / ( 100.0 - float(self.percent_fee) ) * 100.0) + self.fixed_fee
+    self.paid_amount = self.amount
+    if percent_fee > 0 or fixed_fee > 0:
+      self.paid_amount = (self.amount / ( 100.0 - float(self.percent_fee) ) * 100.0) + self.fixed_fee
 
     current_balance = Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
     if self.paid_amount > current_balance:
@@ -1449,6 +1532,24 @@ class Withdraw(Base):
                     str(self.id),           # reference
                     'W'                     # descriptions
     )
+
+    total_fees = self.paid_amount - self.amount
+
+    if total_fees:
+      Ledger.transfer(session,
+                      self.account_id,        # from_account_id
+                      self.username,          # from_account_name
+                      self.broker_id,         # from_broker_id
+                      self.broker_username,   # from_broker_name
+                      broker_fees_account[0], # to_account_id
+                      broker_fees_account[1], # to_account_name
+                      self.broker_id,         # to_broker_id
+                      self.broker_username,   # to_broker_name
+                      self.currency,          # currency
+                      total_fees,             # amount
+                      str(self.id),           # reference
+                      'WF'                    # descriptions
+      )
 
 
     session.add(self)
@@ -1483,25 +1584,6 @@ class Withdraw(Base):
 
     self.status = '4' # COMPLETE
 
-    total_fees = self.paid_amount - self.amount
-
-    if total_fees:
-      Ledger.transfer(session,
-                      self.account_id,        # from_account_id
-                      self.username,          # from_account_name
-                      self.broker_id,         # from_broker_id
-                      self.broker_username,   # from_broker_name
-                      broker_fees_account[0], # to_account_id
-                      broker_fees_account[1], # to_account_name
-                      self.broker_id,         # to_broker_id
-                      self.broker_username,   # to_broker_name
-                      self.currency,          # currency
-                      total_fees,             # amount
-                      str(self.id),           # reference
-                      'WF'                    # descriptions
-      )
-
-
     session.add(self)
     session.flush()
 
@@ -1522,7 +1604,7 @@ class Withdraw(Base):
 
     return True
 
-  def cancel(self, session, reason_id = None, reason=None):
+  def cancel(self, session, reason_id, reason, broker_fees_account):
     if self.status == '4':
       return  False
 
@@ -1542,6 +1624,23 @@ class Withdraw(Base):
                       str(self.id),           # reference
                       'W'                     # descriptions
       )
+
+      total_fees = self.paid_amount - self.amount
+      if total_fees:
+        Ledger.transfer(session,
+                        broker_fees_account[0], # from_account_id
+                        broker_fees_account[1], # from_account_name
+                        self.broker_id,         # from_broker_id
+                        self.broker_username,   # from_broker_name
+                        self.account_id,        # to_account_id
+                        self.username,          # to_account_name
+                        self.broker_id,         # to_broker_id
+                        self.broker_username,   # to_broker_name
+                        self.currency,          # currency
+                        total_fees,             # amount
+                        str(self.id),           # reference
+                        'WF'                    # descriptions
+        )
 
     self.status = '8' # CANCELLED
     self.reason_id = reason_id
@@ -1625,25 +1724,9 @@ class Withdraw(Base):
 
   @staticmethod
   def create(session, user, broker,  currency, amount, method, data, client_order_id, email_lang,
-             user_withdraw_percent_fee=None, user_withdraw_fixed_fee=None):
+             percent_fee, fixed_fee):
     import uuid
     confirmation_token = uuid.uuid4().hex
-
-    percent_fee = 0.
-    fixed_fee = 0
-
-    withdraw_structure = json.loads(broker.withdraw_structure)
-    for withdraw_method in withdraw_structure[currency]:
-      if method == withdraw_method['method']:
-        percent_fee = withdraw_method['percent_fee']
-        fixed_fee = withdraw_method['fixed_fee']
-        break
-
-    if user_withdraw_percent_fee is not None:
-      percent_fee = min(percent_fee, user_withdraw_percent_fee)
-
-    if user_withdraw_fixed_fee is not None:
-      fixed_fee = min(fixed_fee, user_withdraw_fixed_fee)
 
     withdraw_record = Withdraw(user_id            = user.id,
                                account_id         = user.id,
