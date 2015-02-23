@@ -481,7 +481,7 @@ class User(Base):
                         subject = "DI",
                         template= "disable-instant-withdrawals",
                         language= self.email_lang,
-                        params=  json.dumps(email_params))
+                        params=  json.dumps(email_params, cls=JsonEncoder))
 
 
 class AccessLog(Base):
