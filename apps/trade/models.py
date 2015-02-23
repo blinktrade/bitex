@@ -475,7 +475,7 @@ class User(Base):
                         user_id = self.broker_id,
                         broker_id = broker.user.broker_id,
                         subject = "DI",
-                        template= "disable_instant_withdrawals",
+                        template= "disable-instant-withdrawals",
                         language= self.email_lang,
                         params=  json.dumps(email_params))
 
