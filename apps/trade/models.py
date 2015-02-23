@@ -460,16 +460,20 @@ class User(Base):
       self.has_instant_withdrawal = False
       session.add(self)
 
-      email_params = {
-        'id': self.id,
-        'username': self.username,
-        'email': self.email,
-        'verified': self.verified,
-        'verification_data': self.verification_data,
-        'reason': reason
-      }
 
       broker = Broker.get_broker( session, self.broker_id)
+
+      email_params = {
+        'username':  broker.mailer_from_name,
+        'account_id': self.id,
+        'account_username': self.username,
+        'account_email': self.email,
+        'account_created': self.created,
+        'account_last_login': self.last_login,
+        'account_verified': self.verified,
+        'account_verification_data': self.verification_data,
+        'reason': reason
+      }
 
       UserEmail.create( session = session,
                         user_id = self.broker_id,
