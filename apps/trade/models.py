@@ -539,7 +539,7 @@ class AccessLog(Base):
         "finger_print": finger_print,
         "username": user.username
       }
-      u.disable_instant_withdrawals(session, reason)
+      u.disable_instant_withdrawals(session, json.dumps(reason))
       session.add(u)
 
 
@@ -1731,6 +1731,11 @@ class Withdraw(Base):
              percent_fee, fixed_fee):
     import uuid
     confirmation_token = uuid.uuid4().hex
+
+    if not user.has_instant_withdrawal:
+      new_data = json.loads(data)
+      new_data["Instant"] = 'NO'
+      data = json.dumps(new_data)
 
     withdraw_record = Withdraw(user_id            = user.id,
                                account_id         = user.id,
