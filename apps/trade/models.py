@@ -1509,7 +1509,7 @@ class Withdraw(Base):
 
     current_balance = Balance.get_balance(session, self.account_id, self.broker_id, self.currency)
     if self.paid_amount > current_balance:
-      self.cancel(session, -1 ) # Insufficient funds
+      self.cancel(session, -1, None, broker_fees_account) # Insufficient funds
       return True
 
     # User won't be able to withdraw his funds if he has any unconfirmed bitcoin deposits
@@ -1517,7 +1517,7 @@ class Withdraw(Base):
     current_positions = Position.get_positions_by_account_broker(session, self.account_id, self.broker_id)
     for position in current_positions:
       if position.position != 0:
-        self.cancel(session, -8 ) # User has deposits that are not yet confirmed
+        self.cancel(session, -8, None, broker_fees_account) # User has deposits that are not yet confirmed
         return True
 
 
