@@ -65,6 +65,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from models import Trade
+import urllib
 
 class WebSocketHandler(websocket.WebSocketHandler):
 
@@ -77,16 +78,23 @@ class WebSocketHandler(websocket.WebSocketHandler):
                 request.remote_ip))
         application.log('INFO', 'CONNECTION_OPEN', self.remote_ip )
 
+        self.trade_client = None
+        self.user_response = None
+        self.last_order_datetime = datetime.now()
+        self.open_orders = {}
+        self.md_subscriptions = {}
+        self.sec_status_subscriptions = {}
+        self.honey_pot_connection = False
+
+        if self.application.is_tor_node( self.remote_ip ):
+            self.honey_pot_connection = True
+            application.log('INFO', 'BLOCKED_TOR_NODE', self.remote_ip )
+            return
+
         self.trade_client = TradeClient(
             self.application.zmq_context,
             self.application.trade_in_socket,
             self.application.options.trade_pub)
-        self.md_subscriptions = {}
-        self.sec_status_subscriptions = {}
-
-        self.user_response = None
-        self.last_order_datetime = datetime.now()
-        self.open_orders = {}
 
     def process_execution_report(self):
         pass
@@ -96,7 +104,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
         self.sec_status_subscriptions = {}
         self.application.log('INFO', 'CONNECTION_CLOSE', self.remote_ip )
         self.application.unregister_connection(self)
-        self.trade_client.close()
+        if self.trade_client:
+            self.trade_client.close()
         self.trade_client = None
 
     def on_trade_publish(self, message):
@@ -108,16 +117,18 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
     def open(self):
         try:
-            self.trade_client.connect()
-            self.trade_client.on_trade_publish = self.on_trade_publish
-            self.application.register_connection(self)
+            if self.trade_client:
+                self.trade_client.connect()
+                self.trade_client.on_trade_publish = self.on_trade_publish
+                self.application.register_connection(self)
 
         except TradeClientException as e:
             self.write_message(
                 '{"MsgType":"ERROR", "Description":"Error establishing connection with trade", "Detail": "' +
                 str(e) +
                 '"}')
-            self.trade_client.close()
+            if self.trade_client:
+                self.trade_client.close()
             self.close()
 
     def write_message(self, message, binary=False):
@@ -128,7 +139,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
       super(WebSocketHandler, self).close()
 
     def on_message(self, raw_message):
-        if not self.trade_client.isConnected():
+        if self.honey_pot_connection:
+            self.application.log('INFO', "HONEY_POT", raw_message )
+
+        if self.trade_client is None or not self.trade_client.isConnected():
             return
 
         try:
@@ -497,6 +511,8 @@ class WebSocketGatewayApplication(tornado.web.Application):
         self.replay_logger.info('START')
         self.log_start_data()
 
+        self.update_tor_nodes()
+
         from models import Base, db_bootstrap
         db_engine = self.options.sqlalchemy_engine + ':///' +\
                     os.path.expanduser(self.options.sqlalchemy_connection_string)
@@ -567,6 +583,12 @@ class WebSocketGatewayApplication(tornado.web.Application):
             30000)
         self.heart_beat_timer.start()
 
+        self.update_tor_nodes_timer = tornado.ioloop.PeriodicCallback(
+            self.update_tor_nodes,
+            3600000)
+        self.update_tor_nodes_timer.start()
+
+
     def format_currency(self, currency_code, value, is_value_in_satoshis=True):
       currencies = self.security_list.get('Currencies')
       for currency_obj in currencies:
@@ -585,6 +607,9 @@ class WebSocketGatewayApplication(tornado.web.Application):
         return True
       return False
 
+    def is_tor_node(self, ip):
+        self.log('DEBUG', 'TOR_CHECK', ip)
+        return ip in self.tor_ip_list_
 
     def log_start_data(self):
         self.log('PARAM','BEGIN')
@@ -617,6 +642,17 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
         self.replay_logger.info(  log_msg )
 
+    def update_tor_nodes(self):
+        self.log('DEBUG', 'TOR_LIST', 'requesting from https://torstatus.blutmagie.de/ip_list_all.php/Tor_ip_list_ALL.csv')
+        try:
+            from urllib2 import urlopen
+            response = urlopen("https://torstatus.blutmagie.de/ip_list_all.php/Tor_ip_list_ALL.csv")
+            self.tor_ip_list_ = set(response.read().splitlines())
+            #self.tor_ip_list_.add('127.0.0.1')
+            self.log('INFO', 'TOR_LIST', str(self.tor_ip_list_))
+        except:
+            pass
+
     def send_heartbeat_to_trade(self):
         try:
             self.application_trade_client.sendJSON({'MsgType': '1', 'TestReqID': '0'})
@@ -631,11 +667,12 @@ class WebSocketGatewayApplication(tornado.web.Application):
         return True
 
     def unregister_connection(self, ws_client):
-        self.log('INFO', 'UNREGISTER_CONNECTION',  {'remote_ip': ws_client.remote_ip, 'trade.connection_id':  ws_client.trade_client.connection_id  }  )
-        if ws_client.trade_client.connection_id in self.connections:
-            del self.connections[ws_client.trade_client.connection_id]
-            return True
-        return False
+        if ws_client.trade_client:
+            self.log('INFO', 'UNREGISTER_CONNECTION',  {'remote_ip': ws_client.remote_ip, 'trade.connection_id':  ws_client.trade_client.connection_id  }  )
+            if ws_client.trade_client.connection_id in self.connections:
+                del self.connections[ws_client.trade_client.connection_id]
+                return True
+            return False
 
     def clean_up(self):
         self.heart_beat_timer.stop()
