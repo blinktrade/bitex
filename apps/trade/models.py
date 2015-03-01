@@ -2326,8 +2326,8 @@ class Deposit(Base):
           if user.verified >= 3 and 'InputFee' in data and data['InputFee'] >=  10000: # Higher than the minimum fee
             should_start_a_loan_from_broker_to_the_user = True
 
-          # or in case the deposit is coming from a green address
-          elif 'PayeeAddresses' in data:
+          # or confirm the deposit in case is comming from a green address
+          if 'PayeeAddresses' in data:
             try:
               payee_addresses = json.loads(data['PayeeAddresses'])
 
@@ -2336,7 +2336,7 @@ class Deposit(Base):
 
                 if payee_address:
                   if GreenAddresses.is_green_address(session, payee_address,self.currency):
-                    if 'InputFee' in data and data['InputFee'] > 0:
+                    if 'InputFee' in data and data['InputFee'] > 1000:
                       should_confirm = True
                       should_start_a_loan_from_broker_to_the_user = False
             except Exception:
