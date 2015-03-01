@@ -1182,118 +1182,25 @@ class Broker(Base):
       self.transaction_fee_buy, self.transaction_fee_sell,
       self.status, self.ranking, self.support_url, self.is_broker_hub, self.accept_customers_from, self.lang, self.accounts )
 
-class TrustedAddress(Base):
-  __tablename__         = 'trusted_address'
-  id                    = Column(String(25), primary_key=True)
-  user_id               = Column(Integer,       ForeignKey('users.id'))
-  username              = Column(String,        nullable=False, index=True)
-  broker_id             = Column(Integer,       ForeignKey('users.id'))
-  broker_username       = Column(String,        nullable=False, index=True)
+class GreenAddresses(Base):
+  __tablename__         = 'green_address'
+  id                    = Column(Integer,       primary_key=True)
   currency              = Column(String,        default='BTC', nullable=False, index=True)
   address               = Column(String,        nullable=False, index=True )
   label                 = Column(String(25) )
   created               = Column(DateTime,      default=get_datetime_now, nullable=False)
   status                = Column(Integer,       nullable=False, default=0)
 
-  __table_args__ = (UniqueConstraint('user_id', 'broker_id', 'currency', 'address', name='_trusted_address_uc'), )
+  __table_args__ = (UniqueConstraint('currency', 'address', name='_trusted_address_uc'), )
 
   def __repr__(self):
-    return "<TrustedAddress(id=%r, user_id=%r, username=%r, "\
-           "broker_id=%r, broker_username=%r,address=%r, created=%r, status=%r, label=%r)>" % (
-      self.id, self.user_id, self.username, self.broker_id,
-      self.broker_username, self.address, self.created, self.status, self.label)
+    return "<GreenAddresses(id=%r, address=%r, created=%r, status=%r, label=%r)>" % (
+      self.id, self.address, self.created, self.status, self.label)
 
 
   @staticmethod
-  def suggest_address(session, user_id, username, broker_id, broker_username, address, currency, email_lang):
-    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-    filter_by(broker_id = broker_id).\
-    filter_by(currency = currency).\
-    filter_by(address = address ).first()
-
-    if not rec:
-      id = uuid.uuid4().hex
-
-      rec = TrustedAddress( id              = id,
-                            user_id         = user_id,
-                            username        = username,
-                            broker_id       = broker_id,
-                            broker_username = broker_username,
-                            address         = address,
-                            currency        = currency,
-                            status          = 0)
-      session.add(rec)
-
-    if not rec.status:
-      msg = {
-        'MsgType'       : 'U46',
-        'SuggestTrustedAddressReqID' : uuid.uuid4().hex,
-        'TrustedAddressID': rec.id,
-        'UserID'        : rec.user_id,
-        'BrokerID'      : rec.broker_id,
-        'Currency'      : rec.currency,
-        'Address'       : rec.address
-      }
-      TradeApplication.instance().publish( user_id, msg )
-
-      UserEmail.create(session  = session,
-                       user_id  = user_id,
-                       broker_id = broker_id,
-                       subject  = 'CA',
-                       template ='confirm_address',
-                       language = email_lang,
-                       params   = json.dumps({
-                         'trusted_address_id': rec.id,
-                         'user_id': user_id,
-                         'username':username,
-                         'broker_id': broker_id,
-                         'broker_username':broker_username,
-                         'currency': currency,
-                         'address':address} ) )
-    return rec
-
-  @staticmethod
-  def user_confirm_trusted_address(session, user_id, broker_id, address, currency, label=None):
-    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-    filter_by(broker_id = broker_id).\
-    filter_by(currency = currency).\
-    filter_by(address = address ).first()
-
-    if not rec:
-      return None
-
-    if rec.status < 1:
-      rec.status = 1
-      if label:
-        rec.label = label
-      session.add(rec)
-    return True
-
-
-  @staticmethod
-  def broker_confirm_trusted_address(session, user_id, broker_id, address, currency, label=None):
-    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-    filter_by(broker_id = broker_id).\
-    filter_by(currency = currency).\
-    filter_by(address = address ).first()
-
-    if not rec:
-      return None
-
-    if rec.status < 2:
-      rec.status = 2
-      rec.label = label
-      session.add(rec)
-
-    return True
-
-
-  @staticmethod
-  def is_trusted_address(session, user_id, broker_id, address, currency):
-    rec = session.query(TrustedAddress).filter_by(user_id = user_id).\
-    filter_by(broker_id = broker_id).\
-    filter_by(currency = currency).\
-    filter_by(address = address ).first()
+  def is_green_address(session, address, currency):
+    rec = session.query(GreenAddresses).filter_by(currency = currency).filter_by(address = address ).first()
     if not rec:
       return  False
     return rec.status > 0
@@ -2428,13 +2335,10 @@ class Deposit(Base):
                 payee_address = payee_addresses[0]
 
                 if payee_address:
-                  if TrustedAddress.is_trusted_address(session,
-                                                       self.user_id,
-                                                       self.broker_id,
-                                                       payee_address,
-                                                       self.currency ):
+                  if GreenAddresses.is_green_address(session, payee_address,self.currency):
                     if 'InputFee' in data and data['InputFee'] > 0:
-                      should_start_a_loan_from_broker_to_the_user = True
+                      should_confirm = True
+                      should_start_a_loan_from_broker_to_the_user = False
             except Exception:
               pass
 

@@ -9,7 +9,7 @@ import json
 
 from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
   NeedSecondFactorException, UserAlreadyExistsException, BrokerDoesNotExistsException, \
-  Withdraw, Broker, Instrument, Currency, Balance, Ledger, Position, PositionLedger, TrustedAddress
+  Withdraw, Broker, Instrument, Currency, Balance, Ledger, Position, PositionLedger
 
 from execution import OrderMatcher
 
@@ -580,25 +580,6 @@ def processSignup(session, msg):
     )
   return processLogin(session, msg)
 
-@login_required
-@verified_user_required
-def processConfirmTrustedAddressRequest(session, msg):
-  TrustedAddress.user_confirm_trusted_address(TradeApplication.instance().db_session,
-                                              session.user.id,
-                                              session.broker.id,
-                                              msg.get('Address'),
-                                              msg.get('Currency'),
-                                              msg.get('Label') )
-  TradeApplication.instance().db_session.commit()
-
-  response = {
-    'MsgType': 'U45',
-    'ConfirmTrustedAddressReqID': msg.get('ConfirmTrustedAddressReqID'),
-    'Address':  msg.get('Address'),
-    'Currency': msg.get('Currency'),
-    'Label': msg.get('Label')
-  }
-  return json.dumps(response, cls=JsonEncoder)
 
 @login_required
 def processRequestForPositions(session, msg):
