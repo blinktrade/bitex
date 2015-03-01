@@ -73,7 +73,8 @@ class BitExThreadedClient(WebSocketClient):
       'BrokerID': broker_id,
       'Username': user,
       'Password':password,
-      'UserReqTyp': '1'
+      'UserReqTyp': '1',
+      'FingerPrint': 9999
     }
     self.send(json.dumps(loginMsg))
 
