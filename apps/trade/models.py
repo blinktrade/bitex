@@ -1025,6 +1025,28 @@ class Ledger(Base):
                       'TF',                        # descriptions
                       timestamp
       )
+      if order.fwd_fees:
+        fwd_fee_account_list = json.loads(order.fwd_fees)
+
+        for fwd_fee_account in fwd_fee_account_list:
+          fwd_fee = amount * fwd_fee_account[2]
+          Ledger.transfer(session,
+                          order.fee_account_id,       # from_account_id
+                          order.fee_account_username, # from_account_name
+                          order.broker_id,            # from_broker_id
+                          order.broker_username,      # from_broker_name
+                          fwd_fee_account[0],         # to_account_id
+                          fwd_fee_account[1],         # to_account_name
+                          order.broker_id,            # to_broker_id
+                          order.broker_username,      # to_broker_name
+                          currency,                   # currency
+                          fwd_fee,                    # amount
+                          trade_id,                   # reference
+                          'TF'                        # descriptions
+          )
+
+
+
 
     def award_market_maker_points(session, trade_id, broker_id, broker_username, market_maker_id, market_maker_username, symbol, amount, timestamp):
       Ledger.transfer(session,
@@ -1462,6 +1484,27 @@ class Withdraw(Base):
                       'WF'                    # descriptions
       )
 
+      for x in xrange(2, len(broker_fees_account)):
+        fwd_fee_account = broker_fees_account[x]
+        fwd_fee = total_fees * fwd_fee_account[2]
+        Ledger.transfer(session,
+                        broker_fees_account[0], # from_account_id
+                        broker_fees_account[1], # from_account_name
+                        self.broker_id,         # from_broker_id
+                        self.broker_username,   # from_broker_name
+                        fwd_fee_account[0],     # to_account_id
+                        fwd_fee_account[1],     # to_account_name
+                        self.broker_id,         # to_broker_id
+                        self.broker_username,   # to_broker_name
+                        self.currency,          # currency
+                        fwd_fee,                # amount
+                        str(self.id),           # reference
+                        'WF'                    # descriptions
+        )
+
+
+
+
 
     session.add(self)
     session.flush()
@@ -1552,6 +1595,26 @@ class Withdraw(Base):
                         str(self.id),           # reference
                         'WF'                    # descriptions
         )
+
+        for x in xrange(2, len(broker_fees_account)):
+          fwd_fee_account = broker_fees_account[x]
+          fwd_fee = total_fees * fwd_fee_account[2]
+          Ledger.transfer(session,
+                          fwd_fee_account[0],     # from_account_id
+                          fwd_fee_account[1],     # from_account_name
+                          self.broker_id,         # from_broker_id
+                          self.broker_username,   # from_broker_name
+                          broker_fees_account[0], # to_account_id
+                          broker_fees_account[1], # to_account_name
+                          self.broker_id,         # to_broker_id
+                          self.broker_username,   # to_broker_name
+                          self.currency,          # currency
+                          fwd_fee,                # amount
+                          str(self.id),           # reference
+                          'WF'                    # descriptions
+          )
+
+
 
     self.status = '8' # CANCELLED
     self.reason_id = reason_id
@@ -1723,6 +1786,7 @@ class Order(Base):
   fee                   = Column(Integer,       nullable=False, default=0)
   fee_account_id        = Column(Integer,       ForeignKey('users.id'), nullable=False)
   fee_account_username  = Column(String(15),    nullable=False)
+  fwd_fees              = Column(Text)
   email_lang            = Column(String,        nullable=False)
   has_leaves_qty        = Column(Boolean,       default=1, index=True)
   has_cum_qty           = Column(Boolean,       default=0, index=True)
@@ -1755,13 +1819,13 @@ class Order(Base):
            "symbol=%r, side=%r, type=%r, price=%r, order_qty=%r, cum_qty=%r, leaves_qty=%r, "\
            "created=%r, last_price=%r,  cxl_qty=%r, last_qty=%r, status=%r, average_price=%r, fee=%r, "\
            "fee_account_id=%r, fee_account_username=%r, email_lang=%r, has_leaves_qty=%r, " \
-           "has_cum_qty=%r,has_cxl_qty=%r, is_from_market_maker=%r, gui_id=%r)>"\
+           "has_cum_qty=%r,has_cxl_qty=%r, is_from_market_maker=%r, gui_id=%r, fwd_fees=%r)>"\
     % (self.id, self.user_id, self.username, self.account_id, self.account_username, self.client_order_id,
        self.broker_id, self.broker_username, self.time_in_force,
        self.symbol, self.side, self.type, self.price,  self.order_qty, self.cum_qty, self.leaves_qty,
        self.created, self.last_price, self.cxl_qty , self.last_qty, self.status, self.average_price, self.fee,
        self.fee_account_id, self.fee_account_username, self.email_lang, self.has_leaves_qty, 
-       self.has_cum_qty, self.has_cxl_qty, self.is_from_market_maker, self.gui_id)
+       self.has_cum_qty, self.has_cxl_qty, self.is_from_market_maker, self.gui_id, self.fwd_fees)
 
   def __cmp__(self, other):
     if self.is_buy and other.is_buy:
@@ -1804,7 +1868,7 @@ class Order(Base):
   @staticmethod
   def create(session,user_id,account_id,user,username,account_user,account_username, broker_id,
              broker_username,client_order_id,symbol,side,type,price,order_qty, time_in_force,
-             fee, fee_account_id, fee_account_username, email_lang, is_from_market_maker,gui_id):
+             fee, fee_account_id, fee_account_username, fwd_fees, email_lang, is_from_market_maker,gui_id):
     order = Order( user_id              = user_id,
                    account_id           = account_id,
                    user                 = user,
@@ -1823,6 +1887,7 @@ class Order(Base):
                    fee                  = fee,
                    fee_account_id       = fee_account_id,
                    fee_account_username = fee_account_username,
+                   fwd_fees             = fwd_fees,
                    email_lang           = email_lang,
                    is_from_market_maker = is_from_market_maker,
                    gui_id               = gui_id)
@@ -2473,6 +2538,26 @@ class Deposit(Base):
                         str(self.id),           # reference
                         'DF'                    # descriptions
         )
+        for x in xrange(2, len(fee_account)):
+          fwd_fee_account = fee_account[x]
+          fwd_fee = total_fees * fwd_fee_account[2]
+          Ledger.transfer(session,
+                          fee_account[0],         # from_account_id
+                          fee_account[1],         # from_account_name
+                          self.broker_id,         # from_broker_id
+                          self.broker_username,   # from_broker_name
+                          fwd_fee_account[0],     # to_account_id
+                          fwd_fee_account[1],     # to_account_name
+                          self.broker_id,         # to_broker_id
+                          self.broker_username,   # to_broker_name
+                          self.currency,          # currency
+                          fwd_fee,                # amount
+                          str(self.id),           # reference
+                          'DF'                    # descriptions
+          )
+
+
+
 
     instruction_to_execute = None
     if should_execute_instructions:

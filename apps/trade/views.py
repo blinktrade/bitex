@@ -295,6 +295,7 @@ def processNewOrderSingle(session, msg):
                        fee                  = fee,
                        fee_account_id       = fee_account[0],
                        fee_account_username = fee_account[1],
+                       fwd_fees             = json.dumps(fee_account[2:]),
                        email_lang           = session.email_lang,
                        is_from_market_maker = account_user.is_market_maker,
                        gui_id               = None )
