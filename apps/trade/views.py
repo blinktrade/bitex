@@ -9,7 +9,7 @@ import json
 
 from models import  User, Order, UserPasswordReset, Deposit, DepositMethods, \
   NeedSecondFactorException, UserAlreadyExistsException, BrokerDoesNotExistsException, \
-  Withdraw, Broker, Instrument, Currency, Balance, Ledger, Position, PositionLedger
+  Withdraw, Broker, Instrument, Currency, Balance, Ledger, Position, ApiAccess
 
 from execution import OrderMatcher
 
@@ -23,8 +23,8 @@ def processTestRequest(session, msg):
     "TestReqID": msg.get("TestReqID")
   }, cls=JsonEncoder)
 
-
 @login_required
+@verify_permission
 def processChangePassword(session, msg):
   # Authenticate the user
   need_second_factor = False
@@ -140,9 +140,18 @@ def processLogin(session, msg):
                              msg.get('SecondFactor'),
                              msg.get('FingerPrint'),
                              msg.get('RemoteIP'))
-    session.set_user(user)
+    session.set_user(user, {'*':[]} )
   except NeedSecondFactorException:
     need_second_factor = True
+
+
+  if not session.user:   # Let's test for an API login
+    user, permission_list = ApiAccess.authenticate(TradeApplication.instance().db_session,
+                                                   msg.get('Username'),
+                                                   msg.get('Password'),
+                                                   msg.get('FingerPrint'),
+                                                   msg.get('RemoteIP'))
+    session.set_user(user, permission_list )
 
 
   if not session.user:
@@ -209,6 +218,7 @@ def processLogin(session, msg):
   return json.dumps(login_response, cls=JsonEncoder)
 
 @login_required
+@verify_permission
 def processNewOrderSingle(session, msg):
   from errors import NotAuthorizedError, InvalidClientIDError
 
@@ -307,6 +317,7 @@ def processNewOrderSingle(session, msg):
   return ""
 
 @login_required
+@verify_permission
 def processCancelOrderRequest(session, msg):
   order_list = []
   if  msg.has('OrigClOrdID'):
@@ -342,12 +353,12 @@ def convertCamelCase2Underscore(name):
   s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
   return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
-
 @login_required
+@verify_permission
 def processUpdateUserProfile(session, msg):
   fields  = msg.get('Fields',[])
   user_id = msg.get('UserID' )
-  
+
   if user_id:
     broker_id = session.user.id
   else:
@@ -583,6 +594,7 @@ def processSignup(session, msg):
 
 
 @login_required
+@verify_permission
 def processRequestForPositions(session, msg):
   user = session.user
   if msg.has('ClientID'):
@@ -611,6 +623,7 @@ def processRequestForPositions(session, msg):
 
 
 @login_required
+@verify_permission
 def processRequestForBalances(session, msg):
   user = session.user
   if msg.has('ClientID'):
@@ -639,6 +652,7 @@ def processRequestForBalances(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
+@verify_permission
 def processRequestForOpenOrders(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
@@ -725,6 +739,7 @@ def processPasswordRequest(session, msg):
     return json.dumps(response, cls=JsonEncoder)
 
 @login_required
+@verify_permission
 def processEnableDisableTwoFactorAuth(session, msg):
   enable = msg.get('Enable')
   secret = msg.get('Secret')
@@ -786,6 +801,7 @@ def processRequestDepositMethod(session, msg):
   return json.dumps(response, cls=JsonEncoder)
 
 @login_required
+@verify_permission
 def processRequestDepositMethods(session, msg):
   deposit_options = DepositMethods.get_list(TradeApplication.instance().db_session,session.user.broker_id )
 
@@ -921,7 +937,9 @@ def depositRecordToDepositMessage( deposit ):
   deposit_message['ClOrdID']             = deposit.client_order_id
   return deposit_message
 
+
 @login_required
+@verify_permission
 def processWithdrawRequest(session, msg):
   reqId           = msg.get('WithdrawReqID')
   client_order_id = msg.get('ClOrdID')
@@ -1025,6 +1043,7 @@ def withdrawRecordToWithdrawMessage( withdraw ):
   return withdraw_message
 
 @login_required
+@verify_permission
 def processWithdrawConfirmationRequest(session, msg):
   reqId = msg.get('WithdrawReqID')
   token = msg.get('ConfirmationToken')
@@ -1063,7 +1082,129 @@ def processWithdrawConfirmationRequest(session, msg):
 
   return json.dumps(response_u25, cls=JsonEncoder)
 
+
 @login_required
+@verify_permission
+def processApiKeyListRequest(session, msg):
+  page        = msg.get('Page', 0)
+  page_size   = msg.get('PageSize', 100)
+  offset      = page * page_size
+
+  user = session.user
+  result_set = ApiAccess.get_list(TradeApplication.instance().db_session, user.broker_id, user.id, page_size, offset)
+  result_list = []
+  columns = ['APIKey', 'Label',  'IPWhiteList', 'PermissionList', 'Created', 'LastUsed' ]
+
+  for rec in result_set:
+    result_list.append( [
+      rec.api_key,
+      rec.label,
+      json.loads(rec.ip_white_list),
+      json.loads(rec.permission_list),
+      rec.created,
+      rec.last_used
+    ])
+
+  response_msg = {
+    'MsgType'           : 'U51', # APIKeyListResponse
+    'APIKeyListReqID'   : msg.get('APIKeyListReqID'),
+    'Page'              : page,
+    'PageSize'          : page_size,
+    'Columns'           : columns,
+    'ApiKeyListGrp'     : result_list
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+
+@login_required
+@verify_permission
+def processApiKeyCreateRequest(session, msg):
+  label           = msg.get('Label')
+  permission_list = msg.get('PermissionList', {})
+  ip_white_list   = msg.get('IPWhiteList', [])
+  revocable       = msg.get('Revocable', True)
+
+  # remove all permissions that are now allowed for API
+  if '*' in permission_list:
+    raise NotAuthorizedError()
+  if 'B' in permission_list:# News
+    raise NotAuthorizedError()
+  if 'BE' in permission_list: # User Request
+    raise NotAuthorizedError()
+  if 'C' in permission_list: # Email
+    raise NotAuthorizedError()
+  if 'U0'  in permission_list: # Signup
+    raise NotAuthorizedError()
+  if 'U10' in permission_list: # ResetPasswordRequest
+    raise NotAuthorizedError()
+  if 'U12' in permission_list: # ResetPasswordRequest
+    raise NotAuthorizedError()
+  if 'U16' in permission_list: # EnableDisableTwoFactorAuthenticationRequest
+    raise NotAuthorizedError()
+  if 'U38' in permission_list: # UpdateProfile
+    raise NotAuthorizedError()
+  if 'U44' in permission_list: # ConfirmTrustedAddressRequest
+    raise NotAuthorizedError()
+  if 'U46' in permission_list: # SuggestTrustedAddressPublish
+    raise NotAuthorizedError()
+  if 'U50' in permission_list: # ApiKeyListRequest
+    raise NotAuthorizedError()
+  if 'U52' in permission_list: # ApiKeyCreateRequest
+    raise NotAuthorizedError()
+  if 'U54' in permission_list: # ApiKeyRevokeRequest
+    raise NotAuthorizedError()
+
+  api_access, api_raw_password = ApiAccess.create(TradeApplication.instance().db_session,
+                                                  session.user,
+                                                  label,
+                                                  permission_list,
+                                                  ip_white_list,
+                                                  revocable)
+
+  response_msg = {
+    'MsgType'           : 'U53', # APIKeyCreateResponse
+    'APIKeyCreateReqID' : msg.get('APIKeyCreateReqID'),
+    'Label'             : api_access.label,
+    'APIKey'            : api_access.api_key,
+    'APISecret'         : api_access.api_secret,
+    'APIPassword'       : api_raw_password,
+    'PermissionList'    : json.dumps(api_access.permission_list),
+    'IPWhiteList'       : json.dumps(api_access.ip_white_list),
+    'Status'            : api_access.status,
+    'Revocable'         : api_access.revocable,
+    'Created'           : api_access.created,
+    'LastUsed'          : api_access.last_used
+    }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+
+@login_required
+@verify_permission
+def processApiKeyRevokeRequest(session, msg):
+  api_key           = msg.get('APIKey')
+
+  api_access = ApiAccess.get_api_access_by_api_key(TradeApplication.instance().db_session, api_key)
+  if not api_access:
+    raise InvalidApiKeyError()
+
+  if api_access.user_id != session.user.id or api_access.broke_id != session.user.broker_id:
+    raise NotAuthorizedError()
+
+  if not api_access.revocable:
+    raise ApiKeyIsNotRevocableError()
+
+  api_access.revoke(TradeApplication.instance().db_session)
+
+  response_msg = {
+    'MsgType'           : 'U55', # APIKeyRevoke Response
+    'APIKeyRevokeReqID' : msg.get('APIKeyRevokeReqID'),
+    'APIKey'            : api_access.api_key,
+    'Status'            : api_access.status
+  }
+  return json.dumps(response_msg, cls=JsonEncoder)
+
+@login_required
+@verify_permission
 def processWithdrawListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
@@ -1225,6 +1366,7 @@ def processRequestDatabaseQuery(session, msg):
 
 @login_required
 @broker_user_required
+@verify_permission
 def processCustomerListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)
@@ -1283,6 +1425,7 @@ def processCustomerListRequest(session, msg):
 
 @login_required
 @broker_user_required
+@verify_permission
 def processCustomerDetailRequest(session, msg):
   client = None
   if msg.get('ClientID').isdigit():
@@ -1356,6 +1499,7 @@ def processVerifyCustomer(session, msg):
 
 @login_required
 @broker_user_required
+@verify_permission
 def processProcessWithdraw(session, msg):
   withdraw = Withdraw.get_withdraw(TradeApplication.instance().db_session, msg.get('WithdrawID'))
 
@@ -1514,9 +1658,10 @@ def processProcessDeposit(session, msg):
     if session.user:
       session.process_message(msg)
     else:
-      session.set_user(User.get_user( TradeApplication.instance().db_session, deposit.broker_id, user_id=deposit.user_id))
+      user = User.get_user( TradeApplication.instance().db_session, deposit.broker_id, user_id=deposit.user_id)
+      session.set_user(user, {'*':[]})
       session.process_message(msg)
-      session.set_user(None)
+      session.set_user(None, None)
 
 
   deposit_refresh = depositRecordToDepositMessage(deposit)
@@ -1532,6 +1677,7 @@ def processProcessDeposit(session, msg):
   return json.dumps(result, cls=JsonEncoder)
 
 @login_required
+@verify_permission
 def processLedgerListRequest(session, msg):
   page            = msg.get('Page', 0)
   page_size       = msg.get('PageSize', 100)
@@ -1606,6 +1752,7 @@ def processLedgerListRequest(session, msg):
   return json.dumps(response_msg, cls=JsonEncoder)
 
 @login_required
+@verify_permission
 def processDepositListRequest(session, msg):
   page        = msg.get('Page', 0)
   page_size   = msg.get('PageSize', 100)

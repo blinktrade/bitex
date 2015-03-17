@@ -31,3 +31,9 @@ class InvalidClientIDError(TradeRuntimeError):
 
 class InvalidParameter(TradeRuntimeError):
   error_description = "Invalid Parameter"
+
+class InvalidApiKeyError(TradeRuntimeError):
+  error_description = "ApiKey is not valid"
+
+class ApiKeyIsNotRevocableError(TradeRuntimeError):
+  error_description = "ApiKey is not revocable"

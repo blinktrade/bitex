@@ -17,8 +17,9 @@ class Session(object):
     self.user_accounts    = None
     self.broker_accounts  = None
     self.email_lang       = TradeApplication.instance().options.global_email_language
+    self.permission_list  = {'*':[]}
 
-  def set_user(self, user):
+  def set_user(self, user, permission_list):
     if user is None:
       self.user = None
       self.is_broker = False
@@ -31,7 +32,7 @@ class Session(object):
       raise UserAlreadyLogged
     self.user = user
     self.email_lang = user.email_lang
-
+    self.permission_list = permission_list
     self.is_broker = self.user.is_broker
 
     from models import Broker
@@ -121,6 +122,15 @@ class Session(object):
 
     elif msg.type == 'U42': # Request for Positions
       return  processRequestForPositions(self,msg)
+
+    elif msg.type == 'U50': # ApiKey List Request
+      return processApiKeyListRequest(self, msg)
+
+    elif msg.type == 'U52': # ApiKey Create Request
+      return processApiKeyCreateRequest(self, msg)
+
+    elif msg.type == 'U54': # ApiKey Revoke Request
+      return processApiKeyRevokeRequest(self, msg)
 
     elif msg.type == 'B0':  # Deposit Payment Confirmation
       return processProcessDeposit(self, msg)

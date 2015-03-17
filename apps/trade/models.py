@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import hashlib
 
 import logging
 import hmac, base64, struct, hashlib, time, uuid
 
 import datetime
 from pyblinktrade.utils import smart_str
+import random
 
 from sqlalchemy import ForeignKey
 from sqlalchemy import desc, func
@@ -126,6 +126,7 @@ class Instrument(Base):
     return u"<Instrument(symbol=%r, currency=%r, description=%r, brokers=%r)>" % (
         self.symbol, self.currency, self.description, self.brokers)
 
+
 class User(Base):
   __tablename__   = 'users'
   id              = Column(Integer, primary_key=True)
@@ -199,7 +200,6 @@ class User(Base):
 
 
   def set_password(self, raw_password):
-    import random
     self.password_algo = 'sha1'
     self.password_salt = get_hexdigest(self.password_algo, str(random.random()), str(random.random()))[:5]
     self.password = get_hexdigest(self.password_algo, self.password_salt, raw_password)
@@ -301,22 +301,24 @@ class User(Base):
     if user and  user.two_factor_enabled and second_factor is None:
       raise NeedSecondFactorException
 
-    if user and user.check_password(password):
+    if user:
+      if user.check_password(password):
 
-      if user.two_factor_enabled:
-        if second_factor is None or second_factor == '':
-          raise NeedSecondFactorException
+        if user.two_factor_enabled:
+          if second_factor is None or second_factor == '':
+            raise NeedSecondFactorException
 
-        if not onetimepass.valid_totp(token=int(second_factor), secret=user.two_factor_secret):
-          raise NeedSecondFactorException
+          if not onetimepass.valid_totp(token=int(second_factor), secret=user.two_factor_secret):
+            raise NeedSecondFactorException
 
-      # update the last login
-      user.last_login = get_datetime_now()
+        # update the last login
+        user.last_login = get_datetime_now()
 
-      if finger_print or remote_ip:
-        AccessLog.login(session, user ,finger_print, remote_ip)
+        if finger_print or remote_ip:
+          AccessLog.login(session, user ,finger_print, remote_ip)
 
-      return user
+        return user
+
 
     return None
 
@@ -483,6 +485,103 @@ class User(Base):
                         language= self.email_lang,
                         params=  json.dumps(email_params, cls=JsonEncoder))
 
+class ApiAccess(Base):
+  __tablename__         = 'api_access'
+  api_key               = Column(String(128),primary_key=True)
+  user_id               = Column(Integer,    ForeignKey('users.id')        ,nullable=False)
+  username              = Column(String(15), nullable=False)
+  broker_id             = Column(Integer,    ForeignKey('users.id'))
+  broker_username       = Column(String,     nullable=False)
+  label                 = Column(String(15), nullable=False, index=True)
+  api_secret            = Column(String(128),nullable=False)
+  api_password          = Column(String(128),nullable=False)
+  api_password_salt     = Column(String(5),  nullable=False)
+  ip_white_list         = Column(Text,       default="[]", nullable=False)
+  permission_list       = Column(Text,       nullable=False)
+  revocable             = Column(Boolean,    nullable=False, default=True, index=True)
+  status                = Column(Integer,    nullable=False, default=1, index=True)
+  created               = Column(DateTime,   default=get_datetime_now, nullable=False)
+  last_used             = Column(DateTime,   default=get_datetime_now, onupdate=get_datetime_now, nullable=False)
+
+
+  def revoke(self, session):
+    if self.revocable and self.status == 1:
+      self.status = 0
+      session.add(self)
+
+
+  @staticmethod
+  def get_api_access_by_api_key(session, api_key):
+    api_access = session.query(ApiAccess).filter_by(api_key=api_key).first()
+    return api_access
+
+  @staticmethod
+  def create(session, user, label, permission_list, ip_white_list, revocable):
+    api_key = base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(),
+                               random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')
+
+    api_secret = base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(),
+                                  random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')
+
+    password_salt = get_hexdigest('sha1', str(random.random()), str(random.random()))[:5]
+    raw_password = base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(),
+                               random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')[:15]
+    password = get_hexdigest('sha1', password_salt, raw_password )
+
+    api_access = ApiAccess( api_key           = api_key,
+                            user_id           = user.id,
+                            username          = user.username,
+                            broker_id         = user.broker_id,
+                            broker_username   = user.broker_username,
+                            label             = label,
+                            api_secret        = api_secret,
+                            api_password_salt = password_salt,
+                            api_password      = password,
+                            revocable         = revocable,
+                            ip_white_list     = json.dumps(ip_white_list),
+                            permission_list   = json.dumps(permission_list))
+    session.add(api_access)
+    session.flush()
+    return api_access, raw_password
+
+  @staticmethod
+  def authenticate(session, api_key, api_password, finger_print, remote_ip):
+    api_access = ApiAccess.get_api_access_by_api_key(session, api_key)
+    if api_access is None:
+      return None, None
+
+    if api_access.api_password != get_hexdigest('sha1', api_access.api_password_salt, api_password):
+      # TODO: The user shall receive an email saying that someone is trying to access his account with the wrong api pwd
+      return None, None
+
+    if api_access.status != 1:
+      # TODO: The user shall receive an email when someone is trying to access his account using a revoked api key
+      return None, None
+
+    ip_white_list = json.loads(api_access.ip_white_list)
+    if ip_white_list and remote_ip not in ip_white_list:
+      # TODO: The user shall receive an email when someone is try to access his account from a non white listed ip
+      return None, None
+
+    user = User.get_user(session, broker_id=api_access.broker_id, user_id=api_access.user_id)
+    user.last_login = get_datetime_now()
+    api_access.last_used = user.last_login
+    session.add(api_access)
+
+    if finger_print or remote_ip:
+      AccessLog.login(session, user ,finger_print, remote_ip)
+
+    return user, json.loads(api_access.permission_list)
+
+  @staticmethod
+  def get_list(session, broker_id, user_id, page_size, offset):
+    query = session.query(ApiAccess).filter_by(broker_id=broker_id).filter_by(user_id=user_id).filter_by(status=1)
+    if page_size:
+      query = query.limit(page_size)
+    if offset:
+      query = query.offset(offset)
+
+    return query
 
 class AccessLog(Base):
   __tablename__         = 'access_log'
@@ -493,7 +592,8 @@ class AccessLog(Base):
   finger_print          = Column(Integer,       nullable=False, index=True)
   remote_ip             = Column(String,        nullable=False, index=True)
   number_of_logins      = Column(Integer,       nullable=False, default=1)
-  created               = Column(DateTime,      default=get_datetime_now,     nullable=False)
+  created               = Column(DateTime,      default=get_datetime_now, nullable=False)
+  last_login            = Column(DateTime,      default=get_datetime_now, onupdate=get_datetime_now, nullable=False)
 
   __table_args__ = (Index('idx_access_log_broker_id_remote_ip_finger_print', 'broker_id', 'remote_ip', 'finger_print' ), )
 
