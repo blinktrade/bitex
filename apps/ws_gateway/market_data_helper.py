@@ -350,6 +350,9 @@ class MarketDataPublisher(object):
 
         signal_publish_md_status.connect(self.signal_md_status, 'MD_STATUS')
 
+    def cleanup(self):
+        pass
+
     def signal_md_status(self, sender, entry):
         self.entry_list_order_depth.append(entry)
 

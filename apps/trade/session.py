@@ -47,6 +47,10 @@ class Session(object):
       self.broker_accounts  = json.loads(self.broker.accounts)
 
 
+  def has_access_to_account_info(self):
+    return '*' in self.permission_list or 'BF' in self.permission_list
+
+
   def process_message(self, msg):
     if  msg.type == '1': # TestRequest
       return processTestRequest(self, msg)

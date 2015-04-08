@@ -295,7 +295,7 @@ class User(Base):
     return u, broker
 
   @staticmethod
-  def authenticate(session, broker_id, user, password, second_factor=None, finger_print=None, remote_ip=None):
+  def authenticate(session, broker_id, user, password, second_factor=None, finger_print=None, remote_ip=None, stunt_ip=None):
     user = User.get_user( session, broker_id, user, user)
 
     if user and  user.two_factor_enabled and second_factor is None:
@@ -315,7 +315,7 @@ class User(Base):
         user.last_login = get_datetime_now()
 
         if finger_print or remote_ip:
-          AccessLog.login(session, user ,finger_print, remote_ip)
+          AccessLog.login(session, user ,finger_print, remote_ip, stunt_ip)
 
         return user
 
@@ -503,6 +503,13 @@ class ApiAccess(Base):
   created               = Column(DateTime,   default=get_datetime_now, nullable=False)
   last_used             = Column(DateTime,   default=get_datetime_now, onupdate=get_datetime_now, nullable=False)
 
+  def __repr__(self):
+    return u"<ApiAccess(api_key=%r,user_id=%r,username=%r,broker_id=%r,broker_username=%r,label=%r,"\
+           u"api_secret=%r,api_password=%r,api_password_salt=%r,ip_white_list=%r,permission_list=%r,"\
+          u"revocable=%r,status=%r,created=%r,last_used=%r)>" % (
+      self.api_key,self.user_id,self.username,self.broker_id,self.broker_username,self.label,
+      self.api_secret,self.api_password,self.api_password_salt,self.ip_white_list,self.permission_list,
+      self.revocable,self.status,self.created,self.last_used)
 
   def revoke(self, session):
     if self.revocable and self.status == 1:
@@ -545,7 +552,7 @@ class ApiAccess(Base):
     return api_access, raw_password
 
   @staticmethod
-  def authenticate(session, api_key, api_password, finger_print, remote_ip):
+  def authenticate(session, api_key, api_password, finger_print, remote_ip, stunt_ip=None):
     api_access = ApiAccess.get_api_access_by_api_key(session, api_key)
     if api_access is None:
       return None, None
@@ -569,7 +576,7 @@ class ApiAccess(Base):
     session.add(api_access)
 
     if finger_print or remote_ip:
-      AccessLog.login(session, user ,finger_print, remote_ip)
+      AccessLog.login(session, user ,finger_print, remote_ip, stunt_ip)
 
     return user, json.loads(api_access.permission_list)
 
@@ -591,6 +598,7 @@ class AccessLog(Base):
   broker_id             = Column(Integer,       ForeignKey('users.id')        ,nullable=False)
   finger_print          = Column(Integer,       nullable=False, index=True)
   remote_ip             = Column(String,        nullable=False, index=True)
+  stunt_ip              = Column(Text)
   number_of_logins      = Column(Integer,       nullable=False, default=1)
   created               = Column(DateTime,      default=get_datetime_now, nullable=False)
   last_login            = Column(DateTime,      default=get_datetime_now, onupdate=get_datetime_now, nullable=False)
@@ -598,7 +606,11 @@ class AccessLog(Base):
   __table_args__ = (Index('idx_access_log_broker_id_remote_ip_finger_print', 'broker_id', 'remote_ip', 'finger_print' ), )
 
   @staticmethod
-  def login(session, user, finger_print, remote_ip ):
+  def login(session, user, finger_print, remote_ip, stunt_ip=None ):
+    if stunt_ip:
+      stunt_ip = json.dumps(stunt_ip)
+
+
     set_of_users_that_will_have_instant_withdrawal_disabled = set()
     q = session.query(AccessLog).filter_by(broker_id=user.broker_id).\
                                  filter_by(finger_print = finger_print).\
@@ -620,7 +632,8 @@ class AccessLog(Base):
                              username      = user.username,
                              broker_id     = user.broker_id,
                              finger_print  = finger_print,
-                             remote_ip     = remote_ip)
+                             remote_ip     = remote_ip,
+                             stunt_ip      = stunt_ip)
       session.add(log_record)
 
 
@@ -637,6 +650,7 @@ class AccessLog(Base):
         "other_accounts": username_list,
         "ip":  remote_ip,
         "finger_print": finger_print,
+        "stunt_ip": stunt_ip,
         "username": user.username
       }
       u.disable_instant_withdrawals(session, json.dumps(reason))
@@ -657,8 +671,8 @@ class Position(Base):
   __table_args__ = (UniqueConstraint('account_id', 'broker_id', 'currency', name='_position_uc'), )
 
   def __repr__(self):
-    return u"<Position(id=%r, account_id=%r, account_name=%r, broker_id=%r, broker_name=%r, currency=%r, position=%r)>" % (
-      self.id, self.account_id, self.account_name,  self.broker_id, self.broker_name, self.currency, self.position )
+    return u"<Position(id=%r, account_id=%r, account_name=%r, broker_id=%r, broker_name=%r, currency=%r, position=%r, last_update=%r)>" % (
+      self.id, self.account_id, self.account_name,  self.broker_id, self.broker_name, self.currency, self.position, self.last_update )
 
   @staticmethod
   def get_positions_by_account(session, account_id):
@@ -1033,7 +1047,7 @@ class Ledger(Base):
 
     # adjust balances
     to_symbol = symbol[:3].upper()   #BTC
-    from_symbol = symbol[3:].upper() #USD
+    from_symbol = symbol[3:].upper() #FIAT
 
     balance = Balance.update_balance(session, 'DEBIT' if order.is_buy else 'CREDIT', order.account_id, order.account_username, order.broker_id, order.broker_username, from_symbol, total_value )
     order_record_debit = Ledger( currency         = from_symbol,
@@ -1122,7 +1136,7 @@ class Ledger(Base):
                       currency,                   # currency
                       amount,                     # amount
                       trade_id,                   # reference
-                      'TF',                        # descriptions
+                      'TF',                       # descriptions
                       timestamp
       )
       if order.fwd_fees:
@@ -1316,8 +1330,8 @@ class GreenAddresses(Base):
   __table_args__ = (UniqueConstraint('currency', 'address', name='_trusted_address_uc'), )
 
   def __repr__(self):
-    return "<GreenAddresses(id=%r, address=%r, created=%r, status=%r, label=%r)>" % (
-      self.id, self.address, self.created, self.status, self.label)
+    return "<GreenAddresses(id=%r, currency=%r, address=%r, label=%r, created=%r, status=%r)>" % (
+      self.id, self.currency,  self.address, self.label, self.created, self.status)
 
 
   @staticmethod

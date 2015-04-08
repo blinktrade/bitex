@@ -36,7 +36,8 @@ def processChangePassword(session, msg):
                              msg.get('Password'),
                              msg.get('SecondFactor'),
                              msg.get('FingerPrint'),
-                             msg.get('RemoteIP'))
+                             msg.get('RemoteIP'),
+                             msg.get('STUNTIP'))
   except NeedSecondFactorException:
     need_second_factor = True
 
@@ -64,7 +65,7 @@ def processChangePassword(session, msg):
   }
   return json.dumps(login_response, cls=JsonEncoder)
 
-def getProfileMessage(user, profile=None):
+def getProfileMessage(user, profile=None, show_account_info=True):
   if not profile:
     if user.is_broker:
       profile = Broker.get_broker( TradeApplication.instance().db_session,user.id)
@@ -74,9 +75,9 @@ def getProfileMessage(user, profile=None):
   if user.is_broker:
     profile_message = {
       'Type'               : 'BROKER',
-      'Username'           : user.username                ,
+      'Username'           : user.username if show_account_info else 'hidden',
       'Verified'           : user.verified                ,
-      'VerificationData'   : user.verification_data       ,
+      'VerificationData'   : user.verification_data if show_account_info else None,
       'TwoFactorEnabled'   : user.two_factor_enabled      ,
       'NeedWithdrawEmail'  : user.withdraw_email_validation,
       'BrokerID'           : profile.id                   ,
@@ -110,22 +111,22 @@ def getProfileMessage(user, profile=None):
       'Type'               : 'USER',
       'UserID'             : user.id,
       'ID'                 : user.id,
-      'Username'           : user.username,
-      'Email'              : profile.email,
+      'Username'           : user.username if show_account_info else 'hidden',
+      'Email'              : profile.email if show_account_info else 'hidden',
       'State'              : profile.state,
       'Country'            : profile.country_code,
       'CountryCode'        : profile.country_code,
       'Verified'           : profile.verified,
-      'VerificationData'   : profile.verification_data,
+      'VerificationData'   : profile.verification_data if show_account_info else None,
       'TwoFactorEnabled'   : profile.two_factor_enabled,
       'NeedWithdrawEmail'  : profile.withdraw_email_validation,
       'TransactionFeeBuy'  : profile.transaction_fee_buy,
       'TransactionFeeSell' : profile.transaction_fee_sell,
-      'DepositPercentFee'  : profile.deposit_percent_fee ,
+      'DepositPercentFee'  : profile.deposit_percent_fee,
       'DepositFixedFee'    : profile.deposit_fixed_fee,
       'WithdrawPercentFee' : profile.withdraw_percent_fee,
       'WithdrawFixedFee'   : profile.withdraw_fixed_fee,
-      'IsMarketMaker'      : profile.is_market_maker
+      'IsMarketMaker'      : profile.is_market_maker if show_account_info else False
       }
   return profile_message
 
@@ -139,7 +140,8 @@ def processLogin(session, msg):
                              msg.get('Password'),
                              msg.get('SecondFactor'),
                              msg.get('FingerPrint'),
-                             msg.get('RemoteIP'))
+                             msg.get('RemoteIP'),
+                             msg.get('STUNTIP'))
     session.set_user(user, {'*':[]} )
   except NeedSecondFactorException:
     need_second_factor = True
@@ -150,7 +152,8 @@ def processLogin(session, msg):
                                                    msg.get('Username'),
                                                    msg.get('Password'),
                                                    msg.get('FingerPrint'),
-                                                   msg.get('RemoteIP'))
+                                                   msg.get('RemoteIP'),
+                                                   msg.get('STUNTIP'))
     session.set_user(user, permission_list )
 
 
@@ -175,7 +178,7 @@ def processLogin(session, msg):
     'MsgType'            : 'BF',
     'UserReqID'          : msg.get('UserReqID'),
     'UserID'             : session.user.id,
-    'Username'           : session.user.username,
+    'Username'           : session.user.username if session.has_access_to_account_info() else 'hidden',
     'TwoFactorEnabled'   : session.user.two_factor_enabled,
     'UserStatus'         : 1,
     'IsBroker'           : session.user.is_broker,
@@ -213,7 +216,7 @@ def processLogin(session, msg):
         'SupportURL'         : session.broker.support_url          ,
         'CryptoCurrencies'   : json.loads(session.broker.crypto_currencies)
     },
-    'Profile': getProfileMessage(session.user, session.profile)
+    'Profile': getProfileMessage(session.user, session.profile, session.has_access_to_account_info())
   }
   return json.dumps(login_response, cls=JsonEncoder)
 
@@ -320,8 +323,8 @@ def processNewOrderSingle(session, msg):
 @verify_permission
 def processCancelOrderRequest(session, msg):
   order_list = []
-  if  msg.has('OrigClOrdID'):
-    order = Order.get_order_by_client_order_id(TradeApplication.instance().db_session, session.user.id,  msg.get('OrigClOrdID') )
+  if  msg.has('OrigClOrdID') or msg.has('ClOrdID'):
+    order = Order.get_order_by_client_order_id(TradeApplication.instance().db_session, session.user.id,  msg.get('OrigClOrdID', msg.get('ClOrdID')))
     if order:
       order_list.append(order)
   elif msg.has('OrderID'):
@@ -453,7 +456,7 @@ def processUpdateUserProfile(session, msg):
     "MsgType":"U39",
     "UpdateReqID": msg.get("UpdateReqID"),
     'UserID'             : user.id,
-    'Username'           : user.username,
+    'Username'           : user.username if session.has_access_to_account_info() else 'hidden',
     'TwoFactorEnabled'   : user.two_factor_enabled,
     'IsBroker'           : user.is_broker,
     'BrokerID'           : user.broker.id,
@@ -464,7 +467,7 @@ def processUpdateUserProfile(session, msg):
     'WithdrawPercentFee' : user.withdraw_percent_fee,
     'WithdrawFixedFee'   : user.withdraw_fixed_fee,
     'IsMarketMaker'      : user.is_market_maker,
-    "Profile": getProfileMessage(user, broker_profile)
+    "Profile": getProfileMessage(user, broker_profile, session.has_access_to_account_info())
   }
 
   profile_refresh_msg = deepcopy(response_msg )
@@ -800,10 +803,15 @@ def processRequestDepositMethod(session, msg):
 
   return json.dumps(response, cls=JsonEncoder)
 
-@login_required
-@verify_permission
+
 def processRequestDepositMethods(session, msg):
-  deposit_options = DepositMethods.get_list(TradeApplication.instance().db_session,session.user.broker_id )
+  broker_id = msg.get('BrokerID')
+  if session.user is None and broker_id is None:
+    raise InvalidParameter()
+  elif broker_id is None:
+    broker_id = session.user.broker_id
+
+  deposit_options = DepositMethods.get_list(TradeApplication.instance().db_session, broker_id )
 
   deposit_options_group = []
 
@@ -913,13 +921,13 @@ def processRequestDeposit(session, msg):
   response_msg['DepositReqID'] = msg.get('DepositReqID')
   return json.dumps(response_msg, cls=JsonEncoder)
 
-def depositRecordToDepositMessage( deposit ):
+def depositRecordToDepositMessage( deposit, show_account_info = True ):
   deposit_message = dict()
   deposit_message['DepositID']           = deposit.id
   deposit_message['UserID']              = deposit.user_id
   deposit_message['AccountID']           = deposit.account_id
   deposit_message['BrokerID']            = deposit.broker_id
-  deposit_message['Username']            = deposit.username
+  deposit_message['Username']            = deposit.username if show_account_info else 'hidden'
   deposit_message['DepositMethodID']     = deposit.deposit_option_id
   deposit_message['DepositMethodName']   = deposit.deposit_option_name
   deposit_message['ControlNumber']       = deposit.broker_deposit_ctrl_num
@@ -1187,7 +1195,7 @@ def processApiKeyRevokeRequest(session, msg):
   if not api_access:
     raise InvalidApiKeyError()
 
-  if api_access.user_id != session.user.id or api_access.broke_id != session.user.broker_id:
+  if api_access.user_id != session.user.id or api_access.broker_id != session.user.broker_id:
     raise NotAuthorizedError()
 
   if not api_access.revocable:
@@ -1249,7 +1257,7 @@ def processWithdrawListRequest(session, msg):
       withdraw.fixed_fee,
       withdraw.paid_amount,
       withdraw.user_id,
-      withdraw.username,
+      withdraw.username if session.has_access_to_account_info() else 'hidden',
       withdraw.broker_id,
       withdraw.client_order_id
     ])
@@ -1734,7 +1742,7 @@ def processLedgerListRequest(session, msg):
       rec.reference,
       rec.created,
       rec.description,
-      rec.account_name
+      rec.account_name if session.has_access_to_account_info() else 'hidden'
     ]
     if user.is_broker:
       data.append(rec.payee_name)
@@ -1799,7 +1807,7 @@ def processDepositListRequest(session, msg):
       deposit.status,
       deposit.reason_id,
       deposit.reason,
-      deposit.username,
+      deposit.username if session.has_access_to_account_info() else 'hidden',
       deposit.user_id,
       deposit.broker_id,
       deposit.client_order_id

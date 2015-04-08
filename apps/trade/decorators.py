@@ -42,48 +42,72 @@ def verify_permission(func):
     if '*' in session.permission_list:
       return func(session, msg)
 
-    msg_type = msg['MsgType']
-    if msg_type not in session.permission_list:
+    if msg.type not in session.permission_list:
       raise NotAuthorizedError()
 
-    msg_permission_filter_list = session.permission_list[msg_type]
-    for permission_filter in msg_permission_filter_list:
-      field = permission_filter[0]
-      operator = permission_filter[1]
-      value = permission_filter[2]
+
+    msg_permission_filter_list = session.permission_list[msg.type]
+    if not msg_permission_filter_list:
+      return func(session, msg)
+
+    def pass_filter(msg, field, operator, value):
       if operator == 'eq':
-        if field not in msg:
-          raise NotAuthorizedError()
-        if msg[field] != value:
-          raise NotAuthorizedError()
+        if not msg.has(field):
+          return False
+        if msg.get(field) != value:
+          return False
       elif operator == 'in':
-        if field in msg:
-          if msg[field] in value:
-            raise NotAuthorizedError()
+        if not msg.has(field):
+          return False
+        if msg.get(field) not in value:
+          return False
       elif operator == 'ne':
-        if field in msg:
-          if msg[field] == value:
-            raise NotAuthorizedError()
+        if msg.has(field):
+          if msg.get(field) == value:
+            return False
       elif operator == 'gt':
-        if field not in msg:
-          raise NotAuthorizedError()
-        if msg[field] <= value:
-          raise NotAuthorizedError()
+        if not msg.has(field):
+          return False
+        if msg.get(field) <= value:
+          return False
       elif operator == 'ge':
-        if field not in msg:
-          raise NotAuthorizedError()
-        if msg[field] < value:
-          raise NotAuthorizedError()
+        if not msg.has(field):
+          return False
+        if msg.get(field) < value:
+          return False
       elif operator == 'lt':
-        if field not in msg:
-          raise NotAuthorizedError()
-        if msg[field] >= value:
-          raise NotAuthorizedError()
+        if not msg.has(field):
+          return False
+        if msg.get(field) >= value:
+          return False
       elif operator == 'le':
-        if field not in msg:
-          raise NotAuthorizedError()
-        if msg[field] > value:
-          raise NotAuthorizedError()
+        if not msg.has(field):
+          return False
+        if msg.get(field) > value:
+          return False
+      return True
+
+
+    passed_one_of_the_filters = False
+    for permission_filter in msg_permission_filter_list:
+      passed_on_all_the_filters = True
+      for x in xrange(0, len(permission_filter), 3):
+        field = permission_filter[x+0]
+        operator = permission_filter[x+1]
+        value = permission_filter[x+2]
+
+        if not pass_filter(msg, field, operator, value):
+          passed_on_all_the_filters = False
+          break
+
+      if not passed_on_all_the_filters:
+        continue
+
+      passed_one_of_the_filters = True
+      break
+
+    if not passed_one_of_the_filters:
+      raise NotAuthorizedError
 
     return func(session, msg)
   return decorator

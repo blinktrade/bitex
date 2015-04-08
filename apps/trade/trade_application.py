@@ -105,8 +105,12 @@ class TradeApplication(object):
     self.log('PARAM','END')
 
 
-    from models import User, Deposit, DepositMethods, Order, Withdraw, Broker, Currency, Instrument, Ledger
+    from models import User, Deposit, DepositMethods, Order, Withdraw, Broker, \
+      Currency, Instrument, ApiAccess, Balance, Position, GreenAddresses
 
+    green_address_list = self.db_session.query(GreenAddresses)
+    for green_address_entity in green_address_list:
+      self.log('DB_ENTITY', 'GREEN_ADDRESS', green_address_entity)
 
     currencies = self.db_session.query(Currency)
     for currency in currencies:
@@ -119,6 +123,10 @@ class TradeApplication(object):
     users = self.db_session.query(User)
     for user in users:
       self.log('DB_ENTITY', 'USER', user)
+
+    api_access_list = self.db_session.query(ApiAccess)
+    for api_access_entity in api_access_list:
+      self.log('DB_ENTITY', 'API_ACCESS', api_access_entity)
 
     # log all users on the replay log
     brokers = self.db_session.query(Broker)
@@ -138,9 +146,13 @@ class TradeApplication(object):
     for withdraw in withdraws:
       self.log('DB_ENTITY', 'WITHDRAW', withdraw )
 
-    ledgers = self.db_session.query(Ledger)
-    for ledger in ledgers:
-      self.log('DB_ENTITY', 'LEDGER', ledger )
+    balance_list = self.db_session.query(Balance)
+    for balance_entity in balance_list:
+      self.log('DB_ENTITY', 'BALANCE', balance_entity )
+
+    position_list = self.db_session.query(Position)
+    for position_entity in position_list:
+      self.log('DB_ENTITY', 'POSITION', position_entity )
 
     orders = self.db_session.query(Order).filter(Order.status.in_(("0", "1"))).order_by(Order.created)
     for order in orders:
