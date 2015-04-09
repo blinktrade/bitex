@@ -80,7 +80,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 
         self.trade_client = None
         self.user_response = None
-        self.last_order_datetime = datetime.now()
+        self.last_message_datetime = [datetime.now()]
         self.open_orders = {}
         self.md_subscriptions = {}
         self.sec_status_subscriptions = {}
@@ -145,6 +145,23 @@ class WebSocketHandler(websocket.WebSocketHandler):
         if self.trade_client is None or not self.trade_client.isConnected():
             return
 
+        self.last_message_datetime.append(datetime.now())
+        message_time_last_second = self.last_message_datetime[-1] - timedelta(seconds=1)
+        for x in xrange(0, len(self.last_message_datetime)):
+            if self.last_message_datetime[x] > message_time_last_second:
+                self.last_message_datetime = self.last_message_datetime[x:]
+                break
+        if len(self.last_message_datetime) > 5:  # higher than 5 messages per second
+            self.application.log("ERROR",
+                                 "TOO_MANY_MESSAGES",
+                                 "Exceed 5 messages per second. [ip=" + self.remote_ip + ",'" + raw_message + "']")
+            self.write_message(
+                '{"MsgType":"ERROR", "Description":"Too many messages per second", "Detail": "6 messages in the last second"}')
+            self.application.unregister_connection(self)
+            self.trade_client.close()
+            self.close()
+            return
+
         try:
             req_msg = JsonMessage(raw_message)
         except InvalidMessageException as e:
@@ -203,41 +220,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
             self.on_security_status_request(req_msg)
             return
 
-        if req_msg.isNewOrderSingle():
-            if self.last_order_datetime:
-                order_time = datetime.now()
-                order_time_less_one_second = order_time - timedelta(milliseconds=200) # max of 5 orders per second 
-                if self.last_order_datetime > order_time_less_one_second:
-                    #self.application.log('ORDER_REJECT', self.trade_client.connection_id, raw_message )
-                    reject_message = {
-                        "MsgType": "8",
-                        "OrderID": None,
-                        "ExecID": None,
-                        "ExecType": "8",
-                        "OrdStatus": "8",
-                        "CumQty": 0,
-                        "Symbol":  req_msg.get("Symbol"),
-                        "OrderQty": req_msg.get("Qty"),
-                        "LastShares": 0,
-                        "LastPx": 0,
-                        "Price": req_msg.get("Price"),
-                        "TimeInForce": "1",
-                        "LeavesQty": 0,
-                        "ExecSide": req_msg.get("Side"),
-                        "Side": req_msg.get("Side"),
-                        "OrdType": req_msg.get("OrdType"),
-                        "CxlQty": req_msg.get("Qty"),
-                        "ClOrdID": req_msg.get("ClOrdID"),
-                        "AvgPx": 0,
-                        "OrdRejReason": "Exceeded the maximum number of orders sent per second.",
-                        "Volume": 0
-                    }
-                    #self.write_message(str(json.dumps(reject_message, cls=JsonEncoder)))
-                    #return
-
-            self.last_order_datetime = datetime.now()
-            
-
         if req_msg.isDepositRequest():
             if not req_msg.get('DepositMethodID') and not req_msg.get('DepositID'):
 
@@ -261,7 +243,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
                     if secret[0] in ('0','1','2','3','4','5','6','7','8','9'):
                         dest_wallet = cold_wallet
 
-
                 if not dest_wallet:
                     return
 
@@ -271,7 +252,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
                     'callback': callback_url,
                     'currency': currency
                 })
-
 
                 try:
                     url_payment_processor = self.application.options.url_payment_processor + '?' + parameters

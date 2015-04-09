@@ -15,7 +15,7 @@ from models import Trade
 
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from datetime import datetime
+import datetime
 
 MDSUBSCRIBEDICT = {}
 
@@ -100,6 +100,8 @@ class MarketDataSubscriber(object):
 
     def on_md_publish(self, publish_msg):
         """" on_md_publish. """
+        start = datetime.datetime.now()
+
         topic = publish_msg[0]
         raw_message = publish_msg[1]
 
@@ -110,6 +112,12 @@ class MarketDataSubscriber(object):
 
         elif msg.type == 'X':  # Incremental
             self.on_md_incremental(msg)
+
+        finish = datetime.datetime.now()
+        self.application.log("DEBUG", "PERF", str([ (finish-start).total_seconds(),
+                                                    "MarketDataSubscriber.on_md_publish",
+                                                    "1",
+                                                    [topic, raw_message] ] ) )
 
     def on_md_full_refresh(self, msg):
         """" on_md_full_refresh. """
