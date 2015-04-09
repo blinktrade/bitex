@@ -151,12 +151,12 @@ class WebSocketHandler(websocket.WebSocketHandler):
             if self.last_message_datetime[x] > message_time_last_second:
                 self.last_message_datetime = self.last_message_datetime[x:]
                 break
-        if len(self.last_message_datetime) > 5:  # higher than 5 messages per second
+        if len(self.last_message_datetime) > 15:  # higher than 15 messages per second
             self.application.log("ERROR",
                                  "TOO_MANY_MESSAGES",
                                  "Exceed 5 messages per second. [ip=" + self.remote_ip + ",'" + raw_message + "']")
             self.write_message(
-                '{"MsgType":"ERROR", "Description":"Too many messages per second", "Detail": "6 messages in the last second"}')
+                '{"MsgType":"ERROR", "Description":"Too many messages per second", "Detail": "16 messages in the last second"}')
             self.application.unregister_connection(self)
             self.trade_client.close()
             self.close()
