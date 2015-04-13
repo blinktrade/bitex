@@ -100,9 +100,20 @@ class WebSocketHandler(websocket.WebSocketHandler):
         pass
 
     def on_close(self):
-        self.md_subscriptions = {}
-        self.sec_status_subscriptions = {}
         self.application.log('INFO', 'CONNECTION_CLOSE', self.remote_ip )
+
+        for req_id, md_publisher_list in self.md_subscriptions.items():
+            for md_publisher in md_publisher_list:
+                md_publisher.cleanup()
+            self.md_subscriptions[req_id] = []
+        self.md_subscriptions = {}
+
+        for req_id, sec_status_publisher_list in self.sec_status_subscriptions.items():
+            for sec_status_publisher in sec_status_publisher_list:
+                sec_status_publisher.cleanup()
+            self.sec_status_subscriptions[req_id] = []
+        self.sec_status_subscriptions = {}
+
         self.application.unregister_connection(self)
         if self.trade_client:
             self.trade_client.close()
@@ -382,6 +393,8 @@ class WebSocketHandler(websocket.WebSocketHandler):
         # Disable previous Snapshot + Update Request
         if int(msg.get('SubscriptionRequestType')) == 2:
             if req_id in self.sec_status_subscriptions:
+                for sec_status_publisher in self.sec_status_subscriptions[req_id]:
+                    sec_status_publisher.cleanup()
                 self.sec_status_subscriptions[req_id] = []
                 del self.sec_status_subscriptions[req_id]
             return

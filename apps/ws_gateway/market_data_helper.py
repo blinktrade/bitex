@@ -318,6 +318,9 @@ class SecurityStatusPublisher(object):
 
         signal_publish_security_status.connect(self.signal_security_status, 'SECURITY_STATUS')
 
+    def cleanup(self):
+        self.handler = None
+        signal_publish_security_status.disconnect(self.signal_security_status, 'SECURITY_STATUS')
 
     def signal_security_status(self, sender, helper):
         if helper.symbol == self.symbol:
@@ -342,7 +345,9 @@ class MarketDataPublisher(object):
     def __init__(self, req_id, market_depth, entries, instrument, handler, show_username=False):
         self.handler = handler
         self.req_id = req_id
+        self.instrument = instrument
         self.show_username = show_username
+        self.entries = entries
 
         self.entry_list_order_depth = []
         for entry in entries:
@@ -359,7 +364,12 @@ class MarketDataPublisher(object):
         signal_publish_md_status.connect(self.signal_md_status, 'MD_STATUS')
 
     def cleanup(self):
-        pass
+        for entry in self.entries:
+            signal_order_depth_entry.disconnect(self.signal_order_depth_added_entry,self.instrument +'.3.' +entry)
+        signal_publish_md_order_depth_incremental.disconnect(self.signal_publish_md_order_depth,self.instrument + '.3')
+        signal_publish_md_status.disconnect(self.signal_md_status, 'MD_STATUS')
+        self.entry_list_order_depth = []
+        self.handler = None
 
     def signal_md_status(self, sender, entry):
         self.entry_list_order_depth.append(entry)
@@ -384,7 +394,8 @@ class MarketDataPublisher(object):
                 if 'MDEntrySeller' in entry:
                   del entry['MDEntrySeller']
 
-            self.handler(sender, md)
+            if self.handler:
+                self.handler(sender, md)
             self.entry_list_order_depth = []
 
 def generate_trade_history(session, page_size = None, offset = None, sort_column = None, sort_order='ASC', show_username=False, since=None):
