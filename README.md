@@ -10,16 +10,6 @@ BlinkTrade - Open Source Exchange Platform
 #Get Started
 
 ```
-$ easy_install pyzmq
-$ easy_install tornado
-$ easy_install crypto
-$ easy_install sqlalchemy
-$ easy_install requests
-```
-
-or:
-
-```
 $ pip install -r requirements.txt
 ```
 
@@ -49,10 +39,16 @@ $ ./apps/mailer/main.py
 Matching engine and the core of the BitEx platform
 
 # Applications - Ws Gateway
-HTTP and WebSocket gateways
+The HTTP/WebSocket gateway is based on Tornado.  It relays HTTP or websocket API
+requests to the trade engine in order to place orders or fetching market data.
 
 # Applications - Mailer
-Mailing application
+The mailing application... sends mail. To that end, 
+it uses Mailchimp's transaction email solution, Mandrill.
+
+E-mail templates are stored under the templates/ dir,
+and which template to use (and the data to fill it out)
+are supplied by listening on the zeromq socket.
 
 # Translating
 

@@ -2831,4 +2831,5 @@ class DepositMethods(Base):
 
 
 def db_bootstrap(session):
-  pass
+    """Database boostrapping now done by config/bootstrap/"""
+    pass
