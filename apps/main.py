@@ -11,6 +11,10 @@ import logging
 import argparse
 from appdirs import site_config_dir
 
+from Queue import Queue
+from threading import Thread
+
+
 ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../"))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
 sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))

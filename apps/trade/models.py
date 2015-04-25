@@ -28,6 +28,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 import onetimepass
 
+
 def get_datetime_now(timezone=None):
   #this is just a workaround, so we can test datetime.datetime.now()
   from trade import get_now
@@ -363,14 +364,36 @@ class User(Base):
           try:
             current_verification_data = json.loads(self.verification_data)
             if isinstance(current_verification_data, list):
-              current_verification_data.append(verification_data)
+
+              if isinstance(verification_data, list):
+                for data in verification_data:
+                  current_verification_data.append(data)
+              else:
+                current_verification_data.append(verification_data)
             elif isinstance(current_verification_data, dict):
-              current_verification_data = [ current_verification_data, verification_data ]
+              if isinstance(verification_data, list):
+                current_verification_data = [ current_verification_data ]
+                for data in verification_data:
+                  current_verification_data.append(data)
+              else:
+                current_verification_data = [ current_verification_data, verification_data ]
+
+
           except ValueError:
-            current_verification_data = [ { "data": self.verification_data }, verification_data ]
+            if isinstance(verification_data, list):
+              current_verification_data = [ { "data": self.verification_data }]
+              for data in verification_data:
+                current_verification_data.append(data)
+            else:
+              current_verification_data = [ { "data": self.verification_data }, verification_data ]
+
+
           verification_data_json = current_verification_data
         else:
-          verification_data_json = [ verification_data ]
+          if isinstance(verification_data, list):
+            verification_data_json = verification_data
+          else:
+            verification_data_json = [ verification_data ]
 
         verification_data = json.dumps(verification_data_json)
 

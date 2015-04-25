@@ -127,6 +127,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
       return self.application.is_origin_allowed(origin)
 
     def open(self):
+        self.set_nodelay(True)
         try:
             if self.trade_client:
                 self.trade_client.connect()
@@ -650,7 +651,9 @@ class WebSocketGatewayApplication(tornado.web.Application):
 
     def send_heartbeat_to_trade(self):
         try:
-            self.application_trade_client.sendJSON({'MsgType': '1', 'TestReqID': '0'})
+            self.application_trade_client.sendJSON({'MsgType': '1',
+                                                    'TestReqID': '0',
+                                                    'NumActiveConnections': len(self.connections)})
         except Exception as e:
             pass
 
