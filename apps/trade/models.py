@@ -352,6 +352,10 @@ class User(Base):
     UserPasswordReset.create( session, self.id, self.broker_id , email_lang )
 
   def set_verified(self, session, verified, verification_data, bonus_account):
+
+    def _mklist(l):
+      return l if isinstance(l, list) else list(l)
+
     just_became_verified = False
     if self.verified != verified:
       if self.verified < 3 and verified >= 3:
@@ -361,39 +365,16 @@ class User(Base):
       verification_data_json = []
       if verification_data:
         if self.verification_data:
+
           try:
             current_verification_data = json.loads(self.verification_data)
-            if isinstance(current_verification_data, list):
-
-              if isinstance(verification_data, list):
-                for data in verification_data:
-                  current_verification_data.append(data)
-              else:
-                current_verification_data.append(verification_data)
-            elif isinstance(current_verification_data, dict):
-              if isinstance(verification_data, list):
-                current_verification_data = [ current_verification_data ]
-                for data in verification_data:
-                  current_verification_data.append(data)
-              else:
-                current_verification_data = [ current_verification_data, verification_data ]
-
-
+            current_verification_data = _mklist(current_verification_data) + _mklist(verification_data)
           except ValueError:
-            if isinstance(verification_data, list):
-              current_verification_data = [ { "data": self.verification_data }]
-              for data in verification_data:
-                current_verification_data.append(data)
-            else:
-              current_verification_data = [ { "data": self.verification_data }, verification_data ]
-
+            current_verification_data = [ { "data": self.verification_data } ] + _mklist(verification_data)
 
           verification_data_json = current_verification_data
         else:
-          if isinstance(verification_data, list):
-            verification_data_json = verification_data
-          else:
-            verification_data_json = [ verification_data ]
+          verification_data_json = _mklist(verification_data)
 
         verification_data = json.dumps(verification_data_json)
 
