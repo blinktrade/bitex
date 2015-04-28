@@ -1260,16 +1260,20 @@ class Ledger(Base):
       # from who is taking the order to who is making the market based on the broker fees.
       elif order.is_from_market_maker and counter_order.is_from_market_maker and broker_fee > 0:
         market_maker_points = int(total_value *  broker_fee / 10000.)
-        award_market_maker_points(session,
-                                  trade_id,
-                                  order.account_id,
-                                  order.broker_username,
-                                  counter_order.account_id,
-                                  counter_order.account_username,
-                                  symbol,
-                                  market_maker_points,
-                                  timestamp)
-
+        Ledger.transfer(session,
+                        order.account_id,
+                        order.account_username,
+                        order.broker_id,
+                        order.broker_username,
+                        counter_order.account_id,
+                        counter_order.account_username,
+                        counter_order.broker_id,
+                        counter_order.broker_username,
+                        'MMP.' + symbol,
+                        market_maker_points,
+                        trade_id,
+                        'P',
+                        timestamp)
 
 
 
