@@ -218,7 +218,7 @@ class OrderMatcher(object):
           order.execute( executed_qty, executed_price )
           counter_order.execute(executed_qty, executed_price )
 
-          trade = Trade.create(session, order, counter_order, self.symbol, executed_qty, executed_price, broker_fee )
+          trade = Trade.create(session, order, counter_order, self.symbol, executed_qty, executed_price, None, broker_fee )
           trades_to_publish.append(trade)
 
           rpt_order         = ExecutionReport( order, execution_side )
