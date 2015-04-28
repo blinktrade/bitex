@@ -1427,7 +1427,7 @@ def processCustomerListRequest(session, msg):
       entity.withdraw_percent_fee ,
       entity.withdraw_fixed_fee   ,
       entity.is_market_maker      ,
-      entity.is_msg               ,
+      entity.is_msb               ,
       entity.trust_level
     ])
 
