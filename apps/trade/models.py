@@ -151,6 +151,8 @@ class User(Base):
   is_system       = Column(Boolean, nullable=False, default=False)
   is_broker       = Column(Boolean, nullable=False, default=False)
   is_market_maker = Column(Boolean, nullable=False, default=False)
+  is_msb          = Column(Boolean, nullable=False, default=False)
+  trust_level     = Column(Integer, nullable=False, default=0)
 
   created         = Column(DateTime, default=get_datetime_now, nullable=False)
   last_login      = Column(DateTime, default=get_datetime_now, nullable=False)
@@ -181,14 +183,16 @@ class User(Base):
            u" verified=%r, verification_data=%r, is_staff=%r, is_system=%r, is_broker=%r,  created=%r, "\
            u" last_login=%r,  email_lang=%r, deposit_percent_fee=%r, deposit_fixed_fee=%r,"\
            u" two_factor_enabled=%r, two_factor_secret=%r,withdraw_email_validation=%r,"\
-           u" withdraw_percent_fee=%r, withdraw_fixed_fee=%r, is_market_maker=%r, has_instant_withdrawal=%r )>"\
+           u" withdraw_percent_fee=%r, withdraw_fixed_fee=%r, is_market_maker=%r, has_instant_withdrawal=%r," \
+           u" is_msb=%r, trust_level=%r )>"\
     % (self.id, self.username, self.email, self.broker_id, self.broker_username,
        self.password_algo, self.password_salt, self.password,
        self.state, self.country_code, self.transaction_fee_buy, self.transaction_fee_sell,
        self.verified, self.verification_data, self.is_staff, self.is_system, self.is_broker, self.created,
        self.last_login, self.email_lang, self.deposit_percent_fee, self.deposit_fixed_fee,
        self.two_factor_enabled, self.two_factor_secret,self.withdraw_email_validation,
-       self.withdraw_percent_fee, self.withdraw_fixed_fee, self.is_market_maker, self.has_instant_withdrawal)
+       self.withdraw_percent_fee, self.withdraw_fixed_fee, self.is_market_maker, self.has_instant_withdrawal,
+       self.is_msb, self.trust_level)
 
   def __init__(self, *args, **kwargs):
     if 'password' in kwargs:
@@ -353,53 +357,59 @@ class User(Base):
 
   def set_verified(self, session, verified, verification_data, bonus_account):
     just_became_verified = False
-    if self.verified != verified:
-      if self.verified < 3 and verified >= 3:
-        just_became_verified = True
-      self.verified = verified
+    customer_just_sent_verification_documents = False
+    should_update = False
 
-      verification_data_json = []
-      if verification_data:
-        if self.verification_data:
-          try:
-            current_verification_data = json.loads(self.verification_data)
-            if isinstance(current_verification_data, list):
-
-              if isinstance(verification_data, list):
-                for data in verification_data:
-                  current_verification_data.append(data)
-              else:
-                current_verification_data.append(verification_data)
-            elif isinstance(current_verification_data, dict):
-              if isinstance(verification_data, list):
-                current_verification_data = [ current_verification_data ]
-                for data in verification_data:
-                  current_verification_data.append(data)
-              else:
-                current_verification_data = [ current_verification_data, verification_data ]
-
-
-          except ValueError:
+    if verification_data:
+      if self.verification_data:
+        try:
+          current_verification_data = json.loads(self.verification_data)
+          if isinstance(current_verification_data, list):
             if isinstance(verification_data, list):
-              current_verification_data = [ { "data": self.verification_data }]
               for data in verification_data:
                 current_verification_data.append(data)
             else:
-              current_verification_data = [ { "data": self.verification_data }, verification_data ]
-
-
-          verification_data_json = current_verification_data
-        else:
+              current_verification_data.append(verification_data)
+          elif isinstance(current_verification_data, dict):
+            if isinstance(verification_data, list):
+              current_verification_data = [ current_verification_data ]
+              for data in verification_data:
+                current_verification_data.append(data)
+            else:
+              current_verification_data = [ current_verification_data, verification_data ]
+        except ValueError:
           if isinstance(verification_data, list):
-            verification_data_json = verification_data
+            current_verification_data = [ { "data": self.verification_data }]
+            for data in verification_data:
+              current_verification_data.append(data)
           else:
-            verification_data_json = [ verification_data ]
+            current_verification_data = [ { "data": self.verification_data }, verification_data ]
+        verification_data_json = current_verification_data
+      else:
+        if isinstance(verification_data, list):
+          verification_data_json = verification_data
+        else:
+          verification_data_json = [ verification_data ]
+      verification_data = json.dumps(verification_data_json)
 
-        verification_data = json.dumps(verification_data_json)
-
+      if self.verification_data != verification_data:
+        should_update = True
         self.verification_data = verification_data
 
 
+
+    if self.verified != verified:
+      if self.verified < 3 and verified >= 3:
+        just_became_verified = True
+      if self.verified == 0 and verified == 1:
+        customer_just_sent_verification_documents = True
+
+      self.verified = verified
+      should_update = True
+
+
+
+    if should_update:
       session.add(self)
       session.flush()
 
@@ -415,7 +425,7 @@ class User(Base):
       TradeApplication.instance().publish( self.broker_id,  verify_customer_refresh_msg  )
 
 
-      if self.verified == 1:
+      if customer_just_sent_verification_documents:
         email_params = {
           'username': self.username,
           'email': self.email,
@@ -436,9 +446,8 @@ class User(Base):
                           language= self.email_lang,
                           params=  json.dumps(email_params))
 
-      elif self.verified > 2:
-        if just_became_verified and bonus_account:
-
+      if just_became_verified:
+        if bonus_account:
           current_bonus_balance = Balance.get_balance(session,
                                                       bonus_account[0],
                                                       self.broker_id,
@@ -546,6 +555,11 @@ class ApiAccess(Base):
     return api_access
 
   @staticmethod
+  def get_api_access_list_by_username(session, broker_id, username):
+    api_access_list = session.query(ApiAccess).filter_by(broker_id=broker_id).filter_by(username=username)
+    return api_access_list
+
+  @staticmethod
   def create(session, user, label, permission_list, ip_white_list, revocable):
     api_key = base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(),
                                random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')
@@ -575,7 +589,7 @@ class ApiAccess(Base):
     return api_access, raw_password
 
   @staticmethod
-  def authenticate(session, api_key, api_password, finger_print, remote_ip, stunt_ip=None):
+  def authenticate(session, broker_id, api_key, api_password, finger_print, remote_ip, stunt_ip=None):
     api_access = ApiAccess.get_api_access_by_api_key(session, api_key)
     if api_access is None:
       return None, None
@@ -1062,7 +1076,7 @@ class Ledger(Base):
 
 
   @staticmethod
-  def execute_order(session, order, counter_order, symbol, qty, price, trade_id, timestamp=None ):
+  def execute_order(session, order, counter_order, symbol, qty, price, trade_id, timestamp=None, broker_fee=0 ):
     if timestamp is None:
       timestamp = get_datetime_now()
 
@@ -1242,6 +1256,20 @@ class Ledger(Base):
                                   symbol,
                                   market_maker_points,
                                   timestamp)
+      # if both orders are from market makers, then we have to transfer the points from the
+      # from who is taking the order to who is making the market based on the broker fees.
+      elif order.is_from_market_maker and counter_order.is_from_market_maker and broker_fee > 0:
+        market_maker_points = int(total_value *  broker_fee / 10000.)
+        award_market_maker_points(session,
+                                  trade_id,
+                                  order.account_id,
+                                  order.broker_username,
+                                  counter_order.account_id,
+                                  counter_order.account_username,
+                                  symbol,
+                                  market_maker_points,
+                                  timestamp)
+
 
 
 
@@ -2164,7 +2192,7 @@ class Trade(Base):
        self.side, self.symbol, self.size, self.price, self.created, self.trade_type)
 
   @staticmethod
-  def create(session, order,counter_order, symbol, size, price, trade_date_time=None):
+  def create(session, order,counter_order, symbol, size, price, trade_date_time=None, broker_fee=0):
     if trade_date_time is None:
       trade_date_time = get_datetime_now()
 
@@ -2201,7 +2229,8 @@ class Trade(Base):
                          size,
                          price,
                          str(order.id) + '.' + str(counter_order.id),
-                         trade_date_time)
+                         trade_date_time,
+                         broker_fee)
 
     return trade
 

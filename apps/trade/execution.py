@@ -93,7 +93,7 @@ class OrderMatcher(object):
     return  res[:-1]
 
 
-  def match(self, session, order, order_matcher_disabled=False):
+  def match(self, session, order, order_matcher_disabled=False, broker_fee=0):
     other_side = []
     self_side = []
     if order.is_buy:
@@ -218,7 +218,7 @@ class OrderMatcher(object):
           order.execute( executed_qty, executed_price )
           counter_order.execute(executed_qty, executed_price )
 
-          trade = Trade.create(session, order, counter_order, self.symbol, executed_qty, executed_price )
+          trade = Trade.create(session, order, counter_order, self.symbol, executed_qty, executed_price, broker_fee )
           trades_to_publish.append(trade)
 
           rpt_order         = ExecutionReport( order, execution_side )

@@ -149,6 +149,7 @@ def processLogin(session, msg):
 
   if not session.user:   # Let's test for an API login
     user, permission_list = ApiAccess.authenticate(TradeApplication.instance().db_session,
+                                                   msg.get('BrokerID'),
                                                    msg.get('Username'),
                                                    msg.get('Password'),
                                                    msg.get('FingerPrint'),
@@ -265,13 +266,16 @@ def processNewOrderSingle(session, msg):
   if not broker_user:
     raise NotAuthorizedError()
 
+  broker_fee = 0
   fee = 0
   if msg.get('Side') in ('1', '3'): # Buy or Buy Minus ( To be implemented )
+    broker_fee = broker_user.transaction_fee_buy
     if account_user.transaction_fee_buy is None:
       fee = broker_user.transaction_fee_buy
     else:
       fee = account_user.transaction_fee_buy
   else:
+    broker_fee = broker_user.transaction_fee_sell
     if account_user.transaction_fee_sell is None:
       fee = broker_user.transaction_fee_sell
     else:
@@ -314,7 +318,10 @@ def processNewOrderSingle(session, msg):
                        gui_id               = None )
   TradeApplication.instance().db_session.flush() # just to assign an ID for the order.
 
-  OrderMatcher.get(msg.get('Symbol')).match(TradeApplication.instance().db_session, order, TradeApplication.instance().order_matcher_disabled)
+  OrderMatcher.get(msg.get('Symbol')).match(TradeApplication.instance().db_session,
+                                            order,
+                                            TradeApplication.instance().order_matcher_disabled,
+                                            broker_fee)
   TradeApplication.instance().db_session.commit()
 
   return ""
@@ -397,7 +404,9 @@ def processUpdateUserProfile(session, msg):
                                   'WithdrawFixedFee',
                                   'IsMarketMaker',
                                   'WithdrawEmailValidation',
-                                  'TwoFactorEnabled']
+                                  'TwoFactorEnabled',
+                                  'IsMSB',
+                                  'TrustLevel']
 
   broker_profile = None
   if user.is_broker:
@@ -1396,7 +1405,7 @@ def processCustomerListRequest(session, msg):
   columns = [ 'ID'              , 'Username'       , 'Email'             , 'State'              , 'CountryCode'     ,
               'Created'         , 'LastLogin'      , 'Verified'          , 'VerificationData'   , 'TwoFactorEnabled',
               'TransactionFeeBuy', 'TransactionFeeSell', 'NeedWithdrawEmail', 'DepositPercentFee', 'DepositFixedFee',
-              'WithdrawPercentFee', 'WithdrawFixedFee', 'IsMarketMaker' ]
+              'WithdrawPercentFee', 'WithdrawFixedFee', 'IsMarketMaker'  , 'IsMSB'              , 'TrustLevel']
 
   for entity in user_list:
     result_set.append([
@@ -1417,7 +1426,9 @@ def processCustomerListRequest(session, msg):
       entity.deposit_fixed_fee    ,
       entity.withdraw_percent_fee ,
       entity.withdraw_fixed_fee   ,
-      entity.is_market_maker
+      entity.is_market_maker      ,
+      entity.is_msg               ,
+      entity.trust_level
     ])
 
 
