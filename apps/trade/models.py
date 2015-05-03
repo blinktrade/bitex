@@ -1530,6 +1530,87 @@ class UserEmail(Base):
     TradeApplication.instance().publish( 'EMAIL' , msg )
     return  user_email
 
+class WithdrawTrustedRecipients(Base):
+  __tablename__   = 'withdraw_trusted_recipient'
+  id              = Column(Integer,       primary_key=True)
+  user_id         = Column(Integer,       ForeignKey('users.id'))
+  account_id      = Column(Integer,       ForeignKey('users.id'))
+  broker_id       = Column(Integer,       ForeignKey('users.id'))
+  broker_username = Column(String,        nullable=False, index=True)
+  username        = Column(String,        nullable=False, index=True)
+  currency        = Column(String,        nullable=False, index=True)
+  label           = Column(String,        nullable=False, index=True)
+  data            = Column(Text,          nullable=False, index=True)
+
+  @staticmethod
+  def get_withdrawal_method(db_session, broker_id,  currency, method):
+    try:
+      broker = Broker.get_broker(db_session, broker_id)
+      withdraw_structure = json.loads(broker.withdraw_structure)
+      for withdraw_method in withdraw_structure[currency]:
+        if withdraw_method['method'] == method:
+          return withdraw_method
+    except Exception:
+      pass
+    return  None
+
+  @staticmethod
+  def compute_label_and_data(broker_withdrawal_method, withdraw_user_data):
+    trusted_data = {}
+    label_list = []
+    label = None
+    if broker_withdrawal_method:
+      for field in  broker_withdrawal_method['fields']:
+        field_name = field['name']
+        if field_name in withdraw_user_data:
+          trusted_data[field_name] = withdraw_user_data[field_name]
+          label_list.append(withdraw_user_data[field_name])
+      label = '/'.join(label_list)
+
+    return  [label, trusted_data]
+
+  @staticmethod
+  def is_trusted(session, withdraw_data):
+    withdraw_user_data = json.loads(withdraw_data.data)
+    withdrawal_method = WithdrawTrustedRecipients.get_withdrawal_method(session,
+                                                                        withdraw_data.broker_id,
+                                                                        withdraw_data.currency,
+                                                                        withdraw_data.method)
+
+    label, trusted_data =  WithdrawTrustedRecipients.compute_label_and_data(withdrawal_method,withdraw_user_data)
+
+
+    withdraw_data = session.query(WithdrawTrustedRecipients).\
+      filter_by( label=label).\
+      filter_by( currency = withdraw_data.currency ).\
+      filter_by( user_id = withdraw_data.user_id ).first()
+
+    return  withdraw_data is not None
+
+  @staticmethod
+  def add(session, withdraw_data ):
+    if WithdrawTrustedRecipients.is_trusted(session, withdraw_data):
+      return # Do nothing in case this withdrawal data is already trusted.
+
+    withdraw_user_data = json.loads(withdraw_data.data)
+    withdrawal_method = WithdrawTrustedRecipients.get_withdrawal_method(session,
+                                                                        withdraw_data.broker_id,
+                                                                        withdraw_data.currency,
+                                                                        withdraw_data.method)
+
+    label, trusted_data =  WithdrawTrustedRecipients.compute_label_and_data(withdrawal_method,withdraw_user_data)
+
+    if label:
+      entity = WithdrawTrustedRecipients( user_id         = withdraw_data.user_id,
+                                          account_id      = withdraw_data.account_id,
+                                          broker_id       = withdraw_data.broker_id,
+                                          broker_username = withdraw_data.broker_username,
+                                          username        = withdraw_data.username,
+                                          currency        = withdraw_data.currency,
+                                          label           = label,
+                                          data            = json.dumps(trusted_data) )
+      session.add(entity)
+
 
 # noinspection PyPackageRequirements
 class Withdraw(Base):
@@ -1571,6 +1652,7 @@ class Withdraw(Base):
 
     self.status = '1'
     session.add(self)
+    WithdrawTrustedRecipients.add(session, self)
     session.flush()
 
     return True
@@ -1583,6 +1665,7 @@ class Withdraw(Base):
 
     withdraw_data.status = '1'
     session.add(withdraw_data)
+    WithdrawTrustedRecipients.add(session, withdraw_data)
     session.flush()
 
     return  withdraw_data
@@ -1891,7 +1974,12 @@ class Withdraw(Base):
                                client_order_id    = client_order_id,
                                data               = data )
 
-    if user.withdraw_email_validation:
+    is_crypto_currency = Currency.get_currency(session, currency).is_crypto
+
+    if is_crypto_currency and \
+        user.withdraw_email_validation and \
+        not WithdrawTrustedRecipients.is_trusted(session, withdraw_record):
+
       if not user.two_factor_enabled:
         formatted_amount = Currency.format_number( session, withdraw_record.currency, withdraw_record.amount / 1.e8 )
 
@@ -1907,8 +1995,10 @@ class Withdraw(Base):
                           template = template_name,
                           language = email_lang,
                           params   = json.dumps(template_parameters, cls=JsonEncoder))
-
     else:
+      if user.withdraw_email_validation:
+        WithdrawTrustedRecipients.add(session, withdraw_record)
+
       withdraw_record.status = '1'
 
     session.add(withdraw_record)

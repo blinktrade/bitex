@@ -677,7 +677,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
         self.application_trade_client.close()
 
         for client_connection_id in self.connections:
-            self.connections[client_connection_id].trade_client.close()
+            self.connections[client_connection_id].close()
         self.connections = []
 
 def run_application(options, instance_name):

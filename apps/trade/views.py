@@ -1035,6 +1035,7 @@ def processWithdrawRequest(session, msg):
   response = {
     'MsgType':            'U7',
     'WithdrawReqID':      reqId,
+    'Status':             withdraw_record.status,
     'WithdrawID':         withdraw_record.id,
   }
   return json.dumps(response, cls=JsonEncoder)
@@ -1064,6 +1065,7 @@ def withdrawRecordToWithdrawMessage( withdraw ):
 def processWithdrawConfirmationRequest(session, msg):
   reqId = msg.get('WithdrawReqID')
   token = msg.get('ConfirmationToken')
+
 
   withdraw_id = msg.get('WithdrawID')
   second_factor = msg.get('SecondFactor')
