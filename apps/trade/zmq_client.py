@@ -61,7 +61,7 @@ class TradeClient(object):
       if opt_code == 'ERR':
         raise TradeClientException( error_message = raw_message )
 
-      raise TradeClientException( error_message = 'Protocol Error: Unknow message opt_code received' )
+      raise TradeClientException( error_message = 'Protocol Error: Unknown message opt_code received' )
 
     self.connection_id = raw_message
 

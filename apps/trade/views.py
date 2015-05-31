@@ -141,7 +141,11 @@ def processLogin(session, msg):
                              msg.get('SecondFactor'),
                              msg.get('FingerPrint'),
                              msg.get('RemoteIP'),
-                             msg.get('STUNTIP'))
+                             msg.get('STUNTIP'),
+                             msg.get('UserAgent'),
+                             msg.get('UserAgentLanguage'),
+                             msg.get('UserAgentTimezoneOffset'),
+                             msg.get('UserAgentPlatform'))
     session.set_user(user, {'*':[]} )
   except NeedSecondFactorException:
     need_second_factor = True
@@ -154,7 +158,11 @@ def processLogin(session, msg):
                                                    msg.get('Password'),
                                                    msg.get('FingerPrint'),
                                                    msg.get('RemoteIP'),
-                                                   msg.get('STUNTIP'))
+                                                   msg.get('STUNTIP'),
+                                                   msg.get('UserAgent'),
+                                                   msg.get('UserAgentLanguage'),
+                                                   msg.get('UserAgentTimezoneOffset'),
+                                                   msg.get('UserAgentPlatform'))
     session.set_user(user, permission_list )
 
 
@@ -833,7 +841,8 @@ def processRequestDepositMethods(session, msg):
       'DepositLimits':  json.loads(deposit_option.deposit_limits) ,
       'Currency': deposit_option.currency,
       'PercentFee': float(deposit_option.percent_fee),
-      'FixedFee': deposit_option.fixed_fee
+      'FixedFee': deposit_option.fixed_fee,
+      'UserReceiptURL': deposit_option.user_receipt_url
     } )
 
   response = {

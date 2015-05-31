@@ -300,7 +300,9 @@ class User(Base):
     return u, broker
 
   @staticmethod
-  def authenticate(session, broker_id, user, password, second_factor=None, finger_print=None, remote_ip=None, stunt_ip=None):
+  def authenticate(session, broker_id, user, password, second_factor=None, finger_print=None, remote_ip=None,
+                   stunt_ip=None, user_agent=None, user_agent_lang=None, user_agent_tz_offset=None,
+                   user_agent_platform=None):
     user = User.get_user( session, broker_id, user, user)
 
     if user and  user.two_factor_enabled and second_factor is None:
@@ -320,7 +322,8 @@ class User(Base):
         user.last_login = get_datetime_now()
 
         if finger_print or remote_ip:
-          AccessLog.login(session, user ,finger_print, remote_ip, stunt_ip)
+          AccessLog.login(session, user ,finger_print, remote_ip, stunt_ip, user_agent, user_agent_lang,
+                          user_agent_tz_offset,user_agent_platform)
 
         return user
 
@@ -589,7 +592,8 @@ class ApiAccess(Base):
     return api_access, raw_password
 
   @staticmethod
-  def authenticate(session, broker_id, api_key, api_password, finger_print, remote_ip, stunt_ip=None):
+  def authenticate(session, broker_id, api_key, api_password, finger_print, remote_ip, stunt_ip=None,
+                   user_agent=None, user_agent_lang=None, user_agent_tz_offset=None,user_agent_platform=None):
     api_access = ApiAccess.get_api_access_by_api_key(session, api_key)
     if api_access is None:
       return None, None
@@ -613,7 +617,8 @@ class ApiAccess(Base):
     session.add(api_access)
 
     if finger_print or remote_ip:
-      AccessLog.login(session, user ,finger_print, remote_ip, stunt_ip)
+      AccessLog.login(session, user ,finger_print, remote_ip, stunt_ip, user_agent=None,
+                      user_agent_lang=None, user_agent_tz_offset=None,user_agent_platform=None)
 
     return user, json.loads(api_access.permission_list)
 
@@ -639,11 +644,16 @@ class AccessLog(Base):
   number_of_logins      = Column(Integer,       nullable=False, default=1)
   created               = Column(DateTime,      default=get_datetime_now, nullable=False)
   last_login            = Column(DateTime,      default=get_datetime_now, onupdate=get_datetime_now, nullable=False)
+  user_agent            = Column(Text)
+  user_agent_lang       = Column(String(6))
+  user_agent_tz_offset  = Column(Integer)
+  user_agent_platform   = Column(String(15))
 
   __table_args__ = (Index('idx_access_log_broker_id_remote_ip_finger_print', 'broker_id', 'remote_ip', 'finger_print' ), )
 
   @staticmethod
-  def login(session, user, finger_print, remote_ip, stunt_ip=None ):
+  def login(session, user, finger_print, remote_ip, stunt_ip=None,user_agent=None, user_agent_lang=None,
+            user_agent_tz_offset=None,user_agent_platform=None ):
     if stunt_ip:
       stunt_ip = json.dumps(stunt_ip)
 
@@ -658,6 +668,10 @@ class AccessLog(Base):
       if log_record.user_id == user.id:
         found_previous_record = True
         log_record.number_of_logins += 1
+        log_record.user_agent             = user_agent
+        log_record.user_agent_lang        = user_agent_lang
+        log_record.user_agent_tz_offset   = user_agent_tz_offset
+        log_record.user_agent_platform    = user_agent_platform
         session.add(log_record)
       else:
         u = User.get_user(session, broker_id=log_record.broker_id, user_id=log_record.user_id)
@@ -665,14 +679,17 @@ class AccessLog(Base):
     
 
     if not found_previous_record:
-      log_record = AccessLog(user_id       = user.id,
-                             username      = user.username,
-                             broker_id     = user.broker_id,
-                             finger_print  = finger_print,
-                             remote_ip     = remote_ip,
-                             stunt_ip      = stunt_ip)
+      log_record = AccessLog(user_id              = user.id,
+                             username             = user.username,
+                             broker_id            = user.broker_id,
+                             finger_print         = finger_print,
+                             remote_ip            = remote_ip,
+                             stunt_ip             = stunt_ip,
+                             user_agent           = user_agent,
+                             user_agent_lang      = user_agent_lang,
+                             user_agent_tz_offset = user_agent_tz_offset,
+                             user_agent_platform  = user_agent_platform)
       session.add(log_record)
-
 
     if set_of_users_that_will_have_instant_withdrawal_disabled:
       set_of_users_that_will_have_instant_withdrawal_disabled.add(user)
@@ -1539,8 +1556,10 @@ class WithdrawTrustedRecipients(Base):
   broker_username = Column(String,        nullable=False, index=True)
   username        = Column(String,        nullable=False, index=True)
   currency        = Column(String,        nullable=False, index=True)
+  method          = Column(String,        nullable=False, index=True)
   label           = Column(String,        nullable=False, index=True)
   data            = Column(Text,          nullable=False, index=True)
+  created         = Column(DateTime,      nullable=False, default=get_datetime_now, index=True)
 
   @staticmethod
   def get_withdrawal_method(db_session, broker_id,  currency, method):
@@ -1607,6 +1626,7 @@ class WithdrawTrustedRecipients(Base):
                                           broker_username = withdraw_data.broker_username,
                                           username        = withdraw_data.username,
                                           currency        = withdraw_data.currency,
+                                          method          = withdraw_data.method,
                                           label           = label,
                                           data            = json.dumps(trusted_data) )
       session.add(entity)
@@ -2921,15 +2941,16 @@ class DepositMethods(Base):
   html_template             = Column(UnicodeText)
   deposit_limits            = Column(Text)
   parameters                = Column(Text,nullable=False)
+  user_receipt_url          = Column(Text)
 
 
   def __repr__(self):
     return u"<DepositMethods(id=%r, broker_id=%r, name=%r, description=%r, disclaimer=%r ,"\
            u"type=%r, broker_deposit_ctrl_num=%r, currency=%r, percent_fee=%r, fixed_fee=%r, "\
-           u"deposit_limits=%r, html_template=%r, parameters=%r)>"\
+           u"deposit_limits=%r, html_template=%r, parameters=%r,user_receipt_url=%r)>"\
     % (self.id, self.broker_id, self.name, self.description, self.disclaimer, self.type,
        self.broker_deposit_ctrl_num, self.currency, self.percent_fee, self.fixed_fee,
-       self.deposit_limits, self.html_template, self.parameters)
+       self.deposit_limits, self.html_template, self.parameters, self.user_receipt_url)
 
   @staticmethod
   def get_deposit_method(session, deposit_option_id):
