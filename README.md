@@ -1,3 +1,6 @@
+#This documentation is outdated.
+You must be a Senior Python Developer in order to understand what is going on. Don't try to run an exchange without an expert.
+
 BlinkTrade
 =====
 
