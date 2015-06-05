@@ -5,37 +5,37 @@ import os
 import ConfigParser
 import json
 import multiprocessing
-from functools import partial
-import  time
+import time
 import logging
 import argparse
 from appdirs import site_config_dir
+from functools import partial
 
 from Queue import Queue
 from threading import Thread
 
 
-ROOT_PATH = os.path.abspath( os.path.join(os.path.dirname(__file__), "../"))
-sys.path.insert( 0, os.path.join(ROOT_PATH, 'libs'))
-sys.path.insert( 0, os.path.join(ROOT_PATH, 'apps'))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+sys.path.insert(0, os.path.join(ROOT_PATH, 'libs'))
+sys.path.insert(0, os.path.join(ROOT_PATH, 'apps'))
 
 from pyblinktrade.project_options import ProjectOptions
 
 
 def trade_instance(instance_name, project_options):
-  from trade.trade_application import  TradeApplication
+  from trade.trade_application import TradeApplication
   app = TradeApplication.instance()
   app.initialize(project_options, instance_name)
   app.run()
 
 
-def ws_gateway_instance( instance_name , project_options):
+def ws_gateway_instance(instance_name, project_options):
   from ws_gateway.main import run_application
   run_application(project_options, instance_name)
 
-def mailer_instance( instance_name , project_options):
+def mailer_instance(instance_name, project_options):
   from mailer.main import run_application
-  run_application(project_options,instance_name)
+  run_application(project_options, instance_name)
 
 
 def main():
@@ -50,7 +50,7 @@ def main():
 
   candidates = [ os.path.join(site_config_dir('blinktrade'), 'bitex.ini'),
                  os.path.expanduser('~/.blinktrade/bitex.ini'),
-                 arguments.config]
+                 arguments.config ]
 
   config = ConfigParser.SafeConfigParser()
   config.read( candidates )
@@ -69,8 +69,8 @@ def main():
     processes.append(p)
 
   # start all sub processes
-  for p in  processes:
-    p.daemon  = True
+  for p in processes:
+    p.daemon = True
     p.start()
 
   # wait for them to finish
