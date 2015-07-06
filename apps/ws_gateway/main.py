@@ -510,7 +510,7 @@ class WebSocketGatewayApplication(tornado.web.Application):
         self.update_tor_nodes()
 
         from models import Base, db_bootstrap
-        db_engine = self.options.sqlalchemy_engine + ':///' +\
+        db_engine = self.options.sqlalchemy_engine + '://' +\
                     os.path.expanduser(self.options.sqlalchemy_connection_string)
         engine = create_engine( db_engine, echo=self.options.db_echo)
         Base.metadata.create_all(engine)

@@ -21,7 +21,7 @@ def main():
   config.read( candidates )
 
   from trade.models import Base, Currency, Instrument, User, Broker, DepositMethods
-  db_engine = config.get('database','sqlalchemy_engine') + ':///' + os.path.expanduser(config.get('database','sqlalchemy_connection_string'))
+  db_engine = config.get('database','sqlalchemy_engine') + '://' + os.path.expanduser(config.get('database','sqlalchemy_connection_string'))
   engine = create_engine( db_engine, echo=True)
   #engine.raw_connection().connection.text_factory = str
 

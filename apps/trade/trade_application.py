@@ -31,7 +31,7 @@ class TradeApplication(object):
       self.order_matcher_disabled = True
 
     from models import Base, db_bootstrap
-    db_engine = options.sqlalchemy_engine + ':///' + \
+    db_engine = options.sqlalchemy_engine + '://' + \
                 os.path.expanduser(options.sqlalchemy_connection_string)
     engine = create_engine( db_engine, echo=options.db_echo)
     Base.metadata.create_all(engine)
