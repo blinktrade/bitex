@@ -1,4 +1,4 @@
-#This documentation is outdated.
+# This documentation is outdated.
 You must be a Senior Python Developer in order to understand what is going on. Don't try to run an exchange without an expert.
 
 BlinkTrade
@@ -10,13 +10,13 @@ BlinkTrade - Open Source Exchange Platform
 
 [![Build Status](https://travis-ci.org/blinktrade/bitex.svg?branch=master)](https://travis-ci.org/blinktrade/bitex)
 
-#Get Started
+# Get Started
 
 ```
 $ pip install -r requirements.txt
 ```
 
-#Build and Run
+# Build and Run
 
 Download and install the pyblinktrade package from https://github.com/blinktrade/pyblinktrade
 
@@ -71,7 +71,7 @@ $ ./jsdev/build_release.sh  # recompile the application using the translated fil
 # vi ./static/statoshi_square.html
 ```
 
-#Why the name of the folder is Bitex ?
+# Why the name of the folder is Bitex ?
 
 Bitex stands for Bitcoin EXchange and it was the first that we came up it name of our platform, by mid 2014 a company called bitex.la was formed in Argentina and we were forced to change our name, this source code it is not related in any form to bitex.la.
 
@@ -83,7 +83,7 @@ Bitex stands for Bitcoin EXchange and it was the first that we came up it name o
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request
 
-#License
+# License
 
 **Code released under [the GNU GPL license](https://github.com/pinhopro/bitex/blob/master/LICENSE).**
 
